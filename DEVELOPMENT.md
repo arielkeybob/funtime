@@ -1,6 +1,6 @@
 # Intervalo — documentação de desenvolvimento
 
-**Versão da aplicação:** `v1.8.0`  
+**Versão da aplicação:** `v1.8.1`  
 **Versão do modelo persistido:** `DATA_VERSION = 7`  
 **Autor exibido na interface:** `arielkeybob`  
 **Stack:** HTML + CSS + JavaScript puro  
@@ -8,7 +8,7 @@
 **Backend:** não existe  
 **Build step:** não existe
 
-> Este documento descreve a arquitetura e o comportamento técnico da versão `v1.8.0`. Ele foi escrito para facilitar manutenção, depuração e evolução do projeto sem depender do histórico da conversa em que o app foi criado.
+> Este documento descreve a arquitetura e o comportamento técnico da versão `v1.8.1`. Ele foi escrito para facilitar manutenção, depuração e evolução do projeto sem depender do histórico da conversa em que o app foi criado.
 
 ---
 
@@ -67,7 +67,7 @@ O comportamento do app switcher varia entre Android/iOS e navegador; portanto o 
 
 ### 0.5 PIN do aplicativo
 
-O PIN tem 6 dígitos. Antes da persistência:
+Novos PINs têm 4 dígitos. PINs legados de 6 dígitos criados na V1.8.0 continuam válidos até serem substituídos. Antes da persistência:
 
 1. gera-se salt aleatório de 16 bytes via `crypto.getRandomValues`;
 2. o PIN é importado como material PBKDF2;

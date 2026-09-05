@@ -2,8 +2,9 @@ const DATA_STORAGE_KEY = "balada-v1-data";
 const LEGACY_DRINKS_STORAGE_KEY = "balada-v1-drinks";
 const DATA_VERSION = 7;
 const SECURITY_STORAGE_KEY = "intervalo-security-v1";
-const SECURITY_CONFIG_VERSION = 1;
-const PIN_LENGTH = 6;
+const SECURITY_CONFIG_VERSION = 2;
+const PIN_LENGTH = 4;
+const LEGACY_PIN_LENGTH = 6;
 const PIN_PBKDF2_ITERATIONS = 210000;
 const PIN_LOCKOUT_ATTEMPTS = 5;
 const PIN_LOCKOUT_MS = 30000;
@@ -190,6 +191,9 @@ function loadSecurityConfig() {
       salt: String(parsed.pin.salt),
       hash: String(parsed.pin.hash),
       iterations: Number(parsed.pin.iterations) || PIN_PBKDF2_ITERATIONS,
+      length: [PIN_LENGTH, LEGACY_PIN_LENGTH].includes(Number(parsed.pin.length))
+        ? Number(parsed.pin.length)
+        : LEGACY_PIN_LENGTH,
     } : null;
     config.webauthn = parsed.webauthn && parsed.webauthn.credentialId && parsed.webauthn.publicKey ? {
       credentialId: String(parsed.webauthn.credentialId),
@@ -255,8 +259,12 @@ async function derivePinHash(pin, saltBytes, iterations = PIN_PBKDF2_ITERATIONS)
   return new Uint8Array(bits);
 }
 
-function normalizePinInput(input) {
-  const digits = input.value.replace(/\D/g, "").slice(0, PIN_LENGTH);
+function getConfiguredPinLength() {
+  return state.securityConfig.pin?.length === LEGACY_PIN_LENGTH ? LEGACY_PIN_LENGTH : PIN_LENGTH;
+}
+
+function normalizePinInput(input, maxLength = PIN_LENGTH) {
+  const digits = input.value.replace(/\D/g, "").slice(0, maxLength);
   if (input.value !== digits) input.value = digits;
   return digits;
 }
@@ -493,6 +501,7 @@ async function configurePinSecurity(pin) {
       salt: bytesToBase64Url(salt),
       hash: bytesToBase64Url(hash),
       iterations: PIN_PBKDF2_ITERATIONS,
+      length: PIN_LENGTH,
     },
     webauthn: null,
   };
@@ -530,7 +539,12 @@ function showLockScreen() {
   deviceUnlockPanel.hidden = method !== "device";
   pinUnlockForm.hidden = method !== "pin";
   pinUnlockValue.value = "";
-  if (method === "pin") setTimeout(() => pinUnlockValue.focus(), 80);
+  if (method === "pin") {
+    const pinLength = getConfiguredPinLength();
+    pinUnlockValue.maxLength = pinLength;
+    pinUnlockValue.placeholder = "•".repeat(pinLength);
+    setTimeout(() => pinUnlockValue.focus(), 80);
+  }
 }
 
 function lockApp() {
@@ -597,10 +611,11 @@ async function handlePinUnlock(event) {
     return;
   }
 
-  const pin = normalizePinInput(pinUnlockValue);
-  if (pin.length !== PIN_LENGTH) {
+  const pinLength = getConfiguredPinLength();
+  const pin = normalizePinInput(pinUnlockValue, pinLength);
+  if (pin.length !== pinLength) {
     lockError.hidden = false;
-    lockError.textContent = "Digite os 6 dígitos do PIN.";
+    lockError.textContent = `Digite os ${pinLength} dígitos do PIN.`;
     return;
   }
 
@@ -638,7 +653,7 @@ async function handleDeviceUnlock() {
     lockError.textContent = error?.name === "NotAllowedError" ? "Autenticação cancelada ou não concluída." : (error?.message || "Não foi possível desbloquear.");
   } finally {
     deviceUnlockButton.disabled = false;
-    deviceUnlockButton.textContent = "Desbloquear com o aparelho";
+    deviceUnlockButton.textContent = "Entrar";
   }
 }
 
@@ -649,7 +664,7 @@ async function handlePinSetupSubmit(event) {
   pinSetupError.hidden = true;
 
   if (pin.length !== PIN_LENGTH) {
-    pinSetupError.textContent = "O PIN deve ter exatamente 6 dígitos.";
+    pinSetupError.textContent = "O PIN deve ter exatamente 4 dígitos.";
     pinSetupError.hidden = false;
     return;
   }
@@ -2507,7 +2522,7 @@ pinSetupForm.addEventListener("submit", handlePinSetupSubmit);
 pinSetupValue.addEventListener("input", () => normalizePinInput(pinSetupValue));
 pinSetupConfirm.addEventListener("input", () => normalizePinInput(pinSetupConfirm));
 pinUnlockForm.addEventListener("submit", handlePinUnlock);
-pinUnlockValue.addEventListener("input", () => normalizePinInput(pinUnlockValue));
+pinUnlockValue.addEventListener("input", () => normalizePinInput(pinUnlockValue, getConfiguredPinLength()));
 deviceUnlockButton.addEventListener("click", handleDeviceUnlock);
 
 document.querySelector("#open-add-dialog").addEventListener("click", openDrinkDialog);

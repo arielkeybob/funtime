@@ -16,15 +16,13 @@
 <body class="clean-mode security-booting">
   <div id="app-shell" class="app-shell">
     <header id="home-header" class="app-header home-header">
-      <div class="home-header-top">
-        <p class="eyebrow">Uso pessoal</p>
-        <button id="open-settings" class="settings-shortcut" type="button" aria-label="Abrir configurações" title="Configurações">⚙</button>
-      </div>
+      <p class="eyebrow home-header-eyebrow">Uso pessoal</p>
       <div class="home-header-main">
         <h1>Início</h1>
-        <div class="header-actions">
+        <div class="header-actions home-header-actions">
           <button id="open-history" class="header-text-button" type="button">Histórico</button>
           <button id="open-add-dialog" class="icon-button" type="button" aria-label="Adicionar bebida">+</button>
+          <button id="open-settings" class="settings-shortcut" type="button" aria-label="Abrir configurações" title="Configurações">⚙</button>
         </div>
       </div>
     </header>
@@ -122,7 +120,7 @@
       </section>
     </main>
 
-    <footer class="app-footer">v1.8.0 · By: arielkeybob</footer>
+    <footer class="app-footer">v1.8.1 · By: arielkeybob</footer>
   </div>
 
   <dialog id="drink-dialog" class="dialog">
@@ -458,7 +456,7 @@
         </button>
         <button id="choose-pin-auth" class="security-method-option" type="button">
           <span class="security-method-icon" aria-hidden="true">••</span>
-          <span><strong>PIN do aplicativo</strong><small>Crie um PIN de 6 dígitos exclusivo para o Intervalo.</small></span>
+          <span><strong>PIN do aplicativo</strong><small>Crie um PIN de 4 dígitos exclusivo para o Intervalo.</small></span>
         </button>
       </div>
       <p id="security-method-error" class="form-error" role="alert" hidden></p>
@@ -474,14 +472,14 @@
         </div>
         <button id="close-pin-setup" class="icon-button secondary" type="button" aria-label="Fechar">×</button>
       </div>
-      <p class="settings-description">Use 6 dígitos. O PIN não é salvo em texto puro no aparelho.</p>
+      <p class="settings-description">Use 4 dígitos. O PIN não é salvo em texto puro no aparelho.</p>
       <label class="field">
         <span>Novo PIN</span>
-        <input id="pin-setup-value" class="pin-input" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="6" autocomplete="new-password" placeholder="••••••">
+        <input id="pin-setup-value" class="pin-input" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="4" autocomplete="new-password" placeholder="••••">
       </label>
       <label class="field">
         <span>Confirmar PIN</span>
-        <input id="pin-setup-confirm" class="pin-input" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="6" autocomplete="new-password" placeholder="••••••">
+        <input id="pin-setup-confirm" class="pin-input" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="4" autocomplete="new-password" placeholder="••••">
       </label>
       <p id="pin-setup-error" class="form-error" role="alert" hidden></p>
       <div class="dialog-actions">
@@ -499,13 +497,13 @@
       <p class="lock-message">Aplicativo bloqueado</p>
 
       <div id="device-unlock-panel" class="unlock-panel" hidden>
-        <button id="device-unlock" class="primary-button unlock-primary" type="button">Desbloquear com o aparelho</button>
+        <button id="device-unlock" class="primary-button unlock-primary" type="button">Entrar</button>
       </div>
 
       <form id="pin-unlock-form" class="unlock-panel" novalidate hidden>
         <label class="field lock-pin-field">
           <span>PIN do aplicativo</span>
-          <input id="pin-unlock-value" class="pin-input lock-pin-input" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="6" autocomplete="off" placeholder="••••••">
+          <input id="pin-unlock-value" class="pin-input lock-pin-input" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="4" autocomplete="off" placeholder="••••">
         </label>
         <button id="pin-unlock-button" class="primary-button unlock-primary" type="submit">Desbloquear</button>
       </form>

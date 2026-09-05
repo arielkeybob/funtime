@@ -1,4 +1,4 @@
-const CACHE_NAME = "intervalo-v1-8-0";
+const CACHE_NAME = "intervalo-v1-8-1";
 
 const APP_SHELL = [
   "./",
