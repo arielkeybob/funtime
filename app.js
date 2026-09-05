@@ -75,6 +75,7 @@ const historyHeaderTitle = document.querySelector("#history-header-title");
 
 const drinkList = document.querySelector("#drink-list");
 const emptyState = document.querySelector("#empty-state");
+const homeAddZone = document.querySelector("#home-add-zone");
 const drinkDialog = document.querySelector("#drink-dialog");
 const drinkForm = document.querySelector("#drink-form");
 const nameInput = document.querySelector("#drink-name");
@@ -1424,6 +1425,7 @@ function attachDrinkInteractions(mainButton, drink) {
 function render() {
   drinkList.innerHTML = "";
   emptyState.hidden = state.drinks.length > 0;
+  homeAddZone.hidden = state.drinks.length === 0;
 
   getSortedDrinks().forEach((drink) => {
     const fragment = cardTemplate.content.cloneNode(true);

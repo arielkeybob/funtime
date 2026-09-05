@@ -16,14 +16,13 @@
 <body class="clean-mode security-booting">
   <div id="app-shell" class="app-shell">
     <header id="home-header" class="app-header home-header">
-      <p class="eyebrow home-header-eyebrow">Uso pessoal</p>
-      <div class="home-header-main">
+      <div class="home-header-copy">
+        <p class="eyebrow home-header-eyebrow">Uso pessoal</p>
         <h1>Início</h1>
-        <div class="header-actions home-header-actions">
-          <button id="open-history" class="header-text-button" type="button">Histórico</button>
-          <button id="open-add-dialog" class="icon-button" type="button" aria-label="Adicionar bebida">+</button>
-          <button id="open-settings" class="settings-shortcut" type="button" aria-label="Abrir configurações" title="Configurações">⚙</button>
-        </div>
+      </div>
+      <div class="header-actions home-header-actions">
+        <button id="open-history" class="header-text-button" type="button">Histórico</button>
+        <button id="open-settings" class="settings-shortcut" type="button" aria-label="Abrir configurações" title="Configurações">⚙</button>
       </div>
     </header>
 
@@ -52,6 +51,10 @@
       </section>
 
       <section id="drink-list" class="drink-list" aria-live="polite"></section>
+
+      <div id="home-add-zone" class="home-add-zone" hidden>
+        <button id="open-add-dialog" class="home-add-button" type="button" aria-label="Adicionar bebida">+</button>
+      </div>
 
       <section class="notice" aria-label="Aviso">
         O contador mostra apenas o intervalo que você configurou. Ele não indica que é seguro consumir mais álcool.
@@ -121,7 +124,7 @@
       </section>
     </main>
 
-    <footer class="app-footer">v1.8.3 · By: arielkeybob</footer>
+    <footer class="app-footer">v1.8.4 · By: arielkeybob</footer>
   </div>
 
   <dialog id="drink-dialog" class="dialog">

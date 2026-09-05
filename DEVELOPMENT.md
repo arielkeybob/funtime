@@ -1,6 +1,6 @@
 # Intervalo — documentação de desenvolvimento
 
-**Versão da aplicação:** `v1.8.3`  
+**Versão da aplicação:** `v1.8.4`  
 **Versão do modelo persistido:** `DATA_VERSION = 7`  
 **Autor exibido na interface:** `arielkeybob`  
 **Stack:** HTML + CSS + JavaScript puro  
@@ -8,7 +8,7 @@
 **Backend:** não existe  
 **Build step:** não existe
 
-> Este documento descreve a arquitetura e o comportamento técnico da versão `v1.8.3`. Ele foi escrito para facilitar manutenção, depuração e evolução do projeto sem depender do histórico da conversa em que o app foi criado.
+> Este documento descreve a arquitetura e o comportamento técnico da versão `v1.8.4`. Ele foi escrito para facilitar manutenção, depuração e evolução do projeto sem depender do histórico da conversa em que o app foi criado.
 
 ---
 
@@ -166,7 +166,15 @@ O cache do Service Worker desta versão é `intervalo-v1-6-5`.
 - Linha superior: `USO PESSOAL` + atalho de Configurações.
 - Linha principal: `Início` + grupo de ações `Histórico` e `+`.
 - A mudança é exclusivamente de composição responsiva; os IDs dos botões e seus event listeners foram preservados.
-- Cache do Service Worker: `intervalo-v1-8-3`.
+- Cache do Service Worker: `intervalo-v1-8-4`.
+
+## Alterações da v1.8.4
+
+- O header da tela inicial usa duas áreas fixas: identidade da tela à esquerda e ações `Histórico` / `Configurações` à direita.
+- `Adicionar bebida` foi removido do header e colocado em uma zona própria, centralizada logo após `#drink-list`.
+- A zona `#home-add-zone` fica oculta quando não existem bebidas, pois o estado vazio já possui sua própria ação de cadastro.
+- A alteração é puramente de UI; não modifica persistência, histórico ou regras de segurança.
+
 
 ## 1. Alterações da V1.6.4
 
