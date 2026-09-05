@@ -2100,3 +2100,397 @@ h2 {
     font-size: 0.78rem;
   }
 }
+
+/* V1.8.0 — Configurações, privacidade e bloqueio do aplicativo */
+.security-booting #app-shell,
+.app-locked #app-shell {
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.home-header {
+  display: grid;
+  gap: 8px;
+}
+
+.home-header-top,
+.home-header-main {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.home-header-top .eyebrow {
+  margin-bottom: 0;
+}
+
+.settings-shortcut {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  background: var(--surface);
+  color: var(--muted);
+  font-size: 1.1rem;
+  line-height: 1;
+}
+
+.settings-shortcut:active {
+  background: var(--surface-2);
+  color: var(--text);
+}
+
+.settings-view {
+  display: grid;
+  gap: 14px;
+}
+
+.settings-card {
+  display: grid;
+  gap: 16px;
+  padding: 18px;
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  background: var(--surface);
+}
+
+.settings-section-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.settings-section-heading .eyebrow {
+  margin-bottom: 5px;
+}
+
+.settings-section-heading h2 {
+  font-size: 1.2rem;
+}
+
+.settings-description,
+.settings-privacy-note p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.86rem;
+  line-height: 1.5;
+}
+
+.security-switch {
+  position: relative;
+  flex: 0 0 auto;
+  cursor: pointer;
+}
+
+.security-switch input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+}
+
+.security-switch-track {
+  position: relative;
+  display: block;
+  width: 50px;
+  height: 28px;
+  border: 1px solid var(--border);
+  border-radius: 99px;
+  background: var(--surface-2);
+  transition: background-color 160ms ease, border-color 160ms ease;
+}
+
+.security-switch-track span {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #d4d4d8;
+  transition: transform 180ms ease, background-color 180ms ease;
+}
+
+.security-switch input:checked + .security-switch-track {
+  border-color: rgb(94 233 155 / 0.6);
+  background: rgb(94 233 155 / 0.22);
+}
+
+.security-switch input:checked + .security-switch-track span {
+  transform: translateX(22px);
+  background: var(--success);
+}
+
+.security-switch input:focus-visible + .security-switch-track {
+  outline: 3px solid rgb(255 255 255 / 0.45);
+  outline-offset: 3px;
+}
+
+.security-details {
+  display: grid;
+  gap: 12px;
+  padding-top: 4px;
+}
+
+.settings-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  min-height: 48px;
+  padding: 0 12px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: #0d0d10;
+}
+
+.settings-row span,
+.settings-field > span {
+  color: var(--muted);
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.settings-row strong {
+  text-align: right;
+  font-size: 0.84rem;
+}
+
+.settings-secondary-button,
+.settings-lock-button {
+  min-height: 46px;
+  padding: 0 14px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: #0d0d10;
+  color: var(--text);
+  font-weight: 750;
+}
+
+.settings-lock-button {
+  border-color: rgb(255 255 255 / 0.16);
+  background: var(--surface-2);
+}
+
+.settings-field {
+  display: grid;
+  gap: 7px;
+}
+
+.settings-field select {
+  width: 100%;
+  min-height: 48px;
+  padding: 0 12px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  outline: none;
+  background: #0d0d10;
+  color: var(--text);
+  font: inherit;
+}
+
+.security-support-note {
+  padding-top: 2px;
+  color: #9be8bd;
+  font-size: 0.76rem;
+  line-height: 1.45;
+}
+
+.security-support-note.is-warning {
+  color: #d4d4d8;
+}
+
+.settings-privacy-note {
+  gap: 8px;
+}
+
+.settings-privacy-note strong {
+  font-size: 0.95rem;
+}
+
+.security-method-dialog form,
+.pin-setup-dialog form {
+  gap: 18px;
+}
+
+.security-method-options {
+  display: grid;
+  gap: 10px;
+}
+
+.security-method-option {
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr);
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 74px;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: #0d0d10;
+  color: var(--text);
+  text-align: left;
+}
+
+.security-method-option:disabled {
+  cursor: not-allowed;
+  opacity: 0.42;
+}
+
+.security-method-icon {
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  background: var(--surface-2);
+  color: var(--text);
+  font-size: 1.1rem;
+  font-weight: 800;
+}
+
+.security-method-option > span:last-child {
+  display: grid;
+  gap: 4px;
+}
+
+.security-method-option strong {
+  font-size: 0.95rem;
+}
+
+.security-method-option small {
+  color: var(--muted);
+  font-size: 0.76rem;
+  line-height: 1.35;
+}
+
+.pin-input {
+  font-size: 1.25rem !important;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.28em;
+  text-align: center;
+}
+
+.lock-screen {
+  position: fixed;
+  z-index: 10000;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  min-height: 100vh;
+  min-height: 100dvh;
+  padding: max(24px, env(safe-area-inset-top)) 20px max(24px, env(safe-area-inset-bottom));
+  overflow: auto;
+  background: #09090b;
+}
+
+.lock-card {
+  display: grid;
+  justify-items: center;
+  gap: 12px;
+  width: min(100%, 390px);
+  text-align: center;
+}
+
+.lock-logo {
+  width: 108px;
+  height: 108px;
+  margin-bottom: 8px;
+  border-radius: 24px;
+  object-fit: cover;
+  box-shadow: 0 16px 42px rgb(0 0 0 / 0.4);
+}
+
+.lock-card .eyebrow {
+  margin: 0;
+}
+
+.lock-card h1 {
+  margin: 0;
+  font-size: 2.5rem;
+}
+
+.lock-message {
+  margin: 0 0 8px;
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+
+.unlock-panel {
+  display: grid;
+  gap: 12px;
+  width: 100%;
+  margin-top: 8px;
+}
+
+.unlock-primary {
+  width: 100%;
+  min-height: 52px;
+}
+
+.lock-pin-field {
+  text-align: left;
+}
+
+.lock-pin-input {
+  min-height: 54px !important;
+}
+
+.lock-error {
+  min-height: 1.4em;
+  margin: 2px 0 0;
+  color: #ff9da2;
+  font-size: 0.82rem;
+  line-height: 1.4;
+}
+
+.privacy-shield {
+  position: fixed;
+  z-index: 12000;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 12px;
+  background: #09090b;
+}
+
+.privacy-shield img {
+  width: 76px;
+  height: 76px;
+  border-radius: 18px;
+}
+
+.privacy-shield strong {
+  font-size: 1.2rem;
+}
+
+@media (max-width: 420px) {
+  .home-header-main {
+    align-items: flex-end;
+  }
+
+  .home-header .header-actions {
+    gap: 8px;
+  }
+
+  .home-header .header-text-button {
+    min-height: 42px;
+    padding-inline: 12px;
+  }
+
+  .home-header .icon-button {
+    width: 46px;
+    height: 46px;
+  }
+
+  .settings-card {
+    padding: 15px;
+  }
+}

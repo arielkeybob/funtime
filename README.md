@@ -1,4 +1,4 @@
-# Intervalo — V1.7.0
+# Intervalo — V1.8.0
 
 Aplicação em HTML, CSS e JavaScript puro para registro pessoal de bebidas e acompanhamento dos intervalos configurados pelo usuário.
 
@@ -6,6 +6,23 @@ Documentação técnica detalhada: [`DEVELOPMENT.md`](./DEVELOPMENT.md).
 
 
 
+
+
+## Mudanças da V1.8.0
+
+- Adicionada uma tela dedicada de **Configurações**, acessível por uma engrenagem discreta na linha superior do cabeçalho. O cabeçalho foi reorganizado em duas linhas para preservar o acesso direto a **Histórico** e **Adicionar** sem comprimir o título `Início`.
+- Adicionado **bloqueio do aplicativo** opcional. Quando ativo, bebidas, histórico e demais dados da interface ficam ocultos até o desbloqueio.
+- Dois métodos de desbloqueio: **Biometria / bloqueio do aparelho** via WebAuthn e **PIN do aplicativo** de 6 dígitos.
+- O método de aparelho usa `userVerification: "required"` e `authenticatorAttachment: "platform"`. O sistema operacional decide se a verificação será impressão digital, reconhecimento facial ou credencial de bloqueio disponível.
+- A credencial WebAuthn é validada localmente: challenge, origin, RP ID hash, flags de presença/verificação do usuário e assinatura da assertion são conferidos no navegador.
+- PIN local derivado com **PBKDF2 + SHA-256**, salt aleatório e 210.000 iterações. O PIN em texto puro não é persistido.
+- Após 5 PINs incorretos, o desbloqueio fica temporariamente bloqueado por 30 segundos.
+- O usuário pode escolher novo bloqueio **imediato, após 1, 5 ou 15 minutos** depois que o app vai para background.
+- Durante o background é aplicado um **privacy shield** para reduzir exposição dos dados no seletor de aplicativos; diálogos abertos são fechados quando a proteção está ativa.
+- Adicionado botão **Bloquear agora**.
+- Configuração de segurança fica separada dos dados de bebidas em `intervalo-security-v1`. `DATA_VERSION` permanece `7`.
+- O bloqueio desta versão é uma proteção de acesso pela interface. Os dados do histórico ainda não são criptografados em repouso.
+- Cache da PWA atualizado para `intervalo-v1-8-0`.
 
 ## Mudanças da V1.7.0
 

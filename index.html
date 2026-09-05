@@ -13,16 +13,19 @@
   <link rel="apple-touch-icon" href="./icons/apple-touch-icon-v164.png" sizes="180x180">
   <link rel="stylesheet" href="./styles.css">
 </head>
-<body class="clean-mode">
-  <div class="app-shell">
-    <header id="home-header" class="app-header">
-      <div>
+<body class="clean-mode security-booting">
+  <div id="app-shell" class="app-shell">
+    <header id="home-header" class="app-header home-header">
+      <div class="home-header-top">
         <p class="eyebrow">Uso pessoal</p>
-        <h1>Início</h1>
+        <button id="open-settings" class="settings-shortcut" type="button" aria-label="Abrir configurações" title="Configurações">⚙</button>
       </div>
-      <div class="header-actions">
-        <button id="open-history" class="header-text-button" type="button">Histórico</button>
-        <button id="open-add-dialog" class="icon-button" type="button" aria-label="Adicionar bebida">+</button>
+      <div class="home-header-main">
+        <h1>Início</h1>
+        <div class="header-actions">
+          <button id="open-history" class="header-text-button" type="button">Histórico</button>
+          <button id="open-add-dialog" class="icon-button" type="button" aria-label="Adicionar bebida">+</button>
+        </div>
       </div>
     </header>
 
@@ -31,6 +34,14 @@
       <div class="history-header-copy">
         <p id="history-header-eyebrow" class="eyebrow">Registros</p>
         <h1 id="history-header-title">Histórico</h1>
+      </div>
+    </header>
+
+    <header id="settings-header" class="app-header history-header" hidden>
+      <button id="close-settings" class="back-button" type="button" aria-label="Voltar para a tela principal">←</button>
+      <div class="history-header-copy">
+        <p class="eyebrow">Preferências</p>
+        <h1>Configurações</h1>
       </div>
     </header>
 
@@ -66,7 +77,52 @@
       <section id="history-list" class="history-list" aria-live="polite"></section>
     </main>
 
-    <footer class="app-footer">v1.7.1 · By: arielkeybob</footer>
+    <main id="settings-view" class="settings-view" hidden>
+      <section class="settings-card">
+        <div class="settings-section-heading">
+          <div>
+            <p class="eyebrow">Privacidade</p>
+            <h2>Bloqueio do aplicativo</h2>
+          </div>
+          <label class="security-switch" aria-label="Bloquear aplicativo">
+            <input id="security-enabled" type="checkbox">
+            <span class="security-switch-track" aria-hidden="true"><span></span></span>
+          </label>
+        </div>
+
+        <p class="settings-description">Ao bloquear, suas bebidas e seu histórico deixam de aparecer até você se autenticar novamente.</p>
+
+        <div id="security-details" class="security-details" hidden>
+          <div class="settings-row">
+            <span>Método</span>
+            <strong id="security-method-label">—</strong>
+          </div>
+          <button id="change-security-method" class="settings-secondary-button" type="button">Alterar método</button>
+
+          <label class="settings-field" for="security-relock">
+            <span>Bloquear novamente</span>
+            <select id="security-relock">
+              <option value="0">Imediatamente</option>
+              <option value="60" selected>Após 1 minuto</option>
+              <option value="300">Após 5 minutos</option>
+              <option value="900">Após 15 minutos</option>
+            </select>
+          </label>
+
+          <button id="lock-now" class="settings-lock-button" type="button">🔒 Bloquear agora</button>
+        </div>
+
+        <div id="device-auth-support" class="security-support-note"></div>
+      </section>
+
+      <section class="settings-card settings-privacy-note">
+        <strong>Sobre a proteção</strong>
+        <p>Biometria/bloqueio do aparelho é validado pelo próprio sistema. O app não recebe sua impressão digital, rosto ou PIN do aparelho.</p>
+        <p>Esta versão protege o acesso pela interface. A criptografia completa dos dados locais será tratada separadamente.</p>
+      </section>
+    </main>
+
+    <footer class="app-footer">v1.8.0 · By: arielkeybob</footer>
   </div>
 
   <dialog id="drink-dialog" class="dialog">
@@ -383,6 +439,85 @@
       </div>
     </article>
   </template>
+
+
+  <dialog id="security-method-dialog" class="dialog security-method-dialog">
+    <form method="dialog">
+      <div class="dialog-header">
+        <div>
+          <p class="eyebrow">Privacidade</p>
+          <h2>Como desbloquear?</h2>
+        </div>
+        <button id="close-security-method" class="icon-button secondary" type="button" aria-label="Fechar">×</button>
+      </div>
+
+      <div class="security-method-options">
+        <button id="choose-device-auth" class="security-method-option" type="button">
+          <span class="security-method-icon" aria-hidden="true">◉</span>
+          <span><strong>Biometria / aparelho</strong><small>Usa impressão digital, rosto ou bloqueio do dispositivo quando disponível.</small></span>
+        </button>
+        <button id="choose-pin-auth" class="security-method-option" type="button">
+          <span class="security-method-icon" aria-hidden="true">••</span>
+          <span><strong>PIN do aplicativo</strong><small>Crie um PIN de 6 dígitos exclusivo para o Intervalo.</small></span>
+        </button>
+      </div>
+      <p id="security-method-error" class="form-error" role="alert" hidden></p>
+    </form>
+  </dialog>
+
+  <dialog id="pin-setup-dialog" class="dialog pin-setup-dialog">
+    <form id="pin-setup-form" novalidate>
+      <div class="dialog-header">
+        <div>
+          <p class="eyebrow">Segurança</p>
+          <h2>Criar PIN</h2>
+        </div>
+        <button id="close-pin-setup" class="icon-button secondary" type="button" aria-label="Fechar">×</button>
+      </div>
+      <p class="settings-description">Use 6 dígitos. O PIN não é salvo em texto puro no aparelho.</p>
+      <label class="field">
+        <span>Novo PIN</span>
+        <input id="pin-setup-value" class="pin-input" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="6" autocomplete="new-password" placeholder="••••••">
+      </label>
+      <label class="field">
+        <span>Confirmar PIN</span>
+        <input id="pin-setup-confirm" class="pin-input" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="6" autocomplete="new-password" placeholder="••••••">
+      </label>
+      <p id="pin-setup-error" class="form-error" role="alert" hidden></p>
+      <div class="dialog-actions">
+        <button id="cancel-pin-setup" class="secondary-button" type="button">Cancelar</button>
+        <button class="primary-button" type="submit">Salvar PIN</button>
+      </div>
+    </form>
+  </dialog>
+
+  <section id="lock-screen" class="lock-screen" aria-labelledby="lock-title" hidden>
+    <div class="lock-card">
+      <img class="lock-logo" src="./icons/icon-192-v164.png" alt="">
+      <p class="eyebrow">Uso pessoal</p>
+      <h1 id="lock-title">Intervalo</h1>
+      <p class="lock-message">Aplicativo bloqueado</p>
+
+      <div id="device-unlock-panel" class="unlock-panel" hidden>
+        <button id="device-unlock" class="primary-button unlock-primary" type="button">Desbloquear com o aparelho</button>
+      </div>
+
+      <form id="pin-unlock-form" class="unlock-panel" novalidate hidden>
+        <label class="field lock-pin-field">
+          <span>PIN do aplicativo</span>
+          <input id="pin-unlock-value" class="pin-input lock-pin-input" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="6" autocomplete="off" placeholder="••••••">
+        </label>
+        <button id="pin-unlock-button" class="primary-button unlock-primary" type="submit">Desbloquear</button>
+      </form>
+
+      <p id="lock-error" class="lock-error" role="alert" hidden></p>
+    </div>
+  </section>
+
+  <div id="privacy-shield" class="privacy-shield" hidden>
+    <img src="./icons/icon-192-v164.png" alt="">
+    <strong>Intervalo</strong>
+  </div>
 
 
   <div id="update-toast" class="update-toast" role="status" aria-live="polite" hidden>

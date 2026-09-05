@@ -1,6 +1,12 @@
 const DATA_STORAGE_KEY = "balada-v1-data";
 const LEGACY_DRINKS_STORAGE_KEY = "balada-v1-drinks";
 const DATA_VERSION = 7;
+const SECURITY_STORAGE_KEY = "intervalo-security-v1";
+const SECURITY_CONFIG_VERSION = 1;
+const PIN_LENGTH = 6;
+const PIN_PBKDF2_ITERATIONS = 210000;
+const PIN_LOCKOUT_ATTEMPTS = 5;
+const PIN_LOCKOUT_MS = 30000;
 
 const PICKER_ICONS = [
   "🍬", "💊", "🍍", "🍭", "🥃", "🍺", "🍷", "🥂",
@@ -43,6 +49,15 @@ const state = {
   toastTimerId: null,
   reorderAnimationUntil: 0,
   pendingDoubleTap: null,
+  securityConfig: loadSecurityConfig(),
+  securityLocked: false,
+  securityHiddenAt: null,
+  privacyShieldVisible: false,
+  pinFailedAttempts: 0,
+  pinLockoutUntil: 0,
+  pinLockoutTimer: null,
+  deviceAuthSupported: false,
+  securitySetupContext: "enable",
 };
 
 const homeHeader = document.querySelector("#home-header");
@@ -124,6 +139,589 @@ const toastUndo = document.querySelector("#toast-undo");
 const updateToast = document.querySelector("#update-toast");
 const applyUpdateButton = document.querySelector("#apply-update");
 const dismissUpdateButton = document.querySelector("#dismiss-update");
+
+const appShell = document.querySelector("#app-shell");
+const settingsHeader = document.querySelector("#settings-header");
+const settingsView = document.querySelector("#settings-view");
+const securityEnabledInput = document.querySelector("#security-enabled");
+const securityDetails = document.querySelector("#security-details");
+const securityMethodLabel = document.querySelector("#security-method-label");
+const securityRelockSelect = document.querySelector("#security-relock");
+const deviceAuthSupport = document.querySelector("#device-auth-support");
+const securityMethodDialog = document.querySelector("#security-method-dialog");
+const securityMethodError = document.querySelector("#security-method-error");
+const chooseDeviceAuthButton = document.querySelector("#choose-device-auth");
+const choosePinAuthButton = document.querySelector("#choose-pin-auth");
+const pinSetupDialog = document.querySelector("#pin-setup-dialog");
+const pinSetupForm = document.querySelector("#pin-setup-form");
+const pinSetupValue = document.querySelector("#pin-setup-value");
+const pinSetupConfirm = document.querySelector("#pin-setup-confirm");
+const pinSetupError = document.querySelector("#pin-setup-error");
+const lockScreen = document.querySelector("#lock-screen");
+const deviceUnlockPanel = document.querySelector("#device-unlock-panel");
+const deviceUnlockButton = document.querySelector("#device-unlock");
+const pinUnlockForm = document.querySelector("#pin-unlock-form");
+const pinUnlockValue = document.querySelector("#pin-unlock-value");
+const lockError = document.querySelector("#lock-error");
+const privacyShield = document.querySelector("#privacy-shield");
+
+
+function getDefaultSecurityConfig() {
+  return {
+    version: SECURITY_CONFIG_VERSION,
+    enabled: false,
+    method: null,
+    relockSeconds: 60,
+    pin: null,
+    webauthn: null,
+  };
+}
+
+function loadSecurityConfig() {
+  try {
+    const raw = localStorage.getItem(SECURITY_STORAGE_KEY);
+    if (!raw) return getDefaultSecurityConfig();
+    const parsed = JSON.parse(raw);
+    const config = getDefaultSecurityConfig();
+    config.enabled = Boolean(parsed.enabled);
+    config.method = parsed.method === "pin" || parsed.method === "device" ? parsed.method : null;
+    config.relockSeconds = [0, 60, 300, 900].includes(Number(parsed.relockSeconds)) ? Number(parsed.relockSeconds) : 60;
+    config.pin = parsed.pin && parsed.pin.salt && parsed.pin.hash ? {
+      salt: String(parsed.pin.salt),
+      hash: String(parsed.pin.hash),
+      iterations: Number(parsed.pin.iterations) || PIN_PBKDF2_ITERATIONS,
+    } : null;
+    config.webauthn = parsed.webauthn && parsed.webauthn.credentialId && parsed.webauthn.publicKey ? {
+      credentialId: String(parsed.webauthn.credentialId),
+      publicKey: String(parsed.webauthn.publicKey),
+      algorithm: Number(parsed.webauthn.algorithm),
+    } : null;
+    if (config.enabled && !config.method) config.enabled = false;
+    if (config.method === "pin" && !config.pin) config.enabled = false;
+    if (config.method === "device" && !config.webauthn) config.enabled = false;
+    return config;
+  } catch (error) {
+    console.warn("Não foi possível carregar as configurações de segurança.", error);
+    return getDefaultSecurityConfig();
+  }
+}
+
+function saveSecurityConfig() {
+  localStorage.setItem(SECURITY_STORAGE_KEY, JSON.stringify(state.securityConfig));
+}
+
+function bytesToBase64Url(input) {
+  const bytes = input instanceof Uint8Array ? input : new Uint8Array(input);
+  let binary = "";
+  for (const byte of bytes) binary += String.fromCharCode(byte);
+  return btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, "");
+}
+
+function base64UrlToBytes(value) {
+  const padded = value.replace(/-/g, "+").replace(/_/g, "/") + "===".slice((value.length + 3) % 4);
+  const binary = atob(padded);
+  return Uint8Array.from(binary, (char) => char.charCodeAt(0));
+}
+
+function randomBytes(length = 32) {
+  const bytes = new Uint8Array(length);
+  crypto.getRandomValues(bytes);
+  return bytes;
+}
+
+function equalBytes(a, b) {
+  const left = a instanceof Uint8Array ? a : new Uint8Array(a);
+  const right = b instanceof Uint8Array ? b : new Uint8Array(b);
+  if (left.length !== right.length) return false;
+  let diff = 0;
+  for (let i = 0; i < left.length; i += 1) diff |= left[i] ^ right[i];
+  return diff === 0;
+}
+
+async function derivePinHash(pin, saltBytes, iterations = PIN_PBKDF2_ITERATIONS) {
+  const material = await crypto.subtle.importKey(
+    "raw",
+    new TextEncoder().encode(pin),
+    "PBKDF2",
+    false,
+    ["deriveBits"]
+  );
+  const bits = await crypto.subtle.deriveBits({
+    name: "PBKDF2",
+    salt: saltBytes,
+    iterations,
+    hash: "SHA-256",
+  }, material, 256);
+  return new Uint8Array(bits);
+}
+
+function normalizePinInput(input) {
+  const digits = input.value.replace(/\D/g, "").slice(0, PIN_LENGTH);
+  if (input.value !== digits) input.value = digits;
+  return digits;
+}
+
+async function isPlatformDeviceAuthAvailable() {
+  if (!window.isSecureContext || !window.PublicKeyCredential || !navigator.credentials?.create || !navigator.credentials?.get) {
+    return false;
+  }
+  if (typeof PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable !== "function") return false;
+  try {
+    return await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable();
+  } catch (error) {
+    return false;
+  }
+}
+
+function derEcdsaSignatureToRaw(signature, coordinateLength = 32) {
+  const bytes = signature instanceof Uint8Array ? signature : new Uint8Array(signature);
+  if (bytes.length === coordinateLength * 2 && bytes[0] !== 0x30) return bytes;
+  if (bytes[0] !== 0x30) throw new Error("Assinatura ECDSA inválida.");
+
+  let offset = 1;
+  let sequenceLength = bytes[offset++];
+  if (sequenceLength & 0x80) {
+    const lengthBytes = sequenceLength & 0x7f;
+    sequenceLength = 0;
+    for (let i = 0; i < lengthBytes; i += 1) sequenceLength = (sequenceLength << 8) | bytes[offset++];
+  }
+
+  if (bytes[offset++] !== 0x02) throw new Error("Assinatura ECDSA sem R.");
+  let rLength = bytes[offset++];
+  let r = bytes.slice(offset, offset + rLength);
+  offset += rLength;
+  if (bytes[offset++] !== 0x02) throw new Error("Assinatura ECDSA sem S.");
+  let sLength = bytes[offset++];
+  let s = bytes.slice(offset, offset + sLength);
+
+  while (r.length > coordinateLength && r[0] === 0) r = r.slice(1);
+  while (s.length > coordinateLength && s[0] === 0) s = s.slice(1);
+  if (r.length > coordinateLength || s.length > coordinateLength) throw new Error("Assinatura ECDSA fora do tamanho esperado.");
+
+  const raw = new Uint8Array(coordinateLength * 2);
+  raw.set(r, coordinateLength - r.length);
+  raw.set(s, coordinateLength * 2 - s.length);
+  return raw;
+}
+
+async function createDeviceCredential() {
+  if (!state.deviceAuthSupported) throw new Error("A autenticação do aparelho não está disponível neste dispositivo.");
+
+  const challenge = randomBytes(32);
+  const userId = randomBytes(16);
+  const credential = await navigator.credentials.create({
+    publicKey: {
+      challenge,
+      rp: { name: "Intervalo" },
+      user: {
+        id: userId,
+        name: `intervalo-${Date.now()}@local`,
+        displayName: "Intervalo",
+      },
+      pubKeyCredParams: [
+        { type: "public-key", alg: -7 },
+        { type: "public-key", alg: -257 },
+      ],
+      timeout: 60000,
+      authenticatorSelection: {
+        authenticatorAttachment: "platform",
+        residentKey: "discouraged",
+        userVerification: "required",
+      },
+      attestation: "none",
+    },
+  });
+
+  if (!credential) throw new Error("A autenticação foi cancelada.");
+  const response = credential.response;
+  if (typeof response.getPublicKey !== "function" || typeof response.getPublicKeyAlgorithm !== "function") {
+    throw new Error("Este navegador não permite configurar autenticação local segura. Use o PIN do aplicativo.");
+  }
+
+  const publicKey = response.getPublicKey();
+  const algorithm = response.getPublicKeyAlgorithm();
+  if (!publicKey || ![-7, -257].includes(algorithm)) {
+    throw new Error("O tipo de chave deste aparelho não é compatível. Use o PIN do aplicativo.");
+  }
+
+  return {
+    credentialId: bytesToBase64Url(credential.rawId),
+    publicKey: bytesToBase64Url(publicKey),
+    algorithm,
+  };
+}
+
+async function verifyDeviceCredential() {
+  const stored = state.securityConfig.webauthn;
+  if (!stored) return false;
+
+  const challenge = randomBytes(32);
+  const assertion = await navigator.credentials.get({
+    publicKey: {
+      challenge,
+      timeout: 60000,
+      userVerification: "required",
+      allowCredentials: [{
+        type: "public-key",
+        id: base64UrlToBytes(stored.credentialId),
+      }],
+    },
+  });
+  if (!assertion || bytesToBase64Url(assertion.rawId) !== stored.credentialId) return false;
+
+  const clientDataJSON = new Uint8Array(assertion.response.clientDataJSON);
+  const clientData = JSON.parse(new TextDecoder().decode(clientDataJSON));
+  if (clientData.type !== "webauthn.get") return false;
+  if (clientData.origin !== location.origin) return false;
+  if (clientData.challenge !== bytesToBase64Url(challenge)) return false;
+
+  const authenticatorData = new Uint8Array(assertion.response.authenticatorData);
+  if (authenticatorData.length < 37) return false;
+  const expectedRpHash = new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(location.hostname)));
+  if (!equalBytes(authenticatorData.slice(0, 32), expectedRpHash)) return false;
+  const flags = authenticatorData[32];
+  if ((flags & 0x01) === 0 || (flags & 0x04) === 0) return false;
+
+  const clientHash = new Uint8Array(await crypto.subtle.digest("SHA-256", clientDataJSON));
+  const signedData = new Uint8Array(authenticatorData.length + clientHash.length);
+  signedData.set(authenticatorData, 0);
+  signedData.set(clientHash, authenticatorData.length);
+
+  const spki = base64UrlToBytes(stored.publicKey);
+  const signature = new Uint8Array(assertion.response.signature);
+
+  if (stored.algorithm === -7) {
+    const key = await crypto.subtle.importKey("spki", spki, { name: "ECDSA", namedCurve: "P-256" }, false, ["verify"]);
+    const rawSignature = derEcdsaSignatureToRaw(signature, 32);
+    return crypto.subtle.verify({ name: "ECDSA", hash: "SHA-256" }, key, rawSignature, signedData);
+  }
+
+  if (stored.algorithm === -257) {
+    const key = await crypto.subtle.importKey("spki", spki, { name: "RSASSA-PKCS1-v1_5", hash: "SHA-256" }, false, ["verify"]);
+    return crypto.subtle.verify({ name: "RSASSA-PKCS1-v1_5" }, key, signature, signedData);
+  }
+
+  return false;
+}
+
+function getSecurityMethodLabel(method = state.securityConfig.method) {
+  if (method === "device") return "Biometria / aparelho";
+  if (method === "pin") return "PIN do aplicativo";
+  return "Não configurado";
+}
+
+function updateSecuritySettingsUI() {
+  const config = state.securityConfig;
+  securityEnabledInput.checked = config.enabled;
+  securityDetails.hidden = !config.enabled;
+  securityMethodLabel.textContent = getSecurityMethodLabel(config.method);
+  securityRelockSelect.value = String(config.relockSeconds);
+
+  chooseDeviceAuthButton.disabled = !state.deviceAuthSupported;
+  if (!window.isSecureContext) {
+    deviceAuthSupport.textContent = "Biometria/bloqueio do aparelho exige HTTPS. Use a PWA instalada ou o GitHub Pages.";
+    deviceAuthSupport.classList.add("is-warning");
+  } else if (state.deviceAuthSupported) {
+    deviceAuthSupport.textContent = "Este dispositivo informou suporte à autenticação local do aparelho.";
+    deviceAuthSupport.classList.remove("is-warning");
+  } else {
+    deviceAuthSupport.textContent = "Autenticação do aparelho não foi detectada aqui. O PIN do aplicativo continua disponível.";
+    deviceAuthSupport.classList.add("is-warning");
+  }
+}
+
+function setCurrentView(view) {
+  state.currentView = view;
+  homeHeader.hidden = view !== "home";
+  homeView.hidden = view !== "home";
+  historyHeader.hidden = view !== "history";
+  historyView.hidden = view !== "history";
+  settingsHeader.hidden = view !== "settings";
+  settingsView.hidden = view !== "settings";
+}
+
+function openSettingsView() {
+  setCurrentView("settings");
+  updateSecuritySettingsUI();
+  window.scrollTo(0, 0);
+}
+
+function closeSettingsView() {
+  setCurrentView("home");
+  render();
+  window.scrollTo(0, 0);
+}
+
+function openSecurityMethodDialog(context = "enable") {
+  state.securitySetupContext = context;
+  securityMethodError.hidden = true;
+  securityMethodError.textContent = "";
+  updateSecuritySettingsUI();
+  securityMethodDialog.showModal();
+}
+
+function closeSecurityMethodDialog({ cancelEnable = true } = {}) {
+  if (securityMethodDialog.open) securityMethodDialog.close();
+  if (cancelEnable && state.securitySetupContext === "enable" && !state.securityConfig.enabled) {
+    securityEnabledInput.checked = false;
+  }
+}
+
+function openPinSetupDialog() {
+  pinSetupValue.value = "";
+  pinSetupConfirm.value = "";
+  pinSetupError.hidden = true;
+  pinSetupDialog.showModal();
+  setTimeout(() => pinSetupValue.focus(), 50);
+}
+
+function closePinSetupDialog({ cancelEnable = true } = {}) {
+  if (pinSetupDialog.open) pinSetupDialog.close();
+  if (cancelEnable && state.securitySetupContext === "enable" && !state.securityConfig.enabled) {
+    securityEnabledInput.checked = false;
+  }
+}
+
+async function configurePinSecurity(pin) {
+  const salt = randomBytes(16);
+  const hash = await derivePinHash(pin, salt);
+  state.securityConfig = {
+    ...state.securityConfig,
+    enabled: true,
+    method: "pin",
+    pin: {
+      salt: bytesToBase64Url(salt),
+      hash: bytesToBase64Url(hash),
+      iterations: PIN_PBKDF2_ITERATIONS,
+    },
+    webauthn: null,
+  };
+  saveSecurityConfig();
+  updateSecuritySettingsUI();
+}
+
+async function configureDeviceSecurity() {
+  const credential = await createDeviceCredential();
+  state.securityConfig = {
+    ...state.securityConfig,
+    enabled: true,
+    method: "device",
+    webauthn: credential,
+    pin: null,
+  };
+  saveSecurityConfig();
+  updateSecuritySettingsUI();
+}
+
+function closeSensitiveDialogs() {
+  document.querySelectorAll("dialog[open]").forEach((dialog) => {
+    try { dialog.close(); } catch (error) { /* noop */ }
+  });
+  hideUpdateAvailable();
+  if (!toast.hidden) toast.hidden = true;
+}
+
+function showLockScreen() {
+  document.body.classList.add("app-locked");
+  lockScreen.hidden = false;
+  lockError.hidden = true;
+  lockError.textContent = "";
+  const method = state.securityConfig.method;
+  deviceUnlockPanel.hidden = method !== "device";
+  pinUnlockForm.hidden = method !== "pin";
+  pinUnlockValue.value = "";
+  if (method === "pin") setTimeout(() => pinUnlockValue.focus(), 80);
+}
+
+function lockApp() {
+  if (!state.securityConfig.enabled) return;
+  state.securityLocked = true;
+  closeSensitiveDialogs();
+  showLockScreen();
+}
+
+function unlockApp() {
+  state.securityLocked = false;
+  state.securityHiddenAt = null;
+  state.pinFailedAttempts = 0;
+  state.pinLockoutUntil = 0;
+  clearTimeout(state.pinLockoutTimer);
+  lockScreen.hidden = true;
+  document.body.classList.remove("app-locked");
+  hidePrivacyShield();
+  if (state.currentView === "home") render();
+  else if (state.currentView === "history") renderHistory();
+}
+
+function showPrivacyShield() {
+  if (!state.securityConfig.enabled) return;
+  state.privacyShieldVisible = true;
+  privacyShield.hidden = false;
+}
+
+function hidePrivacyShield() {
+  state.privacyShieldVisible = false;
+  privacyShield.hidden = true;
+}
+
+function getPinLockoutRemainingMs() {
+  return Math.max(0, state.pinLockoutUntil - Date.now());
+}
+
+function updatePinLockoutMessage() {
+  const remaining = getPinLockoutRemainingMs();
+  if (remaining <= 0) {
+    lockError.hidden = true;
+    lockError.textContent = "";
+    state.pinFailedAttempts = 0;
+    state.pinLockoutUntil = 0;
+    return;
+  }
+  lockError.hidden = false;
+  lockError.textContent = `Muitas tentativas. Tente novamente em ${Math.ceil(remaining / 1000)} s.`;
+  state.pinLockoutTimer = setTimeout(updatePinLockoutMessage, 1000);
+}
+
+async function verifyPin(pin) {
+  const stored = state.securityConfig.pin;
+  if (!stored) return false;
+  const salt = base64UrlToBytes(stored.salt);
+  const derived = await derivePinHash(pin, salt, stored.iterations);
+  return equalBytes(derived, base64UrlToBytes(stored.hash));
+}
+
+async function handlePinUnlock(event) {
+  event.preventDefault();
+  if (getPinLockoutRemainingMs() > 0) {
+    updatePinLockoutMessage();
+    return;
+  }
+
+  const pin = normalizePinInput(pinUnlockValue);
+  if (pin.length !== PIN_LENGTH) {
+    lockError.hidden = false;
+    lockError.textContent = "Digite os 6 dígitos do PIN.";
+    return;
+  }
+
+  try {
+    if (await verifyPin(pin)) {
+      unlockApp();
+      return;
+    }
+  } catch (error) {
+    console.warn("Falha ao verificar PIN.", error);
+  }
+
+  state.pinFailedAttempts += 1;
+  pinUnlockValue.value = "";
+  if (state.pinFailedAttempts >= PIN_LOCKOUT_ATTEMPTS) {
+    state.pinLockoutUntil = Date.now() + PIN_LOCKOUT_MS;
+    updatePinLockoutMessage();
+  } else {
+    lockError.hidden = false;
+    lockError.textContent = `PIN incorreto. Restam ${PIN_LOCKOUT_ATTEMPTS - state.pinFailedAttempts} tentativa(s).`;
+    pinUnlockValue.focus();
+  }
+}
+
+async function handleDeviceUnlock() {
+  deviceUnlockButton.disabled = true;
+  deviceUnlockButton.textContent = "Verificando…";
+  lockError.hidden = true;
+  try {
+    const ok = await verifyDeviceCredential();
+    if (!ok) throw new Error("Não foi possível confirmar a autenticação.");
+    unlockApp();
+  } catch (error) {
+    lockError.hidden = false;
+    lockError.textContent = error?.name === "NotAllowedError" ? "Autenticação cancelada ou não concluída." : (error?.message || "Não foi possível desbloquear.");
+  } finally {
+    deviceUnlockButton.disabled = false;
+    deviceUnlockButton.textContent = "Desbloquear com o aparelho";
+  }
+}
+
+async function handlePinSetupSubmit(event) {
+  event.preventDefault();
+  const pin = normalizePinInput(pinSetupValue);
+  const confirm = normalizePinInput(pinSetupConfirm);
+  pinSetupError.hidden = true;
+
+  if (pin.length !== PIN_LENGTH) {
+    pinSetupError.textContent = "O PIN deve ter exatamente 6 dígitos.";
+    pinSetupError.hidden = false;
+    return;
+  }
+  if (pin !== confirm) {
+    pinSetupError.textContent = "Os PINs não coincidem.";
+    pinSetupError.hidden = false;
+    return;
+  }
+
+  const submit = pinSetupForm.querySelector('button[type="submit"]');
+  submit.disabled = true;
+  submit.textContent = "Salvando…";
+  try {
+    await configurePinSecurity(pin);
+    closePinSetupDialog({ cancelEnable: false });
+    securityMethodDialog.close();
+    showToast("Bloqueio por PIN ativado.");
+  } catch (error) {
+    pinSetupError.textContent = "Não foi possível criar o PIN neste navegador.";
+    pinSetupError.hidden = false;
+  } finally {
+    submit.disabled = false;
+    submit.textContent = "Salvar PIN";
+  }
+}
+
+async function chooseDeviceSecurity() {
+  securityMethodError.hidden = true;
+  chooseDeviceAuthButton.disabled = true;
+  try {
+    await configureDeviceSecurity();
+    closeSecurityMethodDialog({ cancelEnable: false });
+    showToast("Bloqueio pelo aparelho ativado.");
+  } catch (error) {
+    securityMethodError.textContent = error?.name === "NotAllowedError" ? "Configuração cancelada." : (error?.message || "Não foi possível configurar este método.");
+    securityMethodError.hidden = false;
+  } finally {
+    chooseDeviceAuthButton.disabled = !state.deviceAuthSupported;
+  }
+}
+
+function choosePinSecurity() {
+  securityMethodDialog.close();
+  openPinSetupDialog();
+}
+
+function disableSecurity() {
+  const confirmed = window.confirm("Desativar o bloqueio do aplicativo?");
+  if (!confirmed) {
+    securityEnabledInput.checked = true;
+    return;
+  }
+  state.securityConfig = getDefaultSecurityConfig();
+  saveSecurityConfig();
+  state.securityLocked = false;
+  updateSecuritySettingsUI();
+  showToast("Bloqueio desativado.");
+}
+
+async function initializeSecurity() {
+  state.deviceAuthSupported = await isPlatformDeviceAuthAvailable();
+  updateSecuritySettingsUI();
+  document.body.classList.remove("security-booting");
+
+  if (state.securityConfig.enabled) {
+    lockApp();
+  } else {
+    state.securityLocked = false;
+    lockScreen.hidden = true;
+    document.body.classList.remove("app-locked");
+  }
+}
 
 function loadAppData() {
   try {
@@ -966,10 +1564,7 @@ function openHistoryView(drinkId = null) {
     historyHeaderTitle.textContent = "Histórico";
   }
 
-  homeHeader.hidden = true;
-  homeView.hidden = true;
-  historyHeader.hidden = false;
-  historyView.hidden = false;
+  setCurrentView("history");
   renderHistory();
   window.scrollTo(0, 0);
 }
@@ -977,10 +1572,7 @@ function openHistoryView(drinkId = null) {
 function closeHistoryView() {
   state.currentView = "home";
   state.historyDrinkId = null;
-  historyHeader.hidden = true;
-  historyView.hidden = true;
-  homeHeader.hidden = false;
-  homeView.hidden = false;
+  setCurrentView("home");
   render();
   window.scrollTo(0, 0);
 }
@@ -1885,6 +2477,38 @@ function startClock() {
 
 document.querySelector("#open-history").addEventListener("click", () => openHistoryView());
 document.querySelector("#close-history").addEventListener("click", closeHistoryView);
+document.querySelector("#open-settings").addEventListener("click", openSettingsView);
+document.querySelector("#close-settings").addEventListener("click", closeSettingsView);
+
+securityEnabledInput.addEventListener("change", () => {
+  if (securityEnabledInput.checked) {
+    openSecurityMethodDialog("enable");
+  } else {
+    disableSecurity();
+  }
+});
+
+document.querySelector("#change-security-method").addEventListener("click", () => openSecurityMethodDialog("change"));
+document.querySelector("#lock-now").addEventListener("click", lockApp);
+securityRelockSelect.addEventListener("change", () => {
+  const value = Number(securityRelockSelect.value);
+  if (![0, 60, 300, 900].includes(value)) return;
+  state.securityConfig.relockSeconds = value;
+  saveSecurityConfig();
+  showToast("Tempo de bloqueio atualizado.");
+});
+
+document.querySelector("#close-security-method").addEventListener("click", () => closeSecurityMethodDialog());
+chooseDeviceAuthButton.addEventListener("click", chooseDeviceSecurity);
+choosePinAuthButton.addEventListener("click", choosePinSecurity);
+document.querySelector("#close-pin-setup").addEventListener("click", () => closePinSetupDialog());
+document.querySelector("#cancel-pin-setup").addEventListener("click", () => closePinSetupDialog());
+pinSetupForm.addEventListener("submit", handlePinSetupSubmit);
+pinSetupValue.addEventListener("input", () => normalizePinInput(pinSetupValue));
+pinSetupConfirm.addEventListener("input", () => normalizePinInput(pinSetupConfirm));
+pinUnlockForm.addEventListener("submit", handlePinUnlock);
+pinUnlockValue.addEventListener("input", () => normalizePinInput(pinUnlockValue));
+deviceUnlockButton.addEventListener("click", handleDeviceUnlock);
 
 document.querySelector("#open-add-dialog").addEventListener("click", openDrinkDialog);
 document.querySelector("#empty-add-button").addEventListener("click", openDrinkDialog);
@@ -1973,16 +2597,50 @@ eventDialog.addEventListener("click", (event) => {
   closeDialogOnBackdrop(eventDialog, event, closeEventDialog);
 });
 
+securityMethodDialog.addEventListener("click", (event) => {
+  closeDialogOnBackdrop(securityMethodDialog, event, () => closeSecurityMethodDialog());
+});
+securityMethodDialog.addEventListener("cancel", (event) => {
+  event.preventDefault();
+  closeSecurityMethodDialog();
+});
+pinSetupDialog.addEventListener("click", (event) => {
+  closeDialogOnBackdrop(pinSetupDialog, event, () => closePinSetupDialog());
+});
+pinSetupDialog.addEventListener("cancel", (event) => {
+  event.preventDefault();
+  closePinSetupDialog();
+});
+
 document.addEventListener("visibilitychange", () => {
-  if (!document.hidden) {
-    if (state.currentView === "home") {
-      render();
-    } else {
-      renderHistory();
+  if (document.hidden) {
+    if (state.securityConfig.enabled) {
+      state.securityHiddenAt = Date.now();
+      showPrivacyShield();
+      closeSensitiveDialogs();
+      if (state.securityConfig.relockSeconds === 0) lockApp();
     }
-    updateIntervalWarningDialog();
-    checkForAppUpdate();
+    return;
   }
+
+  if (state.securityConfig.enabled && !state.securityLocked && state.securityHiddenAt) {
+    const elapsedSeconds = (Date.now() - state.securityHiddenAt) / 1000;
+    if (elapsedSeconds >= state.securityConfig.relockSeconds) {
+      lockApp();
+    } else {
+      hidePrivacyShield();
+    }
+  } else if (!state.securityLocked) {
+    hidePrivacyShield();
+  }
+
+  if (!state.securityLocked) {
+    if (state.currentView === "home") render();
+    else if (state.currentView === "history") renderHistory();
+    else if (state.currentView === "settings") updateSecuritySettingsUI();
+    updateIntervalWarningDialog();
+  }
+  checkForAppUpdate();
 });
 
 if ("serviceWorker" in navigator) {
@@ -2000,8 +2658,17 @@ if ("serviceWorker" in navigator) {
 applyUpdateButton.addEventListener("click", applyPendingAppUpdate);
 dismissUpdateButton.addEventListener("click", hideUpdateAvailable);
 
-initializeDurationPickers();
-initializeLogDurationPickers();
-buildIconPicker(DEFAULT_ICON);
-render();
-startClock();
+async function bootstrapApp() {
+  initializeDurationPickers();
+  initializeLogDurationPickers();
+  buildIconPicker(DEFAULT_ICON);
+  setCurrentView("home");
+  render();
+  startClock();
+  await initializeSecurity();
+}
+
+bootstrapApp().catch((error) => {
+  console.error("Falha ao inicializar o aplicativo.", error);
+  document.body.classList.remove("security-booting");
+});

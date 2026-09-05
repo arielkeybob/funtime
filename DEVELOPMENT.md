@@ -1,6 +1,6 @@
 # Intervalo — documentação de desenvolvimento
 
-**Versão da aplicação:** `v1.7.0`  
+**Versão da aplicação:** `v1.8.0`  
 **Versão do modelo persistido:** `DATA_VERSION = 7`  
 **Autor exibido na interface:** `arielkeybob`  
 **Stack:** HTML + CSS + JavaScript puro  
@@ -8,12 +8,131 @@
 **Backend:** não existe  
 **Build step:** não existe
 
-> Este documento descreve a arquitetura e o comportamento técnico da versão `v1.7.0`. Ele foi escrito para facilitar manutenção, depuração e evolução do projeto sem depender do histórico da conversa em que o app foi criado.
+> Este documento descreve a arquitetura e o comportamento técnico da versão `v1.8.0`. Ele foi escrito para facilitar manutenção, depuração e evolução do projeto sem depender do histórico da conversa em que o app foi criado.
 
 ---
 
+## 0. V1.8.0 — privacidade e bloqueio local
 
-## 0. Alterações da V1.6.5
+### 0.1 Organização do cabeçalho
+
+A tela inicial continua priorizando as duas ações de uso frequente: `Histórico` e `+`. Para não disputar largura horizontal com uma terceira ação, `Configurações` foi posicionada como um botão circular de engrenagem na mesma linha do eyebrow `Uso pessoal`. O cabeçalho passa a ter duas linhas:
+
+```text
+Uso pessoal                                      ⚙
+Início                              Histórico    +
+```
+
+Essa organização mantém `Configurações` descobrível, mas visualmente secundária.
+
+### 0.2 Persistência de segurança
+
+As opções de segurança não são gravadas em `balada-v1-data`. Existe uma chave independente:
+
+```js
+const SECURITY_STORAGE_KEY = "intervalo-security-v1";
+```
+
+Modelo atual:
+
+```js
+{
+  version: 1,
+  enabled: true,
+  method: "device" | "pin",
+  relockSeconds: 0 | 60 | 300 | 900,
+  pin: { salt, hash, iterations } | null,
+  webauthn: { credentialId, publicKey, algorithm } | null
+}
+```
+
+`DATA_VERSION` permanece em `7` porque o schema de bebidas/eventos não mudou.
+
+### 0.3 Bloqueio de interface
+
+Quando o bloqueio está ativo, a classe `app-locked` torna `#app-shell` invisível e desabilita interação. A tela `#lock-screen` fica acima da aplicação. Ao carregar/recarregar uma PWA protegida, a sessão começa bloqueada.
+
+Antes de bloquear, `closeSensitiveDialogs()` fecha dialogs no top layer. Isso é necessário porque um `<dialog open>` pode permanecer visível mesmo se apenas o container principal for ocultado.
+
+### 0.4 Privacy shield no background
+
+Quando `document.visibilityState` muda para hidden e a segurança está habilitada, `#privacy-shield` cobre a interface. O objetivo é reduzir a chance de o seletor de aplicativos do sistema capturar cards ou histórico.
+
+- timeout `0`: o estado já passa para bloqueado ao esconder;
+- timeout `60/300/900`: a sessão permanece autenticada internamente durante esse intervalo, mas a tela continua protegida pelo shield enquanto estiver em background;
+- ao voltar antes do timeout, o shield é removido;
+- ao voltar depois do timeout, o lock screen é apresentado.
+
+O comportamento do app switcher varia entre Android/iOS e navegador; portanto o shield é uma mitigação, não uma garantia de sistema operacional.
+
+### 0.5 PIN do aplicativo
+
+O PIN tem 6 dígitos. Antes da persistência:
+
+1. gera-se salt aleatório de 16 bytes via `crypto.getRandomValues`;
+2. o PIN é importado como material PBKDF2;
+3. são usadas 210.000 iterações com SHA-256;
+4. são derivados 256 bits;
+5. apenas salt, hash e quantidade de iterações são armazenados.
+
+O PIN original nunca é salvo. A comparação usa `equalBytes()` para evitar retorno antecipado por byte.
+
+Depois de 5 falhas consecutivas, `pinLockoutUntil` bloqueia novas tentativas por 30 segundos. Esse contador é de sessão e não pretende substituir mecanismos criptográficos contra um atacante que controla o ambiente JavaScript.
+
+### 0.6 WebAuthn / autenticação do aparelho
+
+O método `device` exige contexto seguro e um user-verifying platform authenticator. A detecção usa:
+
+```js
+PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable()
+```
+
+Na criação da credencial:
+
+- `authenticatorAttachment: "platform"`;
+- `userVerification: "required"`;
+- `residentKey: "discouraged"`;
+- algoritmos solicitados: ES256 (`-7`) e RS256 (`-257`);
+- `attestation: "none"`.
+
+O app armazena somente o ID da credencial, a chave pública SPKI e o algoritmo. A chave privada permanece no autenticador/sistema.
+
+No desbloqueio, `verifyDeviceCredential()` confere:
+
+1. credential ID;
+2. `clientData.type === "webauthn.get"`;
+3. `clientData.origin === location.origin`;
+4. challenge aleatório da requisição;
+5. RP ID hash de `location.hostname`;
+6. flags UP e UV do authenticator data;
+7. assinatura sobre `authenticatorData || SHA256(clientDataJSON)`.
+
+ES256 converte assinatura DER WebAuthn para o formato raw esperado pelo Web Crypto antes de `crypto.subtle.verify`. RS256 usa `RSASSA-PKCS1-v1_5`.
+
+A interface usa o termo **Biometria / aparelho** de propósito. Uma PWA não escolhe “impressão digital” diretamente; o sistema pode usar face, impressão digital ou a credencial de desbloqueio permitida naquele dispositivo.
+
+### 0.7 Limites de segurança desta versão
+
+A V1.8.0 protege principalmente o cenário de alguém pegar um telefone já desbloqueado e abrir o Intervalo. Ela **não criptografa `balada-v1-data` em repouso**. Um usuário tecnicamente capaz de inspecionar/modificar o armazenamento e o JavaScript da origem ainda está fora do modelo de proteção desta etapa.
+
+Não deve existir nenhuma afirmação de que o PIN/WebAuthn desta versão torna o `localStorage` criptograficamente secreto. Backup/exportação e criptografia de dados devem ser tratados em versões posteriores.
+
+### 0.8 Testes mínimos da V1.8.0
+
+1. Ativar PIN, fechar/reabrir PWA e confirmar que inicia bloqueada.
+2. Digitar PIN correto e incorreto; validar lockout após 5 erros.
+3. Ativar autenticação do aparelho no GitHub Pages/PWA HTTPS e confirmar criação + unlock.
+4. Testar `Bloquear agora`.
+5. Testar 0, 1, 5 e 15 minutos indo para outro aplicativo e voltando.
+6. Confirmar que bebidas/histórico não aparecem na lock screen.
+7. Confirmar que atualização PWA da V1.7 continua aparecendo e funcionando após desbloqueio.
+8. Testar offline: PIN e WebAuthn local devem funcionar sem backend.
+9. Testar cancelamento do prompt WebAuthn sem perder configurações existentes.
+10. Desativar o bloqueio e confirmar que a PWA volta a abrir diretamente.
+
+---
+
+## 0.1 Histórico anterior — V1.6.5
 
 ### Histórico: indicador relativo ao intervalo
 
