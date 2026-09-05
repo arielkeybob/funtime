@@ -206,7 +206,7 @@ window.addEventListener("appinstalled", () => {
 const DATA_STORAGE_KEY = "balada-v1-data";
 const LEGACY_DRINKS_STORAGE_KEY = "balada-v1-drinks";
 const DATA_VERSION = 8;
-const APP_VERSION = "1.10.3";
+const APP_VERSION = "1.10.4";
 const DRINK_EXPORT_TYPE = "intervalo-drinks";
 const DRINK_EXPORT_FORMAT_VERSION = 1;
 const BACKUP_EXPORT_TYPE = "intervalo-backup";
@@ -2414,7 +2414,7 @@ function closeHistoryView() {
   window.scrollTo(0, 0);
 }
 
-function registerDrinkAt(id, timestamp) {
+function registerDrinkAt(id, timestamp, { doseSize = null } = {}) {
   const drink = state.drinks.find((item) => item.id === id);
   if (!drink) return;
 
@@ -2431,7 +2431,7 @@ function registerDrinkAt(id, timestamp) {
     drinkIcon: drink.icon,
     consumedAt: timestamp,
     intervalMinutes: drink.intervalMinutes,
-    doseSize: drink.askDoseSize ? "full" : null,
+    doseSize: drink.askDoseSize ? (normalizeDoseSize(doseSize) || "full") : null,
   };
 
   state.events.push(event);
@@ -2442,7 +2442,7 @@ function registerDrinkAt(id, timestamp) {
     ? animateDrinkReorder(previousPositions, drink.id)
     : { movedFocus: false, promise: Promise.resolve() };
 
-  if (drink.askDoseSize) {
+  if (drink.askDoseSize && !normalizeDoseSize(doseSize)) {
     // Se o card realmente mudou de lugar, deixamos o usuário enxergar o
     // movimento antes de abrir a escolha de meia/inteira. O registro já foi
     // salvo como inteiro, então a espera é apenas visual.
@@ -2758,6 +2758,8 @@ function openLogDialog(drinkId) {
 
   state.selectedDrinkId = drinkId;
   logDrinkName.textContent = drink.name;
+  document.querySelector("#log-dose-field").hidden = !drink.askDoseSize;
+  document.querySelector('input[name="logDoseSize"][value="full"]').checked = true;
   setLogDurationPicker(0, 0);
   logFormError.hidden = true;
 
@@ -2782,8 +2784,9 @@ function registerMinutesAgo(minutesAgo) {
 
   const timestamp = Date.now() - minutesAgo * 60 * 1000;
   const id = state.selectedDrinkId;
+  const doseSize = document.querySelector('input[name="logDoseSize"]:checked')?.value || "full";
   closeLogDialog();
-  registerDrinkAt(id, timestamp);
+  registerDrinkAt(id, timestamp, { doseSize });
 }
 
 function openEventDialog(eventId) {

@@ -1,4 +1,4 @@
-# Intervalo — V1.10.3
+# Intervalo — V1.10.4
 
 ## V1.10.1 — exportação de bebidas em TXT
 
@@ -448,3 +448,7 @@ Configurações: Aparência, Privacidade, Sobre a proteção, Bebidas e Backup. 
 ## V1.10.3 — hierarquia de Anotar consumo
 
 O seletor de tempo reutiliza as classes `interval-fieldset` e `interval-fieldset-title` do cadastro de bebida, incluindo título destacado, rótulos secundários e espaçamentos mobile. O conteúdo do formulário se alinha ao início para evitar espaços verticais esticados; as ações permanecem no rodapé. Lógica de horários e dados preservada. Cache: `intervalo-v1-10-3`.
+
+## V1.10.4 — tamanho da dose na anotação
+
+Anotar consumo oferece Meia/Inteira antes dos horários quando askDoseSize está ativo, reutilizando o seletor do editor de eventos. Inteira é o padrão a cada abertura. Atalhos e formulário salvam a escolha diretamente, sem repetir o popup; registro direto pelo card mantém o fluxo anterior. Bebidas sem a opção preservam doseSize nulo. Há 20px extras entre os atalhos e o seletor de tempo. Cache: `intervalo-v1-10-4`; schema permanece 8.

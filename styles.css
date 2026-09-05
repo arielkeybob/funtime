@@ -1729,6 +1729,10 @@ body {
   min-width: 0;
 }
 
+#log-dialog .quick-log-section + .interval-fieldset {
+  margin-top: 20px;
+}
+
 #log-dialog .wheel-duration-inputs {
   gap: 12px;
 }
