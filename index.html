@@ -66,7 +66,7 @@
       <section id="history-list" class="history-list" aria-live="polite"></section>
     </main>
 
-    <footer class="app-footer">v1.6.5 · By: arielkeybob</footer>
+    <footer class="app-footer">v1.7.0 · By: arielkeybob</footer>
   </div>
 
   <dialog id="drink-dialog" class="dialog">
@@ -383,6 +383,18 @@
       </div>
     </article>
   </template>
+
+
+  <div id="update-toast" class="update-toast" role="status" aria-live="polite" hidden>
+    <div class="update-toast-copy">
+      <strong>Nova versão disponível</strong>
+      <span>Atualize quando puder. Seus dados locais serão preservados.</span>
+    </div>
+    <div class="update-toast-actions">
+      <button id="dismiss-update" class="update-dismiss" type="button" aria-label="Fechar aviso de atualização">×</button>
+      <button id="apply-update" class="update-apply" type="button">Atualizar</button>
+    </div>
+  </div>
 
   <div id="toast" class="toast" role="status" aria-live="polite" hidden>
     <span id="toast-message"></span>

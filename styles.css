@@ -1994,3 +1994,109 @@ h2 {
     transform: none;
   }
 }
+
+
+/* V1.7.0 — atualização controlada da PWA */
+.update-toast {
+  position: fixed;
+  z-index: 120;
+  right: 16px;
+  bottom: max(82px, calc(env(safe-area-inset-bottom) + 82px));
+  left: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  width: min(560px, calc(100% - 32px));
+  margin-inline: auto;
+  padding: 13px 14px;
+  border: 1px solid rgb(94 233 155 / 0.38);
+  border-radius: 15px;
+  background: rgb(18 24 21 / 0.97);
+  box-shadow: 0 18px 48px rgb(0 0 0 / 0.42);
+  backdrop-filter: blur(12px);
+}
+
+.update-toast[hidden] {
+  display: none !important;
+}
+
+.update-toast-copy {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+}
+
+.update-toast-copy strong {
+  color: var(--text);
+  font-size: 0.9rem;
+  line-height: 1.25;
+}
+
+.update-toast-copy span {
+  color: var(--muted);
+  font-size: 0.72rem;
+  line-height: 1.35;
+}
+
+.update-toast-actions {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 8px;
+}
+
+.update-toast-actions button {
+  border: 0;
+  font-weight: 800;
+}
+
+.update-dismiss {
+  display: grid;
+  width: 34px;
+  height: 34px;
+  place-items: center;
+  border-radius: 10px !important;
+  background: transparent;
+  color: var(--muted);
+  font-size: 1.2rem;
+}
+
+.update-apply {
+  min-height: 38px;
+  padding: 0 13px;
+  border-radius: 10px !important;
+  background: var(--success);
+  color: #07120c;
+}
+
+.update-apply:disabled {
+  opacity: 0.58;
+}
+
+@media (max-width: 520px) {
+  .update-toast {
+    align-items: flex-start;
+    gap: 10px;
+    padding: 12px;
+  }
+
+  .update-toast-copy span {
+    max-width: 240px;
+  }
+
+  .update-toast-actions {
+    gap: 5px;
+  }
+
+  .update-dismiss {
+    width: 30px;
+    height: 36px;
+  }
+
+  .update-apply {
+    min-height: 36px;
+    padding-inline: 10px;
+    font-size: 0.78rem;
+  }
+}

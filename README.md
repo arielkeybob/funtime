@@ -1,4 +1,4 @@
-# Intervalo — V1.6.5
+# Intervalo — V1.7.0
 
 Aplicação em HTML, CSS e JavaScript puro para registro pessoal de bebidas e acompanhamento dos intervalos configurados pelo usuário.
 
@@ -6,6 +6,18 @@ Documentação técnica detalhada: [`DEVELOPMENT.md`](./DEVELOPMENT.md).
 
 
 
+
+## Mudanças da V1.7.0
+
+- Implementado fluxo de **atualização controlada da PWA**.
+- Uma nova versão do Service Worker é baixada em background e permanece aguardando enquanto a versão atual está em uso.
+- Quando existe atualização pronta, o app mostra um aviso discreto **“Nova versão disponível”** com o botão **Atualizar**.
+- O novo Service Worker só chama `skipWaiting()` depois da ação explícita do usuário.
+- Após a ativação, o app recarrega automaticamente e passa a usar o novo shell em cache.
+- O app verifica atualizações no carregamento, ao voltar do background e ao recuperar conexão com a internet.
+- O registro do Service Worker usa `updateViaCache: "none"` e o pré-cache baixa os arquivos com `cache: "reload"`, reduzindo risco de instalar assets antigos vindos do cache HTTP.
+- O cache desta versão é `intervalo-v1-7-0`.
+- `DATA_VERSION` permanece `7`; não houve mudança no schema dos dados do usuário.
 
 ## Mudanças da V1.6.5
 

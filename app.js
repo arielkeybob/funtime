@@ -121,6 +121,9 @@ const doseFullButton = document.querySelector("#dose-full-button");
 const toast = document.querySelector("#toast");
 const toastMessage = document.querySelector("#toast-message");
 const toastUndo = document.querySelector("#toast-undo");
+const updateToast = document.querySelector("#update-toast");
+const applyUpdateButton = document.querySelector("#apply-update");
+const dismissUpdateButton = document.querySelector("#dismiss-update");
 
 function loadAppData() {
   try {
@@ -1778,6 +1781,96 @@ function closeDialogOnBackdrop(dialogElement, event, closeFunction) {
   if (!inside) closeFunction();
 }
 
+
+function showUpdateAvailable(worker) {
+  if (!worker) return;
+
+  state.waitingServiceWorker = worker;
+  applyUpdateButton.disabled = false;
+  applyUpdateButton.textContent = "Atualizar";
+  updateToast.hidden = false;
+}
+
+function hideUpdateAvailable() {
+  updateToast.hidden = true;
+}
+
+async function checkForAppUpdate({ force = false } = {}) {
+  const registration = state.serviceWorkerRegistration;
+  if (!registration || state.updateCheckInFlight) return;
+
+  const now = Date.now();
+  if (!force && now - state.lastUpdateCheckAt < 30000) return;
+
+  state.updateCheckInFlight = true;
+  state.lastUpdateCheckAt = now;
+
+  try {
+    await registration.update();
+    if (registration.waiting) {
+      showUpdateAvailable(registration.waiting);
+    }
+  } catch (error) {
+    // Offline é um estado normal da PWA; não mostramos erro ao usuário.
+    if (navigator.onLine) {
+      console.warn("Não foi possível verificar atualização da PWA.", error);
+    }
+  } finally {
+    state.updateCheckInFlight = false;
+  }
+}
+
+function watchServiceWorkerRegistration(registration) {
+  state.serviceWorkerRegistration = registration;
+
+  if (registration.waiting && navigator.serviceWorker.controller) {
+    showUpdateAvailable(registration.waiting);
+  }
+
+  registration.addEventListener("updatefound", () => {
+    const installingWorker = registration.installing;
+    if (!installingWorker) return;
+
+    installingWorker.addEventListener("statechange", () => {
+      if (
+        installingWorker.state === "installed" &&
+        navigator.serviceWorker.controller
+      ) {
+        showUpdateAvailable(registration.waiting || installingWorker);
+      }
+    });
+  });
+}
+
+async function initializeServiceWorker() {
+  if (!("serviceWorker" in navigator)) return;
+
+  try {
+    const registration = await navigator.serviceWorker.register("./sw.js", {
+      updateViaCache: "none",
+    });
+
+    watchServiceWorkerRegistration(registration);
+    await checkForAppUpdate({ force: true });
+  } catch (error) {
+    console.error("Falha ao ativar o Service Worker.", error);
+  }
+}
+
+function applyPendingAppUpdate() {
+  const worker = state.waitingServiceWorker || state.serviceWorkerRegistration?.waiting;
+  if (!worker) {
+    checkForAppUpdate({ force: true });
+    return;
+  }
+
+  state.updateReloadRequested = true;
+  applyUpdateButton.disabled = true;
+  applyUpdateButton.textContent = "Atualizando…";
+
+  worker.postMessage({ type: "SKIP_WAITING" });
+}
+
 function startClock() {
   clearInterval(state.timerId);
   state.timerId = setInterval(() => {
@@ -1888,16 +1981,24 @@ document.addEventListener("visibilitychange", () => {
       renderHistory();
     }
     updateIntervalWarningDialog();
+    checkForAppUpdate();
   }
 });
 
 if ("serviceWorker" in navigator) {
-  window.addEventListener("load", () => {
-    navigator.serviceWorker.register("./sw.js").catch((error) => {
-      console.error("Falha ao ativar o Service Worker.", error);
-    });
+  navigator.serviceWorker.addEventListener("controllerchange", () => {
+    if (!state.updateReloadRequested) return;
+
+    state.updateReloadRequested = false;
+    window.location.reload();
   });
+
+  window.addEventListener("load", initializeServiceWorker);
+  window.addEventListener("online", () => checkForAppUpdate({ force: true }));
 }
+
+applyUpdateButton.addEventListener("click", applyPendingAppUpdate);
+dismissUpdateButton.addEventListener("click", hideUpdateAvailable);
 
 initializeDurationPickers();
 initializeLogDurationPickers();

@@ -1,6 +1,6 @@
 # Intervalo — documentação de desenvolvimento
 
-**Versão da aplicação:** `v1.6.5`  
+**Versão da aplicação:** `v1.7.0`  
 **Versão do modelo persistido:** `DATA_VERSION = 7`  
 **Autor exibido na interface:** `arielkeybob`  
 **Stack:** HTML + CSS + JavaScript puro  
@@ -8,7 +8,7 @@
 **Backend:** não existe  
 **Build step:** não existe
 
-> Este documento descreve a arquitetura e o comportamento técnico da versão `v1.6.5`. Ele foi escrito para facilitar manutenção, depuração e evolução do projeto sem depender do histórico da conversa em que o app foi criado.
+> Este documento descreve a arquitetura e o comportamento técnico da versão `v1.7.0`. Ele foi escrito para facilitar manutenção, depuração e evolução do projeto sem depender do histórico da conversa em que o app foi criado.
 
 ---
 
@@ -123,6 +123,52 @@ const CACHE_NAME = "intervalo-v1-6-3";
 - Substituição dos campos numéricos de “há quanto tempo” por **wheel pickers** próprios, reutilizando a mesma linguagem de UI do cadastro/edição da bebida.
 - Atualização do cache do Service Worker para `intervalo-v1-6-2`.
 - Incremento do `DATA_VERSION` para `7`, mantendo compatibilidade com os dados anteriores via normalização.
+
+## 0. Atualização controlada da PWA — v1.7.0
+
+A `v1.7.0` muda o ciclo de atualização da PWA. Até a `v1.6.x`, o Service Worker chamava `self.skipWaiting()` durante a instalação, permitindo que uma versão nova assumisse o controle sem participação explícita do usuário.
+
+A partir desta versão:
+
+1. `sw.js` instala o novo cache em background;
+2. o worker novo permanece em `waiting`;
+3. `app.js` detecta `registration.waiting` ou um worker recém-instalado;
+4. a interface exibe `#update-toast`;
+5. o usuário toca em **Atualizar**;
+6. o app envia `{ type: "SKIP_WAITING" }` ao worker aguardando;
+7. o worker executa `self.skipWaiting()`;
+8. `controllerchange` é disparado;
+9. a página recarrega uma única vez e passa a usar os arquivos da nova versão.
+
+### Verificação de atualização
+
+O registro usa:
+
+```js
+navigator.serviceWorker.register("./sw.js", {
+  updateViaCache: "none"
+});
+```
+
+`registration.update()` é chamado:
+
+- após o carregamento inicial;
+- quando a página volta a ficar visível;
+- quando o navegador recebe o evento `online`.
+
+Existe um throttle de 30 segundos para verificações comuns, evitando consultas excessivas quando o usuário alterna rapidamente entre aplicativos. Chamadas com `{ force: true }` ignoram esse throttle.
+
+### Pré-cache e cache HTTP
+
+Durante `install`, os itens do `APP_SHELL` são buscados com `cache: "reload"`. Isso força validação/rede para que uma versão nova não seja preenchida acidentalmente com cópias antigas provenientes do cache HTTP do navegador.
+
+### Preservação de dados
+
+A atualização do Service Worker altera apenas os arquivos da aplicação. Os dados continuam no `localStorage` sob `balada-v1-data`. A `v1.7.0` mantém `DATA_VERSION = 7`.
+
+### Primeiro upgrade vindo da v1.6.x
+
+A própria `v1.6.x` ainda não possui a UI de detecção de worker aguardando. Por isso, a migração inicial para `v1.7.0` pode exigir fechar completamente e reabrir a PWA uma vez depois que o novo worker tiver sido instalado. A partir de `v1.7.0`, atualizações futuras passam a exibir o aviso controlado.
 
 ## 1. Objetivo do projeto
 
