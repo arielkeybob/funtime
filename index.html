@@ -40,7 +40,7 @@
 
     <footer class="browser-gate-footer">
       <span>App para estudo · não é controle de segurança</span>
-      <span>v1.10.1 · By: arielkeybob</span>
+      <span>v1.10.2 · By: arielkeybob</span>
     </footer>
   </section>
 
@@ -129,46 +129,6 @@
         </label>
       </section>
 
-      <section class="settings-card settings-data-card settings-drinks-data-card">
-        <div class="settings-section-heading">
-          <div>
-            <p class="eyebrow">Bebidas</p>
-            <h2>Exportar e importar</h2>
-          </div>
-        </div>
-
-        <p class="settings-description">Transfira somente a lista e as configurações das bebidas. O histórico não faz parte deste arquivo.</p>
-
-        <div class="settings-action-stack">
-          <button id="export-drinks" class="settings-primary-action" type="button">Exportar bebidas</button>
-          <button id="import-drinks" class="settings-secondary-button" type="button">Importar bebidas</button>
-        </div>
-
-        <input id="drink-import-file" class="visually-hidden-file" type="file" accept=".txt,text/plain,.json,application/json">
-      </section>
-
-      <div class="settings-major-separator" aria-hidden="true"></div>
-
-      <section class="settings-card settings-data-card settings-backup-data-card">
-        <div class="settings-section-heading">
-          <div>
-            <p class="eyebrow">Backup e restauração</p>
-            <h2>Dados do aplicativo</h2>
-          </div>
-        </div>
-
-        <p class="settings-description">O backup inclui bebidas, histórico e preferências. PIN, biometria e bloqueio deste aparelho não entram no arquivo.</p>
-
-        <div class="settings-action-stack">
-          <button id="create-backup" class="settings-primary-action" type="button">Fazer backup</button>
-          <button id="restore-backup" class="settings-secondary-button" type="button">Restaurar backup</button>
-        </div>
-
-        <input id="backup-restore-file" class="visually-hidden-file" type="file" accept=".json,application/json">
-      </section>
-
-      <div class="settings-major-separator" aria-hidden="true"></div>
-
       <section class="settings-card">
         <div class="settings-section-heading">
           <div>
@@ -207,16 +167,55 @@
         <div id="device-auth-support" class="security-support-note"></div>
       </section>
 
-      <section class="settings-card settings-privacy-note">
+      <section class="settings-card settings-privacy-note clean-optional">
         <strong>Sobre a proteção</strong>
         <p>Biometria/bloqueio do aparelho é validado pelo próprio sistema. O app não recebe sua impressão digital, rosto ou PIN do aparelho.</p>
         <p>Esta versão protege o acesso pela interface. A criptografia completa dos dados locais será tratada separadamente.</p>
       </section>
+
+      <section class="settings-card settings-data-card settings-drinks-data-card">
+        <div class="settings-section-heading">
+          <div>
+            <p class="eyebrow">Bebidas</p>
+            <h2>Exportar e importar</h2>
+          </div>
+        </div>
+
+        <p class="settings-description">Transfira somente a lista e as configurações das bebidas. O histórico não faz parte deste arquivo.</p>
+
+        <div class="settings-action-stack">
+          <button id="export-drinks" class="settings-primary-action" type="button">Exportar bebidas</button>
+          <button id="import-drinks" class="settings-secondary-button" type="button">Importar bebidas</button>
+        </div>
+
+        <input id="drink-import-file" class="visually-hidden-file" type="file" accept=".txt,text/plain,.json,application/json">
+      </section>
+
+      <div class="settings-major-separator" aria-hidden="true"></div>
+
+      <section class="settings-card settings-data-card settings-backup-data-card">
+        <div class="settings-section-heading">
+          <div>
+            <p class="eyebrow">Backup e restauração</p>
+            <h2>Dados do aplicativo</h2>
+          </div>
+        </div>
+
+        <p class="settings-description">O backup inclui bebidas, histórico e preferências. PIN, biometria e bloqueio deste aparelho não entram no arquivo.</p>
+
+        <div class="settings-action-stack">
+          <button id="create-backup" class="settings-primary-action" type="button">Fazer backup</button>
+          <button id="restore-backup" class="settings-secondary-button" type="button">Restaurar backup</button>
+        </div>
+
+        <input id="backup-restore-file" class="visually-hidden-file" type="file" accept=".json,application/json">
+      </section>
+
     </main>
 
     <footer class="app-footer">
       <span class="app-footer-disclaimer">App para estudo · não é controle de segurança</span>
-      <span class="app-footer-meta">v1.10.1 · By: arielkeybob</span>
+      <span class="app-footer-meta">v1.10.2 · By: arielkeybob</span>
     </footer>
   </div>
 

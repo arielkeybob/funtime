@@ -1,4 +1,5 @@
-const CACHE_NAME = "intervalo-v1-10-1";
+const APP_VERSION = "1.10.2";
+const CACHE_NAME = "intervalo-v1-10-2";
 const SHARE_IMPORT_CACHE_NAME = "intervalo-share-target-v1";
 const SHARE_IMPORT_REQUEST_PATH = "./__shared-drinks-import__";
 const SHARE_TARGET_MAX_BYTES = 1500000;
@@ -55,6 +56,9 @@ self.addEventListener("activate", (event) => {
 });
 
 self.addEventListener("message", (event) => {
+  if (event.data?.type === "GET_VERSION") {
+    event.ports[0]?.postMessage({ version: APP_VERSION });
+  }
   if (event.data?.type === "SKIP_WAITING") {
     self.skipWaiting();
   }

@@ -206,7 +206,7 @@ window.addEventListener("appinstalled", () => {
 const DATA_STORAGE_KEY = "balada-v1-data";
 const LEGACY_DRINKS_STORAGE_KEY = "balada-v1-drinks";
 const DATA_VERSION = 8;
-const APP_VERSION = "1.10.1";
+const APP_VERSION = "1.10.2";
 const DRINK_EXPORT_TYPE = "intervalo-drinks";
 const DRINK_EXPORT_FORMAT_VERSION = 1;
 const BACKUP_EXPORT_TYPE = "intervalo-backup";
@@ -3259,6 +3259,27 @@ function closeDialogOnBackdrop(dialogElement, event, closeFunction) {
 }
 
 
+function getWaitingWorkerVersion(worker) {
+  return new Promise((resolve) => {
+    const channel = new MessageChannel();
+    const finish = (version) => {
+      clearTimeout(timeout);
+      channel.port1.close();
+      channel.port2.close();
+      resolve(version);
+    };
+    const timeout = setTimeout(() => finish(null), 2000);
+    channel.port1.onmessage = ({ data }) => {
+      finish(typeof data?.version === "string" && /^\d+\.\d+\.\d+$/.test(data.version) ? data.version : null);
+    };
+    try {
+      worker.postMessage({ type: "GET_VERSION" }, [channel.port2]);
+    } catch {
+      finish(null);
+    }
+  });
+}
+
 function showUpdateAvailable(worker) {
   if (!IS_STANDALONE_APP) return;
   if (!worker) return;
@@ -3267,6 +3288,13 @@ function showUpdateAvailable(worker) {
   applyUpdateButton.disabled = false;
   applyUpdateButton.textContent = "Atualizar";
   updateToast.hidden = false;
+  const copy = updateToast.querySelector(".update-toast-copy span");
+  copy.textContent = "Atualize quando puder. Seus dados locais serão preservados.";
+  getWaitingWorkerVersion(worker).then((version) => {
+    if (version && state.waitingServiceWorker === worker) {
+      copy.textContent = `Atualize quando puder v${version}. Seus dados locais serão preservados.`;
+    }
+  });
 }
 
 function hideUpdateAvailable() {
