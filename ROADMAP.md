@@ -77,6 +77,7 @@ Preferência disponível em **Configurações → Aparência**.
 Recurso específico para transportar **somente a lista e as configurações das bebidas**.
 
 - arquivo JSON versionado;
+- desde V1.10.1, exportado como `.txt` (`text/plain`) para compartilhamento nativo; importação aceita TXT e JSON;
 - exportação por botão único **Exportar bebidas**;
 - em plataformas compatíveis, a exportação pode usar a folha nativa do sistema para escolher o destino do arquivo;
 - importação manual por seletor de arquivo;

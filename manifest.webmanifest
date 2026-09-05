@@ -40,6 +40,8 @@
         {
           "name": "drinksFile",
           "accept": [
+            "text/plain",
+            ".txt",
             "application/json",
             ".json"
           ]

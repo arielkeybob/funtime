@@ -1,4 +1,4 @@
-const CACHE_NAME = "intervalo-v1-10-0";
+const CACHE_NAME = "intervalo-v1-10-1";
 const SHARE_IMPORT_CACHE_NAME = "intervalo-share-target-v1";
 const SHARE_IMPORT_REQUEST_PATH = "./__shared-drinks-import__";
 const SHARE_TARGET_MAX_BYTES = 1500000;

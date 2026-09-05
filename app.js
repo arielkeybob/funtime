@@ -206,7 +206,7 @@ window.addEventListener("appinstalled", () => {
 const DATA_STORAGE_KEY = "balada-v1-data";
 const LEGACY_DRINKS_STORAGE_KEY = "balada-v1-drinks";
 const DATA_VERSION = 8;
-const APP_VERSION = "1.10.0";
+const APP_VERSION = "1.10.1";
 const DRINK_EXPORT_TYPE = "intervalo-drinks";
 const DRINK_EXPORT_FORMAT_VERSION = 1;
 const BACKUP_EXPORT_TYPE = "intervalo-backup";
@@ -1305,11 +1305,11 @@ function exportDrinks() {
     })),
   };
 
-  const filename = `Intervalo-Bebidas-${getFileDateStamp()}.json`;
+  const filename = `Intervalo-Bebidas-${getFileDateStamp()}.txt`;
   const file = new File(
     [JSON.stringify(payload, null, 2)],
     filename,
-    { type: "application/json;charset=utf-8" }
+    { type: "text/plain" }
   );
 
   deliverDrinksExport(file).then((mode) => {

@@ -1,4 +1,10 @@
-# Intervalo — V1.10.0
+# Intervalo — V1.10.1
+
+## V1.10.1 — exportação de bebidas em TXT
+
+**Exportar bebidas** agora gera `Intervalo-Bebidas-AAAA-MM-DD.txt` com MIME `text/plain`, para ampliar a compatibilidade com o compartilhamento nativo. O conteúdo continua sendo JSON versionado. O sistema oferece os aplicativos de destino disponíveis, como WhatsApp; se o compartilhamento não estiver disponível ou falhar, o app usa download.
+
+A importação manual e o manifest de recebimento aceitam `.txt` e os `.json` anteriores. Backup/restauração continuam usando `.json`. Versão dos dados permanece 8; cache PWA: `intervalo-v1-10-1`. A integração de recebimento depende de o sistema atualizar o manifest da PWA instalada.
 
 Aplicação em HTML, CSS e JavaScript puro para registro pessoal de bebidas e acompanhamento dos intervalos configurados pelo usuário.
 

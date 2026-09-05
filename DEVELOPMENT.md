@@ -1,14 +1,22 @@
 # Intervalo — documentação de desenvolvimento
 
-**Versão da aplicação:** `v1.10.0`  
-**Versão do modelo persistido:** `DATA_VERSION = 7`  
+**Versão da aplicação:** `v1.10.1`\
+**Versão do modelo persistido:** `DATA_VERSION = 8`\
 **Autor exibido na interface:** `arielkeybob`  
 **Stack:** HTML + CSS + JavaScript puro  
 **Persistência:** `localStorage`  
 **Backend:** não existe  
 **Build step:** não existe
 
-> Este documento descreve a arquitetura e o comportamento técnico da versão `v1.10.0`. Ele foi escrito para facilitar manutenção, depuração e evolução do projeto sem depender do histórico da conversa em que o app foi criado.
+> Este documento descreve a arquitetura e o comportamento técnico da versão `v1.10.1`. Ele foi escrito para facilitar manutenção, depuração e evolução do projeto sem depender do histórico da conversa em que o app foi criado.
+
+## Exportação TXT — V1.10.1
+
+`exportDrinks()` gera `.txt` com MIME `text/plain`, preservando o payload JSON `intervalo-drinks` e sua versão de formato. A importação valida o conteúdo com o mesmo parser, independentemente da extensão; o seletor e o `share_target` aceitam TXT e JSON. Backup continua JSON. `DATA_VERSION` permanece 8 e o cache passa para `intervalo-v1-10-1`.
+
+Validação desta alteração: sintaxe de app.js/sw.js e simulação Node dos caminhos de compartilhamento, download, cancelamento, conteúdo/MIME do arquivo e leitura TXT/JSON. A simulação não verifica integração com WhatsApp ou atualização do manifest no aparelho; esses fluxos precisam de teste na PWA publicada.
+
+> Nota de continuidade: o documento também preserva descrições e exemplos de releases anteriores. Para preferências e arquivos de dados atuais, consulte as seções V1.9.0 e V1.10.0 ao final e confira o código; exemplos antigos com modelo 7 ou caches anteriores não representam a versão vigente. A procedência do contexto recuperado está em [CONTEXT.md](CONTEXT.md), e as orientações de trabalho em [AGENTS.md](AGENTS.md).
 
 ---
 
