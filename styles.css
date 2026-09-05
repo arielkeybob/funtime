@@ -985,7 +985,7 @@ h2 {
   position: absolute;
   top: 22px;
   bottom: 22px;
-  left: 76px;
+  left: 96px;
   width: 1px;
   background: var(--border);
 }
@@ -993,7 +993,7 @@ h2 {
 .history-event {
   position: relative;
   display: grid;
-  grid-template-columns: 58px 18px minmax(0, 1fr);
+  grid-template-columns: 78px 18px minmax(0, 1fr);
   align-items: start;
   gap: 9px;
   width: 100%;
@@ -1076,6 +1076,24 @@ h2 {
   color: var(--muted);
   font-size: 0.77rem;
   line-height: 1.4;
+}
+
+.history-event-elapsed {
+  width: fit-content;
+  max-width: 100%;
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: rgb(255 255 255 / 0.045);
+  color: #8b8b95;
+  font-size: 0.7rem;
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  line-height: 1.45;
+}
+
+.history-event-time,
+.history-event-mobile-time {
+  white-space: nowrap;
 }
 
 .history-event-alert {

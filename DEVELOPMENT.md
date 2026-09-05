@@ -1,16 +1,58 @@
 # Intervalo — documentação de desenvolvimento
 
-**Versão da aplicação:** `v1.6.3`  
-**Versão do modelo persistido:** `DATA_VERSION = 6`  
+**Versão da aplicação:** `v1.6.4`  
+**Versão do modelo persistido:** `DATA_VERSION = 7`  
 **Autor exibido na interface:** `arielkeybob`  
 **Stack:** HTML + CSS + JavaScript puro  
 **Persistência:** `localStorage`  
 **Backend:** não existe  
 **Build step:** não existe
 
-> Este documento descreve a arquitetura e o comportamento técnico da versão `v1.6.3`. Ele foi escrito para facilitar manutenção, depuração e evolução do projeto sem depender do histórico da conversa em que o app foi criado.
+> Este documento descreve a arquitetura e o comportamento técnico da versão `v1.6.4`. Ele foi escrito para facilitar manutenção, depuração e evolução do projeto sem depender do histórico da conversa em que o app foi criado.
 
 ---
+
+
+## 0. Alterações da V1.6.4
+
+### Novo ícone da PWA
+
+A identidade visual instalada passa a usar o ícone do abacaxi com relógio e canudo. Para evitar que navegadores e launchers reutilizem URLs antigas de ícone durante testes, a versão `v1.6.4` usa novos nomes de arquivo:
+
+```text
+icons/icon-192-v164.png
+icons/icon-512-v164.png
+icons/apple-touch-icon-v164.png
+icons/favicon-32-v164.png
+```
+
+O `manifest.webmanifest`, o `<head>` do `index.html` e o `APP_SHELL` do Service Worker apontam para esses novos arquivos.
+
+### Tempo decorrido no histórico
+
+Cada item do histórico agora distingue duas informações temporais:
+
+- horário absoluto: `às 05:43h`;
+- tempo desde o consumo: `9 min atrás`, `01:25h atrás` ou `2 dias atrás`.
+
+A função `formatHistoryElapsed(timestamp)` segue as regras:
+
+```text
+< 1 minuto        → menos de 1 min atrás
+1–59 minutos      → N min atrás
+1h–23h59          → HH:MMh atrás
+>= 24 horas       → N dia(s) atrás
+```
+
+O valor decorrido é apresentação derivada e não é persistido. Cada elemento usa `data-consumed-at`, e `updateHistoryElapsedLabels()` atualiza os textos enquanto a tela de histórico está aberta.
+
+### Cache
+
+O cache da aplicação foi incrementado para:
+
+```js
+const CACHE_NAME = "intervalo-v1-6-4";
+```
 
 ## 0. Alterações da V1.6.3
 
@@ -185,7 +227,7 @@ Também deve ser refletida em:
 No `app.js`:
 
 ```js
-const DATA_VERSION = 6;
+const DATA_VERSION = 7;
 ```
 
 Esse número representa o **schema persistido** e só precisa subir quando uma mudança nos dados exigir normalização/migração conceitual.
@@ -197,7 +239,7 @@ Uma alteração apenas de texto, CSS ou UX pode subir a versão da aplicação s
 Cada release deve ter uma chave nova:
 
 ```js
-const CACHE_NAME = "intervalo-v1-6-1";
+const CACHE_NAME = "intervalo-v1-6-4";
 ```
 
 Se esse valor não mudar, um navegador que já instalou o Service Worker pode continuar servindo arquivos antigos.
@@ -1003,7 +1045,7 @@ Hoje `Anotar dose` também existe no menu `⋮`, justamente para manter descobri
 Cache atual:
 
 ```js
-const CACHE_NAME = "intervalo-v1-6-1";
+const CACHE_NAME = "intervalo-v1-6-4";
 ```
 
 App shell:

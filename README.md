@@ -1,9 +1,19 @@
-# Intervalo — V1.6.3
+# Intervalo — V1.6.4
 
 Aplicação em HTML, CSS e JavaScript puro para registro pessoal de bebidas e acompanhamento dos intervalos configurados pelo usuário.
 
 Documentação técnica detalhada: [`DEVELOPMENT.md`](./DEVELOPMENT.md).
 
+
+
+## Mudanças da V1.6.4
+
+- Substituídos os ícones da PWA pelo novo conceito visual do **abacaxi com relógio e canudo**, com arquivos específicos para `192x192`, `512x512`, Apple Touch Icon e favicon.
+- Os caminhos dos ícones receberam sufixo de versão para reduzir problemas de cache durante testes de atualização da PWA.
+- O histórico agora mostra a hora exata no formato **`às 05:43h`**, diferenciando claramente o horário absoluto.
+- Cada anotação do histórico também exibe quanto tempo passou desde o consumo, em estilo visual secundário: **`9 min atrás`**, **`01:25h atrás`** ou **`2 dias atrás`**.
+- O tempo decorrido é atualizado enquanto a tela de histórico permanece aberta, sem alterar os dados persistidos.
+- Cache do Service Worker atualizado para `intervalo-v1-6-4`.
 
 ## Mudanças da V1.6.3
 

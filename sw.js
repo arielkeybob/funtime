@@ -1,12 +1,14 @@
-const CACHE_NAME = "intervalo-v1-6-3";
+const CACHE_NAME = "intervalo-v1-6-4";
 const APP_SHELL = [
   "./",
   "./index.html",
   "./styles.css",
   "./app.js",
   "./manifest.webmanifest",
-  "./icons/icon-192.png",
-  "./icons/icon-512.png"
+  "./icons/icon-192-v164.png",
+  "./icons/icon-512-v164.png",
+  "./icons/apple-touch-icon-v164.png",
+  "./icons/favicon-32-v164.png"
 ];
 
 self.addEventListener("install", (event) => {

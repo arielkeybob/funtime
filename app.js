@@ -300,6 +300,43 @@ function formatClock(timestamp) {
   }).format(new Date(timestamp));
 }
 
+function formatHistoryElapsed(timestamp, now = Date.now()) {
+  const elapsedMs = Math.max(0, now - Number(timestamp));
+  const totalMinutes = Math.floor(elapsedMs / 60000);
+
+  if (totalMinutes < 1) return "menos de 1 min atrás";
+  if (totalMinutes < 60) return `${totalMinutes} min atrás`;
+
+  if (totalMinutes < 24 * 60) {
+    const hours = Math.floor(totalMinutes / 60);
+    const minutes = totalMinutes % 60;
+    return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}h atrás`;
+  }
+
+  const days = Math.floor(totalMinutes / (24 * 60));
+  return `${days} ${days === 1 ? "dia" : "dias"} atrás`;
+}
+
+function setHistoryClockLabel(element, timestamp) {
+  element.replaceChildren();
+  element.append(document.createTextNode(`às ${formatClock(timestamp)}`));
+
+  const unit = document.createElement("span");
+  unit.className = "time-unit";
+  unit.textContent = "h";
+  element.append(unit);
+}
+
+function updateHistoryElapsedLabels() {
+  document.querySelectorAll(".history-event-elapsed[data-consumed-at]").forEach((element) => {
+    const timestamp = Number(element.dataset.consumedAt);
+    if (!Number.isFinite(timestamp)) return;
+    const label = formatHistoryElapsed(timestamp);
+    element.textContent = label;
+    element.setAttribute("aria-label", `Tempo desde o consumo: ${label}`);
+  });
+}
+
 function setClockStatus(element, prefix, timestamp, trailingText = "") {
   element.replaceChildren();
   element.append(document.createTextNode(`${prefix} ${formatClock(timestamp)}`));
@@ -808,7 +845,7 @@ function renderHistory() {
       button.type = "button";
       button.className = "history-event";
       if (context?.isViolation) button.classList.add("violation");
-      button.setAttribute("aria-label", `Editar registro de ${drink.name} às ${formatClock(event.consumedAt)}`);
+      button.setAttribute("aria-label", `Editar anotação de ${drink.name}, tomada às ${formatClock(event.consumedAt)}h, ${formatHistoryElapsed(event.consumedAt)}`);
 
       const marker = document.createElement("span");
       marker.className = "history-marker";
@@ -816,7 +853,7 @@ function renderHistory() {
 
       const time = document.createElement("span");
       time.className = "history-event-time";
-      time.textContent = formatClock(event.consumedAt);
+      setHistoryClockLabel(time, event.consumedAt);
 
       const body = document.createElement("span");
       body.className = "history-event-body";
@@ -834,7 +871,7 @@ function renderHistory() {
 
       const mobileTime = document.createElement("span");
       mobileTime.className = "history-event-mobile-time";
-      mobileTime.textContent = formatClock(event.consumedAt);
+      setHistoryClockLabel(mobileTime, event.consumedAt);
 
       const chevron = document.createElement("span");
       chevron.className = "history-event-chevron";
@@ -843,6 +880,13 @@ function renderHistory() {
 
       heading.append(icon, name, mobileTime, chevron);
       body.appendChild(heading);
+
+      const elapsed = document.createElement("span");
+      elapsed.className = "history-event-elapsed";
+      elapsed.dataset.consumedAt = String(event.consumedAt);
+      elapsed.textContent = formatHistoryElapsed(event.consumedAt);
+      elapsed.setAttribute("aria-label", `Tempo desde o consumo: ${elapsed.textContent}`);
+      body.appendChild(elapsed);
 
       if (event.doseSize) {
         const doseBadge = document.createElement("span");
@@ -1723,6 +1767,8 @@ function startClock() {
   state.timerId = setInterval(() => {
     if (state.currentView === "home" && Date.now() >= state.reorderAnimationUntil) {
       render();
+    } else if (state.currentView === "history") {
+      updateHistoryElapsedLabels();
     }
     updateIntervalWarningDialog();
   }, 1000);
