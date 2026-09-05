@@ -1724,12 +1724,9 @@ body {
 /* V1.6.2 — card em duas linhas e diálogo de anotação em tela cheia no mobile */
 .log-dialog-scroll {
   display: grid;
+  align-content: start;
   gap: 20px;
   min-width: 0;
-}
-
-#log-dialog .log-duration-fieldset {
-  gap: 10px;
 }
 
 #log-dialog .wheel-duration-inputs {
@@ -1775,10 +1772,6 @@ body {
 
   #log-dialog .quick-time-button {
     min-height: 50px;
-  }
-
-  #log-dialog .duration-field {
-    gap: 5px;
   }
 
   #log-dialog .wheel-picker-shell {
@@ -2920,16 +2913,16 @@ body {
 }
 
 @media (max-width: 600px) {
-  #drink-dialog .interval-fieldset {
+  :is(#drink-dialog, #log-dialog) .interval-fieldset {
     gap: 12px;
     padding-top: 5px;
   }
 
-  #drink-dialog .field .interval-fieldset-title {
+  :is(#drink-dialog, #log-dialog) .field .interval-fieldset-title {
     font-size: 1.02rem;
   }
 
-  #drink-dialog .interval-fieldset .duration-field {
+  :is(#drink-dialog, #log-dialog) .interval-fieldset .duration-field {
     gap: 7px;
   }
 }

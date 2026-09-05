@@ -1,4 +1,4 @@
-# Intervalo — V1.10.2
+# Intervalo — V1.10.3
 
 ## V1.10.1 — exportação de bebidas em TXT
 
@@ -444,3 +444,7 @@ Cache PWA: `intervalo-v1-10-0`.
 O aviso consulta a versão do Service Worker em espera via GET_VERSION/MessageChannel e exibe “Atualize quando puder vX.X.X”. Sem resposta válida em 2 segundos, mantém o texto genérico. A versão exibida é a disponível, não a instalada. O cliente antigo V1.10.1 ainda mostra o aviso antigo ao receber esta atualização; o novo aviso passa a funcionar após instalar V1.10.2, nas próximas atualizações.
 
 Configurações: Aparência, Privacidade, Sobre a proteção, Bebidas e Backup. “Sobre a proteção” fica oculto no modo de interface limpa. Os controles de privacidade e o disclaimer continuam visíveis. Cache: `intervalo-v1-10-2`; modelo de dados permanece 8.
+
+## V1.10.3 — hierarquia de Anotar consumo
+
+O seletor de tempo reutiliza as classes `interval-fieldset` e `interval-fieldset-title` do cadastro de bebida, incluindo título destacado, rótulos secundários e espaçamentos mobile. O conteúdo do formulário se alinha ao início para evitar espaços verticais esticados; as ações permanecem no rodapé. Lógica de horários e dados preservada. Cache: `intervalo-v1-10-3`.
