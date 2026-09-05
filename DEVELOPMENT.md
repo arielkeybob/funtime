@@ -1,6 +1,6 @@
 # Intervalo — documentação de desenvolvimento
 
-**Versão da aplicação:** `v1.8.6`  
+**Versão da aplicação:** `v1.8.7`  
 **Versão do modelo persistido:** `DATA_VERSION = 7`  
 **Autor exibido na interface:** `arielkeybob`  
 **Stack:** HTML + CSS + JavaScript puro  
@@ -8,7 +8,7 @@
 **Backend:** não existe  
 **Build step:** não existe
 
-> Este documento descreve a arquitetura e o comportamento técnico da versão `v1.8.6`. Ele foi escrito para facilitar manutenção, depuração e evolução do projeto sem depender do histórico da conversa em que o app foi criado.
+> Este documento descreve a arquitetura e o comportamento técnico da versão `v1.8.7`. Ele foi escrito para facilitar manutenção, depuração e evolução do projeto sem depender do histórico da conversa em que o app foi criado.
 
 ---
 
@@ -1765,3 +1765,16 @@ A interface pode mudar bastante, mas três princípios devem ser preservados:
 3. **Informação histórica não deve ser reinterpretada retroativamente quando uma configuração futura muda.**
 
 Esses três pontos são os que mantêm o comportamento previsível à medida que novas funcionalidades são adicionadas.
+
+
+## Entrada instalada — V1.8.7
+
+A UI principal é inicializada somente quando a execução é detectada em `display-mode: standalone`, `fullscreen`, `minimal-ui` ou pelo `navigator.standalone` usado em plataformas Apple.
+
+Quando a mesma URL é aberta em uma aba normal, o app entra em `browser-mode` e mostra apenas a página de instalação. Isso é uma barreira de UX, não um mecanismo de segurança: o código continua sendo um aplicativo web público e pode ser inspecionado por ferramentas de desenvolvimento.
+
+A instalação usa `beforeinstallprompt` quando o navegador disponibiliza o evento. Como essa API não é universal, há fallback de instruções por plataforma/navegador. A página não tenta abrir uma PWA já instalada porque não existe uma API Web interoperável que garanta esse comportamento.
+
+O Service Worker é registrado nos dois modos. Os avisos internos de atualização são mostrados somente quando a execução está em modo instalado.
+
+Cache: `intervalo-v1-8-7`.

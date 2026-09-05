@@ -1,4 +1,4 @@
-# Intervalo — V1.8.6
+# Intervalo — V1.8.7
 
 Aplicação em HTML, CSS e JavaScript puro para registro pessoal de bebidas e acompanhamento dos intervalos configurados pelo usuário.
 
@@ -337,3 +337,14 @@ Se uma versão anterior continuar aparecendo, use `Ctrl + F5`. Se necessário, r
 - Cadastro usa **Intervalo entre doses**.
 - A mensagem visual de máximo de 24 horas foi removida; a validação do campo continua existente.
 - O aviso sobre alterações futuras de intervalo foi marcado como `.clean-optional` e fica oculto enquanto o `<body>` tiver `.clean-mode`, preparando uma futura configuração de interface limpa.
+
+
+## V1.8.7 — entrada pelo navegador
+
+- O aplicativo completo agora é inicializado apenas quando executado em modo instalado/standalone.
+- Ao acessar a URL diretamente pelo navegador, é exibida uma página simples com logo e orientação de instalação.
+- Em navegadores Chromium compatíveis, o app captura `beforeinstallprompt` e oferece um botão próprio **Instalar app**.
+- Em navegadores sem esse evento, a página mostra instruções adequadas para iPhone/iPad, Android, Safari no macOS ou desktop.
+- Não há botão artificial de “Abrir app”, pois a Web não oferece um mecanismo universal e confiável para lançar uma PWA já instalada.
+- O Service Worker continua ativo na página pública para manter os requisitos e a experiência de instalação.
+- Cache PWA: `intervalo-v1-8-7`.

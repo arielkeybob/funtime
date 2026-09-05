@@ -1,3 +1,144 @@
+
+const IS_STANDALONE_APP = (
+  window.matchMedia("(display-mode: standalone)").matches ||
+  window.matchMedia("(display-mode: fullscreen)").matches ||
+  window.matchMedia("(display-mode: minimal-ui)").matches ||
+  window.navigator.standalone === true
+);
+
+let deferredInstallPrompt = null;
+
+function getBrowserInstallGuidance() {
+  const ua = navigator.userAgent || "";
+  const platform = navigator.platform || "";
+  const isIOS = /iPhone|iPad|iPod/i.test(ua) || (platform === "MacIntel" && navigator.maxTouchPoints > 1);
+  const isAndroid = /Android/i.test(ua);
+  const isFirefox = /Firefox\//i.test(ua);
+  const isSafari = /Safari\//i.test(ua) && !/Chrome|CriOS|Chromium|Edg|OPR|Firefox|FxiOS/i.test(ua);
+  const isMac = /Macintosh|Mac OS X/i.test(ua);
+
+  if (isIOS) {
+    return {
+      title: "Instalar no iPhone ou iPad",
+      text: "Abra o menu Compartilhar e escolha “Adicionar à Tela de Início”. Quando aparecer, mantenha “Abrir como App da Web” ativado."
+    };
+  }
+
+  if (isAndroid) {
+    return {
+      title: "Instalar no Android",
+      text: "Abra o menu do navegador (⋮ ou equivalente) e escolha “Instalar app” ou “Adicionar à tela inicial”."
+    };
+  }
+
+  if (isFirefox) {
+    return {
+      title: "Instalação neste navegador",
+      text: "No Firefox para computador a instalação de PWA não é oferecida de forma nativa. Para instalar, abra este endereço no Chrome, Edge ou em um navegador compatível."
+    };
+  }
+
+  if (isMac && isSafari) {
+    return {
+      title: "Instalar no Mac",
+      text: "No Safari, use Arquivo → Adicionar ao Dock. Em outros navegadores compatíveis, procure a opção de instalar na barra de endereço ou no menu."
+    };
+  }
+
+  return {
+    title: "Instalar no aparelho",
+    text: "Procure “Instalar app” na barra de endereço ou no menu do navegador. Em alguns navegadores a opção aparece como “Adicionar à tela inicial”."
+  };
+}
+
+function updateBrowserInstallUI() {
+  const button = document.querySelector("#browser-install-button");
+  const guidance = document.querySelector("#browser-install-guidance");
+  const title = document.querySelector("#browser-install-guidance-title");
+  const text = document.querySelector("#browser-install-guidance-text");
+  const success = document.querySelector("#browser-install-success");
+
+  if (!button || !guidance || !title || !text || !success) return;
+
+  if (deferredInstallPrompt) {
+    button.hidden = false;
+    guidance.hidden = true;
+    success.hidden = true;
+    return;
+  }
+
+  const info = getBrowserInstallGuidance();
+  button.hidden = true;
+  guidance.hidden = false;
+  success.hidden = true;
+  title.textContent = info.title;
+  text.textContent = info.text;
+}
+
+async function requestBrowserInstall() {
+  if (!deferredInstallPrompt) {
+    updateBrowserInstallUI();
+    return;
+  }
+
+  const promptEvent = deferredInstallPrompt;
+  deferredInstallPrompt = null;
+
+  try {
+    await promptEvent.prompt();
+    const choice = await promptEvent.userChoice;
+
+    if (choice?.outcome !== "accepted") {
+      updateBrowserInstallUI();
+    }
+  } catch (error) {
+    console.warn("Não foi possível abrir o prompt de instalação.", error);
+    updateBrowserInstallUI();
+  }
+}
+
+function showBrowserInstallSuccess() {
+  const button = document.querySelector("#browser-install-button");
+  const guidance = document.querySelector("#browser-install-guidance");
+  const success = document.querySelector("#browser-install-success");
+
+  deferredInstallPrompt = null;
+  if (button) button.hidden = true;
+  if (guidance) guidance.hidden = true;
+  if (success) success.hidden = false;
+}
+
+function initializeRuntimeMode() {
+  const browserGate = document.querySelector("#browser-gate");
+
+  if (IS_STANDALONE_APP) {
+    document.body.classList.add("standalone-mode");
+    document.body.classList.remove("browser-mode");
+    if (browserGate) browserGate.hidden = true;
+    return true;
+  }
+
+  document.body.classList.add("browser-mode");
+  document.body.classList.remove("standalone-mode", "security-booting");
+  if (browserGate) browserGate.hidden = false;
+
+  updateBrowserInstallUI();
+  document.querySelector("#browser-install-button")?.addEventListener("click", requestBrowserInstall);
+  return false;
+}
+
+window.addEventListener("beforeinstallprompt", (event) => {
+  if (IS_STANDALONE_APP) return;
+  event.preventDefault();
+  deferredInstallPrompt = event;
+  updateBrowserInstallUI();
+});
+
+window.addEventListener("appinstalled", () => {
+  if (!IS_STANDALONE_APP) showBrowserInstallSuccess();
+});
+
+
 const DATA_STORAGE_KEY = "balada-v1-data";
 const LEGACY_DRINKS_STORAGE_KEY = "balada-v1-drinks";
 const DATA_VERSION = 7;
@@ -2455,6 +2596,7 @@ function closeDialogOnBackdrop(dialogElement, event, closeFunction) {
 
 
 function showUpdateAvailable(worker) {
+  if (!IS_STANDALONE_APP) return;
   if (!worker) return;
 
   state.waitingServiceWorker = worker;
@@ -2693,6 +2835,7 @@ pinSetupDialog.addEventListener("cancel", (event) => {
 });
 
 document.addEventListener("visibilitychange", () => {
+  if (!IS_STANDALONE_APP) return;
   if (document.hidden) {
     if (state.securityConfig.enabled) {
       // Se já está bloqueado, a própria lock screen já protege o conteúdo.
@@ -2747,10 +2890,12 @@ document.addEventListener("visibilitychange", () => {
 // sessionStorage sobrevive à recarga da mesma PWA, mas não substitui a autenticação
 // quando a sessão expira pelo tempo configurado.
 window.addEventListener("beforeunload", () => {
+  if (!IS_STANDALONE_APP) return;
   if (state.securityConfig.enabled && !state.securityLocked) markSecurityActive();
 });
 
 document.addEventListener("pointerdown", () => {
+  if (!IS_STANDALONE_APP) return;
   if (state.securityConfig.enabled && !state.securityLocked && !document.hidden) markSecurityActive();
 }, { passive: true });
 
@@ -2779,7 +2924,11 @@ async function bootstrapApp() {
   await initializeSecurity();
 }
 
-bootstrapApp().catch((error) => {
-  console.error("Falha ao inicializar o aplicativo.", error);
-  document.body.classList.remove("security-booting");
-});
+const shouldBootstrapInstalledApp = initializeRuntimeMode();
+
+if (shouldBootstrapInstalledApp) {
+  bootstrapApp().catch((error) => {
+    console.error("Falha ao inicializar o aplicativo.", error);
+    document.body.classList.remove("security-booting");
+  });
+}

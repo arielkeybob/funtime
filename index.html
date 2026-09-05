@@ -14,6 +14,40 @@
   <link rel="stylesheet" href="./styles.css">
 </head>
 <body class="clean-mode security-booting">
+  <section id="browser-gate" class="browser-gate" hidden aria-labelledby="browser-gate-title">
+    <main class="browser-gate-main">
+      <div class="browser-gate-card">
+        <img class="browser-gate-logo" src="./icons/icon-192-v164.png" alt="">
+        <p class="eyebrow">Aplicativo web</p>
+        <h1 id="browser-gate-title">Intervalo</h1>
+        <p class="browser-gate-lead">Use o Intervalo pelo aplicativo instalado no aparelho.</p>
+
+        <div class="browser-install-panel">
+          <button id="browser-install-button" class="primary-button browser-install-button" type="button" hidden>
+            Instalar app
+          </button>
+
+          <div id="browser-install-guidance" class="browser-install-guidance" role="status">
+            <strong id="browser-install-guidance-title">Como instalar</strong>
+            <span id="browser-install-guidance-text">A opção de instalação depende do navegador e do aparelho.</span>
+          </div>
+
+          <div id="browser-install-success" class="browser-install-success" role="status" hidden>
+            <strong>App instalado</strong>
+            <span>Agora abra o Intervalo pelo ícone criado no aparelho.</span>
+          </div>
+        </div>
+
+        <p class="browser-already-installed">Já instalou? Abra o <strong>Intervalo</strong> pelo ícone na tela inicial ou na lista de aplicativos.</p>
+      </div>
+    </main>
+
+    <footer class="browser-gate-footer">
+      <span>App para estudo · não é controle de segurança</span>
+      <span>v1.8.7 · By: arielkeybob</span>
+    </footer>
+  </section>
+
   <div id="app-shell" class="app-shell">
     <header id="home-header" class="app-header home-header">
       <div class="home-header-copy">
@@ -126,7 +160,7 @@
 
     <footer class="app-footer">
       <span class="app-footer-disclaimer">App para estudo · não é controle de segurança</span>
-      <span class="app-footer-meta">v1.8.6 · By: arielkeybob</span>
+      <span class="app-footer-meta">v1.8.7 · By: arielkeybob</span>
     </footer>
   </div>
 
