@@ -1062,6 +1062,21 @@ h2 {
   white-space: nowrap;
 }
 
+.history-event-identity {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+}
+
+.history-event-identity strong {
+  min-width: 0;
+}
+
+.history-event-identity .history-dose-badge {
+  flex: 0 0 auto;
+}
+
 .history-event-icon {
   font-size: 1.18rem;
 }

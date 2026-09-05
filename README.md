@@ -1,4 +1,4 @@
-# Intervalo — V1.8.4
+# Intervalo — V1.8.5
 
 Aplicação em HTML, CSS e JavaScript puro para registro pessoal de bebidas e acompanhamento dos intervalos configurados pelo usuário.
 
@@ -7,6 +7,13 @@ Documentação técnica detalhada: [`DEVELOPMENT.md`](./DEVELOPMENT.md).
 
 
 
+
+
+## Mudanças da V1.8.5
+
+- No histórico, o badge de tamanho da dose (`Meia` / `Inteira`) agora aparece ao lado do nome da bebida, mantendo a identificação do consumo em uma única linha visual.
+- A mensagem de confirmação durante intervalo em andamento foi simplificada para: `Se você já consumiu novamente, anote o horário.`
+- Cache da PWA atualizado para `intervalo-v1-8-5`.
 
 ## Mudanças da V1.8.4
 

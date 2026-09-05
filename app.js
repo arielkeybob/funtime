@@ -1557,8 +1557,19 @@ function renderHistory() {
       icon.textContent = drink.icon;
       icon.setAttribute("aria-hidden", "true");
 
+      const identity = document.createElement("span");
+      identity.className = "history-event-identity";
+
       const name = document.createElement("strong");
       name.textContent = drink.name;
+      identity.appendChild(name);
+
+      if (event.doseSize) {
+        const doseBadge = document.createElement("span");
+        doseBadge.className = `history-dose-badge ${event.doseSize}`;
+        doseBadge.textContent = getDoseLabel(event.doseSize);
+        identity.appendChild(doseBadge);
+      }
 
       const mobileTime = document.createElement("span");
       mobileTime.className = "history-event-mobile-time";
@@ -1569,7 +1580,7 @@ function renderHistory() {
       chevron.textContent = "›";
       chevron.setAttribute("aria-hidden", "true");
 
-      heading.append(icon, name, mobileTime, chevron);
+      heading.append(icon, identity, mobileTime, chevron);
       body.appendChild(heading);
 
       const elapsed = document.createElement("span");
@@ -1585,13 +1596,6 @@ function renderHistory() {
           : `Tempo desde o consumo: ${elapsed.textContent}. O intervalo configurado ainda está em andamento.`
       );
       body.appendChild(elapsed);
-
-      if (event.doseSize) {
-        const doseBadge = document.createElement("span");
-        doseBadge.className = `history-dose-badge ${event.doseSize}`;
-        doseBadge.textContent = getDoseLabel(event.doseSize);
-        body.appendChild(doseBadge);
-      }
 
       if (drink.isDeleted) {
         const deletedBadge = document.createElement("span");
@@ -1967,7 +1971,7 @@ function updateIntervalWarningDialog() {
     intervalWarningMessage.textContent = "Se houve outro consumo, anote-o. O app manterá os registros anteriores e atualizará o alerta com base na sequência real.";
   } else {
     intervalWarningContext.hidden = true;
-    intervalWarningMessage.textContent = "Se você já consumiu novamente, anote o horário. O registro anterior será mantido e o card passará a sinalizar que houve consumo antes do intervalo terminar.";
+    intervalWarningMessage.textContent = "Se você já consumiu novamente, anote o horário.";
   }
 }
 

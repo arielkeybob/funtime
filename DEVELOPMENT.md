@@ -1,6 +1,6 @@
 # Intervalo — documentação de desenvolvimento
 
-**Versão da aplicação:** `v1.8.4`  
+**Versão da aplicação:** `v1.8.5`  
 **Versão do modelo persistido:** `DATA_VERSION = 7`  
 **Autor exibido na interface:** `arielkeybob`  
 **Stack:** HTML + CSS + JavaScript puro  
@@ -8,7 +8,7 @@
 **Backend:** não existe  
 **Build step:** não existe
 
-> Este documento descreve a arquitetura e o comportamento técnico da versão `v1.8.4`. Ele foi escrito para facilitar manutenção, depuração e evolução do projeto sem depender do histórico da conversa em que o app foi criado.
+> Este documento descreve a arquitetura e o comportamento técnico da versão `v1.8.5`. Ele foi escrito para facilitar manutenção, depuração e evolução do projeto sem depender do histórico da conversa em que o app foi criado.
 
 ---
 
@@ -166,7 +166,15 @@ O cache do Service Worker desta versão é `intervalo-v1-6-5`.
 - Linha superior: `USO PESSOAL` + atalho de Configurações.
 - Linha principal: `Início` + grupo de ações `Histórico` e `+`.
 - A mudança é exclusivamente de composição responsiva; os IDs dos botões e seus event listeners foram preservados.
-- Cache do Service Worker: `intervalo-v1-8-4`.
+- Cache do Service Worker: `intervalo-v1-8-5`.
+
+
+## Alterações da v1.8.5
+
+- A identificação visual de `Meia` / `Inteira` no histórico foi movida para a mesma linha do nome da bebida por meio de `.history-event-identity`.
+- O badge continua usando `.history-dose-badge`, mas agora participa do cabeçalho do evento em vez de ocupar uma linha própria no corpo do card.
+- A mensagem do alerta de intervalo em andamento foi encurtada para evitar excesso de explicação no momento de decisão: `Se você já consumiu novamente, anote o horário.`
+- Cache da PWA: `intervalo-v1-8-5`.
 
 ## Alterações da v1.8.4
 
