@@ -2112,21 +2112,34 @@ h2 {
   display: grid;
   width: 100%;
   min-width: 0;
-  gap: 8px;
+  gap: 10px;
+}
+
+.home-header-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  min-width: 0;
+  gap: 12px;
 }
 
 .home-header-eyebrow {
-  width: 100%;
   margin-bottom: 0;
 }
 
 .home-header-main {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
-  align-items: center;
+  align-items: end;
   width: 100%;
   min-width: 0;
-  gap: 10px;
+  gap: 12px;
+}
+
+.home-header-main h1 {
+  min-width: 0;
+  white-space: nowrap;
 }
 
 .home-header-actions {
@@ -2485,21 +2498,25 @@ h2 {
 }
 
 @media (max-width: 420px) {
+  .home-header {
+    gap: 9px;
+  }
+
   .home-header-main {
-    gap: 8px;
+    gap: 10px;
   }
 
   .home-header-main h1 {
-    font-size: clamp(2rem, 12vw, 2.55rem);
+    font-size: clamp(2.15rem, 12vw, 2.7rem);
   }
 
   .home-header .header-actions {
-    gap: 6px;
+    gap: 7px;
   }
 
   .home-header .header-text-button {
     min-height: 42px;
-    padding-inline: 10px;
+    padding-inline: 11px;
     font-size: 0.9rem;
   }
 
@@ -2521,7 +2538,7 @@ h2 {
 
 @media (max-width: 350px) {
   .home-header-main h1 {
-    font-size: 1.9rem;
+    font-size: 2rem;
   }
 
   .home-header .header-text-button {

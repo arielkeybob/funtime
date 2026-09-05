@@ -1,6 +1,6 @@
 # Intervalo — documentação de desenvolvimento
 
-**Versão da aplicação:** `v1.8.1`  
+**Versão da aplicação:** `v1.8.2`  
 **Versão do modelo persistido:** `DATA_VERSION = 7`  
 **Autor exibido na interface:** `arielkeybob`  
 **Stack:** HTML + CSS + JavaScript puro  
@@ -8,7 +8,7 @@
 **Backend:** não existe  
 **Build step:** não existe
 
-> Este documento descreve a arquitetura e o comportamento técnico da versão `v1.8.1`. Ele foi escrito para facilitar manutenção, depuração e evolução do projeto sem depender do histórico da conversa em que o app foi criado.
+> Este documento descreve a arquitetura e o comportamento técnico da versão `v1.8.2`. Ele foi escrito para facilitar manutenção, depuração e evolução do projeto sem depender do histórico da conversa em que o app foi criado.
 
 ---
 
@@ -159,6 +159,14 @@ A cor do tempo relativo indica apenas se **o intervalo configurado para aquele r
 O ícone exibido pelo launcher do Android/iOS pode permanecer em cache mesmo depois que o manifest e os arquivos de ícone foram atualizados e o Service Worker já está na versão mais recente. Esse cache pertence ao sistema/launcher e não ao cache controlado pelo Service Worker. Por isso, a atualização do código do PWA não garante atualização imediata do ícone instalado; em alguns dispositivos, remover e instalar novamente o PWA é o método mais confiável para forçar a nova arte.
 
 O cache do Service Worker desta versão é `intervalo-v1-6-5`.
+
+## 0. Alterações da V1.8.2
+
+- Cabeçalho da tela inicial reorganizado em duas linhas.
+- Linha superior: `USO PESSOAL` + atalho de Configurações.
+- Linha principal: `Início` + grupo de ações `Histórico` e `+`.
+- A mudança é exclusivamente de composição responsiva; os IDs dos botões e seus event listeners foram preservados.
+- Cache do Service Worker: `intervalo-v1-8-2`.
 
 ## 1. Alterações da V1.6.4
 
