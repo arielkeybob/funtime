@@ -2,18 +2,7 @@
 
 Este documento registra ideias em estudo. Os itens abaixo não representam funcionalidades confirmadas e podem mudar conforme testes de UX, limitações técnicas e requisitos de privacidade e segurança.
 
-## Curto / médio prazo
-
-### Exportar / importar bebidas
-
-Recurso específico para transportar **somente a lista e as configurações das bebidas**, sem confundir com backup completo.
-
-Possível fluxo de importação:
-
-- visualizar uma prévia antes de confirmar;
-- escolher entre **adicionar às bebidas existentes** ou **sobrescrever a lista atual**;
-- detectar possíveis duplicidades;
-- manter histórico de consumo fora desse processo, salvo decisão futura explícita.
+## Próximos estudos
 
 ### Mesclar bebidas
 
@@ -23,24 +12,19 @@ Pontos a considerar:
 
 - escolher qual cadastro será mantido como principal;
 - transferir os registros históricos para a bebida mantida;
-- preservar os snapshots históricos de intervalo, dose, nome e ícone conforme as regras do app;
-- oferecer a ação manualmente e também ao detectar possíveis duplicidades durante uma importação.
+- preservar snapshots históricos;
+- oferecer a ação manualmente e, futuramente, ao detectar possíveis duplicidades em uma importação.
 
-### Backup / restaurar backup
+### Backup protegido por senha
 
-Recurso separado de **Exportar / importar bebidas**.
+A V1.10.0 cria e restaura backup local em JSON, sem incluir PIN/biometria.
 
-O objetivo do backup é preservar/restaurar o estado completo do aplicativo, podendo incluir:
+Uma evolução futura pode oferecer backup criptografado, com desenho específico para:
 
-- bebidas;
-- histórico;
-- preferências;
-- futuras relações entre bebidas;
-- outros dados locais compatíveis com a versão do backup.
-
-A UX deve usar explicitamente os termos **Fazer backup** e **Restaurar backup**, evitando que o usuário confunda esse fluxo com a simples transferência da lista de bebidas.
-
-Antes da implementação devem ser definidos formato, versionamento, validação, compatibilidade entre versões e estratégia futura de criptografia.
+- AES-GCM;
+- derivação de chave a partir de senha;
+- recuperação e mensagens claras sobre perda da senha;
+- compatibilidade/versionamento do formato.
 
 ### Relações configuradas entre bebidas
 
@@ -64,15 +48,13 @@ A relação não precisa ser obrigatoriamente simétrica; `X → Y` pode existir
 
 Estudar um modo opcional de permitir que duas pessoas conectadas compartilhem parte de seus registros por um período definido.
 
-Exemplo de uso: durante uma saída em grupo, uma pessoa de confiança poderia consultar os registros que o usuário decidiu compartilhar.
-
 Requisitos mínimos antes de implementação:
 
 - contas e autenticação;
 - backend e sincronização;
 - consentimento explícito;
 - escolha granular do que compartilhar;
-- duração limitada, por exemplo próximas 2h, 6h ou 24h;
+- duração limitada;
 - revogação imediata;
 - privacidade e segurança dos dados;
 - tratamento de conflitos/offline;
@@ -88,5 +70,28 @@ Preferência disponível em **Configurações → Aparência**.
 
 - ativada por padrão;
 - oculta textos e explicações auxiliares;
-- pode ser desativada para exibir novamente essas informações;
-- não deve ocultar alertas importantes, erros, estados de intervalo ou disclaimers de segurança.
+- não oculta alertas importantes, erros, estados de intervalo ou disclaimers.
+
+### Exportar / importar bebidas — V1.10.0
+
+Recurso específico para transportar **somente a lista e as configurações das bebidas**.
+
+- arquivo JSON versionado;
+- exportação por botão único **Exportar bebidas**;
+- em plataformas compatíveis, a exportação pode usar a folha nativa do sistema para escolher o destino do arquivo;
+- importação manual por seletor de arquivo;
+- em Android/PWA compatível, o manifest inclui `share_target` para receber um arquivo JSON enviado ao Intervalo;
+- prévia antes de importar;
+- opção de adicionar ou substituir;
+- duplicatas exatas ignoradas no modo adicionar;
+- histórico nunca é apagado pela importação de bebidas.
+
+### Backup / restauração — V1.10.0
+
+Recurso separado da transferência de bebidas.
+
+- backup inclui bebidas, histórico e preferências;
+- bloqueio, PIN e credenciais do aparelho ficam fora do backup;
+- restauração sempre substitui o estado restaurável;
+- arquivo é validado integralmente antes da gravação;
+- erro de validação/gravação mantém os dados atuais.

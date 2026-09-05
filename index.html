@@ -40,7 +40,7 @@
 
     <footer class="browser-gate-footer">
       <span>App para estudo · não é controle de segurança</span>
-      <span>v1.9.1 · By: arielkeybob</span>
+      <span>v1.10.0 · By: arielkeybob</span>
     </footer>
   </section>
 
@@ -129,6 +129,46 @@
         </label>
       </section>
 
+      <section class="settings-card settings-data-card settings-drinks-data-card">
+        <div class="settings-section-heading">
+          <div>
+            <p class="eyebrow">Bebidas</p>
+            <h2>Exportar e importar</h2>
+          </div>
+        </div>
+
+        <p class="settings-description">Transfira somente a lista e as configurações das bebidas. O histórico não faz parte deste arquivo.</p>
+
+        <div class="settings-action-stack">
+          <button id="export-drinks" class="settings-primary-action" type="button">Exportar bebidas</button>
+          <button id="import-drinks" class="settings-secondary-button" type="button">Importar bebidas</button>
+        </div>
+
+        <input id="drink-import-file" class="visually-hidden-file" type="file" accept=".json,application/json">
+      </section>
+
+      <div class="settings-major-separator" aria-hidden="true"></div>
+
+      <section class="settings-card settings-data-card settings-backup-data-card">
+        <div class="settings-section-heading">
+          <div>
+            <p class="eyebrow">Backup e restauração</p>
+            <h2>Dados do aplicativo</h2>
+          </div>
+        </div>
+
+        <p class="settings-description">O backup inclui bebidas, histórico e preferências. PIN, biometria e bloqueio deste aparelho não entram no arquivo.</p>
+
+        <div class="settings-action-stack">
+          <button id="create-backup" class="settings-primary-action" type="button">Fazer backup</button>
+          <button id="restore-backup" class="settings-secondary-button" type="button">Restaurar backup</button>
+        </div>
+
+        <input id="backup-restore-file" class="visually-hidden-file" type="file" accept=".json,application/json">
+      </section>
+
+      <div class="settings-major-separator" aria-hidden="true"></div>
+
       <section class="settings-card">
         <div class="settings-section-heading">
           <div>
@@ -176,7 +216,7 @@
 
     <footer class="app-footer">
       <span class="app-footer-disclaimer">App para estudo · não é controle de segurança</span>
-      <span class="app-footer-meta">v1.9.1 · By: arielkeybob</span>
+      <span class="app-footer-meta">v1.10.0 · By: arielkeybob</span>
     </footer>
   </div>
 
@@ -497,6 +537,80 @@
     </article>
   </template>
 
+
+  <dialog id="drink-import-dialog" class="dialog data-dialog">
+    <form method="dialog">
+      <div class="dialog-header">
+        <div>
+          <p class="eyebrow">Bebidas</p>
+          <h2>Importar bebidas</h2>
+        </div>
+        <button id="close-drink-import" class="icon-button secondary" type="button" aria-label="Fechar">×</button>
+      </div>
+
+      <div class="data-file-summary">
+        <strong id="drink-import-file-name">Arquivo selecionado</strong>
+        <span id="drink-import-file-summary">—</span>
+      </div>
+
+      <fieldset class="data-choice-group">
+        <legend>Como deseja importar?</legend>
+
+        <label class="data-choice">
+          <input type="radio" name="drink-import-mode" value="add" checked>
+          <span>
+            <strong>Adicionar às bebidas atuais</strong>
+            <small>Mantém sua lista e acrescenta as novas. Duplicatas exatas são ignoradas.</small>
+          </span>
+        </label>
+
+        <label class="data-choice">
+          <input type="radio" name="drink-import-mode" value="replace">
+          <span>
+            <strong>Substituir minha lista de bebidas</strong>
+            <small>Troca somente a lista de bebidas. Seu histórico não será apagado.</small>
+          </span>
+        </label>
+      </fieldset>
+
+      <p id="drink-import-error" class="form-error" role="alert" hidden></p>
+
+      <div class="dialog-actions">
+        <button id="cancel-drink-import" class="secondary-button" type="button">Cancelar</button>
+        <button id="confirm-drink-import" class="primary-button" type="button">Importar</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="backup-restore-dialog" class="dialog data-dialog backup-restore-dialog">
+    <form method="dialog">
+      <div class="dialog-header">
+        <div>
+          <p class="eyebrow danger-eyebrow">Restauração</p>
+          <h2>Restaurar backup</h2>
+        </div>
+        <button id="close-backup-restore" class="icon-button secondary" type="button" aria-label="Fechar">×</button>
+      </div>
+
+      <div class="data-file-summary">
+        <strong id="backup-restore-file-name">Backup selecionado</strong>
+        <span id="backup-restore-file-summary">—</span>
+      </div>
+
+      <div class="restore-warning">
+        <strong>O que será substituído</strong>
+        <span>Bebidas, histórico e preferências do aplicativo.</span>
+        <small>O bloqueio, PIN e autenticação deste aparelho não serão alterados.</small>
+      </div>
+
+      <p id="backup-restore-error" class="form-error" role="alert" hidden></p>
+
+      <div class="dialog-actions">
+        <button id="cancel-backup-restore" class="secondary-button" type="button">Cancelar</button>
+        <button id="confirm-backup-restore" class="danger-confirm-button" type="button">Restaurar backup</button>
+      </div>
+    </form>
+  </dialog>
 
   <dialog id="security-method-dialog" class="dialog security-method-dialog">
     <form method="dialog">

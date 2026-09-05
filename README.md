@@ -1,4 +1,4 @@
-# Intervalo — V1.9.1
+# Intervalo — V1.10.0
 
 Aplicação em HTML, CSS e JavaScript puro para registro pessoal de bebidas e acompanhamento dos intervalos configurados pelo usuário.
 
@@ -403,3 +403,32 @@ git status
 e confirmar que `index.html`, `app.js`, `styles.css`, `sw.js` e `manifest.webmanifest` aparecem como modificados/adicionados, e não somente como excluídos.
 
 Cache PWA: `intervalo-v1-9-1`.
+
+
+## V1.10.0 — transferência de bebidas e backup
+
+### Exportar / importar bebidas
+
+A interface mantém este recurso separado de backup.
+
+- **Exportar bebidas** gera `Intervalo-Bebidas-AAAA-MM-DD.json`.
+- O arquivo contém somente configurações das bebidas; não contém histórico.
+- Em plataformas que suportam Web Share com arquivos, o botão de exportar usa a folha nativa do sistema, permitindo escolher WhatsApp, Arquivos, Drive e outros destinos sem criar uma ação separada chamada “Compartilhar”.
+- Quando Web Share com arquivo não está disponível, o app faz download convencional.
+- **Importar bebidas** abre um arquivo JSON e mostra uma prévia antes de alterar os dados.
+- O usuário escolhe **Adicionar às bebidas atuais** ou **Substituir minha lista de bebidas**.
+- No modo adicionar, duplicatas exatas são ignoradas.
+- Substituir a lista não apaga o histórico.
+- O manifest inclui `share_target` para recebimento progressivo de arquivos JSON em Android/PWAs compatíveis. A importação manual continua sendo o caminho universal.
+
+### Backup / restauração
+
+- **Fazer backup** gera `Intervalo-Backup-AAAA-MM-DD-HHMM.json`.
+- Inclui bebidas, eventos/histórico e preferências.
+- Não inclui PIN, hash do PIN, credencial WebAuthn, biometria ou sessão desbloqueada.
+- **Restaurar backup** valida o arquivo e mostra bebida/registro/data antes da confirmação.
+- A restauração substitui bebidas, histórico e preferências, mantendo o bloqueio configurado no aparelho.
+- Arquivo de bebidas usado em Restaurar backup (e vice-versa) é rejeitado com orientação para a ação correta.
+- Gravações são feitas somente após validação integral do conteúdo.
+
+Cache PWA: `intervalo-v1-10-0`.

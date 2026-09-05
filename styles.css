@@ -2967,3 +2967,172 @@ body {
 .settings-toggle-row > .security-switch {
   pointer-events: none;
 }
+
+
+/* V1.10.0 — Exportar/importar bebidas e backup/restauração */
+.settings-data-card {
+  gap: 15px;
+}
+
+.settings-major-separator {
+  height: 18px;
+}
+
+.settings-action-stack {
+  display: grid;
+  gap: 10px;
+}
+
+.settings-primary-action {
+  min-height: 48px;
+  padding: 0 15px;
+  border: 1px solid rgb(255 255 255 / 0.14);
+  border-radius: 12px;
+  background: #f4f4f5;
+  color: #111118;
+  font: inherit;
+  font-weight: 800;
+}
+
+.settings-primary-action:disabled {
+  cursor: not-allowed;
+  opacity: 0.4;
+}
+
+.visually-hidden-file {
+  position: fixed !important;
+  width: 1px !important;
+  height: 1px !important;
+  overflow: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+.data-dialog form {
+  gap: 18px;
+}
+
+.data-file-summary {
+  display: grid;
+  gap: 5px;
+  padding: 14px 15px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: #0d0d10;
+}
+
+.data-file-summary strong {
+  overflow: hidden;
+  color: var(--text);
+  font-size: 0.9rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.data-file-summary span {
+  color: var(--muted);
+  font-size: 0.78rem;
+  line-height: 1.45;
+}
+
+.data-choice-group {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.data-choice-group > legend {
+  margin-bottom: 2px;
+  color: var(--text);
+  font-size: 0.88rem;
+  font-weight: 800;
+}
+
+.data-choice {
+  display: grid;
+  grid-template-columns: 22px minmax(0, 1fr);
+  align-items: start;
+  gap: 11px;
+  padding: 13px 14px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: #0d0d10;
+  cursor: pointer;
+}
+
+.data-choice:has(input:checked) {
+  border-color: rgb(94 233 155 / 0.48);
+  background: rgb(94 233 155 / 0.075);
+}
+
+.data-choice input {
+  width: 18px;
+  height: 18px;
+  margin: 2px 0 0;
+  accent-color: var(--success);
+}
+
+.data-choice > span {
+  display: grid;
+  gap: 5px;
+}
+
+.data-choice strong {
+  color: var(--text);
+  font-size: 0.88rem;
+}
+
+.data-choice small {
+  color: var(--muted);
+  font-size: 0.76rem;
+  line-height: 1.45;
+}
+
+.restore-warning {
+  display: grid;
+  gap: 6px;
+  padding: 14px 15px;
+  border: 1px solid rgb(255 91 98 / 0.38);
+  border-radius: 14px;
+  background: rgb(255 91 98 / 0.08);
+}
+
+.restore-warning strong {
+  color: #ffb0b4;
+  font-size: 0.88rem;
+}
+
+.restore-warning span {
+  color: var(--text);
+  font-size: 0.82rem;
+  line-height: 1.45;
+}
+
+.restore-warning small {
+  color: var(--muted);
+  font-size: 0.74rem;
+  line-height: 1.45;
+}
+
+.danger-confirm-button {
+  min-height: 48px;
+  padding: 0 16px;
+  border: 1px solid rgb(255 91 98 / 0.7);
+  border-radius: 12px;
+  background: rgb(255 91 98 / 0.14);
+  color: #ffb0b4;
+  font: inherit;
+  font-weight: 800;
+}
+
+@media (max-width: 600px) {
+  .settings-major-separator {
+    height: 24px;
+  }
+
+  .data-dialog {
+    width: min(94vw, 560px);
+  }
+}

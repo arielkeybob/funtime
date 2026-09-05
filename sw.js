@@ -1,4 +1,7 @@
-const CACHE_NAME = "intervalo-v1-9-1";
+const CACHE_NAME = "intervalo-v1-10-0";
+const SHARE_IMPORT_CACHE_NAME = "intervalo-share-target-v1";
+const SHARE_IMPORT_REQUEST_PATH = "./__shared-drinks-import__";
+const SHARE_TARGET_MAX_BYTES = 1500000;
 
 const APP_SHELL = [
   "./",
@@ -42,7 +45,7 @@ self.addEventListener("activate", (event) => {
       caches.keys().then((keys) =>
         Promise.all(
           keys
-            .filter((key) => key.startsWith("intervalo-") && key !== CACHE_NAME)
+            .filter((key) => key.startsWith("intervalo-") && key !== CACHE_NAME && key !== SHARE_IMPORT_CACHE_NAME)
             .map((key) => caches.delete(key))
         )
       ),
@@ -57,11 +60,50 @@ self.addEventListener("message", (event) => {
   }
 });
 
+async function handleShareTargetRequest(request) {
+  try {
+    const formData = await request.formData();
+    const file = formData.get("drinksFile");
+
+    if (!(file instanceof File) || file.size <= 0 || file.size > SHARE_TARGET_MAX_BYTES) {
+      return Response.redirect(new URL("./?import-shared=1&share-error=1", self.registration.scope).href, 303);
+    }
+
+    const text = await file.text();
+    const cache = await caches.open(SHARE_IMPORT_CACHE_NAME);
+    const payloadUrl = new URL(SHARE_IMPORT_REQUEST_PATH, self.registration.scope).href;
+
+    await cache.put(
+      payloadUrl,
+      new Response(text, {
+        headers: {
+          "Content-Type": "application/json;charset=utf-8",
+          "X-Intervalo-Filename": encodeURIComponent(file.name || "Intervalo-Bebidas.json")
+        }
+      })
+    );
+
+    return Response.redirect(new URL("./?import-shared=1", self.registration.scope).href, 303);
+  } catch (error) {
+    console.error("Falha ao receber arquivo pelo share target.", error);
+    return Response.redirect(new URL("./?import-shared=1&share-error=1", self.registration.scope).href, 303);
+  }
+}
+
 self.addEventListener("fetch", (event) => {
   const request = event.request;
-  if (request.method !== "GET") return;
-
   const url = new URL(request.url);
+
+  if (
+    request.method === "POST" &&
+    url.origin === self.location.origin &&
+    url.pathname.endsWith("/share-target")
+  ) {
+    event.respondWith(handleShareTargetRequest(request));
+    return;
+  }
+
+  if (request.method !== "GET") return;
   if (url.origin !== self.location.origin) return;
 
   event.respondWith(

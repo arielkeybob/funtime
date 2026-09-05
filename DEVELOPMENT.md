@@ -1,6 +1,6 @@
 # Intervalo — documentação de desenvolvimento
 
-**Versão da aplicação:** `v1.9.1`  
+**Versão da aplicação:** `v1.10.0`  
 **Versão do modelo persistido:** `DATA_VERSION = 7`  
 **Autor exibido na interface:** `arielkeybob`  
 **Stack:** HTML + CSS + JavaScript puro  
@@ -8,7 +8,7 @@
 **Backend:** não existe  
 **Build step:** não existe
 
-> Este documento descreve a arquitetura e o comportamento técnico da versão `v1.9.1`. Ele foi escrito para facilitar manutenção, depuração e evolução do projeto sem depender do histórico da conversa em que o app foi criado.
+> Este documento descreve a arquitetura e o comportamento técnico da versão `v1.10.0`. Ele foi escrito para facilitar manutenção, depuração e evolução do projeto sem depender do histórico da conversa em que o app foi criado.
 
 ---
 
@@ -1868,3 +1868,96 @@ git push
 ```
 
 Cache: `intervalo-v1-9-1`.
+
+
+## Arquivos de dados — V1.10.0
+
+### Formato `intervalo-drinks`
+
+```json
+{
+  "type": "intervalo-drinks",
+  "formatVersion": 1,
+  "appVersion": "1.10.0",
+  "exportedAt": "ISO-8601",
+  "drinks": []
+}
+```
+
+Contém somente configurações de bebidas.
+
+Importação:
+
+1. lê arquivo com limite de tamanho;
+2. valida JSON, `type` e `formatVersion`;
+3. valida e normaliza todas as bebidas em memória;
+4. apresenta prévia;
+5. constrói a nova lista;
+6. serializa e grava em `balada-v1-data` em uma única operação;
+7. somente após a gravação atualiza `state.drinks`.
+
+No modo **Adicionar**, a assinatura de duplicata exata é formada por nome normalizado, ícone, intervalo e `askDoseSize`. Colisões de ID com conteúdo diferente recebem um novo ID.
+
+No modo **Substituir**, somente `drinks` é substituído. `events` e `preferences` permanecem.
+
+### Formato `intervalo-backup`
+
+```json
+{
+  "type": "intervalo-backup",
+  "formatVersion": 1,
+  "appVersion": "1.10.0",
+  "createdAt": "ISO-8601",
+  "data": {
+    "version": 8,
+    "drinks": [],
+    "events": [],
+    "preferences": {}
+  }
+}
+```
+
+Segurança (`intervalo-security-v1`) e sessão (`intervalo-security-session-v1`) ficam deliberadamente fora do backup.
+
+Restauração:
+
+1. valida tipo e versão do arquivo;
+2. executa `normalizeData()` sem alterar o estado atual;
+3. mostra prévia;
+4. grava o estado restaurável em uma única chamada `localStorage.setItem`;
+5. recarrega o app;
+6. a configuração de bloqueio do aparelho permanece intocada.
+
+### Web Share na exportação de bebidas
+
+`Exportar bebidas` tenta `navigator.canShare({ files })` + `navigator.share({ files })`.
+
+A UI mantém somente o termo **Exportar**. A folha nativa é tratada como mecanismo de entrega/salvamento do arquivo, não como uma função separada do produto.
+
+Fallback: `Blob/File` + object URL + atributo `download`.
+
+### Web Share Target
+
+O manifest declara:
+
+```json
+"share_target": {
+  "action": "./share-target",
+  "method": "POST",
+  "enctype": "multipart/form-data",
+  "params": {
+    "files": [{
+      "name": "drinksFile",
+      "accept": ["application/json", ".json"]
+    }]
+  }
+}
+```
+
+O Service Worker intercepta o POST dentro do escopo, valida limite de tamanho, armazena temporariamente o JSON no Cache Storage `intervalo-share-target-v1` e redireciona para `?import-shared=1`.
+
+Após desbloqueio, a aplicação recupera o arquivo temporário e abre a mesma prévia usada pela importação manual. O arquivo temporário é removido após a leitura.
+
+Essa integração é melhoria progressiva; a importação manual por `<input type="file">` continua obrigatória e universal.
+
+Cache da aplicação: `intervalo-v1-10-0`.

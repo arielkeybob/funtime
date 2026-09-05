@@ -206,6 +206,15 @@ window.addEventListener("appinstalled", () => {
 const DATA_STORAGE_KEY = "balada-v1-data";
 const LEGACY_DRINKS_STORAGE_KEY = "balada-v1-drinks";
 const DATA_VERSION = 8;
+const APP_VERSION = "1.10.0";
+const DRINK_EXPORT_TYPE = "intervalo-drinks";
+const DRINK_EXPORT_FORMAT_VERSION = 1;
+const BACKUP_EXPORT_TYPE = "intervalo-backup";
+const BACKUP_EXPORT_FORMAT_VERSION = 1;
+const DRINK_FILE_MAX_BYTES = 1500000;
+const BACKUP_FILE_MAX_BYTES = 20000000;
+const SHARE_IMPORT_CACHE_NAME = "intervalo-share-target-v1";
+const SHARE_IMPORT_REQUEST_PATH = "./__shared-drinks-import__";
 const SECURITY_STORAGE_KEY = "intervalo-security-v1";
 const SECURITY_SESSION_KEY = "intervalo-security-session-v1";
 const SECURITY_CONFIG_VERSION = 3;
@@ -266,6 +275,9 @@ const state = {
   pinLockoutTimer: null,
   deviceAuthSupported: false,
   securitySetupContext: "enable",
+  pendingDrinkImport: null,
+  pendingBackupRestore: null,
+  pendingSharedImportCheck: false,
 };
 
 const homeHeader = document.querySelector("#home-header");
@@ -357,6 +369,25 @@ const appShell = document.querySelector("#app-shell");
 const settingsHeader = document.querySelector("#settings-header");
 const settingsView = document.querySelector("#settings-view");
 const cleanInterfaceInput = document.querySelector("#clean-interface");
+const exportDrinksButton = document.querySelector("#export-drinks");
+const importDrinksButton = document.querySelector("#import-drinks");
+const drinkImportFileInput = document.querySelector("#drink-import-file");
+const createBackupButton = document.querySelector("#create-backup");
+const restoreBackupButton = document.querySelector("#restore-backup");
+const backupRestoreFileInput = document.querySelector("#backup-restore-file");
+
+const drinkImportDialog = document.querySelector("#drink-import-dialog");
+const drinkImportFileName = document.querySelector("#drink-import-file-name");
+const drinkImportFileSummary = document.querySelector("#drink-import-file-summary");
+const drinkImportError = document.querySelector("#drink-import-error");
+const confirmDrinkImportButton = document.querySelector("#confirm-drink-import");
+
+const backupRestoreDialog = document.querySelector("#backup-restore-dialog");
+const backupRestoreFileName = document.querySelector("#backup-restore-file-name");
+const backupRestoreFileSummary = document.querySelector("#backup-restore-file-summary");
+const backupRestoreError = document.querySelector("#backup-restore-error");
+const confirmBackupRestoreButton = document.querySelector("#confirm-backup-restore");
+
 const securityEnabledInput = document.querySelector("#security-enabled");
 const securityDetails = document.querySelector("#security-details");
 const securityMethodLabel = document.querySelector("#security-method-label");
@@ -389,6 +420,10 @@ function applyInterfacePreferences() {
 function updateInterfaceSettingsUI() {
   if (!cleanInterfaceInput) return;
   cleanInterfaceInput.checked = state.preferences?.cleanInterface !== false;
+}
+
+function updateDataSettingsUI() {
+  if (exportDrinksButton) exportDrinksButton.disabled = state.drinks.length === 0;
 }
 
 function getDefaultSecurityConfig() {
@@ -714,6 +749,7 @@ function setCurrentView(view) {
 function openSettingsView() {
   setCurrentView("settings");
   updateInterfaceSettingsUI();
+  updateDataSettingsUI();
   updateSecuritySettingsUI();
   window.scrollTo(0, 0);
 }
@@ -832,6 +868,10 @@ function unlockApp({ persistSession = true } = {}) {
   if (persistSession) markSecurityActive();
   if (state.currentView === "home") render();
   else if (state.currentView === "history") renderHistory();
+  if (state.pendingSharedImportCheck) {
+    state.pendingSharedImportCheck = false;
+    window.setTimeout(() => maybeHandleSharedDrinkImport(), 80);
+  }
 }
 
 function showPrivacyShield() {
@@ -1181,6 +1221,493 @@ function saveData() {
   };
 
   localStorage.setItem(DATA_STORAGE_KEY, JSON.stringify(data));
+}
+
+
+function buildCurrentAppData() {
+  return {
+    version: DATA_VERSION,
+    drinks: state.drinks,
+    events: state.events,
+    preferences: state.preferences,
+  };
+}
+
+function safeFilenamePart(value) {
+  return String(value).replace(/[^0-9A-Za-z_-]+/g, "-").replace(/^-+|-+$/g, "");
+}
+
+function getFileDateStamp({ includeTime = false } = {}) {
+  const now = new Date();
+  const date = [
+    now.getFullYear(),
+    String(now.getMonth() + 1).padStart(2, "0"),
+    String(now.getDate()).padStart(2, "0"),
+  ].join("-");
+
+  if (!includeTime) return date;
+
+  return `${date}-${String(now.getHours()).padStart(2, "0")}${String(now.getMinutes()).padStart(2, "0")}`;
+}
+
+function downloadFile(file) {
+  const url = URL.createObjectURL(file);
+  const anchor = document.createElement("a");
+  anchor.href = url;
+  anchor.download = file.name;
+  anchor.rel = "noopener";
+  document.body.appendChild(anchor);
+  anchor.click();
+  anchor.remove();
+  window.setTimeout(() => URL.revokeObjectURL(url), 1500);
+}
+
+async function deliverDrinksExport(file) {
+  if (
+    typeof navigator.share === "function" &&
+    typeof navigator.canShare === "function" &&
+    navigator.canShare({ files: [file] })
+  ) {
+    try {
+      await navigator.share({
+        files: [file],
+        title: "Intervalo — bebidas",
+        text: "Arquivo de bebidas exportado pelo Intervalo.",
+      });
+      return "native";
+    } catch (error) {
+      if (error?.name === "AbortError") return "cancelled";
+      console.warn("Falha ao abrir a entrega nativa do arquivo.", error);
+    }
+  }
+
+  downloadFile(file);
+  return "download";
+}
+
+function exportDrinks() {
+  if (!state.drinks.length) {
+    showToast("Cadastre ao menos uma bebida antes de exportar.");
+    return;
+  }
+
+  const payload = {
+    type: DRINK_EXPORT_TYPE,
+    formatVersion: DRINK_EXPORT_FORMAT_VERSION,
+    appVersion: APP_VERSION,
+    exportedAt: new Date().toISOString(),
+    drinks: state.drinks.map((drink) => ({
+      id: drink.id,
+      name: drink.name,
+      icon: drink.icon,
+      intervalMinutes: drink.intervalMinutes,
+      askDoseSize: Boolean(drink.askDoseSize),
+    })),
+  };
+
+  const filename = `Intervalo-Bebidas-${getFileDateStamp()}.json`;
+  const file = new File(
+    [JSON.stringify(payload, null, 2)],
+    filename,
+    { type: "application/json;charset=utf-8" }
+  );
+
+  deliverDrinksExport(file).then((mode) => {
+    if (mode === "download") showToast("Arquivo de bebidas exportado.");
+  }).catch((error) => {
+    console.error("Falha ao exportar bebidas.", error);
+    showToast("Não foi possível exportar as bebidas.");
+  });
+}
+
+function createBackup() {
+  const payload = {
+    type: BACKUP_EXPORT_TYPE,
+    formatVersion: BACKUP_EXPORT_FORMAT_VERSION,
+    appVersion: APP_VERSION,
+    createdAt: new Date().toISOString(),
+    data: buildCurrentAppData(),
+  };
+
+  const filename = `Intervalo-Backup-${getFileDateStamp({ includeTime: true })}.json`;
+  const file = new File(
+    [JSON.stringify(payload, null, 2)],
+    filename,
+    { type: "application/json;charset=utf-8" }
+  );
+
+  try {
+    downloadFile(file);
+    showToast("Backup criado. Guarde o arquivo em um local privado.");
+  } catch (error) {
+    console.error("Falha ao criar backup.", error);
+    showToast("Não foi possível criar o backup.");
+  }
+}
+
+async function readJsonFile(file, maxBytes) {
+  if (!(file instanceof Blob)) throw new Error("Arquivo inválido.");
+  if (file.size <= 0) throw new Error("O arquivo está vazio.");
+  if (file.size > maxBytes) throw new Error("O arquivo é maior do que o permitido.");
+
+  let text;
+  try {
+    text = await file.text();
+  } catch (error) {
+    throw new Error("Não foi possível ler o arquivo.");
+  }
+
+  try {
+    return JSON.parse(text);
+  } catch (error) {
+    throw new Error("O arquivo não contém um JSON válido.");
+  }
+}
+
+function normalizeImportedDrink(raw, usedIds = new Set()) {
+  if (!raw || typeof raw !== "object") return null;
+
+  const name = typeof raw.name === "string" ? raw.name.trim() : "";
+  if (!name || name.length > 80) return null;
+
+  const intervalNumber = Number(raw.intervalMinutes);
+  if (!Number.isFinite(intervalNumber) || intervalNumber < 1 || intervalNumber > 1440) return null;
+
+  const rawIcon = typeof raw.icon === "string" ? raw.icon.trim() : "";
+  if (!rawIcon) return null;
+
+  let id = typeof raw.id === "string" ? raw.id.trim() : "";
+  if (!id || usedIds.has(id)) id = createId();
+  usedIds.add(id);
+
+  return {
+    id,
+    name,
+    icon: normalizeIcon(rawIcon),
+    intervalMinutes: Math.round(intervalNumber),
+    askDoseSize: Boolean(raw.askDoseSize),
+  };
+}
+
+function validateDrinkExportPayload(payload) {
+  if (!payload || payload.type !== DRINK_EXPORT_TYPE) {
+    if (payload?.type === BACKUP_EXPORT_TYPE) {
+      throw new Error("Este arquivo é um backup. Use “Restaurar backup”.");
+    }
+    throw new Error("Este não é um arquivo de bebidas do Intervalo.");
+  }
+
+  if (Number(payload.formatVersion) !== DRINK_EXPORT_FORMAT_VERSION) {
+    throw new Error("Esta versão do arquivo de bebidas não é compatível com o aplicativo.");
+  }
+
+  if (!Array.isArray(payload.drinks)) {
+    throw new Error("A lista de bebidas do arquivo é inválida.");
+  }
+
+  if (payload.drinks.length > 500) {
+    throw new Error("O arquivo contém bebidas demais para esta versão do aplicativo.");
+  }
+
+  const usedIds = new Set();
+  const drinks = payload.drinks.map((drink) => normalizeImportedDrink(drink, usedIds));
+
+  if (drinks.some((drink) => !drink)) {
+    throw new Error("Uma ou mais bebidas do arquivo possuem dados inválidos.");
+  }
+
+  return drinks;
+}
+
+function getDrinkImportSignature(drink) {
+  return [
+    drink.name.trim().toLocaleLowerCase("pt-BR"),
+    drink.icon,
+    String(drink.intervalMinutes),
+    drink.askDoseSize ? "1" : "0",
+  ].join("\u001f");
+}
+
+function getDrinkImportAnalysis(importedDrinks) {
+  const existingSignatures = new Set(state.drinks.map(getDrinkImportSignature));
+  let exactDuplicates = 0;
+  let newCount = 0;
+
+  for (const drink of importedDrinks) {
+    const signature = getDrinkImportSignature(drink);
+    if (existingSignatures.has(signature)) {
+      exactDuplicates += 1;
+    } else {
+      newCount += 1;
+      existingSignatures.add(signature);
+    }
+  }
+
+  return { exactDuplicates, newCount };
+}
+
+function formatDataFileDate(value) {
+  const date = new Date(value);
+  if (!Number.isFinite(date.getTime())) return "";
+  return new Intl.DateTimeFormat("pt-BR", {
+    dateStyle: "short",
+    timeStyle: "short",
+  }).format(date);
+}
+
+function openDrinkImportPreview({ fileName, drinks, source = "file" }) {
+  const analysis = getDrinkImportAnalysis(drinks);
+
+  state.pendingDrinkImport = {
+    fileName: fileName || "Arquivo recebido",
+    drinks,
+    source,
+  };
+
+  drinkImportFileName.textContent = state.pendingDrinkImport.fileName;
+
+  const pieces = [`${drinks.length} bebida${drinks.length === 1 ? "" : "s"} no arquivo`];
+  if (analysis.exactDuplicates > 0) {
+    pieces.push(`${analysis.exactDuplicates} duplicata${analysis.exactDuplicates === 1 ? "" : "s"} exata${analysis.exactDuplicates === 1 ? "" : "s"}`);
+  }
+  drinkImportFileSummary.textContent = pieces.join(" · ");
+
+  drinkImportError.hidden = true;
+  drinkImportError.textContent = "";
+
+  const addOption = drinkImportDialog.querySelector('input[name="drink-import-mode"][value="add"]');
+  if (addOption) addOption.checked = true;
+
+  drinkImportDialog.showModal();
+}
+
+async function prepareDrinkImportFile(file, { source = "file" } = {}) {
+  try {
+    const payload = await readJsonFile(file, DRINK_FILE_MAX_BYTES);
+    const drinks = validateDrinkExportPayload(payload);
+    openDrinkImportPreview({
+      fileName: file.name || "Arquivo recebido",
+      drinks,
+      source,
+    });
+  } catch (error) {
+    console.warn("Arquivo de bebidas rejeitado.", error);
+    window.alert(error?.message || "Não foi possível importar este arquivo.");
+  }
+}
+
+function closeDrinkImportDialog() {
+  state.pendingDrinkImport = null;
+  drinkImportError.hidden = true;
+  if (drinkImportDialog.open) drinkImportDialog.close();
+}
+
+function buildAddedDrinkList(importedDrinks) {
+  const result = state.drinks.map((drink) => ({ ...drink }));
+  const signatures = new Set(result.map(getDrinkImportSignature));
+  const usedIds = new Set(result.map((drink) => drink.id));
+
+  for (const imported of importedDrinks) {
+    const signature = getDrinkImportSignature(imported);
+    if (signatures.has(signature)) continue;
+
+    let id = imported.id;
+    if (!id || usedIds.has(id)) id = createId();
+
+    result.push({ ...imported, id });
+    usedIds.add(id);
+    signatures.add(signature);
+  }
+
+  return result;
+}
+
+function buildReplacementDrinkList(importedDrinks) {
+  const usedIds = new Set();
+
+  return importedDrinks.map((drink) => {
+    let id = drink.id;
+    if (!id || usedIds.has(id)) id = createId();
+    usedIds.add(id);
+    return { ...drink, id };
+  });
+}
+
+function persistDrinkList(nextDrinks) {
+  const nextData = {
+    version: DATA_VERSION,
+    drinks: nextDrinks,
+    events: state.events,
+    preferences: state.preferences,
+  };
+
+  const serialized = JSON.stringify(nextData);
+  localStorage.setItem(DATA_STORAGE_KEY, serialized);
+  state.drinks = nextDrinks;
+}
+
+function confirmDrinkImport() {
+  const pending = state.pendingDrinkImport;
+  if (!pending) return;
+
+  const mode = drinkImportDialog.querySelector('input[name="drink-import-mode"]:checked')?.value || "add";
+
+  try {
+    const before = state.drinks.length;
+    const nextDrinks = mode === "replace"
+      ? buildReplacementDrinkList(pending.drinks)
+      : buildAddedDrinkList(pending.drinks);
+
+    persistDrinkList(nextDrinks);
+
+    const difference = Math.max(0, nextDrinks.length - before);
+    closeDrinkImportDialog();
+    refreshDataViews();
+    updateDataSettingsUI();
+
+    if (mode === "replace") {
+      showToast(`${nextDrinks.length} bebida${nextDrinks.length === 1 ? "" : "s"} importada${nextDrinks.length === 1 ? "" : "s"}. O histórico foi mantido.`);
+    } else if (difference === 0) {
+      showToast("Nenhuma bebida nova foi adicionada.");
+    } else {
+      showToast(`${difference} bebida${difference === 1 ? "" : "s"} adicionada${difference === 1 ? "" : "s"}.`);
+    }
+  } catch (error) {
+    console.error("Falha ao aplicar importação.", error);
+    drinkImportError.textContent = "Não foi possível salvar a importação. Seus dados atuais foram mantidos.";
+    drinkImportError.hidden = false;
+  }
+}
+
+function validateBackupPayload(payload) {
+  if (!payload || payload.type !== BACKUP_EXPORT_TYPE) {
+    if (payload?.type === DRINK_EXPORT_TYPE) {
+      throw new Error("Este arquivo contém somente bebidas. Use “Importar bebidas”.");
+    }
+    throw new Error("Este não é um backup do Intervalo.");
+  }
+
+  if (Number(payload.formatVersion) !== BACKUP_EXPORT_FORMAT_VERSION) {
+    throw new Error("Esta versão do backup não é compatível com o aplicativo.");
+  }
+
+  const normalized = normalizeData(payload.data);
+  if (!normalized) throw new Error("Os dados deste backup são inválidos.");
+
+  if (normalized.drinks.length > 500 || normalized.events.length > 200000) {
+    throw new Error("O backup excede os limites desta versão do aplicativo.");
+  }
+
+  return normalized;
+}
+
+async function prepareBackupRestoreFile(file) {
+  try {
+    const payload = await readJsonFile(file, BACKUP_FILE_MAX_BYTES);
+    const data = validateBackupPayload(payload);
+
+    state.pendingBackupRestore = {
+      fileName: file.name || "Backup selecionado",
+      data,
+      createdAt: payload.createdAt || "",
+      appVersion: payload.appVersion || "",
+    };
+
+    backupRestoreFileName.textContent = state.pendingBackupRestore.fileName;
+
+    const created = formatDataFileDate(state.pendingBackupRestore.createdAt);
+    const pieces = [
+      `${data.drinks.length} bebida${data.drinks.length === 1 ? "" : "s"}`,
+      `${data.events.length} registro${data.events.length === 1 ? "" : "s"}`,
+    ];
+    if (created) pieces.push(`criado em ${created}`);
+    backupRestoreFileSummary.textContent = pieces.join(" · ");
+
+    backupRestoreError.hidden = true;
+    backupRestoreError.textContent = "";
+    backupRestoreDialog.showModal();
+  } catch (error) {
+    console.warn("Backup rejeitado.", error);
+    window.alert(error?.message || "Não foi possível ler este backup.");
+  }
+}
+
+function closeBackupRestoreDialog() {
+  state.pendingBackupRestore = null;
+  backupRestoreError.hidden = true;
+  if (backupRestoreDialog.open) backupRestoreDialog.close();
+}
+
+function confirmBackupRestore() {
+  const pending = state.pendingBackupRestore;
+  if (!pending) return;
+
+  try {
+    // Gravação única: se o setItem falhar, o estado atual permanece intacto.
+    localStorage.setItem(DATA_STORAGE_KEY, JSON.stringify(pending.data));
+    sessionStorage.setItem("intervalo-restore-success-v1", "1");
+    closeBackupRestoreDialog();
+    window.location.reload();
+  } catch (error) {
+    console.error("Falha ao restaurar backup.", error);
+    backupRestoreError.textContent = "Não foi possível restaurar o backup. Seus dados atuais foram mantidos.";
+    backupRestoreError.hidden = false;
+  }
+}
+
+async function readPendingSharedDrinkFile() {
+  if (!("caches" in window)) return null;
+
+  try {
+    const cache = await caches.open(SHARE_IMPORT_CACHE_NAME);
+    const requestUrl = new URL(SHARE_IMPORT_REQUEST_PATH, window.location.href).href;
+    const response = await cache.match(requestUrl);
+
+    if (!response) return null;
+
+    await cache.delete(requestUrl);
+
+    const filename = decodeURIComponent(response.headers.get("X-Intervalo-Filename") || "Intervalo-Bebidas.json");
+    const text = await response.text();
+    return new File([text], filename, { type: "application/json" });
+  } catch (error) {
+    console.warn("Não foi possível recuperar o arquivo recebido.", error);
+    return null;
+  }
+}
+
+function cleanSharedImportUrl() {
+  const url = new URL(window.location.href);
+  if (!url.searchParams.has("import-shared")) return;
+  url.searchParams.delete("import-shared");
+  const next = `${url.pathname}${url.search}${url.hash}`;
+  history.replaceState({}, "", next);
+}
+
+async function maybeHandleSharedDrinkImport() {
+  const url = new URL(window.location.href);
+  if (!url.searchParams.has("import-shared")) return;
+
+  if (state.securityConfig.enabled && state.securityLocked) {
+    state.pendingSharedImportCheck = true;
+    return;
+  }
+
+  const file = await readPendingSharedDrinkFile();
+  cleanSharedImportUrl();
+
+  if (!file) {
+    showToast("Não foi possível recuperar o arquivo recebido.");
+    return;
+  }
+
+  await prepareDrinkImportFile(file, { source: "share-target" });
+}
+
+function showRestoreSuccessIfNeeded() {
+  if (sessionStorage.getItem("intervalo-restore-success-v1") !== "1") return;
+  sessionStorage.removeItem("intervalo-restore-success-v1");
+  showToast("Backup restaurado.");
 }
 
 function createId() {
@@ -2846,6 +3373,34 @@ cleanInterfaceInput.addEventListener("change", () => {
   showToast(cleanInterfaceInput.checked ? "Interface limpa ativada." : "Informações auxiliares exibidas.");
 });
 
+exportDrinksButton.addEventListener("click", exportDrinks);
+importDrinksButton.addEventListener("click", () => {
+  drinkImportFileInput.value = "";
+  drinkImportFileInput.click();
+});
+drinkImportFileInput.addEventListener("change", () => {
+  const file = drinkImportFileInput.files?.[0];
+  if (file) prepareDrinkImportFile(file);
+});
+
+createBackupButton.addEventListener("click", createBackup);
+restoreBackupButton.addEventListener("click", () => {
+  backupRestoreFileInput.value = "";
+  backupRestoreFileInput.click();
+});
+backupRestoreFileInput.addEventListener("change", () => {
+  const file = backupRestoreFileInput.files?.[0];
+  if (file) prepareBackupRestoreFile(file);
+});
+
+document.querySelector("#close-drink-import").addEventListener("click", closeDrinkImportDialog);
+document.querySelector("#cancel-drink-import").addEventListener("click", closeDrinkImportDialog);
+confirmDrinkImportButton.addEventListener("click", confirmDrinkImport);
+
+document.querySelector("#close-backup-restore").addEventListener("click", closeBackupRestoreDialog);
+document.querySelector("#cancel-backup-restore").addEventListener("click", closeBackupRestoreDialog);
+confirmBackupRestoreButton.addEventListener("click", confirmBackupRestore);
+
 securityEnabledInput.addEventListener("change", () => {
   if (securityEnabledInput.checked) {
     openSecurityMethodDialog("enable");
@@ -2967,6 +3522,22 @@ eventDialog.addEventListener("click", (event) => {
   closeDialogOnBackdrop(eventDialog, event, closeEventDialog);
 });
 
+drinkImportDialog.addEventListener("click", (event) => {
+  closeDialogOnBackdrop(drinkImportDialog, event, closeDrinkImportDialog);
+});
+drinkImportDialog.addEventListener("cancel", (event) => {
+  event.preventDefault();
+  closeDrinkImportDialog();
+});
+
+backupRestoreDialog.addEventListener("click", (event) => {
+  closeDialogOnBackdrop(backupRestoreDialog, event, closeBackupRestoreDialog);
+});
+backupRestoreDialog.addEventListener("cancel", (event) => {
+  event.preventDefault();
+  closeBackupRestoreDialog();
+});
+
 securityMethodDialog.addEventListener("click", (event) => {
   closeDialogOnBackdrop(securityMethodDialog, event, () => closeSecurityMethodDialog());
 });
@@ -3030,6 +3601,7 @@ document.addEventListener("visibilitychange", () => {
     else if (state.currentView === "history") renderHistory();
     else if (state.currentView === "settings") {
       updateInterfaceSettingsUI();
+      updateDataSettingsUI();
       updateSecuritySettingsUI();
     }
     updateIntervalWarningDialog();
@@ -3067,6 +3639,7 @@ dismissUpdateButton.addEventListener("click", hideUpdateAvailable);
 
 async function bootstrapApp() {
   applyInterfacePreferences();
+  updateDataSettingsUI();
   initializeDurationPickers();
   initializeLogDurationPickers();
   buildIconPicker(DEFAULT_ICON);
@@ -3074,6 +3647,8 @@ async function bootstrapApp() {
   render();
   startClock();
   await initializeSecurity();
+  showRestoreSuccessIfNeeded();
+  await maybeHandleSharedDrinkImport();
 }
 
 const shouldBootstrapInstalledApp = initializeRuntimeMode();
