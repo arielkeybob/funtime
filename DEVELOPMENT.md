@@ -1,6 +1,6 @@
 # Intervalo — documentação de desenvolvimento
 
-**Versão da aplicação:** `v1.6.2`  
+**Versão da aplicação:** `v1.6.3`  
 **Versão do modelo persistido:** `DATA_VERSION = 6`  
 **Autor exibido na interface:** `arielkeybob`  
 **Stack:** HTML + CSS + JavaScript puro  
@@ -8,11 +8,44 @@
 **Backend:** não existe  
 **Build step:** não existe
 
-> Este documento descreve a arquitetura e o comportamento técnico da versão `v1.6.2`. Ele foi escrito para facilitar manutenção, depuração e evolução do projeto sem depender do histórico da conversa em que o app foi criado.
+> Este documento descreve a arquitetura e o comportamento técnico da versão `v1.6.3`. Ele foi escrito para facilitar manutenção, depuração e evolução do projeto sem depender do histórico da conversa em que o app foi criado.
 
 ---
 
-## 0. Alterações da V1.6.2
+## 0. Alterações da V1.6.3
+
+### Duplo toque para anotação imediata
+
+A ação principal do card não responde mais a um único toque. A anotação imediata exige dois toques rápidos no mesmo card dentro de uma janela de `430 ms`.
+
+A implementação não usa o evento `dblclick`, pois o comportamento de duplo toque varia entre navegadores móveis e pode competir com zoom. Em vez disso, cada `click` consulta `state.pendingDoubleTap`, que guarda `drinkId` e timestamp do primeiro toque. O segundo toque no mesmo card dentro da janela executa `performNormalDrinkTap()`.
+
+O estado do primeiro toque fica fora do elemento DOM porque a lista é renderizada novamente a cada segundo durante countdowns. Dessa forma, um re-render entre o primeiro e o segundo toque não perde a intenção do usuário.
+
+O primeiro toque aplica temporariamente `.is-awaiting-second-tap`, oferecendo feedback visual sem criar dados. O long press continua independente e limpa qualquer duplo toque pendente antes de abrir o formulário retroativo.
+
+No CSS, `.drink-main` usa `touch-action: manipulation`, permitindo rolagem/pinch e evitando que o navegador trate o gesto como zoom por duplo toque.
+
+Constantes relacionadas:
+
+```js
+const DOUBLE_TAP_MAX_DELAY_MS = 430;
+const DOUBLE_TAP_FEEDBACK_MS = 430;
+```
+
+### Compatibilidade esperada
+
+O fluxo se apoia em Pointer Events + `click`, com suporte nos navegadores móveis modernos relevantes ao projeto: Chrome/Chromium Android, Samsung Internet e Safari/WebKit iOS. O mouse no desktop também funciona com dois cliques rápidos.
+
+### Cache
+
+O cache da aplicação passa a usar:
+
+```js
+const CACHE_NAME = "intervalo-v1-6-3";
+```
+
+## 0.1 Alterações da V1.6.2
 
 - Substituição da linguagem de ação de **registrar** para **anotar** nos fluxos centrais da interface.
 - Reorganização visual do card principal em duas linhas, separando **estado + identidade** da **ação principal/countdown**.

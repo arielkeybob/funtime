@@ -1,9 +1,18 @@
-# Intervalo — V1.6.2
+# Intervalo — V1.6.3
 
 Aplicação em HTML, CSS e JavaScript puro para registro pessoal de bebidas e acompanhamento dos intervalos configurados pelo usuário.
 
 Documentação técnica detalhada: [`DEVELOPMENT.md`](./DEVELOPMENT.md).
 
+
+## Mudanças da V1.6.3
+
+- O corpo do card agora exige **dois toques rápidos** para anotar uma dose ou abrir o fluxo de confirmação quando ainda existe countdown.
+- Um toque isolado não cria nenhuma anotação. O primeiro toque recebe feedback visual discreto enquanto o app aguarda o segundo toque por até 430 ms.
+- O gesto foi implementado com detecção própria em vez de depender de `dblclick`, visando comportamento mais consistente em Chrome Android, Samsung Internet, Safari iOS e navegadores desktop.
+- O **toque e segure** continua abrindo `Anotar dose` para horários retroativos.
+- `touch-action: manipulation` evita o zoom de duplo toque do navegador sem impedir a rolagem vertical da lista.
+- Cache do Service Worker atualizado para `intervalo-v1-6-3`.
 
 ## Mudanças da V1.6.2
 

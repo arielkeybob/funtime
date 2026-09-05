@@ -20,6 +20,8 @@ const REORDER_ANIMATION_EASING = "cubic-bezier(0.22, 1, 0.36, 1)";
 const LONG_PRESS_MS = 600;
 const LONG_PRESS_FEEDBACK_MS = 280;
 const LONG_PRESS_MOVE_TOLERANCE = 12;
+const DOUBLE_TAP_MAX_DELAY_MS = 430;
+const DOUBLE_TAP_FEEDBACK_MS = 430;
 
 const initialData = loadAppData();
 
@@ -40,6 +42,7 @@ const state = {
   undo: null,
   toastTimerId: null,
   reorderAnimationUntil: 0,
+  pendingDoubleTap: null,
 };
 
 const homeHeader = document.querySelector("#home-header");
@@ -578,15 +581,16 @@ function performNormalDrinkTap(drink, activity) {
   registerDrinkAt(drink.id, Date.now());
 }
 
-function attachDrinkLongPress(mainButton, drink, activity) {
+function attachDrinkInteractions(mainButton, drink) {
   let longPressTimer = null;
   let feedbackTimer = null;
+  let doubleTapFeedbackTimer = null;
   let startX = 0;
   let startY = 0;
   let activePointerId = null;
   let longPressTriggered = false;
 
-  const clearTimers = () => {
+  const clearPressTimers = () => {
     clearTimeout(longPressTimer);
     clearTimeout(feedbackTimer);
     longPressTimer = null;
@@ -595,14 +599,22 @@ function attachDrinkLongPress(mainButton, drink, activity) {
   };
 
   const cancelPress = () => {
-    clearTimers();
+    clearPressTimers();
     activePointerId = null;
+  };
+
+  const showFirstTapFeedback = () => {
+    clearTimeout(doubleTapFeedbackTimer);
+    mainButton.classList.add("is-awaiting-second-tap");
+    doubleTapFeedbackTimer = setTimeout(() => {
+      mainButton.classList.remove("is-awaiting-second-tap");
+    }, DOUBLE_TAP_FEEDBACK_MS);
   };
 
   mainButton.addEventListener("pointerdown", (event) => {
     if (event.pointerType === "mouse" && event.button !== 0) return;
 
-    clearTimers();
+    clearPressTimers();
     longPressTriggered = false;
     activePointerId = event.pointerId;
     startX = event.clientX;
@@ -618,7 +630,9 @@ function attachDrinkLongPress(mainButton, drink, activity) {
       if (activePointerId !== event.pointerId) return;
 
       longPressTriggered = true;
-      clearTimers();
+      state.pendingDoubleTap = null;
+      clearPressTimers();
+      mainButton.classList.remove("is-awaiting-second-tap");
 
       if (typeof navigator.vibrate === "function") {
         try {
@@ -659,7 +673,25 @@ function attachDrinkLongPress(mainButton, drink, activity) {
       return;
     }
 
-    performNormalDrinkTap(drink, activity);
+    const now = performance.now();
+    const previousTap = state.pendingDoubleTap;
+    const isSecondTap = Boolean(
+      previousTap &&
+      previousTap.drinkId === drink.id &&
+      now - previousTap.at <= DOUBLE_TAP_MAX_DELAY_MS
+    );
+
+    if (!isSecondTap) {
+      state.pendingDoubleTap = { drinkId: drink.id, at: now };
+      showFirstTapFeedback();
+      return;
+    }
+
+    state.pendingDoubleTap = null;
+    clearTimeout(doubleTapFeedbackTimer);
+    mainButton.classList.remove("is-awaiting-second-tap");
+
+    performNormalDrinkTap(drink, getDrinkActivity(drink));
   });
 }
 
@@ -690,14 +722,14 @@ function render() {
       stateLabel.textContent = "SEM REGISTRO";
       status.textContent = `Intervalo configurado: ${formatInterval(drink.intervalMinutes)}`;
       time.textContent = "Anotar primeira dose";
-      mainButton.setAttribute("aria-label", `Anotar ${drink.name} agora. Toque e segure para anotar outra dose.`);
+      mainButton.setAttribute("aria-label", `Anotar ${drink.name} agora com dois toques rápidos. Toque e segure para anotar outra dose.`);
     } else if (activity.state === "waiting") {
       stateLabel.hidden = true;
       setClockStatus(status, "Tomou às", activity.latestEvent.consumedAt, getDoseStatusSuffix(activity.latestEvent));
       time.textContent = `⛔ Aguarde: ${formatTime(activity.remainingMs)}`;
       mainButton.setAttribute(
         "aria-label",
-        `${drink.name}: intervalo em andamento. ${formatTime(activity.remainingMs)} restantes. Toque para opções de anotação ou toque e segure para anotar outra dose.`
+        `${drink.name}: intervalo em andamento. ${formatTime(activity.remainingMs)} restantes. Toque duas vezes para abrir as opções de anotação ou toque e segure para anotar outra dose.`
       );
     } else if (activity.state === "danger") {
       stateLabel.textContent = "⚠ TOMOU DOSE POR CIMA DA OUTRA";
@@ -710,16 +742,16 @@ function render() {
       time.textContent = `⛔ Aguarde: ${formatTime(activity.remainingMs)}`;
       mainButton.setAttribute(
         "aria-label",
-        `${drink.name}: atenção. ${activity.violationClusterCount} anotações em sequência antes do intervalo terminar. ${formatTime(activity.remainingMs)} restantes. Toque e segure para anotar outra dose.`
+        `${drink.name}: atenção. ${activity.violationClusterCount} anotações em sequência antes do intervalo terminar. ${formatTime(activity.remainingMs)} restantes. Toque duas vezes para abrir as opções ou toque e segure para anotar outra dose.`
       );
     } else {
       stateLabel.textContent = "✓ INTERVALO CONCLUÍDO";
       setClockStatus(status, "Anterior:", activity.latestEvent.consumedAt, getDoseStatusSuffix(activity.latestEvent));
       time.textContent = "Anotar nova dose";
-      mainButton.setAttribute("aria-label", `Anotar nova dose de ${drink.name} agora. Toque e segure para anotar outra dose.`);
+      mainButton.setAttribute("aria-label", `Anotar nova dose de ${drink.name} agora com dois toques rápidos. Toque e segure para anotar outra dose.`);
     }
 
-    attachDrinkLongPress(mainButton, drink, activity);
+    attachDrinkInteractions(mainButton, drink);
 
     historyButton.setAttribute("aria-label", `Ver histórico de ${drink.name}`);
     historyButton.addEventListener("click", () => openHistoryView(drink.id));
