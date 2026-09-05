@@ -1,10 +1,19 @@
-# Intervalo — V1.6.4
+# Intervalo — V1.6.5
 
 Aplicação em HTML, CSS e JavaScript puro para registro pessoal de bebidas e acompanhamento dos intervalos configurados pelo usuário.
 
 Documentação técnica detalhada: [`DEVELOPMENT.md`](./DEVELOPMENT.md).
 
 
+
+
+## Mudanças da V1.6.5
+
+- Removida da lista do histórico a linha **“Intervalo da dose”**, reduzindo informação redundante no card.
+- O selo de tempo decorrido agora comunica também o estado do intervalo daquele registro: **vermelho suave** enquanto ainda não chegou ao intervalo configurado e **verde suave** quando o intervalo já foi concluído.
+- A cor do selo é recalculada automaticamente enquanto o histórico permanece aberto, portanto pode mudar de vermelho para verde sem recarregar a tela.
+- Mantidos o horário absoluto (`às 05:43h`) e o tempo relativo (`19 min atrás`, `06:52h atrás`, `2 dias atrás`) como informações visuais distintas.
+- Cache do Service Worker atualizado para `intervalo-v1-6-5`.
 
 ## Mudanças da V1.6.4
 

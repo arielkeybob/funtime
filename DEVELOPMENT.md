@@ -1,6 +1,6 @@
 # Intervalo — documentação de desenvolvimento
 
-**Versão da aplicação:** `v1.6.4`  
+**Versão da aplicação:** `v1.6.5`  
 **Versão do modelo persistido:** `DATA_VERSION = 7`  
 **Autor exibido na interface:** `arielkeybob`  
 **Stack:** HTML + CSS + JavaScript puro  
@@ -8,12 +8,40 @@
 **Backend:** não existe  
 **Build step:** não existe
 
-> Este documento descreve a arquitetura e o comportamento técnico da versão `v1.6.4`. Ele foi escrito para facilitar manutenção, depuração e evolução do projeto sem depender do histórico da conversa em que o app foi criado.
+> Este documento descreve a arquitetura e o comportamento técnico da versão `v1.6.5`. Ele foi escrito para facilitar manutenção, depuração e evolução do projeto sem depender do histórico da conversa em que o app foi criado.
 
 ---
 
 
-## 0. Alterações da V1.6.4
+## 0. Alterações da V1.6.5
+
+### Histórico: indicador relativo ao intervalo
+
+A lista do histórico deixou de exibir a linha textual `Intervalo da dose`. O valor de `event.intervalMinutes` continua preservado no evento e permanece disponível para cálculos, edição e auditoria, mas não ocupa mais espaço visual em cada item da timeline.
+
+O selo `.history-event-elapsed` agora tem dois estados derivados exclusivamente do tempo atual e do intervalo salvo no próprio evento:
+
+- `.is-within-interval`: `Date.now() - consumedAt < intervalMinutes * 60000`; usa tratamento vermelho suave.
+- `.is-after-interval`: o intervalo já foi alcançado ou ultrapassado; usa tratamento verde suave.
+
+O estado é calculado na renderização e atualizado por `updateHistoryElapsedLabels()` enquanto a view de histórico está aberta. Dessa forma, um selo pode mudar automaticamente de vermelho para verde quando o tempo configurado terminar, sem modificar qualquer dado persistido.
+
+O horário absoluto e o tempo relativo continuam semanticamente separados:
+
+```text
+às 05:43h
+19 min atrás
+```
+
+A cor do tempo relativo indica apenas se **o intervalo configurado para aquele registro** já terminou. Ela não representa uma avaliação clínica ou de segurança.
+
+### PWA / ícone instalado
+
+O ícone exibido pelo launcher do Android/iOS pode permanecer em cache mesmo depois que o manifest e os arquivos de ícone foram atualizados e o Service Worker já está na versão mais recente. Esse cache pertence ao sistema/launcher e não ao cache controlado pelo Service Worker. Por isso, a atualização do código do PWA não garante atualização imediata do ícone instalado; em alguns dispositivos, remover e instalar novamente o PWA é o método mais confiável para forçar a nova arte.
+
+O cache do Service Worker desta versão é `intervalo-v1-6-5`.
+
+## 1. Alterações da V1.6.4
 
 ### Novo ícone da PWA
 

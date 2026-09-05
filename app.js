@@ -328,12 +328,26 @@ function setHistoryClockLabel(element, timestamp) {
 }
 
 function updateHistoryElapsedLabels() {
+  const now = Date.now();
+
   document.querySelectorAll(".history-event-elapsed[data-consumed-at]").forEach((element) => {
     const timestamp = Number(element.dataset.consumedAt);
+    const intervalMinutes = Number(element.dataset.intervalMinutes);
     if (!Number.isFinite(timestamp)) return;
-    const label = formatHistoryElapsed(timestamp);
+
+    const label = formatHistoryElapsed(timestamp, now);
+    const intervalMs = Number.isFinite(intervalMinutes) ? Math.max(0, intervalMinutes) * 60 * 1000 : 0;
+    const intervalCompleted = intervalMs === 0 || now - timestamp >= intervalMs;
+
     element.textContent = label;
-    element.setAttribute("aria-label", `Tempo desde o consumo: ${label}`);
+    element.classList.toggle("is-within-interval", !intervalCompleted);
+    element.classList.toggle("is-after-interval", intervalCompleted);
+    element.setAttribute(
+      "aria-label",
+      intervalCompleted
+        ? `Tempo desde o consumo: ${label}. O intervalo configurado já terminou.`
+        : `Tempo desde o consumo: ${label}. O intervalo configurado ainda está em andamento.`
+    );
   });
 }
 
@@ -882,10 +896,17 @@ function renderHistory() {
       body.appendChild(heading);
 
       const elapsed = document.createElement("span");
-      elapsed.className = "history-event-elapsed";
+      const intervalCompleted = Date.now() - event.consumedAt >= event.intervalMinutes * 60 * 1000;
+      elapsed.className = `history-event-elapsed ${intervalCompleted ? "is-after-interval" : "is-within-interval"}`;
       elapsed.dataset.consumedAt = String(event.consumedAt);
+      elapsed.dataset.intervalMinutes = String(event.intervalMinutes);
       elapsed.textContent = formatHistoryElapsed(event.consumedAt);
-      elapsed.setAttribute("aria-label", `Tempo desde o consumo: ${elapsed.textContent}`);
+      elapsed.setAttribute(
+        "aria-label",
+        intervalCompleted
+          ? `Tempo desde o consumo: ${elapsed.textContent}. O intervalo configurado já terminou.`
+          : `Tempo desde o consumo: ${elapsed.textContent}. O intervalo configurado ainda está em andamento.`
+      );
       body.appendChild(elapsed);
 
       if (event.doseSize) {
@@ -912,11 +933,6 @@ function renderHistory() {
         detail.textContent = `${formatElapsed(context.elapsedMs)} após o registro anterior · faltavam ${formatElapsed(context.remainingAtConsumptionMs)}`;
 
         body.append(alert, detail);
-      } else {
-        const detail = document.createElement("span");
-        detail.className = "history-event-detail";
-        detail.textContent = `Intervalo da dose: ${formatInterval(event.intervalMinutes)}`;
-        body.appendChild(detail);
       }
 
       button.append(marker, time, body);
