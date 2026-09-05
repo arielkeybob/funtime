@@ -1,4 +1,5 @@
 {
+  "id": "./",
   "name": "Intervalo",
   "short_name": "Intervalo",
   "description": "Registro pessoal de bebidas e acompanhamento de intervalos configurados.",
@@ -8,6 +9,14 @@
   "background_color": "#09090b",
   "theme_color": "#111827",
   "lang": "pt-BR",
+  "related_applications": [
+    {
+      "platform": "webapp",
+      "url": "./manifest.webmanifest",
+      "id": "./"
+    }
+  ],
+  "prefer_related_applications": false,
   "icons": [
     {
       "src": "./icons/icon-192-v164.png",

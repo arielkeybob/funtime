@@ -1,4 +1,4 @@
-# Intervalo — V1.8.7
+# Intervalo — V1.8.8
 
 Aplicação em HTML, CSS e JavaScript puro para registro pessoal de bebidas e acompanhamento dos intervalos configurados pelo usuário.
 
@@ -348,3 +348,14 @@ Se uma versão anterior continuar aparecendo, use `Ctrl + F5`. Se necessário, r
 - Não há botão artificial de “Abrir app”, pois a Web não oferece um mecanismo universal e confiável para lançar uma PWA já instalada.
 - O Service Worker continua ativo na página pública para manter os requisitos e a experiência de instalação.
 - Cache PWA: `intervalo-v1-8-7`.
+
+
+## V1.8.8 — fluxo de instalação
+
+- A landing page de instalação foi simplificada: logo, nome, uma frase curta e a ação de instalação/orientação necessária.
+- O app não exibe mais **“App instalado”** apenas porque o usuário aceitou o prompt ou porque o evento `appinstalled` disparou.
+- Após o aceite, a interface usa o estado neutro **“Instalação iniciada”** e orienta a aguardar o ícone aparecer no aparelho.
+- Em navegadores compatíveis, `navigator.getInstalledRelatedApps()` é usado como verificação adicional da PWA instalada.
+- O manifesto passou a declarar explicitamente `id: "./"` e uma relação `webapp` com ele mesmo para permitir essa detecção em navegadores compatíveis.
+- Se o navegador voltar a emitir `beforeinstallprompt`, o botão **Instalar** volta a aparecer, evitando ficar preso em um falso estado de sucesso.
+- Cache PWA: `intervalo-v1-8-8`.

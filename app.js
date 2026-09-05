@@ -1,4 +1,3 @@
-
 const IS_STANDALONE_APP = (
   window.matchMedia("(display-mode: standalone)").matches ||
   window.matchMedia("(display-mode: fullscreen)").matches ||
@@ -7,6 +6,8 @@ const IS_STANDALONE_APP = (
 );
 
 let deferredInstallPrompt = null;
+let browserInstallPending = false;
+let browserInstallVerified = false;
 
 function getBrowserInstallGuidance() {
   const ua = navigator.userAgent || "";
@@ -18,94 +19,143 @@ function getBrowserInstallGuidance() {
   const isMac = /Macintosh|Mac OS X/i.test(ua);
 
   if (isIOS) {
-    return {
-      title: "Instalar no iPhone ou iPad",
-      text: "Abra o menu Compartilhar e escolha “Adicionar à Tela de Início”. Quando aparecer, mantenha “Abrir como App da Web” ativado."
-    };
+    return "Toque em Compartilhar e escolha “Adicionar à Tela de Início”.";
   }
 
   if (isAndroid) {
-    return {
-      title: "Instalar no Android",
-      text: "Abra o menu do navegador (⋮ ou equivalente) e escolha “Instalar app” ou “Adicionar à tela inicial”."
-    };
+    return "Abra o menu do navegador (⋮) e toque em “Instalar app” ou “Adicionar à tela inicial”.";
   }
 
   if (isFirefox) {
-    return {
-      title: "Instalação neste navegador",
-      text: "No Firefox para computador a instalação de PWA não é oferecida de forma nativa. Para instalar, abra este endereço no Chrome, Edge ou em um navegador compatível."
-    };
+    return "Este navegador pode não oferecer instalação de PWA. Tente Chrome, Edge ou outro navegador compatível.";
   }
 
   if (isMac && isSafari) {
-    return {
-      title: "Instalar no Mac",
-      text: "No Safari, use Arquivo → Adicionar ao Dock. Em outros navegadores compatíveis, procure a opção de instalar na barra de endereço ou no menu."
-    };
+    return "No Safari, use Arquivo → Adicionar ao Dock.";
   }
 
-  return {
-    title: "Instalar no aparelho",
-    text: "Procure “Instalar app” na barra de endereço ou no menu do navegador. Em alguns navegadores a opção aparece como “Adicionar à tela inicial”."
-  };
+  return "Procure “Instalar app” na barra de endereço ou no menu do navegador.";
 }
 
-function updateBrowserInstallUI() {
+function setBrowserInstallUI(mode) {
   const button = document.querySelector("#browser-install-button");
+  const status = document.querySelector("#browser-install-status");
+  const statusTitle = document.querySelector("#browser-install-status-title");
+  const statusText = document.querySelector("#browser-install-status-text");
   const guidance = document.querySelector("#browser-install-guidance");
-  const title = document.querySelector("#browser-install-guidance-title");
-  const text = document.querySelector("#browser-install-guidance-text");
-  const success = document.querySelector("#browser-install-success");
+  const guidanceText = document.querySelector("#browser-install-guidance-text");
 
-  if (!button || !guidance || !title || !text || !success) return;
+  if (!button || !status || !statusTitle || !statusText || !guidance || !guidanceText) return;
 
-  if (deferredInstallPrompt) {
+  button.hidden = true;
+  button.disabled = false;
+  status.hidden = true;
+  guidance.hidden = true;
+
+  if (mode === "ready") {
     button.hidden = false;
-    guidance.hidden = true;
-    success.hidden = true;
+    button.textContent = "Instalar";
     return;
   }
 
-  const info = getBrowserInstallGuidance();
-  button.hidden = true;
+  if (mode === "opening") {
+    button.hidden = false;
+    button.disabled = true;
+    button.textContent = "Abrindo…";
+    return;
+  }
+
+  if (mode === "pending") {
+    status.hidden = false;
+    statusTitle.textContent = "Instalação iniciada";
+    statusText.textContent = "Aguarde o ícone do Intervalo aparecer no aparelho. Depois, abra por ele.";
+    return;
+  }
+
+  if (mode === "installed") {
+    status.hidden = false;
+    statusTitle.textContent = "Intervalo detectado";
+    statusText.textContent = "O navegador detectou o app neste aparelho. Abra pelo ícone do Intervalo.";
+    return;
+  }
+
   guidance.hidden = false;
-  success.hidden = true;
-  title.textContent = info.title;
-  text.textContent = info.text;
+  guidanceText.textContent = getBrowserInstallGuidance();
+}
+
+async function detectInstalledPwa() {
+  if (typeof navigator.getInstalledRelatedApps !== "function") {
+    return null;
+  }
+
+  try {
+    const relatedApps = await navigator.getInstalledRelatedApps();
+    return relatedApps.some((app) => app?.platform === "webapp");
+  } catch (error) {
+    console.warn("Não foi possível verificar se a PWA está instalada.", error);
+    return null;
+  }
+}
+
+async function refreshBrowserInstallUI() {
+  if (IS_STANDALONE_APP) return;
+
+  const installed = await detectInstalledPwa();
+
+  if (installed === true) {
+    browserInstallVerified = true;
+    browserInstallPending = false;
+    deferredInstallPrompt = null;
+    setBrowserInstallUI("installed");
+    return;
+  }
+
+  if (browserInstallPending) {
+    setBrowserInstallUI("pending");
+    return;
+  }
+
+  if (deferredInstallPrompt) {
+    setBrowserInstallUI("ready");
+    return;
+  }
+
+  setBrowserInstallUI("guidance");
 }
 
 async function requestBrowserInstall() {
   if (!deferredInstallPrompt) {
-    updateBrowserInstallUI();
+    await refreshBrowserInstallUI();
     return;
   }
 
   const promptEvent = deferredInstallPrompt;
   deferredInstallPrompt = null;
+  setBrowserInstallUI("opening");
 
   try {
-    await promptEvent.prompt();
-    const choice = await promptEvent.userChoice;
+    const choice = await promptEvent.prompt();
 
-    if (choice?.outcome !== "accepted") {
-      updateBrowserInstallUI();
+    if (choice?.outcome === "accepted") {
+      // Importante: "accepted" confirma a escolha no prompt, não usamos isso
+      // como prova visual de que o ícone já foi criado pelo SO/launcher.
+      browserInstallPending = true;
+      setBrowserInstallUI("pending");
+
+      // Em navegadores que suportam a API, tentamos confirmar a instalação.
+      // A UI continua usando linguagem neutra enquanto não houver confirmação.
+      window.setTimeout(() => refreshBrowserInstallUI(), 1800);
+      window.setTimeout(() => refreshBrowserInstallUI(), 5000);
+      return;
     }
+
+    browserInstallPending = false;
+    await refreshBrowserInstallUI();
   } catch (error) {
     console.warn("Não foi possível abrir o prompt de instalação.", error);
-    updateBrowserInstallUI();
+    browserInstallPending = false;
+    await refreshBrowserInstallUI();
   }
-}
-
-function showBrowserInstallSuccess() {
-  const button = document.querySelector("#browser-install-button");
-  const guidance = document.querySelector("#browser-install-guidance");
-  const success = document.querySelector("#browser-install-success");
-
-  deferredInstallPrompt = null;
-  if (button) button.hidden = true;
-  if (guidance) guidance.hidden = true;
-  if (success) success.hidden = false;
 }
 
 function initializeRuntimeMode() {
@@ -122,21 +172,35 @@ function initializeRuntimeMode() {
   document.body.classList.remove("standalone-mode", "security-booting");
   if (browserGate) browserGate.hidden = false;
 
-  updateBrowserInstallUI();
   document.querySelector("#browser-install-button")?.addEventListener("click", requestBrowserInstall);
+  refreshBrowserInstallUI();
   return false;
 }
 
 window.addEventListener("beforeinstallprompt", (event) => {
-  if (IS_STANDALONE_APP) return;
+  if (IS_STANDALONE_APP || browserInstallVerified) return;
+
   event.preventDefault();
   deferredInstallPrompt = event;
-  updateBrowserInstallUI();
+
+  // Se um fluxo anterior não terminou de fato, o navegador pode oferecer a
+  // instalação novamente. Nesse caso voltamos a exibir o botão normalmente.
+  browserInstallPending = false;
+  setBrowserInstallUI("ready");
 });
 
 window.addEventListener("appinstalled", () => {
-  if (!IS_STANDALONE_APP) showBrowserInstallSuccess();
+  if (IS_STANDALONE_APP) return;
+
+  // Não exibimos "App instalado" apenas com base neste evento. Em alguns
+  // Androids o launcher ainda pode estar finalizando o processo.
+  browserInstallPending = true;
+  setBrowserInstallUI("pending");
+
+  window.setTimeout(() => refreshBrowserInstallUI(), 1200);
+  window.setTimeout(() => refreshBrowserInstallUI(), 4000);
 });
+
 
 
 const DATA_STORAGE_KEY = "balada-v1-data";

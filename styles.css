@@ -2716,118 +2716,111 @@ body {
 }
 
 
-/* V1.8.7 — página pública de instalação e execução somente em modo instalado */
+/* V1.8.8 — landing pública de instalação mais direta */
 .browser-mode #app-shell {
   display: none !important;
 }
 
 .browser-gate {
-  width: min(100%, 680px);
+  width: min(100%, 620px);
   min-height: 100vh;
   min-height: 100dvh;
   margin: 0 auto;
-  padding: max(28px, env(safe-area-inset-top)) 20px max(18px, env(safe-area-inset-bottom));
+  padding:
+    max(28px, env(safe-area-inset-top))
+    20px
+    max(18px, env(safe-area-inset-bottom));
   background: var(--bg);
 }
 
 .browser-gate-main {
   display: grid;
-  min-height: calc(100dvh - 120px);
+  min-height: calc(100dvh - 104px);
   place-items: center;
 }
 
 .browser-gate-card {
   display: grid;
   justify-items: center;
-  width: min(100%, 420px);
+  width: min(100%, 360px);
   text-align: center;
 }
 
 .browser-gate-logo {
-  width: 112px;
-  height: 112px;
-  margin-bottom: 22px;
-  border-radius: 25px;
+  width: 108px;
+  height: 108px;
+  margin-bottom: 20px;
+  border-radius: 24px;
   object-fit: cover;
-  box-shadow: 0 18px 46px rgb(0 0 0 / 0.38);
-}
-
-.browser-gate-card .eyebrow {
-  margin-bottom: 8px;
+  box-shadow: 0 16px 42px rgb(0 0 0 / 0.34);
 }
 
 .browser-gate-card h1 {
   margin: 0;
-  font-size: clamp(2.55rem, 12vw, 3.45rem);
+  font-size: clamp(2.5rem, 11vw, 3.35rem);
+  line-height: 1;
 }
 
 .browser-gate-lead {
-  max-width: 330px;
-  margin: 14px 0 0;
+  margin: 13px 0 0;
   color: var(--muted);
-  font-size: 0.98rem;
-  line-height: 1.5;
+  font-size: 0.96rem;
+  line-height: 1.45;
 }
 
 .browser-install-panel {
   display: grid;
-  gap: 12px;
+  gap: 14px;
   width: 100%;
   margin-top: 28px;
 }
 
 .browser-install-button {
   width: 100%;
-  min-height: 54px;
+  min-height: 56px;
   font-size: 1rem;
 }
 
-.browser-install-guidance,
-.browser-install-success {
+.browser-install-button:disabled {
+  cursor: default;
+  opacity: 0.72;
+}
+
+.browser-install-status {
   display: grid;
-  gap: 6px;
+  gap: 7px;
   width: 100%;
-  padding: 15px 16px;
+  padding: 17px 18px;
   border: 1px solid var(--border);
-  border-radius: 14px;
+  border-radius: 16px;
   background: var(--surface);
-  text-align: left;
+  text-align: center;
 }
 
-.browser-install-guidance strong,
-.browser-install-success strong {
+.browser-install-status strong {
   color: var(--text);
-  font-size: 0.9rem;
+  font-size: 0.95rem;
 }
 
-.browser-install-guidance span,
-.browser-install-success span {
+.browser-install-status span {
   color: var(--muted);
   font-size: 0.82rem;
   line-height: 1.5;
 }
 
-.browser-install-success {
-  border-color: rgb(94 233 155 / 0.36);
-  background: var(--success-soft);
-}
-
-.browser-already-installed {
-  max-width: 340px;
-  margin: 22px 0 0;
-  color: #71717a;
-  font-size: 0.76rem;
-  line-height: 1.5;
-}
-
-.browser-already-installed strong {
-  color: #a1a1aa;
+.browser-install-guidance {
+  max-width: 330px;
+  margin: 0 auto;
+  color: var(--muted);
+  font-size: 0.82rem;
+  line-height: 1.55;
+  text-align: center;
 }
 
 .browser-gate-footer {
   display: grid;
   gap: 3px;
-  margin-top: 36px;
+  margin-top: 30px;
   color: #52525b;
   font-size: 0.56rem;
   font-weight: 600;
@@ -2847,7 +2840,7 @@ body {
   }
 
   .browser-gate-logo {
-    width: 102px;
-    height: 102px;
+    width: 100px;
+    height: 100px;
   }
 }

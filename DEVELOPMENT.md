@@ -1,6 +1,6 @@
 # Intervalo — documentação de desenvolvimento
 
-**Versão da aplicação:** `v1.8.7`  
+**Versão da aplicação:** `v1.8.8`  
 **Versão do modelo persistido:** `DATA_VERSION = 7`  
 **Autor exibido na interface:** `arielkeybob`  
 **Stack:** HTML + CSS + JavaScript puro  
@@ -8,7 +8,7 @@
 **Backend:** não existe  
 **Build step:** não existe
 
-> Este documento descreve a arquitetura e o comportamento técnico da versão `v1.8.7`. Ele foi escrito para facilitar manutenção, depuração e evolução do projeto sem depender do histórico da conversa em que o app foi criado.
+> Este documento descreve a arquitetura e o comportamento técnico da versão `v1.8.8`. Ele foi escrito para facilitar manutenção, depuração e evolução do projeto sem depender do histórico da conversa em que o app foi criado.
 
 ---
 
@@ -1778,3 +1778,19 @@ A instalação usa `beforeinstallprompt` quando o navegador disponibiliza o even
 O Service Worker é registrado nos dois modos. Os avisos internos de atualização são mostrados somente quando a execução está em modo instalado.
 
 Cache: `intervalo-v1-8-7`.
+
+
+## Instalação robusta — V1.8.8
+
+O retorno `accepted` do `BeforeInstallPromptEvent` e o evento `appinstalled` não são mais usados isoladamente para escrever “App instalado” na UI. Em Android, a integração entre navegador, WebAPK/atalho e launcher pode terminar em momentos diferentes.
+
+Estados da landing:
+- `ready`: botão Instalar disponível;
+- `opening`: prompt sendo aberto;
+- `pending`: instalação solicitada/iniciada, sem afirmar conclusão;
+- `installed`: PWA detectada por `getInstalledRelatedApps()` em navegador compatível;
+- `guidance`: fallback de instrução manual.
+
+O manifesto declara `id: "./"` e `related_applications` com `platform: "webapp"` para permitir a verificação da própria PWA em navegadores que implementam Get Installed Related Apps.
+
+Cache: `intervalo-v1-8-8`.
