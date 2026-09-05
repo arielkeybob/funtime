@@ -16,15 +16,13 @@
 <body class="clean-mode security-booting">
   <div id="app-shell" class="app-shell">
     <header id="home-header" class="app-header home-header">
-      <div class="home-header-top">
-        <p class="eyebrow home-header-eyebrow">Uso pessoal</p>
-        <button id="open-settings" class="settings-shortcut" type="button" aria-label="Abrir configurações" title="Configurações">⚙</button>
-      </div>
+      <p class="eyebrow home-header-eyebrow">Uso pessoal</p>
       <div class="home-header-main">
         <h1>Início</h1>
         <div class="header-actions home-header-actions">
           <button id="open-history" class="header-text-button" type="button">Histórico</button>
           <button id="open-add-dialog" class="icon-button" type="button" aria-label="Adicionar bebida">+</button>
+          <button id="open-settings" class="settings-shortcut" type="button" aria-label="Abrir configurações" title="Configurações">⚙</button>
         </div>
       </div>
     </header>
@@ -103,8 +101,9 @@
             <span>Bloquear novamente</span>
             <select id="security-relock">
               <option value="0">Imediatamente</option>
-              <option value="60" selected>Após 1 minuto</option>
-              <option value="300">Após 5 minutos</option>
+              <option value="30">Após 30 segundos</option>
+              <option value="60">Após 1 minuto</option>
+              <option value="300" selected>Após 5 minutos</option>
               <option value="900">Após 15 minutos</option>
             </select>
           </label>
@@ -122,7 +121,7 @@
       </section>
     </main>
 
-    <footer class="app-footer">v1.8.2 · By: arielkeybob</footer>
+    <footer class="app-footer">v1.8.3 · By: arielkeybob</footer>
   </div>
 
   <dialog id="drink-dialog" class="dialog">

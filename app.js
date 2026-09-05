@@ -2,7 +2,8 @@ const DATA_STORAGE_KEY = "balada-v1-data";
 const LEGACY_DRINKS_STORAGE_KEY = "balada-v1-drinks";
 const DATA_VERSION = 7;
 const SECURITY_STORAGE_KEY = "intervalo-security-v1";
-const SECURITY_CONFIG_VERSION = 2;
+const SECURITY_SESSION_KEY = "intervalo-security-session-v1";
+const SECURITY_CONFIG_VERSION = 3;
 const PIN_LENGTH = 4;
 const LEGACY_PIN_LENGTH = 6;
 const PIN_PBKDF2_ITERATIONS = 210000;
@@ -172,7 +173,7 @@ function getDefaultSecurityConfig() {
     version: SECURITY_CONFIG_VERSION,
     enabled: false,
     method: null,
-    relockSeconds: 60,
+    relockSeconds: 300,
     pin: null,
     webauthn: null,
   };
@@ -186,7 +187,12 @@ function loadSecurityConfig() {
     const config = getDefaultSecurityConfig();
     config.enabled = Boolean(parsed.enabled);
     config.method = parsed.method === "pin" || parsed.method === "device" ? parsed.method : null;
-    config.relockSeconds = [0, 60, 300, 900].includes(Number(parsed.relockSeconds)) ? Number(parsed.relockSeconds) : 60;
+    const storedRelock = Number(parsed.relockSeconds);
+    const allowedRelock = [0, 30, 60, 300, 900];
+    config.relockSeconds = allowedRelock.includes(storedRelock) ? storedRelock : 300;
+    // V1.8.0/1.8.1 usavam 1 minuto como padrão. Na migração para V1.8.3,
+    // configurações antigas ainda no padrão anterior passam para o novo padrão de 5 min.
+    if (Number(parsed.version || 0) < 3 && storedRelock === 60) config.relockSeconds = 300;
     config.pin = parsed.pin && parsed.pin.salt && parsed.pin.hash ? {
       salt: String(parsed.pin.salt),
       hash: String(parsed.pin.hash),
@@ -208,6 +214,40 @@ function loadSecurityConfig() {
     console.warn("Não foi possível carregar as configurações de segurança.", error);
     return getDefaultSecurityConfig();
   }
+}
+
+function loadSecuritySession() {
+  try {
+    const raw = sessionStorage.getItem(SECURITY_SESSION_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    return {
+      lastActiveAt: Number(parsed.lastActiveAt) || 0,
+      hiddenAt: Number(parsed.hiddenAt) || 0,
+    };
+  } catch (error) {
+    return null;
+  }
+}
+
+function saveSecuritySession(values = {}) {
+  if (!state.securityConfig.enabled || state.securityLocked) return;
+  const current = loadSecuritySession() || { lastActiveAt: 0, hiddenAt: 0 };
+  const next = { ...current, ...values };
+  try {
+    sessionStorage.setItem(SECURITY_SESSION_KEY, JSON.stringify(next));
+  } catch (error) {
+    // O bloqueio continua funcionando mesmo se sessionStorage estiver indisponível.
+  }
+}
+
+function clearSecuritySession() {
+  try { sessionStorage.removeItem(SECURITY_SESSION_KEY); } catch (error) { /* noop */ }
+}
+
+function markSecurityActive() {
+  if (!state.securityConfig.enabled || state.securityLocked) return;
+  saveSecuritySession({ lastActiveAt: Date.now(), hiddenAt: 0 });
 }
 
 function saveSecurityConfig() {
@@ -550,11 +590,13 @@ function showLockScreen() {
 function lockApp() {
   if (!state.securityConfig.enabled) return;
   state.securityLocked = true;
+  clearSecuritySession();
+  hidePrivacyShield();
   closeSensitiveDialogs();
   showLockScreen();
 }
 
-function unlockApp() {
+function unlockApp({ persistSession = true } = {}) {
   state.securityLocked = false;
   state.securityHiddenAt = null;
   state.pinFailedAttempts = 0;
@@ -563,6 +605,7 @@ function unlockApp() {
   lockScreen.hidden = true;
   document.body.classList.remove("app-locked");
   hidePrivacyShield();
+  if (persistSession) markSecurityActive();
   if (state.currentView === "home") render();
   else if (state.currentView === "history") renderHistory();
 }
@@ -719,6 +762,7 @@ function disableSecurity() {
   }
   state.securityConfig = getDefaultSecurityConfig();
   saveSecurityConfig();
+  clearSecuritySession();
   state.securityLocked = false;
   updateSecuritySettingsUI();
   showToast("Bloqueio desativado.");
@@ -730,8 +774,23 @@ async function initializeSecurity() {
   document.body.classList.remove("security-booting");
 
   if (state.securityConfig.enabled) {
-    lockApp();
+    const session = loadSecuritySession();
+    const referenceAt = session?.hiddenAt || session?.lastActiveAt || 0;
+    const relockMs = state.securityConfig.relockSeconds * 1000;
+    const mayResume = state.securityConfig.relockSeconds > 0 && referenceAt > 0 && (Date.now() - referenceAt) < relockMs;
+
+    if (mayResume) {
+      state.securityLocked = false;
+      state.securityHiddenAt = null;
+      lockScreen.hidden = true;
+      document.body.classList.remove("app-locked");
+      hidePrivacyShield();
+      markSecurityActive();
+    } else {
+      lockApp();
+    }
   } else {
+    clearSecuritySession();
     state.securityLocked = false;
     lockScreen.hidden = true;
     document.body.classList.remove("app-locked");
@@ -2507,7 +2566,7 @@ document.querySelector("#change-security-method").addEventListener("click", () =
 document.querySelector("#lock-now").addEventListener("click", lockApp);
 securityRelockSelect.addEventListener("change", () => {
   const value = Number(securityRelockSelect.value);
-  if (![0, 60, 300, 900].includes(value)) return;
+  if (![0, 30, 60, 300, 900].includes(value)) return;
   state.securityConfig.relockSeconds = value;
   saveSecurityConfig();
   showToast("Tempo de bloqueio atualizado.");
@@ -2630,7 +2689,15 @@ pinSetupDialog.addEventListener("cancel", (event) => {
 document.addEventListener("visibilitychange", () => {
   if (document.hidden) {
     if (state.securityConfig.enabled) {
+      // Se já está bloqueado, a própria lock screen já protege o conteúdo.
+      // Não cobrimos a tela de login com o privacy shield.
+      if (state.securityLocked) {
+        hidePrivacyShield();
+        return;
+      }
+
       state.securityHiddenAt = Date.now();
+      saveSecuritySession({ hiddenAt: state.securityHiddenAt, lastActiveAt: Date.now() });
       showPrivacyShield();
       closeSensitiveDialogs();
       if (state.securityConfig.relockSeconds === 0) lockApp();
@@ -2638,15 +2705,27 @@ document.addEventListener("visibilitychange", () => {
     return;
   }
 
-  if (state.securityConfig.enabled && !state.securityLocked && state.securityHiddenAt) {
+  if (state.securityConfig.enabled && state.securityLocked) {
+    // Ao voltar para um app que já estava bloqueado, restaura explicitamente a
+    // lock screen. Isso evita o privacy shield permanecer por cima do botão Entrar.
+    hidePrivacyShield();
+    showLockScreen();
+    checkForAppUpdate();
+    return;
+  }
+
+  if (state.securityConfig.enabled && state.securityHiddenAt) {
     const elapsedSeconds = (Date.now() - state.securityHiddenAt) / 1000;
     if (elapsedSeconds >= state.securityConfig.relockSeconds) {
       lockApp();
     } else {
+      state.securityHiddenAt = null;
       hidePrivacyShield();
+      markSecurityActive();
     }
-  } else if (!state.securityLocked) {
+  } else {
     hidePrivacyShield();
+    markSecurityActive();
   }
 
   if (!state.securityLocked) {
@@ -2657,6 +2736,17 @@ document.addEventListener("visibilitychange", () => {
   }
   checkForAppUpdate();
 });
+
+// Mantém a sessão de desbloqueio durante um refresh/pull-to-refresh.
+// sessionStorage sobrevive à recarga da mesma PWA, mas não substitui a autenticação
+// quando a sessão expira pelo tempo configurado.
+window.addEventListener("beforeunload", () => {
+  if (state.securityConfig.enabled && !state.securityLocked) markSecurityActive();
+});
+
+document.addEventListener("pointerdown", () => {
+  if (state.securityConfig.enabled && !state.securityLocked && !document.hidden) markSecurityActive();
+}, { passive: true });
 
 if ("serviceWorker" in navigator) {
   navigator.serviceWorker.addEventListener("controllerchange", () => {

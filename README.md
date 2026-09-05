@@ -1,4 +1,4 @@
-# Intervalo — V1.8.2
+# Intervalo — V1.8.3
 
 Aplicação em HTML, CSS e JavaScript puro para registro pessoal de bebidas e acompanhamento dos intervalos configurados pelo usuário.
 
@@ -8,13 +8,13 @@ Documentação técnica detalhada: [`DEVELOPMENT.md`](./DEVELOPMENT.md).
 
 
 
-## Mudanças da V1.8.2
+## Mudanças da V1.8.3
 
 - Reorganização do cabeçalho da tela inicial em duas linhas para evitar competição entre título e ações no mobile.
 - A engrenagem de Configurações agora fica na linha superior, alinhada ao texto `USO PESSOAL`.
 - A segunda linha mantém `Início` à esquerda e agrupa apenas `Histórico` e `+` à direita.
 - Ajustes responsivos para preservar alinhamento e evitar quebra em telas estreitas.
-- Cache da PWA atualizado para `intervalo-v1-8-2`.
+- Cache da PWA atualizado para `intervalo-v1-8-3`.
 
 ## Mudanças da V1.8.1
 
