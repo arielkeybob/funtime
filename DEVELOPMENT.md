@@ -1,6 +1,6 @@
 # Intervalo — documentação de desenvolvimento
 
-**Versão da aplicação:** `v1.8.8`  
+**Versão da aplicação:** `v1.8.9`  
 **Versão do modelo persistido:** `DATA_VERSION = 7`  
 **Autor exibido na interface:** `arielkeybob`  
 **Stack:** HTML + CSS + JavaScript puro  
@@ -8,7 +8,7 @@
 **Backend:** não existe  
 **Build step:** não existe
 
-> Este documento descreve a arquitetura e o comportamento técnico da versão `v1.8.8`. Ele foi escrito para facilitar manutenção, depuração e evolução do projeto sem depender do histórico da conversa em que o app foi criado.
+> Este documento descreve a arquitetura e o comportamento técnico da versão `v1.8.9`. Ele foi escrito para facilitar manutenção, depuração e evolução do projeto sem depender do histórico da conversa em que o app foi criado.
 
 ---
 
@@ -1794,3 +1794,18 @@ Estados da landing:
 O manifesto declara `id: "./"` e `related_applications` com `platform: "webapp"` para permitir a verificação da própria PWA em navegadores que implementam Get Installed Related Apps.
 
 Cache: `intervalo-v1-8-8`.
+
+
+## UX do cadastro — V1.8.9
+
+O estado vazio mantém duas affordances visuais para a mesma ação: o círculo `+` e o botão **Adicionar bebida**. Ambos chamam `openDrinkDialog()`.
+
+Novos cadastros usam `buildIconPicker(null)`, portanto nenhum radio de ícone começa marcado. Edição de bebida preserva a seleção atual.
+
+Não há autofocus no campo de nome. A abertura de cadastro/edição termina com o input sem foco, evitando teclado virtual automático.
+
+Validação obrigatória de nome e ícone é feita antes das validações de intervalo. Os campos recebem `.has-error`, `aria-invalid="true"` e mensagens específicas. `scrollIntoView()` leva ao primeiro erro sem chamar `.focus()`.
+
+A seção de intervalo usa `.interval-fieldset` e `.interval-fieldset-title` para distinguir título de seção dos labels dos wheels.
+
+Cache: `intervalo-v1-8-9`.

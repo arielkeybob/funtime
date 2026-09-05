@@ -1,4 +1,4 @@
-# Intervalo — V1.8.8
+# Intervalo — V1.8.9
 
 Aplicação em HTML, CSS e JavaScript puro para registro pessoal de bebidas e acompanhamento dos intervalos configurados pelo usuário.
 
@@ -359,3 +359,15 @@ Se uma versão anterior continuar aparecendo, use `Ctrl + F5`. Se necessário, r
 - O manifesto passou a declarar explicitamente `id: "./"` e uma relação `webapp` com ele mesmo para permitir essa detecção em navegadores compatíveis.
 - Se o navegador voltar a emitir `beforeinstallprompt`, o botão **Instalar** volta a aparecer, evitando ficar preso em um falso estado de sucesso.
 - Cache PWA: `intervalo-v1-8-8`.
+
+
+## V1.8.9 — onboarding e cadastro de bebida
+
+- O ícone `+` do estado vazio agora é um botão funcional e abre o cadastro, assim como **Adicionar bebida**.
+- Novos cadastros não começam mais com um ícone pré-selecionado.
+- O formulário não abre mais o teclado automaticamente; o campo de nome recebe foco somente quando o usuário toca nele.
+- `Nome` e `Ícone` são marcados com um `*` vermelho discreto, sem texto “Obrigatório”.
+- Ao salvar sem preencher os campos obrigatórios, somente os campos correspondentes ficam destacados em vermelho e a tela rola até o primeiro erro sem abrir o teclado.
+- O erro desaparece conforme o usuário corrige o campo.
+- A seção **Intervalo entre doses** ganhou hierarquia tipográfica e espaçamento próprios para separar melhor o título dos labels **Horas** e **Minutos**.
+- Cache PWA: `intervalo-v1-8-9`.

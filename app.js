@@ -284,6 +284,10 @@ const homeAddZone = document.querySelector("#home-add-zone");
 const drinkDialog = document.querySelector("#drink-dialog");
 const drinkForm = document.querySelector("#drink-form");
 const nameInput = document.querySelector("#drink-name");
+const drinkNameField = document.querySelector("#drink-name-field");
+const drinkNameError = document.querySelector("#drink-name-error");
+const drinkIconField = document.querySelector("#drink-icon-field");
+const drinkIconError = document.querySelector("#drink-icon-error");
 const intervalHoursInput = document.querySelector("#interval-hours");
 const intervalMinutesInput = document.querySelector("#interval-minutes");
 const intervalHoursWheel = document.querySelector("#interval-hours-wheel");
@@ -1992,6 +1996,7 @@ function hideToast() {
 function openDrinkDialog() {
   state.editingDrinkId = null;
   drinkForm.reset();
+  clearDrinkValidation();
   setDurationPicker(1, 0);
   formError.hidden = true;
   drinkDialogEyebrow.textContent = "Nova bebida";
@@ -2002,12 +2007,14 @@ function openDrinkDialog() {
   drinkIntervalEditNote.hidden = true;
   askDoseSizeInput.checked = false;
 
-  buildIconPicker(DEFAULT_ICON);
+  // Novo cadastro começa neutro: o usuário escolhe conscientemente o ícone.
+  buildIconPicker(null);
 
   drinkDialog.showModal();
   requestAnimationFrame(() => {
     setDurationPicker(1, 0);
-    nameInput.focus();
+    // Sem autofocus: o teclado só abre quando o usuário tocar no campo.
+    nameInput.blur();
   });
 }
 
@@ -2031,10 +2038,11 @@ function openEditDrinkDialog(drinkId) {
 
   buildIconPicker(drink.icon);
 
+  clearDrinkValidation();
   drinkDialog.showModal();
   requestAnimationFrame(() => {
     setDurationPicker(Math.floor(drink.intervalMinutes / 60), drink.intervalMinutes % 60);
-    nameInput.focus();
+    nameInput.blur();
   });
 }
 
@@ -2506,13 +2514,14 @@ function initializeDurationPickers() {
   setDurationPicker(1, 0);
 }
 
-function buildIconPicker(selectedIcon = DEFAULT_ICON) {
+function buildIconPicker(selectedIcon = null) {
   iconOptions.innerHTML = "";
 
-  const normalizedSelectedIcon = normalizeIcon(selectedIcon);
-  const icons = PICKER_ICONS.includes(normalizedSelectedIcon)
-    ? [...PICKER_ICONS]
-    : [normalizedSelectedIcon, ...PICKER_ICONS];
+  const hasSelection = typeof selectedIcon === "string" && selectedIcon.trim().length > 0;
+  const normalizedSelectedIcon = hasSelection ? normalizeIcon(selectedIcon) : null;
+  const icons = normalizedSelectedIcon && !PICKER_ICONS.includes(normalizedSelectedIcon)
+    ? [normalizedSelectedIcon, ...PICKER_ICONS]
+    : [...PICKER_ICONS];
 
   icons.forEach((icon) => {
     const label = document.createElement("label");
@@ -2522,7 +2531,8 @@ function buildIconPicker(selectedIcon = DEFAULT_ICON) {
     input.type = "radio";
     input.name = "icon";
     input.value = icon;
-    input.checked = icon === normalizedSelectedIcon;
+    input.checked = normalizedSelectedIcon === icon;
+    input.addEventListener("change", () => clearDrinkFieldError("icon"));
 
     const visual = document.createElement("span");
     visual.textContent = icon;
@@ -2536,18 +2546,36 @@ function buildIconPicker(selectedIcon = DEFAULT_ICON) {
 function handleDrinkSubmit(event) {
   event.preventDefault();
 
+  clearDrinkValidation();
+  formError.hidden = true;
+
   const formData = new FormData(drinkForm);
   const name = String(formData.get("name") || "").trim();
+  const rawIcon = formData.get("icon");
   const currentDrink = state.editingDrinkId
     ? state.drinks.find((item) => item.id === state.editingDrinkId)
     : null;
-  const icon = normalizeIcon(formData.get("icon"), currentDrink?.icon || DEFAULT_ICON);
+  const icon = rawIcon ? normalizeIcon(rawIcon) : null;
   const hours = Number(formData.get("intervalHours"));
   const minutes = Number(formData.get("intervalMinutes"));
   const askDoseSize = formData.get("askDoseSize") === "on";
 
+  let firstInvalidField = null;
+
   if (!name) {
-    showFormError("Informe um nome para a bebida.");
+    setDrinkFieldError("name", true);
+    firstInvalidField = drinkNameField;
+  }
+
+  if (!icon) {
+    setDrinkFieldError("icon", true);
+    if (!firstInvalidField) firstInvalidField = drinkIconField;
+  }
+
+  if (firstInvalidField) {
+    requestAnimationFrame(() => {
+      firstInvalidField.scrollIntoView({ behavior: "smooth", block: "center" });
+    });
     return;
   }
 
@@ -2630,6 +2658,30 @@ function handleLogSubmit(event) {
 
   const totalMinutesAgo = hours * 60 + minutes;
   registerMinutesAgo(totalMinutesAgo);
+}
+
+function setDrinkFieldError(field, hasError) {
+  if (field === "name") {
+    drinkNameField.classList.toggle("has-error", hasError);
+    drinkNameError.hidden = !hasError;
+    nameInput.setAttribute("aria-invalid", hasError ? "true" : "false");
+    return;
+  }
+
+  if (field === "icon") {
+    drinkIconField.classList.toggle("has-error", hasError);
+    drinkIconError.hidden = !hasError;
+    iconOptions.setAttribute("aria-invalid", hasError ? "true" : "false");
+  }
+}
+
+function clearDrinkFieldError(field) {
+  setDrinkFieldError(field, false);
+}
+
+function clearDrinkValidation() {
+  clearDrinkFieldError("name");
+  clearDrinkFieldError("icon");
 }
 
 function showFormError(message) {
@@ -2798,12 +2850,16 @@ deviceUnlockButton.addEventListener("click", handleDeviceUnlock);
 
 document.querySelector("#open-add-dialog").addEventListener("click", openDrinkDialog);
 document.querySelector("#empty-add-button").addEventListener("click", openDrinkDialog);
+document.querySelector("#empty-add-icon").addEventListener("click", openDrinkDialog);
 document.querySelector("#close-dialog").addEventListener("click", closeDrinkDialog);
 document.querySelector("#cancel-dialog").addEventListener("click", closeDrinkDialog);
 deleteDrinkFromEditorButton.addEventListener("click", () => {
   if (state.editingDrinkId) openDeleteDrinkDialog(state.editingDrinkId, { returnToEditorOnCancel: true });
 });
 drinkForm.addEventListener("submit", handleDrinkSubmit);
+nameInput.addEventListener("input", () => {
+  if (nameInput.value.trim()) clearDrinkFieldError("name");
+});
 
 document.querySelector("#cancel-delete-drink").addEventListener("click", () => closeDeleteDrinkDialog());
 document.querySelector("#delete-drink-keep-history").addEventListener("click", deleteDrinkKeepingHistory);

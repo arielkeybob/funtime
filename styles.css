@@ -2844,3 +2844,92 @@ body {
     height: 100px;
   }
 }
+
+
+/* V1.8.9 — onboarding e formulário de bebida */
+.empty-add-icon {
+  border: 0;
+  color: var(--text);
+  cursor: pointer;
+  transition: background-color 140ms ease, transform 140ms ease;
+}
+
+.empty-add-icon:hover {
+  background: #303034;
+}
+
+.empty-add-icon:active {
+  transform: scale(0.95);
+}
+
+.required-mark {
+  display: inline-block;
+  margin-left: 2px;
+  color: var(--danger);
+  font-size: 0.78em;
+  font-weight: 800;
+  line-height: 1;
+  vertical-align: 0.16em;
+}
+
+.required-field > span,
+.required-field > legend {
+  color: #d4d4d8;
+}
+
+.field-error {
+  margin-top: 1px;
+  color: var(--danger) !important;
+  font-size: 0.76rem !important;
+  font-weight: 650;
+}
+
+#drink-name-field.has-error input[type="text"] {
+  border-color: var(--danger-border);
+  box-shadow: 0 0 0 1px rgb(255 91 98 / 0.18);
+}
+
+#drink-name-field.has-error input[type="text"]:focus {
+  border-color: var(--danger);
+}
+
+#drink-icon-field.has-error .icon-options {
+  border-radius: 14px;
+  box-shadow: 0 0 0 1px var(--danger-border);
+  background: var(--danger-soft);
+}
+
+.interval-fieldset {
+  gap: 14px;
+  padding-top: 3px;
+}
+
+.field .interval-fieldset-title {
+  margin: 0 0 2px;
+  color: var(--text);
+  font-size: 1rem;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+
+.interval-fieldset .duration-field > span {
+  color: #8f8f98;
+  font-size: 0.74rem;
+  font-weight: 750;
+  letter-spacing: 0.015em;
+}
+
+@media (max-width: 600px) {
+  #drink-dialog .interval-fieldset {
+    gap: 12px;
+    padding-top: 5px;
+  }
+
+  #drink-dialog .field .interval-fieldset-title {
+    font-size: 1.02rem;
+  }
+
+  #drink-dialog .interval-fieldset .duration-field {
+    gap: 7px;
+  }
+}

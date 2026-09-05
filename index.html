@@ -40,7 +40,7 @@
 
     <footer class="browser-gate-footer">
       <span>App para estudo · não é controle de segurança</span>
-      <span>v1.8.8 · By: arielkeybob</span>
+      <span>v1.8.9 · By: arielkeybob</span>
     </footer>
   </section>
 
@@ -74,7 +74,7 @@
 
     <main id="home-view">
       <section id="empty-state" class="empty-state" hidden>
-        <div class="empty-icon">＋</div>
+        <button id="empty-add-icon" class="empty-icon empty-add-icon" type="button" aria-label="Adicionar bebida">＋</button>
         <h2>Nenhuma bebida cadastrada</h2>
         <p>Adicione uma bebida para começar.</p>
         <button id="empty-add-button" class="primary-button" type="button">Adicionar bebida</button>
@@ -156,7 +156,7 @@
 
     <footer class="app-footer">
       <span class="app-footer-disclaimer">App para estudo · não é controle de segurança</span>
-      <span class="app-footer-meta">v1.8.8 · By: arielkeybob</span>
+      <span class="app-footer-meta">v1.8.9 · By: arielkeybob</span>
     </footer>
   </div>
 
@@ -171,19 +171,21 @@
         <button id="close-dialog" class="icon-button secondary" type="button" aria-label="Fechar">×</button>
       </div>
 
-      <label class="field">
-        <span>Nome</span>
-        <input id="drink-name" name="name" type="text" maxlength="40" autocomplete="off" placeholder="Ex.: Cerveja" required>
+      <label id="drink-name-field" class="field required-field">
+        <span>Nome <span class="required-mark" aria-hidden="true">*</span></span>
+        <input id="drink-name" name="name" type="text" maxlength="40" autocomplete="off" placeholder="Ex.: Cerveja" required aria-describedby="drink-name-error">
+        <small id="drink-name-error" class="field-error" role="alert" hidden>Digite um nome para a bebida.</small>
       </label>
 
-      <fieldset class="field icon-picker">
-        <legend>Ícone</legend>
+      <fieldset id="drink-icon-field" class="field icon-picker required-field">
+        <legend>Ícone <span class="required-mark" aria-hidden="true">*</span></legend>
         <div id="icon-options" class="icon-options" aria-label="Escolha um ícone"></div>
         <small class="icon-scroll-hint">Deslize para ver mais ícones →</small>
+        <small id="drink-icon-error" class="field-error" role="alert" hidden>Escolha um ícone.</small>
       </fieldset>
 
-      <fieldset class="field">
-        <legend>Intervalo entre doses</legend>
+      <fieldset class="field interval-fieldset">
+        <legend class="interval-fieldset-title">Intervalo entre doses</legend>
         <div class="duration-inputs wheel-duration-inputs">
           <div class="duration-field">
             <span>Horas</span>
