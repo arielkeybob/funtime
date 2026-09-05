@@ -1,4 +1,4 @@
-# Intervalo — V1.8.5
+# Intervalo — V1.8.6
 
 Aplicação em HTML, CSS e JavaScript puro para registro pessoal de bebidas e acompanhamento dos intervalos configurados pelo usuário.
 
@@ -8,6 +8,14 @@ Documentação técnica detalhada: [`DEVELOPMENT.md`](./DEVELOPMENT.md).
 
 
 
+
+## Mudanças da V1.8.6
+
+- Mantido o símbolo **⚙** como ícone global de Configurações.
+- O footer passou a exibir o disclaimer **“App para estudo · não é controle de segurança”** acima da versão e dos créditos.
+- O footer agora usa comportamento de *sticky footer por layout*: fica junto ao fim da viewport quando há pouco conteúdo e segue naturalmente após o conteúdo quando a página é maior que a tela.
+- Versão exibida atualizada para `v1.8.6`.
+- Cache PWA atualizado para `intervalo-v1-8-6`.
 
 ## Mudanças da V1.8.5
 

@@ -1,6 +1,6 @@
 # Intervalo — documentação de desenvolvimento
 
-**Versão da aplicação:** `v1.8.5`  
+**Versão da aplicação:** `v1.8.6`  
 **Versão do modelo persistido:** `DATA_VERSION = 7`  
 **Autor exibido na interface:** `arielkeybob`  
 **Stack:** HTML + CSS + JavaScript puro  
@@ -8,9 +8,18 @@
 **Backend:** não existe  
 **Build step:** não existe
 
-> Este documento descreve a arquitetura e o comportamento técnico da versão `v1.8.5`. Ele foi escrito para facilitar manutenção, depuração e evolução do projeto sem depender do histórico da conversa em que o app foi criado.
+> Este documento descreve a arquitetura e o comportamento técnico da versão `v1.8.6`. Ele foi escrito para facilitar manutenção, depuração e evolução do projeto sem depender do histórico da conversa em que o app foi criado.
 
 ---
+
+## Alterações da V1.8.6
+
+- O ícone global de Configurações permanece representado por **⚙**, por ser mais reconhecível como ação de configuração.
+- O rodapé passa a ter duas linhas: disclaimer e metadados de versão/crédito.
+- Disclaimer: `App para estudo · não é controle de segurança`.
+- O footer não usa `position: fixed`; a `.app-shell` utiliza `min-height: 100dvh` + flex column e o footer usa `margin-top: auto`.
+- Esse padrão mantém o rodapé visualmente no fim da viewport em páginas curtas sem cobrir conteúdo, e depois do conteúdo em páginas longas.
+- Cache do Service Worker: `intervalo-v1-8-6`.
 
 ## 0. V1.8.0 — privacidade e bloqueio local
 
