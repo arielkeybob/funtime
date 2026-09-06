@@ -19,6 +19,32 @@
   --neutral-action: #e4e4e7;
 }
 
+/* Informações públicas e primeiro aceite compartilham a tipografia do app. */
+.information-page {
+  width: min(100%, 720px);
+  margin: 0 auto;
+  padding: max(28px, env(safe-area-inset-top)) 20px max(32px, env(safe-area-inset-bottom));
+  line-height: 1.65;
+  overflow-wrap: anywhere;
+}
+.information-page h1 { font-size: clamp(1.9rem, 7vw, 2.6rem); line-height: 1.15; margin-bottom: 20px; }
+.information-page h2 { margin-bottom: 12px; line-height: 1.35; }
+.information-page p { color: var(--muted); }
+.information-page section { margin-top: 32px; scroll-margin-top: 20px; }
+.information-page a, .policies-link { color: var(--muted); text-underline-offset: 4px; }
+.information-page a:focus-visible, .policies-link:focus-visible { outline: 2px solid var(--text); outline-offset: 4px; }
+.information-back { display: inline-block; margin-bottom: 28px; padding: 8px 0; }
+.information-meta { font-size: 0.85rem; }
+.information-index { display: grid; gap: 8px; padding: 20px; border: 1px solid var(--border); border-radius: 14px; }
+.policies-link { display: inline-block; font-size: 0.8rem; padding: 10px 0; }
+.terms-screen { max-width: 560px; }
+.terms-choice { display: flex; align-items: flex-start; gap: 12px; margin: 22px 0; line-height: 1.5; cursor: pointer; }
+.terms-choice input { flex: 0 0 20px; width: 20px; height: 20px; margin-top: 3px; accent-color: var(--accent); }
+.terms-screen button { width: 100%; }
+.terms-screen button:disabled { opacity: 0.45; cursor: default; }
+.terms-pending #app-shell, .terms-pending #lock-screen, .terms-pending #privacy-shield,
+.terms-pending #update-toast, .terms-pending #toast { display: none !important; }
+
 * {
   box-sizing: border-box;
 }

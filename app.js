@@ -206,7 +206,7 @@ window.addEventListener("appinstalled", () => {
 const DATA_STORAGE_KEY = "balada-v1-data";
 const LEGACY_DRINKS_STORAGE_KEY = "balada-v1-drinks";
 const DATA_VERSION = 8;
-const APP_VERSION = "1.10.6";
+const APP_VERSION = "1.11.0";
 const DRINK_EXPORT_TYPE = "intervalo-drinks";
 const DRINK_EXPORT_FORMAT_VERSION = 1;
 const BACKUP_EXPORT_TYPE = "intervalo-backup";
@@ -1365,16 +1365,18 @@ async function readJsonFile(file, maxBytes) {
 }
 
 function normalizeImportedDrink(raw, usedIds = new Set()) {
-  if (!raw || typeof raw !== "object") return null;
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return null;
 
   const name = typeof raw.name === "string" ? raw.name.trim() : "";
   if (!name || name.length > 80) return null;
 
-  const intervalNumber = Number(raw.intervalMinutes);
-  if (!Number.isFinite(intervalNumber) || intervalNumber < 1 || intervalNumber > 1440) return null;
+  const intervalNumber = raw.intervalMinutes;
+  if (!Number.isInteger(intervalNumber) || intervalNumber < 1 || intervalNumber > 1440) return null;
 
   const rawIcon = typeof raw.icon === "string" ? raw.icon.trim() : "";
-  if (!rawIcon) return null;
+  if (!rawIcon || rawIcon.length > 64) return null;
+  if (raw.askDoseSize !== undefined && typeof raw.askDoseSize !== "boolean") return null;
+  if (raw.id !== undefined && (typeof raw.id !== "string" || raw.id.length > 200)) return null;
 
   let id = typeof raw.id === "string" ? raw.id.trim() : "";
   if (!id || usedIds.has(id)) id = createId();
@@ -1397,7 +1399,7 @@ function validateDrinkExportPayload(payload) {
     throw new Error("Este não é um arquivo de bebidas do Intervalo.");
   }
 
-  if (Number(payload.formatVersion) !== DRINK_EXPORT_FORMAT_VERSION) {
+  if (payload.formatVersion !== DRINK_EXPORT_FORMAT_VERSION) {
     throw new Error("Esta versão do arquivo de bebidas não é compatível com o aplicativo.");
   }
 
@@ -1587,11 +1589,38 @@ function validateBackupPayload(payload) {
     throw new Error("Este não é um backup do Intervalo.");
   }
 
-  if (Number(payload.formatVersion) !== BACKUP_EXPORT_FORMAT_VERSION) {
+  if (payload.formatVersion !== BACKUP_EXPORT_FORMAT_VERSION) {
     throw new Error("Esta versão do backup não é compatível com o aplicativo.");
   }
 
-  const normalized = normalizeData(payload.data);
+  const data = payload.data;
+  const invalid = () => { throw new Error("O backup contém dados inválidos ou incompatíveis. Nenhum dado foi alterado."); };
+  if (!data || !Number.isInteger(data.version) || data.version < 1 || data.version > DATA_VERSION ||
+      !Array.isArray(data.drinks) || !Array.isArray(data.events)) invalid();
+  if (data.drinks.length > 500 || data.events.length > 200000) invalid();
+  const validText = (value, max) => typeof value === "string" && value.trim().length > 0 && value.length <= max;
+  const ids = new Set();
+  for (const drink of data.drinks) {
+    if (!normalizeImportedDrink(drink) || !validText(drink.id, 200) || ids.has(drink.id)) invalid();
+    ids.add(drink.id);
+  }
+  const eventIds = new Set();
+  for (const event of data.events) {
+    if (!event || Array.isArray(event) || !validText(event.id, 200) || eventIds.has(event.id) ||
+        !validText(event.drinkId, 200) || typeof event.consumedAt !== "number" ||
+        !Number.isFinite(event.consumedAt) || !Number.isFinite(new Date(event.consumedAt).getTime()) ||
+        !Number.isInteger(event.intervalMinutes) || event.intervalMinutes < 1 || event.intervalMinutes > 1440 ||
+        (event.drinkName !== undefined && !validText(event.drinkName, 80)) ||
+        (event.drinkIcon !== undefined && !validText(event.drinkIcon, 64)) ||
+        (event.doseSize != null && !["half", "full"].includes(event.doseSize))) invalid();
+    if (!ids.has(event.drinkId) && (!validText(event.drinkName, 80) || !validText(event.drinkIcon, 64))) invalid();
+    eventIds.add(event.id);
+  }
+  if (data.preferences !== undefined && (!data.preferences || typeof data.preferences !== "object" ||
+      Array.isArray(data.preferences) || (data.preferences.cleanInterface !== undefined &&
+      typeof data.preferences.cleanInterface !== "boolean"))) invalid();
+  // Reconstrói apenas campos conhecidos; não mescla propriedades do arquivo.
+  const normalized = normalizeData(data);
   if (!normalized) throw new Error("Os dados deste backup são inválidos.");
 
   if (normalized.drinks.length > 500 || normalized.events.length > 200000) {
@@ -1645,7 +1674,7 @@ function confirmBackupRestore() {
   try {
     // Gravação única: se o setItem falhar, o estado atual permanece intacto.
     localStorage.setItem(DATA_STORAGE_KEY, JSON.stringify(pending.data));
-    sessionStorage.setItem("intervalo-restore-success-v1", "1");
+    try { sessionStorage.setItem("intervalo-restore-success-v1", "1"); } catch { /* Aviso opcional: dados já restaurados. */ }
     closeBackupRestoreDialog();
     window.location.reload();
   } catch (error) {
@@ -1705,8 +1734,10 @@ async function maybeHandleSharedDrinkImport() {
 }
 
 function showRestoreSuccessIfNeeded() {
-  if (sessionStorage.getItem("intervalo-restore-success-v1") !== "1") return;
-  sessionStorage.removeItem("intervalo-restore-success-v1");
+  try {
+    if (sessionStorage.getItem("intervalo-restore-success-v1") !== "1") return;
+    sessionStorage.removeItem("intervalo-restore-success-v1");
+  } catch { return; }
   showToast("Backup restaurado.");
 }
 
@@ -2211,7 +2242,7 @@ function render() {
     } else if (activity.state === "waiting") {
       stateLabel.hidden = true;
       setClockStatus(status, "Tomou às", activity.latestEvent.consumedAt, getDoseStatusSuffix(activity.latestEvent));
-      time.textContent = `⛔ Aguarde: ${formatTime(activity.remainingMs)}`;
+      time.textContent = `Restam: ${formatTime(activity.remainingMs)}`;
       mainButton.setAttribute(
         "aria-label",
         `${drink.name}: intervalo em andamento. ${formatTime(activity.remainingMs)} restantes. Toque duas vezes para abrir as opções de anotação ou toque e segure para anotar outra dose.`
@@ -2224,7 +2255,7 @@ function render() {
         activity.latestEvent.consumedAt,
         `${getDoseStatusSuffix(activity.latestEvent)} · ${activity.violationClusterCount} registros em sequência`
       );
-      time.textContent = `⛔ Aguarde: ${formatTime(activity.remainingMs)}`;
+      time.textContent = `Restam: ${formatTime(activity.remainingMs)}`;
       mainButton.setAttribute(
         "aria-label",
         `${drink.name}: atenção. ${activity.violationClusterCount} anotações em sequência antes do intervalo terminar. ${formatTime(activity.remainingMs)} restantes. Toque duas vezes para abrir as opções ou toque e segure para anotar outra dose.`
@@ -3284,7 +3315,7 @@ function getWaitingWorkerVersion(worker) {
 }
 
 function showUpdateAvailable(worker) {
-  if (!IS_STANDALONE_APP) return;
+  if (!IS_STANDALONE_APP || document.body.classList.contains("terms-pending")) return;
   if (!worker) return;
 
   state.waitingServiceWorker = worker;
@@ -3585,7 +3616,7 @@ pinSetupDialog.addEventListener("cancel", (event) => {
 });
 
 document.addEventListener("visibilitychange", () => {
-  if (!IS_STANDALONE_APP) return;
+  if (!IS_STANDALONE_APP || document.body.classList.contains("terms-pending")) return;
   if (document.hidden) {
     if (state.securityConfig.enabled) {
       // Se já está bloqueado, a própria lock screen já protege o conteúdo.
@@ -3644,12 +3675,12 @@ document.addEventListener("visibilitychange", () => {
 // sessionStorage sobrevive à recarga da mesma PWA, mas não substitui a autenticação
 // quando a sessão expira pelo tempo configurado.
 window.addEventListener("beforeunload", () => {
-  if (!IS_STANDALONE_APP) return;
+  if (!IS_STANDALONE_APP || document.body.classList.contains("terms-pending")) return;
   if (state.securityConfig.enabled && !state.securityLocked) markSecurityActive();
 });
 
 document.addEventListener("pointerdown", () => {
-  if (!IS_STANDALONE_APP) return;
+  if (!IS_STANDALONE_APP || document.body.classList.contains("terms-pending")) return;
   if (state.securityConfig.enabled && !state.securityLocked && !document.hidden) markSecurityActive();
 }, { passive: true });
 
@@ -3669,6 +3700,7 @@ applyUpdateButton.addEventListener("click", applyPendingAppUpdate);
 dismissUpdateButton.addEventListener("click", hideUpdateAvailable);
 
 async function bootstrapApp() {
+  await requireTermsAcceptance();
   applyInterfacePreferences();
   updateDataSettingsUI();
   initializeDurationPickers();

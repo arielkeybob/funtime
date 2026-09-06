@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#09090b">
+  <title>Políticas e informações · Intervalo</title>
+  <link rel="stylesheet" href="./styles.css">
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="icon" href="./icons/favicon-32-v164.png">
+</head>
+<body>
+  <main class="information-page">
+    <a class="information-back" href="./">← Voltar ao Intervalo</a>
+    <header>
+      <p class="eyebrow">Intervalo · Projeto de estudo</p>
+      <h1>Políticas e informações</h1>
+      <p class="information-meta">Versão das políticas 1.0 · 6 de setembro de 2026</p>
+      <p>Conheça a finalidade do aplicativo, seus limites e como os dados são tratados.</p>
+    </header>
+    <nav aria-label="Nesta página" class="information-index">
+      <a href="#sobre">Sobre o projeto</a>
+      <a href="#seguranca">Álcool e segurança</a>
+      <a href="#escopo">Usos fora do escopo</a>
+      <a href="#idade">Idade e legislação</a>
+      <a href="#funcionamento">Contadores e funcionamento</a>
+      <a href="#dados">Dados e arquivos</a>
+      <a href="#privacidade">Privacidade e proteção</a>
+      <a href="#aceite">Aceite e alterações</a>
+    </nav>
+    <section id="sobre">
+      <h2>1. Sobre o projeto</h2>
+      <p>O Intervalo é desenvolvido principalmente para estudo de programação e fins acadêmicos e didáticos. É um projeto pessoal, para uso do autor, de sua esposa e testes com conhecidos, sem caráter de serviço comercial neste momento.</p>
+      <p>Sua função é anotar bebidas e organizar intervalos definidos pelo próprio usuário. Não substitui julgamento pessoal, orientação profissional ou requisitos legais. O propósito educacional não torna o aplicativo uma referência médica ou de segurança.</p>
+    </section>
+    <section id="seguranca">
+      <h2>2. Álcool, direção e segurança</h2>
+      <p>O término do contador significa apenas que o intervalo configurado terminou. Cores, símbolos e alertas descrevem o estado dos registros e dos intervalos, sem autorizar ou recomendar consumo.</p>
+      <p>O app não mede álcool no organismo, não calcula alcoolemia, metabolismo ou intoxicação e não determina sobriedade, capacidade psicomotora, quantidade ou dose segura, nem se é seguro consumir outra bebida.</p>
+      <p>Não use o Intervalo para decidir se pode dirigir, pilotar, operar máquinas ou realizar atividades potencialmente perigosas que exijam plena capacidade psicomotora. Ele não avalia sua aptidão para essas atividades e não oferece aconselhamento médico.</p>
+    </section>
+    <section id="escopo">
+      <h2>3. Usos fora do escopo</h2>
+      <p>O app foi projetado para registros de bebidas e intervalos pessoais. Não o utilize para controle de medicamentos, dosagens médicas, drogas ilícitas, substâncias controladas ou outras substâncias cujo uso dependa de orientação médica ou requisitos legais específicos.</p>
+      <p>Nomes e ícones personalizáveis servem para identificar cadastros; não indicam suporte a usos médicos ou a outras substâncias. “Meia” e “Inteira” são classificações do registro: não representam uma medida padronizada nem alteram o intervalo.</p>
+    </section>
+    <section id="idade">
+      <h2>4. Idade e legislação local</h2>
+      <p>O uso é destinado somente a pessoas com idade legal para consumir bebidas alcoólicas conforme a legislação aplicável onde estão. No primeiro acesso ao app, solicitamos uma autodeclaração; não verificamos documentos ou identidade.</p>
+      <p>As leis variam por país e região. Cabe ao usuário observar as regras aplicáveis no local onde estiver. A disponibilidade técnica do aplicativo não significa que o consumo de álcool seja permitido naquela região.</p>
+    </section>
+    <section id="funcionamento">
+      <h2>5. Contadores e funcionamento</h2>
+      <p>Os contadores usam os horários dos registros e o relógio do dispositivo. Cada registro conserva seu intervalo histórico; alterar o intervalo da bebida afeta apenas novas anotações. O valor inicial do formulário é editável e não é uma recomendação.</p>
+      <p>O navegador ou sistema pode suspender a execução em segundo plano e atrasar a atualização da tela. Mudanças no relógio podem afetar contagens; o fuso horário afeta a apresentação dos horários. Ao retornar, o app recalcula o tempo a partir dos registros.</p>
+      <p>Esta versão não envia notificações de término pelo sistema nem oferece alarmes em segundo plano. Os avisos existentes aparecem dentro do aplicativo. Nenhum contador ou aviso é uma garantia de segurança.</p>
+      <p>O uso offline depende de os arquivos terem sido armazenados pelo navegador. Falhas, restrições do dispositivo e mudanças de compatibilidade podem afetar o funcionamento.</p>
+    </section>
+    <section id="dados">
+      <h2>6. Dados, importação e backups</h2>
+      <p>Bebidas, histórico e preferências ficam no armazenamento local do navegador. Limpeza de dados, exclusão manual, falhas ou corrupção do armazenamento, troca ou perda do dispositivo podem causar perda de registros. Remover ou reinstalar a PWA pode manter ou remover dados, conforme o navegador e o sistema.</p>
+      <p><strong>Exportar bebidas</strong> gera um TXT com dados estruturados, contendo somente a lista e suas configurações. Importar bebidas permite adicionar ou substituir essa lista, preservando o histórico. Intervalos recebidos de terceiros também não são recomendações de consumo.</p>
+      <p><strong>Fazer backup</strong> gera um JSON com bebidas, histórico e preferências. Restaurá-lo substitui esses dados após a prévia e sua confirmação. O arquivo não inclui PIN, credenciais, bloqueio, sessão do aparelho ou aceite das políticas. Não há backup automático em servidor nem garantia absoluta de recuperação.</p>
+      <p>Os arquivos não são criptografados. Guarde backups em local privado e confira a prévia antes de importar. Quem receber um arquivo pode ler e copiar seu conteúdo. A exportação de bebidas pode abrir o compartilhamento do sistema: o destino é escolhido por você, e o aplicativo escolhido passa a tratar esse arquivo.</p>
+      <p>Arquivos recebidos pelo compartilhamento da PWA ficam temporariamente no cache local até serem lidos pelo fluxo de importação; recebimentos posteriores podem substituir o arquivo pendente. Receber não aplica o conteúdo automaticamente.</p>
+    </section>
+    <section id="privacidade">
+      <h2>7. Privacidade e proteção</h2>
+      <p>O código do Intervalo não integra analytics, rastreadores, pixels, telemetria, relatório remoto de falhas, fontes ou bibliotecas externas. Não há backend próprio, conta, login remoto, sincronização ou cookies criados pelo aplicativo. Os registros não são enviados automaticamente ao desenvolvedor.</p>
+      <p>Acesso e atualização online solicitam arquivos à hospedagem GitHub Pages. O GitHub informa que registra o IP dos visitantes para segurança, mesmo sem login. Consulte a <a href="https://docs.github.com/en/pages/getting-started-with-github-pages/what-is-github-pages" rel="noreferrer">documentação da hospedagem</a> e a <a href="https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement" rel="noreferrer">política de privacidade do GitHub</a>. Esses links externos precisam de conexão e seguem as práticas do destino.</p>
+      <p>O bloqueio opcional por PIN ou autenticação do aparelho protege o acesso pela interface; os dados locais e backups não são criptografados por esse bloqueio. O PIN do app é armazenado como derivação criptográfica, não em texto puro. A autenticação do aparelho é processada pelo sistema: o app não recebe sua impressão digital, rosto ou PIN do dispositivo.</p>
+      <p>Quem tem acesso ao perfil do navegador ou aos arquivos do dispositivo pode ter acesso aos dados fora da interface. O bloqueio não é uma conta online nem um mecanismo de recuperação remota.</p>
+    </section>
+    <section id="aceite">
+      <h2>8. Aceite e alterações</h2>
+      <p>O aceite guarda somente confirmação, versão destas políticas e data/hora local neste navegador. Não é enviado a um servidor, não comprova identidade ou idade e não é transferido em backups. Se os dados de aceite forem apagados, será solicitado novamente. Reinstalar só exige novo aceite se esse registro não tiver sido preservado.</p>
+      <p>Mudanças materiais podem exigir novo aceite ao atualizar a versão das políticas. Esta página permanece disponível pelo rodapé, inclusive antes do aceite. O texto explica o funcionamento e os limites do projeto; não representa certificação jurídica nem aconselhamento jurídico profissional.</p>
+    </section>
+    <footer class="app-footer">
+      <span class="app-footer-disclaimer">App para estudo · não é controle de segurança</span>
+      <a href="./" class="policies-link">Voltar ao Intervalo</a>
+      <span class="app-footer-meta">v1.11.0 · By: arielkeybob</span>
+    </footer>
+  </main>
+</body>
+</html>

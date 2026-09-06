@@ -1,4 +1,12 @@
-# Intervalo — V1.10.6
+# Intervalo — V1.11.0
+
+## V1.11.0 — políticas e primeiro acesso
+
+Projeto desenvolvido principalmente para estudo de programação e fins acadêmicos e didáticos, com uso pessoal e testes com conhecidos.
+
+Página [Políticas e informações](./policies.html), aceite local obrigatório na PWA instalada e links discretos no footer. Validação de arquivos fortalecida e erro de restauração corrigido. Aceite `1.0` fora do backup; dados permanecem na versão 8; cache `intervalo-v1-11-0`.
+
+Veja o diagnóstico, decisões e limites em [AUDIT.md](./AUDIT.md). As seções abaixo registram versões históricas; seus nomes de cache não representam a versão atual.
 
 ## V1.10.1 — exportação de bebidas em TXT
 

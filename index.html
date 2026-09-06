@@ -40,8 +40,23 @@
 
     <footer class="browser-gate-footer">
       <span>App para estudo · não é controle de segurança</span>
-      <span>v1.10.6 · By: arielkeybob</span>
+      <a class="policies-link" href="./policies.html">Políticas e informações</a>
+      <span>v1.11.0 · By: arielkeybob</span>
     </footer>
+  </section>
+
+  <section id="terms-screen" class="information-page terms-screen" hidden aria-labelledby="terms-title">
+    <p class="eyebrow">Intervalo · Projeto de estudo</p>
+    <h1 id="terms-title" tabindex="-1">Antes de continuar</h1>
+    <p>Um projeto para estudo de programação e fins acadêmicos e didáticos. Anote bebidas e acompanhe intervalos que você configura.</p>
+    <form id="terms-form">
+      <label class="terms-choice"><input type="checkbox" required><span>Confirmo que tenho idade legal para consumir bebidas alcoólicas conforme as leis de onde estou.</span></label>
+      <label class="terms-choice"><input type="checkbox" required><span>Entendi que o app acompanha apenas intervalos configurados e não determina segurança para consumir álcool, dirigir ou realizar atividades de risco.</span></label>
+      <label class="terms-choice"><input type="checkbox" required><span>Estou de acordo com as <a href="./policies.html">Políticas e informações</a>.</span></label>
+      <p id="terms-error" class="form-error" role="alert" hidden></p>
+      <button id="terms-continue" class="primary-button" type="submit" disabled>Continuar</button>
+    </form>
+    <footer class="app-footer"><a class="policies-link" href="./policies.html">Políticas e informações</a></footer>
   </section>
 
   <div id="app-shell" class="app-shell">
@@ -215,7 +230,8 @@
 
     <footer class="app-footer">
       <span class="app-footer-disclaimer">App para estudo · não é controle de segurança</span>
-      <span class="app-footer-meta">v1.10.6 · By: arielkeybob</span>
+      <a class="policies-link" href="./policies.html">Políticas e informações</a>
+      <span class="app-footer-meta">v1.11.0 · By: arielkeybob</span>
     </footer>
   </div>
 
@@ -688,6 +704,7 @@
         <button id="pin-unlock-button" class="primary-button unlock-primary" type="submit">Desbloquear</button>
       </form>
 
+      <a class="policies-link" href="./policies.html">Políticas e informações</a>
       <p id="lock-error" class="lock-error" role="alert" hidden></p>
     </div>
   </section>
@@ -714,6 +731,7 @@
     <button id="toast-undo" type="button">Desfazer</button>
   </div>
 
+  <script src="./policies.js" defer></script>
   <script src="./app.js" defer></script>
 </body>
 </html>

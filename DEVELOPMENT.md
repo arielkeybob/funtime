@@ -1369,7 +1369,7 @@ Depois limpe Cache Storage se necessário.
 
 ## 28. Testes manuais recomendados
 
-Não há suíte automatizada nesta versão. Antes de distribuir uma release, testar manualmente.
+A suíte `node --test tests/audit.test.cjs` cobre os fluxos auditados na V1.11.0. Antes de distribuir uma release, complementar com os testes manuais abaixo.
 
 ### 28.1 CRUD de bebida
 
@@ -1991,3 +1991,18 @@ Aviso ajustado para “Atualize quando puder para vX.X.X”, preservando a vers�
 ## V1.10.6 — atualização das alterações de texto
 
 Versão e cache atualizados para distribuir às PWAs instaladas os textos de privacidade e a correção dos botões: Histórico Geral no início e Histórico nos cards. Cache: `intervalo-v1-10-6`; modelo de dados permanece 8. Alterações de HTML/CSS/JS publicadas devem atualizar o Service Worker para que o fluxo de atualização do app em cache seja acionado.
+
+
+## V1.11.0 — políticas, aceite e validação de arquivos
+
+`policies.html` é uma página pública estática, incluída no pré-cache junto de `policies.js`. O app chama `requireTermsAcceptance()` antes de inicializar o fluxo instalado. Abas comuns preservam a landing de instalação; todos os pontos de entrada têm acesso às políticas.
+
+`TERMS_VERSION = "1.0"` em `policies.js`. A chave `intervalo-terms-v1` contém `termsAccepted`, `termsVersion` e `termsAcceptedAt` (timestamp local). Não faz parte dos backups nem de preferências. Se não puder gravar, o aceite mantém a tela com erro visível.
+
+Para exigir novo aceite, atualize TERMS_VERSION e a versão/data/texto da página, ajuste o teste correspondente e publique uma nova versão do shell/cache. Não precisa mudar DATA_VERSION. O aceite é específico do armazenamento deste navegador: reinstalações que preservam dados podem preservá-lo.
+
+Importações passam a validar tipos estritos e limites de strings. Backup rejeita schema futuro, registros inválidos, datas não representáveis e IDs duplicados antes da normalização. Propriedades desconhecidas são descartadas por reconstrução. Migrações locais existentes não foram alteradas. Falha do aviso opcional em sessionStorage não invalida uma restauração já gravada.
+
+Testes: `node --check app.js`, `node --check sw.js`, `node --check policies.js` e `node --test tests/audit.test.cjs`. Cenários manuais adicionais: primeiro acesso; link antes do aceite; persistência após reabrir; alteração de TERMS_VERSION; armazenamento bloqueado; backup de outro dispositivo sem transferência do aceite; políticas offline após atualização; PIN/biometria e share target após o aceite. Não apagar dados reais para testar.
+
+Versão da aplicação/footers: 1.11.0. Cache: `intervalo-v1-11-0`. DATA_VERSION permanece 8. Diagnóstico e limitações residuais: [AUDIT.md](./AUDIT.md).
