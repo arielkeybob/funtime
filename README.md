@@ -1,4 +1,8 @@
-# Intervalo — V1.11.0
+# Intervalo — V1.11.1
+
+## V1.11.1 — continuidade do primeiro aceite
+
+As marcações são preservadas na mesma sessão ao abrir as políticas e voltar. O rascunho não representa aceite e é descartado após Continuar. Uma nova TERMS_VERSION exige nova confirmação e não reaproveita marcações da edição anterior. Políticas permanecem em 1.0, dados em 8 e cache em `intervalo-v1-11-1`.
 
 ## V1.11.0 — políticas e primeiro acesso
 

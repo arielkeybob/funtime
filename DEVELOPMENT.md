@@ -2006,3 +2006,10 @@ Importações passam a validar tipos estritos e limites de strings. Backup rejei
 Testes: `node --check app.js`, `node --check sw.js`, `node --check policies.js` e `node --test tests/audit.test.cjs`. Cenários manuais adicionais: primeiro acesso; link antes do aceite; persistência após reabrir; alteração de TERMS_VERSION; armazenamento bloqueado; backup de outro dispositivo sem transferência do aceite; políticas offline após atualização; PIN/biometria e share target após o aceite. Não apagar dados reais para testar.
 
 Versão da aplicação/footers: 1.11.0. Cache: `intervalo-v1-11-0`. DATA_VERSION permanece 8. Diagnóstico e limitações residuais: [AUDIT.md](./AUDIT.md).
+
+
+## V1.11.1 — rascunho do aceite
+
+`intervalo-terms-draft-v1` em sessionStorage guarda a versão das políticas e os estados booleanos dos três checkboxes. É restaurado ao retornar à tela na mesma sessão, sem registrar aceite automaticamente; somente Continuar grava a confirmação definitiva. O rascunho é removido após aceitar e ignorado se a versão diferir ou os dados forem inválidos. Não entra no backup. Se sessionStorage estiver indisponível, o formulário funciona, mas a navegação não pode preservar o rascunho.
+
+TERMS_VERSION permanece 1.0 nesta correção de UX. Para mudanças materiais, incrementar essa constante e a versão/data da página: o app atualizado volta a solicitar todas as confirmações. Versão 1.11.1; cache intervalo-v1-11-1; DATA_VERSION 8.

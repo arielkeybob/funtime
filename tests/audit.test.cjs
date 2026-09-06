@@ -93,3 +93,35 @@ test('shell offline inclui as políticas e todos os arquivos existem', () => {
   assert.ok(shell.includes('./policies.html')); assert.ok(shell.includes('./policies.js'));
   for(const path of shell) assert.ok(fs.existsSync(path));
 });
+
+test('rascunho restaura marcações ao voltar, sem aceitar; nova versão zera escolhas', async () => {
+  const storage = new Map();
+  let accepted = null;
+  const sessionStorage = {getItem:key=>storage.get(key) ?? null, setItem:(key,value)=>storage.set(key,value), removeItem:key=>storage.delete(key)};
+  function open(version = '1.0') {
+    const handlers = {}, checks = [{checked:false},{checked:false},{checked:false}];
+    const elements = {'#terms-screen':{},'#terms-form':{querySelectorAll:()=>checks,addEventListener:(key,fn)=>{handlers[key]=fn;},removeEventListener:key=>delete handlers[key]},'#terms-continue':{},'#terms-error':{},'#terms-title':{focus(){}}};
+    const ctx = vm.createContext({sessionStorage,localStorage:{getItem:()=>accepted,setItem:(key,value)=>{accepted=value;}},document:{querySelector:key=>elements[key],body:{classList:{add(){},remove(){}}}}});
+    vm.runInContext(fs.readFileSync('policies.js','utf8').replace('const TERMS_VERSION = "1.0";', `const TERMS_VERSION = "${version}";`),ctx);
+    const pending=ctx.requireTermsAcceptance();
+    return {ctx,checks,handlers,elements,pending};
+  }
+  const first=open();
+  first.checks[0].checked=first.checks[1].checked=true;
+  first.handlers.change();
+  const returned=open();
+  assert.deepEqual(returned.checks.map(input=>input.checked),[true,true,false]);
+  assert.equal(returned.elements['#terms-continue'].disabled,true);
+  assert.equal(accepted,null);
+  returned.checks[2].checked=true; returned.handlers.change();
+  returned.handlers.submit({preventDefault(){}}); await returned.pending;
+  assert.equal(storage.size,0);
+  assert.equal(JSON.parse(accepted).termsVersion,'1.0');
+  storage.set('intervalo-terms-draft-v1',JSON.stringify({termsVersion:'1.0',checks:[true,true,true]}));
+  const updated=open('1.1');
+  assert.equal(updated.ctx.hasCurrentTermsAcceptance(),false);
+  assert.deepEqual(updated.checks.map(input=>input.checked),[false,false,false]);
+  assert.equal(updated.elements['#terms-continue'].disabled,true);
+  storage.set('intervalo-terms-draft-v1','{');
+  assert.deepEqual(open('1.1').checks.map(input=>input.checked),[false,false,false]);
+});
