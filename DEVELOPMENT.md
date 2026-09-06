@@ -1,6 +1,6 @@
 # Intervalo — documentação de desenvolvimento
 
-**Versão da aplicação:** `v1.10.5`\
+**Versão da aplicação:** `v1.10.6`\
 **Versão do modelo persistido:** `DATA_VERSION = 8`\
 **Autor exibido na interface:** `arielkeybob`  
 **Stack:** HTML + CSS + JavaScript puro  
@@ -1987,3 +1987,7 @@ Anotar consumo oferece Meia/Inteira antes dos horários quando askDoseSize está
 ## V1.10.5 — texto de atualização
 
 Aviso ajustado para “Atualize quando puder para vX.X.X”, preservando a versão dinâmica. Cache: `intervalo-v1-10-5`; modelo de dados permanece 8.
+
+## V1.10.6 — atualização das alterações de texto
+
+Versão e cache atualizados para distribuir às PWAs instaladas os textos de privacidade e a correção dos botões: Histórico Geral no início e Histórico nos cards. Cache: `intervalo-v1-10-6`; modelo de dados permanece 8. Alterações de HTML/CSS/JS publicadas devem atualizar o Service Worker para que o fluxo de atualização do app em cache seja acionado.
