@@ -1,5 +1,5 @@
 // Aceite específico deste navegador, separado dos dados transferíveis.
-const TERMS_VERSION = "1.0";
+const TERMS_VERSION = "1.0.1";
 const TERMS_STORAGE_KEY = "intervalo-terms-v1";
 const TERMS_DRAFT_KEY = "intervalo-terms-draft-v1";
 

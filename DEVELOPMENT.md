@@ -2018,3 +2018,10 @@ TERMS_VERSION permanece 1.0 nesta correção de UX. Para mudanças materiais, in
 ## V1.11.2 — redação da página de políticas
 
 Descrição ajustada para uso dos autores e testes de feedback com conhecidos selecionados. Mudança editorial: TERMS_VERSION 1.0 e DATA_VERSION 8 preservados. Versão do app e footers em 1.11.2; cache intervalo-v1-11-2 para distribuir o HTML atualizado.
+
+
+## V1.11.3 — teste de renovação do aceite
+
+TERMS_VERSION 1.0.1 e versão visível da página atualizadas para testar a renovação do aceite, sem mudança material no texto. App/footers 1.11.3 e cache intervalo-v1-11-3. DATA_VERSION permanece 8.
+
+Após receber e aplicar a atualização, quem aceitou 1.0 verá a tela novamente com as três caixas desmarcadas; o rascunho anterior não será reaproveitado. Continuar grava 1.0.1, dispensando novas confirmações nas próximas aberturas. Teste automatizado simula a transição 1.0 → 1.0.1 e a persistência do novo aceite. Teste manual em PWA instalada deve ser feito após publicação, sem limpar dados reais.

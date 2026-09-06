@@ -1,4 +1,8 @@
-# Intervalo — V1.11.2
+# Intervalo — V1.11.3
+
+## V1.11.3 — teste de renovação do aceite
+
+TERMS_VERSION passa para `1.0.1` para testar o novo aceite após atualização. Aceites e rascunhos de `1.0` não dispensam as três confirmações da nova versão. Conteúdo das políticas preservado; DATA_VERSION 8; cache `intervalo-v1-11-3`.
 
 ## V1.11.2 — redação sobre o projeto
 

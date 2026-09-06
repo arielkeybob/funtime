@@ -83,7 +83,7 @@ test('aceite requer três confirmações, persiste localmente e falha fechada', 
   checks[2].checked=true; handlers.change(); assert.equal(elements['#terms-continue'].disabled,false);
   fail=true; handlers.submit({preventDefault(){}}); assert.equal(elements['#terms-error'].hidden,false); assert.equal(resolved,false);
   fail=false; handlers.submit({preventDefault(){}}); await pending;
-  assert.equal(c.hasCurrentTermsAcceptance(),true); assert.equal(JSON.parse(value).termsVersion,'1.0');
+  assert.equal(c.hasCurrentTermsAcceptance(),true); assert.equal(JSON.parse(value).termsVersion,'1.0.1');
   value=JSON.stringify({...JSON.parse(value),termsVersion:'0.9'}); assert.equal(c.hasCurrentTermsAcceptance(),false);
   value='{'; assert.equal(c.hasCurrentTermsAcceptance(),false);
 });
@@ -102,7 +102,7 @@ test('rascunho restaura marcações ao voltar, sem aceitar; nova versão zera es
     const handlers = {}, checks = [{checked:false},{checked:false},{checked:false}];
     const elements = {'#terms-screen':{},'#terms-form':{querySelectorAll:()=>checks,addEventListener:(key,fn)=>{handlers[key]=fn;},removeEventListener:key=>delete handlers[key]},'#terms-continue':{},'#terms-error':{},'#terms-title':{focus(){}}};
     const ctx = vm.createContext({sessionStorage,localStorage:{getItem:()=>accepted,setItem:(key,value)=>{accepted=value;}},document:{querySelector:key=>elements[key],body:{classList:{add(){},remove(){}}}}});
-    vm.runInContext(fs.readFileSync('policies.js','utf8').replace('const TERMS_VERSION = "1.0";', `const TERMS_VERSION = "${version}";`),ctx);
+    vm.runInContext(fs.readFileSync('policies.js','utf8').replace(/const TERMS_VERSION = "[^"]+";/, `const TERMS_VERSION = "${version}";`),ctx);
     const pending=ctx.requireTermsAcceptance();
     return {ctx,checks,handlers,elements,pending};
   }
@@ -118,10 +118,16 @@ test('rascunho restaura marcações ao voltar, sem aceitar; nova versão zera es
   assert.equal(storage.size,0);
   assert.equal(JSON.parse(accepted).termsVersion,'1.0');
   storage.set('intervalo-terms-draft-v1',JSON.stringify({termsVersion:'1.0',checks:[true,true,true]}));
-  const updated=open('1.1');
+  const updated=open('1.0.1');
   assert.equal(updated.ctx.hasCurrentTermsAcceptance(),false);
   assert.deepEqual(updated.checks.map(input=>input.checked),[false,false,false]);
   assert.equal(updated.elements['#terms-continue'].disabled,true);
+  assert.equal(updated.elements['#terms-screen'].hidden,false);
+  updated.checks.forEach(input=>{input.checked=true;}); updated.handlers.change();
+  updated.handlers.submit({preventDefault(){}}); await updated.pending;
+  assert.equal(JSON.parse(accepted).termsVersion,'1.0.1');
+  assert.equal(open('1.0.1').ctx.hasCurrentTermsAcceptance(),true);
+  accepted=null;
   storage.set('intervalo-terms-draft-v1','{');
-  assert.deepEqual(open('1.1').checks.map(input=>input.checked),[false,false,false]);
+  assert.deepEqual(open('1.0.1').checks.map(input=>input.checked),[false,false,false]);
 });
