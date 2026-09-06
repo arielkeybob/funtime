@@ -3190,3 +3190,17 @@ body {
 .icon-catalog-feedback:has(small:empty):has(button[hidden]) { display: none; }
 .icon-catalog-feedback small { flex: 1; }
 .icon-catalog-feedback button { padding: 6px 10px; }
+
+.reset-settings summary { cursor: pointer; font-weight: 650; padding: 6px 0; }
+.reset-settings .settings-description { margin: 14px 0; }
+.reset-danger { color: #ffb4b4 !important; background: #382025 !important; border: 1px solid #84434c !important; }
+#reset-form { display: grid; gap: 16px; }
+#reset-dialog { max-height: calc(100dvh - 24px); overflow-y: auto; }
+#reset-drinks-list { display: grid; gap: 8px; max-height: 180px; overflow-y: auto; }
+.reset-check { display: flex; align-items: center; gap: 10px; padding: 8px 0; }
+.reset-check input { width: 20px; height: 20px; flex: 0 0 20px; }
+#reset-preview { white-space: pre-line; line-height: 1.5; }
+#reset-form .dialog-actions { position: sticky; bottom: 0; background: var(--surface, #18181b); padding: 10px 0; }
+
+#reset-form .dialog-actions button, #reset-setup { min-height: 46px; padding: 10px 14px; border-radius: 10px; font-weight: 600; }
+#reset-form .dialog-actions .secondary, #reset-setup { background: #29292e; color: #eee; border: 1px solid var(--border); }

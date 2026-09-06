@@ -1,4 +1,16 @@
-# Intervalo — V1.12.1
+# Intervalo — V1.13.0
+
+## V1.13.0 — redefinir e apagar dados
+
+Configurações inclui uma seção expansível depois de Backup, disponível também no modo compacto. Restaurar ícones padrão preserva bebidas e snapshots. Apagar histórico oferece 30 min, 1h, 2h, 5h, 24h, 2 dias, 7 dias, 30 dias ou tudo, por consumedAt; os limites são inclusivos e os períodos finitos não abrangem datas futuras. A prévia fixa os IDs e horários antes da autenticação. Apagar bebidas permite escolher cadastros, todos inicialmente marcados, e apagar também seu histórico (marcado por padrão); históricos de outras bebidas e órfãos permanecem.
+
+Todas as ações exigem confirmação e nova autenticação pelo método configurado. Sem proteção, o usuário deve configurá-la e retornar à ação. A autorização é vinculada à prévia, ao estado e à proteção local; cancelamento, bloqueio ou alteração dos dados invalida a operação. PIN compartilha contador/limite de tentativas com o desbloqueio. Exclusões não oferecem Desfazer; contadores são recalculados.
+
+APAGAR TUDO grava um estado vazio válido, restaura preferências e ícones, remove a chave legada, importação compartilhada pendente, sessão e configuração local de segurança. A proteção é removida por último; falha complementar é informada como parcial, sem alegar preservação de dados já apagados. Apenas chaves próprias são limpas. Não remove backups exportados, instalação, dados de outros aparelhos ou credenciais no sistema operacional. Por solicitação do usuário, o aceite atual das políticas é preservado; policies.js e policies.html não foram alterados, inclusive sua versão visível. Não é necessário aceitar os termos novamente por esta atualização.
+
+Lógica em reset.js, incluído no cache offline. App/footer principal 1.13.0, cache intervalo-v1-13-0; DATA_VERSION permanece 9. Nenhuma dependência ou backend.
+
+Validação: node --check app.js, sw.js e reset.js; node --test tests/audit.test.cjs tests/reset.test.cjs. Prévia isolada no navegador verificou seleção com histórico marcado, confirmação separada, PIN incorreto e exclusão após PIN correto, com armazenamento simulado. Não testados em dispositivo real: biometria/WebAuthn, teclado mobile, atualização offline da PWA e limpeza completa pela interface. Não apagar armazenamento real para testes.
 
 ## V1.12.1 — edição discreta e painel de emojis
 

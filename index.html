@@ -36,12 +36,14 @@
           </p>
         </div>
       </div>
+
+
     </main>
 
     <footer class="browser-gate-footer">
       <span>App para estudo · não é controle de segurança</span>
       <a class="policies-link" href="./policies.html">Políticas e informações</a>
-      <span>v1.12.1 · By: arielkeybob</span>
+      <span>v1.13.0 · By: arielkeybob</span>
     </footer>
   </section>
 
@@ -226,12 +228,25 @@
         <input id="backup-restore-file" class="visually-hidden-file" type="file" accept=".json,application/json">
       </section>
 
+      <section class="settings-card reset-settings">
+        <details>
+          <summary>Redefinir e apagar dados</summary>
+          <p class="settings-description">Estas ações exigem confirmação e PIN ou autenticação do aparelho. Exclusões não podem ser desfeitas; faça um backup antes, se precisar.</p>
+          <div class="settings-action-stack">
+            <button type="button" data-reset="icons" class="settings-secondary-button">Restaurar ícones padrão</button>
+            <button type="button" data-reset="history" class="settings-secondary-button">Apagar histórico</button>
+            <button type="button" data-reset="drinks" class="settings-secondary-button">Apagar bebidas</button>
+            <button type="button" data-reset="all" class="settings-secondary-button reset-danger">EMERGÊNCIA — APAGAR TUDO</button>
+          </div>
+        </details>
+      </section>
+
     </main>
 
     <footer class="app-footer">
       <span class="app-footer-disclaimer">App para estudo · não é controle de segurança</span>
       <a class="policies-link" href="./policies.html">Políticas e informações</a>
-      <span class="app-footer-meta">v1.12.1 · By: arielkeybob</span>
+      <span class="app-footer-meta">v1.13.0 · By: arielkeybob</span>
     </footer>
   </div>
 
@@ -743,7 +758,28 @@
     <button id="toast-undo" type="button">Desfazer</button>
   </div>
 
+
+  <dialog id="reset-dialog" class="dialog" aria-labelledby="reset-title" aria-describedby="reset-preview">
+    <form id="reset-form" novalidate>
+      <div class="dialog-header"><h2 id="reset-title">Redefinir dados</h2><button id="reset-close" type="button" class="icon-button secondary" aria-label="Fechar">×</button></div>
+      <div id="reset-options">
+        <label id="reset-period-field" class="field" hidden><span>Período do histórico</span>
+          <select id="reset-period"><option value="30">Últimos 30 minutos</option><option value="60">Última 1 hora</option><option value="120">Últimas 2 horas</option><option value="300">Últimas 5 horas</option><option value="1440">Últimas 24 horas</option><option value="2880">Últimos 2 dias</option><option value="10080">Últimos 7 dias</option><option value="43200">Últimos 30 dias</option><option value="all">Todo o histórico</option></select>
+        </label>
+        <fieldset id="reset-drinks-field" class="field" hidden><legend>Bebidas que serão apagadas</legend><div id="reset-drinks-list"></div>
+          <label class="reset-check"><input id="reset-drinks-history" type="checkbox" checked><span>Apagar também o histórico das bebidas selecionadas</span></label>
+        </fieldset>
+      </div>
+      <p id="reset-preview" role="status"></p>
+      <p id="reset-auth-note" hidden>Confirme sua identidade para executar esta ação.</p>
+      <label id="reset-pin-field" class="field" hidden><span>PIN do aplicativo</span><input id="reset-pin" type="password" inputmode="numeric" autocomplete="off" maxlength="6"></label>
+      <p id="reset-error" class="form-error" role="alert" hidden></p>
+      <button id="reset-setup" type="button" class="secondary" hidden>Configurar proteção</button>
+      <div class="dialog-actions"><button id="reset-cancel" type="button" class="secondary">Cancelar</button><button id="reset-submit" type="submit" class="reset-danger">Continuar</button></div>
+    </form>
+  </dialog>
   <script src="./policies.js" defer></script>
   <script src="./app.js" defer></script>
+  <script src="./reset.js" defer></script>
 </body>
 </html>

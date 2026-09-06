@@ -1,5 +1,5 @@
-const APP_VERSION = "1.12.1";
-const CACHE_NAME = "intervalo-v1-12-1";
+const APP_VERSION = "1.13.0";
+const CACHE_NAME = "intervalo-v1-13-0";
 const SHARE_IMPORT_CACHE_NAME = "intervalo-share-target-v1";
 const SHARE_IMPORT_REQUEST_PATH = "./__shared-drinks-import__";
 const SHARE_TARGET_MAX_BYTES = 1500000;
@@ -9,6 +9,7 @@ const APP_SHELL = [
   "./index.html",
   "./styles.css",
   "./app.js",
+  "./reset.js",
   "./policies.js",
   "./policies.html",
   "./manifest.webmanifest",
