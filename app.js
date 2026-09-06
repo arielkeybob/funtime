@@ -206,7 +206,7 @@ window.addEventListener("appinstalled", () => {
 const DATA_STORAGE_KEY = "balada-v1-data";
 const LEGACY_DRINKS_STORAGE_KEY = "balada-v1-drinks";
 const DATA_VERSION = 8;
-const APP_VERSION = "1.10.4";
+const APP_VERSION = "1.10.5";
 const DRINK_EXPORT_TYPE = "intervalo-drinks";
 const DRINK_EXPORT_FORMAT_VERSION = 1;
 const BACKUP_EXPORT_TYPE = "intervalo-backup";
@@ -3295,7 +3295,7 @@ function showUpdateAvailable(worker) {
   copy.textContent = "Atualize quando puder. Seus dados locais serão preservados.";
   getWaitingWorkerVersion(worker).then((version) => {
     if (version && state.waitingServiceWorker === worker) {
-      copy.textContent = `Atualize quando puder v${version}. Seus dados locais serão preservados.`;
+      copy.textContent = `Atualize quando puder para v${version}. Seus dados locais serão preservados.`;
     }
   });
 }

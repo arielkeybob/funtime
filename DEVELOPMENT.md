@@ -1,6 +1,6 @@
 # Intervalo — documentação de desenvolvimento
 
-**Versão da aplicação:** `v1.10.4`\
+**Versão da aplicação:** `v1.10.5`\
 **Versão do modelo persistido:** `DATA_VERSION = 8`\
 **Autor exibido na interface:** `arielkeybob`  
 **Stack:** HTML + CSS + JavaScript puro  
@@ -1972,7 +1972,7 @@ Cache da aplicação: `intervalo-v1-10-0`.
 
 ## V1.10.2 — aviso de atualização e configurações
 
-O aviso consulta a versão do Service Worker em espera via GET_VERSION/MessageChannel e exibe “Atualize quando puder vX.X.X”. Sem resposta válida em 2 segundos, mantém o texto genérico. A versão exibida é a disponível, não a instalada. O cliente antigo V1.10.1 ainda mostra o aviso antigo ao receber esta atualização; o novo aviso passa a funcionar após instalar V1.10.2, nas próximas atualizações.
+O aviso consulta a versão do Service Worker em espera via GET_VERSION/MessageChannel e exibe “Atualize quando puder para vX.X.X”. Sem resposta válida em 2 segundos, mantém o texto genérico. A versão exibida é a disponível, não a instalada. O cliente antigo V1.10.1 ainda mostra o aviso antigo ao receber esta atualização; o novo aviso passa a funcionar após instalar V1.10.2, nas próximas atualizações.
 
 Configurações: Aparência, Privacidade, Sobre a proteção, Bebidas e Backup. “Sobre a proteção” fica oculto no modo de interface limpa. Os controles de privacidade e o disclaimer continuam visíveis. Cache: `intervalo-v1-10-2`; modelo de dados permanece 8.
 
@@ -1983,3 +1983,7 @@ O seletor de tempo reutiliza as classes `interval-fieldset` e `interval-fieldset
 ## V1.10.4 — tamanho da dose na anotação
 
 Anotar consumo oferece Meia/Inteira antes dos horários quando askDoseSize está ativo, reutilizando o seletor do editor de eventos. Inteira é o padrão a cada abertura. Atalhos e formulário salvam a escolha diretamente, sem repetir o popup; registro direto pelo card mantém o fluxo anterior. Bebidas sem a opção preservam doseSize nulo. Há 20px extras entre os atalhos e o seletor de tempo. Cache: `intervalo-v1-10-4`; schema permanece 8.
+
+## V1.10.5 — texto de atualização
+
+Aviso ajustado para “Atualize quando puder para vX.X.X”, preservando a versão dinâmica. Cache: `intervalo-v1-10-5`; modelo de dados permanece 8.
