@@ -2056,3 +2056,15 @@ APAGAR TUDO grava um estado vazio válido, restaura preferências e ícones, rem
 Lógica em reset.js, incluído no cache offline. App/footer principal 1.13.0, cache intervalo-v1-13-0; DATA_VERSION permanece 9. Nenhuma dependência ou backend.
 
 Validação: node --check app.js, sw.js e reset.js; node --test tests/audit.test.cjs tests/reset.test.cjs. Prévia isolada no navegador verificou seleção com histórico marcado, confirmação separada, PIN incorreto e exclusão após PIN correto, com armazenamento simulado. Não testados em dispositivo real: biometria/WebAuthn, teclado mobile, atualização offline da PWA e limpeza completa pela interface. Não apagar armazenamento real para testes.
+
+## V1.13.1 — padrões de diálogos e notificações
+
+Apagar bebidas começa sem seleção. Selecionar todas/Desmarcar todas abrangem a lista inteira, com contador e indicação de rolagem. A opção de apagar histórico continua marcada por padrão, mas fica separada após a prévia e o aviso de irreversibilidade. A primeira etapa usa botão branco e “1 de 2 · Revisar”; a segunda usa botão vermelho e “2 de 2 · Autenticar”.
+
+ui.js normaliza os diálogos com conteúdo rolável e ações fixas no celular (até 600px), seguindo o cadastro. Desktop mantém modal centralizado. ui.js precisa ser carregado antes de app.js, depois de construir o HTML, e está no pré-cache. Campos e IDs existentes são preservados.
+
+showAppNotification(message, {title, type, persistent, undo, onDismiss}) centraliza os avisos. showToast mantém compatibilidade com Desfazer, agora por 10 segundos. A apresentação tem título, símbolo, contraste e botão Entendi; usa popover manual acima dos diálogos quando disponível. Notificações de reset permanecem até dispensar; APAGAR TUDO exibe conclusão antes de recarregar ao tocar Entendi. Avisos são ocultados ao bloquear/ocultar dados privados. Erros de exportação/backup usam apresentação de falha.
+
+App/footer principal 1.13.1, cache intervalo-v1-13-1; DATA_VERSION 9 e políticas/aceite inalterados. Preservada a alteração manual “Excluir bebida mas manter histórico”.
+
+Validação: node --check app.js, sw.js, reset.js e ui.js; node --test tests/audit.test.cjs tests/reset.test.cjs tests/ui.test.cjs. Prévia isolada em 390×844: seleção inicial vazia, selecionar/desmarcar todas, bloqueio de confirmação vazia, transição para autenticação, exclusão simulada e aviso persistente. Sem alterações ao armazenamento real. Ainda não testados: teclado virtual e biometria em aparelhos Android/iOS, atualização da PWA instalada e todos os diálogos em dispositivos reais.

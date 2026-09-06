@@ -3204,3 +3204,53 @@ body {
 
 #reset-form .dialog-actions button, #reset-setup { min-height: 46px; padding: 10px 14px; border-radius: 10px; font-weight: 600; }
 #reset-form .dialog-actions .secondary, #reset-setup { background: #29292e; color: #eee; border: 1px solid var(--border); }
+
+/* Padrões de diálogo e feedback reutilizados no aplicativo. */
+.app-dialog-scroll { display: grid; align-content: start; gap: 16px; min-width: 0; }
+.reset-step { color: #e3e3e8; font-weight: 750; letter-spacing: .02em; padding: 10px 0; }
+.reset-selection-tools { display: flex; flex-wrap: wrap; gap: 8px; }
+.reset-selection-tools button { min-height: 44px; padding: 8px 12px; border-radius: 9px; color: #eee; background: #29292e; border: 1px solid #50505a; }
+#reset-drinks-list { max-height: 224px; gap: 0; scrollbar-gutter: stable; }
+#reset-drinks-list .reset-check { min-height: 52px; box-sizing: border-box; margin: 0; }
+#reset-list-hint { color: #ddd; padding: 4px 0; font-weight: 600; }
+.reset-history-option { border-top: 1px solid #49494f; margin-top: 8px; padding-top: 18px; }
+#reset-submit.reset-confirm { background: #f5f5f5; color: #161619; border: 1px solid #f5f5f5; }
+#reset-submit:disabled { opacity: .4; cursor: default; }
+#toast.app-notification {
+  position: fixed; inset: auto 16px max(18px, env(safe-area-inset-bottom)) auto;
+  transform: none; margin: 0; width: min(440px, calc(100vw - 32px)); max-width: none;
+  display: grid; grid-template-columns: 40px 1fr auto; gap: 10px 12px; padding: 20px;
+  border: 2px solid #8b8b98; border-radius: 18px; background: #24242c; color: #fff;
+  box-shadow: 0 12px 50px #000a; font-size: 1rem; z-index: 10000;
+}
+#toast.app-notification[hidden] { display: none; }
+#toast-title { grid-column: 2 / -1; align-self: center; font-size: 1.15rem; }
+#toast-message { grid-column: 1 / -1; line-height: 1.5; }
+.notification-symbol { display: grid; place-items: center; width: 38px; height: 38px; font-size: 1.5rem; font-weight: 800; border-radius: 50%; background: #4d4d5c; }
+#toast[data-type="success"] { border-color: #84d5a2; }
+#toast[data-type="success"] .notification-symbol { background: #84d5a2; color: #122b1b; }
+#toast[data-type="error"] { border-color: #ff999f; }
+#toast-dismiss { grid-column: 3; background: #f5f5f5; color: #18181b; }
+#toast-undo { grid-column: 2; }
+#toast button { min-height: 44px; border-radius: 10px; padding: 10px 16px; font-weight: 700; }
+@media (max-width: 600px) {
+  dialog.dialog.app-dialog {
+    width: 100%; max-width: none; height: 100dvh; max-height: 100dvh !important;
+    margin: 0; padding: 0; border: 0; border-radius: 0; overflow: hidden !important;
+  }
+  dialog.dialog.app-dialog > form {
+    display: grid !important; grid-template-rows: minmax(0, 1fr) auto !important;
+    width: 100%; height: 100%; min-height: 0 !important; padding: 0 !important; gap: 0 !important;
+  }
+  dialog.dialog.app-dialog > form.app-dialog-no-footer { grid-template-rows: minmax(0, 1fr) !important; }
+  dialog.dialog.app-dialog .app-dialog-scroll {
+    min-height: 0; overflow-y: auto; overflow-x: hidden; overscroll-behavior: contain;
+    padding: max(16px, env(safe-area-inset-top)) 16px 18px; scrollbar-gutter: stable;
+  }
+  dialog.dialog.app-dialog .app-dialog-actions {
+    position: static !important; margin: 0; padding: 14px 16px max(14px, env(safe-area-inset-bottom)) !important;
+    background: #202024; border-top: 1px solid #414147;
+  }
+  dialog.dialog.app-dialog .app-dialog-actions button { min-height: 48px; }
+  #toast.app-notification { inset: auto 12px max(12px, env(safe-area-inset-bottom)) 12px; width: auto; padding: 18px; }
+}

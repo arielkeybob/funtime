@@ -44,6 +44,9 @@ function updateResetPreview() {
     withHistory: document.querySelector('#reset-drinks-history').checked,
   };
   const plan = planDataReset(data, resetPending.action, options);
+  document.querySelector('#reset-selection-count').textContent = `${options.drinkIds.length} de ${data.drinks.length} selecionadas`;
+  document.querySelector('#reset-select-all').disabled = options.drinkIds.length === data.drinks.length;
+  document.querySelector('#reset-select-none').disabled = options.drinkIds.length === 0;
   resetPending.plan = plan;
   resetPending.snapshot = JSON.stringify(data);
   resetPending.storedSnapshot = localStorage.getItem(DATA_STORAGE_KEY);
@@ -58,6 +61,9 @@ function updateResetPreview() {
 
 function openDataReset(action) {
   resetForm.reset();
+  document.querySelector('#reset-step').textContent = '1 de 2 · Revisar';
+  document.querySelector('#reset-submit').className = 'reset-confirm';
+  document.querySelector('#reset-history-option').hidden = action !== 'drinks';
   resetPending = { action, confirmed: false };
   resetBusy = false;
   resetError('');
@@ -66,7 +72,7 @@ function openDataReset(action) {
   document.querySelector('#reset-auth-note').hidden = true;
   document.querySelector('#reset-pin-field').hidden = true;
   document.querySelector('#reset-setup').hidden = true;
-  document.querySelector('#reset-submit').textContent = 'Confirmar e autenticar';
+  document.querySelector('#reset-submit').textContent = 'Confirmar seleção';
   document.querySelector('#reset-period-field').hidden = action !== 'history';
   document.querySelector('#reset-drinks-field').hidden = action !== 'drinks';
   const list = document.querySelector('#reset-drinks-list');
@@ -75,12 +81,13 @@ function openDataReset(action) {
     const label = document.createElement('label');
     label.className = 'reset-check';
     const checkbox = document.createElement('input');
-    checkbox.type = 'checkbox'; checkbox.value = drink.id; checkbox.checked = true;
+    checkbox.type = 'checkbox'; checkbox.value = drink.id; checkbox.checked = false;
     const text = document.createElement('span'); text.textContent = `${drink.icon} ${drink.name}`;
     label.append(checkbox, text); list.append(label);
   });
   try { updateResetPreview(); } catch (error) { resetPending = null; resetError('Não foi possível preparar a ação. Nenhum dado foi alterado.'); document.querySelector('#reset-submit').disabled = true; }
   resetDialog.showModal();
+  requestAnimationFrame(updateResetListHint);
 }
 
 function resetAuthorizationIsCurrent(pending) {
@@ -113,12 +120,15 @@ async function executeDataReset(pending) {
     state.securityConfig = getDefaultSecurityConfig();
     clearTimeout(state.pinLockoutTimer);
     state.pinFailedAttempts = 0; state.pinLockoutUntil = 0;
-    window.location.reload();
+    resetPending = null;
+    resetDialog.close();
+    showAppNotification('Bebidas, histórico, personalizações e proteção local foram apagados.', { title: 'Limpeza concluída', type: 'success', persistent: true, onDismiss: () => window.location.reload() });
     return;
   }
   resetPending = null;
   resetDialog.close();
-  showToast('Ação concluída.');
+  const message = pending.action === 'icons' ? 'O catálogo de ícones padrão foi restaurado.' : `${pending.plan.drinkIds.length} bebida(s) e ${pending.plan.eventIds.length} registro(s) apagados.`;
+  showAppNotification(message, { title: pending.action === 'icons' ? 'Ícones restaurados' : 'Exclusão concluída', type: 'success', persistent: true });
 }
 
 async function submitDataReset(event) {
@@ -140,6 +150,10 @@ async function submitDataReset(event) {
       return;
     }
     pending.confirmed = true;
+    document.querySelector('#reset-history-option').hidden = true;
+    document.querySelector('#reset-step').textContent = '2 de 2 · Autenticar';
+    document.querySelector('#reset-submit').className = 'reset-danger';
+    document.querySelector('#reset-step').focus();
     document.querySelector('#reset-options').hidden = true;
     document.querySelector('#reset-auth-note').hidden = false;
     document.querySelector('#reset-pin-field').hidden = state.securityConfig.method !== 'pin';
@@ -184,7 +198,7 @@ async function submitDataReset(event) {
 
 document.querySelectorAll('[data-reset]').forEach(button => button.addEventListener('click', () => openDataReset(button.dataset.reset)));
 resetForm.addEventListener('submit', submitDataReset);
-document.querySelector('#reset-options').addEventListener('change', () => {
+resetForm.addEventListener('change', () => {
   try { updateResetPreview(); } catch { resetPending = null; resetError('Não foi possível preparar a prévia. Feche e tente novamente.'); }
 });
 function closeDataReset() {
@@ -197,3 +211,17 @@ document.querySelector('#reset-cancel').addEventListener('click', closeDataReset
 resetDialog.addEventListener('cancel', closeDataReset);
 resetDialog.addEventListener('close', () => { resetPending = null; document.querySelector('#reset-pin').value = ''; });
 document.querySelector('#reset-setup').addEventListener('click', () => { closeDataReset(); openSecurityMethodDialog('enable'); });
+
+function updateResetListHint() {
+  const list = document.querySelector('#reset-drinks-list');
+  document.querySelector('#reset-list-hint').hidden = list.scrollHeight - list.clientHeight - list.scrollTop < 2;
+}
+function selectResetDrinks(checked) {
+  if (!resetPending || resetPending.confirmed || resetBusy) return;
+  document.querySelectorAll('#reset-drinks-list input').forEach(input => { input.checked = checked; });
+  try { updateResetPreview(); } catch { resetPending = null; resetError('Não foi possível preparar a prévia. Feche e tente novamente.'); }
+}
+document.querySelector('#reset-select-all').addEventListener('click', () => selectResetDrinks(true));
+document.querySelector('#reset-select-none').addEventListener('click', () => selectResetDrinks(false));
+document.querySelector('#reset-drinks-list').addEventListener('scroll', updateResetListHint, { passive: true });
+window.addEventListener('resize', updateResetListHint);

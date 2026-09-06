@@ -206,7 +206,7 @@ window.addEventListener("appinstalled", () => {
 const DATA_STORAGE_KEY = "balada-v1-data";
 const LEGACY_DRINKS_STORAGE_KEY = "balada-v1-drinks";
 const DATA_VERSION = 9;
-const APP_VERSION = "1.13.0";
+const APP_VERSION = "1.13.1";
 const DRINK_EXPORT_TYPE = "intervalo-drinks";
 const DRINK_EXPORT_FORMAT_VERSION = 1;
 const BACKUP_EXPORT_TYPE = "intervalo-backup";
@@ -226,7 +226,7 @@ const PIN_LOCKOUT_MS = 30000;
 
 const PICKER_ICONS = [
   "🍬", "💊", "🍍", "🍭", "🥃", "🍺", "🍷", "🥂",
-  "👃", "🐽", "🌿", "🚬", "🌻", "❄️", "🍫", "🍄",
+  "👃", "🐽",  "🪏", "💗", "🌿", "🚬", "🌻", "❄️", "👇", "🧂", "🍫", "🍄",
   "🍪", "🌵", "💧", "💦", "😵‍💫", "🕳️", "💤", "💫",
   "🥶", "🥵", "🌊", "🪄", "🧪", "👽", "😈", "🧙‍♂️"
 ];
@@ -827,7 +827,7 @@ function closeSensitiveDialogs() {
     try { dialog.close(); } catch (error) { /* noop */ }
   });
   hideUpdateAvailable();
-  if (!toast.hidden) toast.hidden = true;
+  if (!toast.hidden) hideToast();
 }
 
 function showLockScreen() {
@@ -1329,7 +1329,7 @@ function exportDrinks() {
     if (mode === "download") showToast("Arquivo de bebidas exportado.");
   }).catch((error) => {
     console.error("Falha ao exportar bebidas.", error);
-    showToast("Não foi possível exportar as bebidas.");
+    showAppNotification("Não foi possível exportar as bebidas.", { type: "error", persistent: true });
   });
 }
 
@@ -1354,7 +1354,7 @@ function createBackup() {
     showToast("Backup criado. Guarde o arquivo em um local privado.");
   } catch (error) {
     console.error("Falha ao criar backup.", error);
-    showToast("Não foi possível criar o backup.");
+    showAppNotification("Não foi possível criar o backup.", { type: "error", persistent: true });
   }
 }
 
@@ -1742,7 +1742,7 @@ async function maybeHandleSharedDrinkImport() {
   cleanSharedImportUrl();
 
   if (!file) {
-    showToast("Não foi possível recuperar o arquivo recebido.");
+    showAppNotification("Não foi possível recuperar o arquivo recebido.", { type: "error", persistent: true });
     return;
   }
 
@@ -2569,23 +2569,40 @@ function undoLastRegistration() {
   hideToast();
 }
 
-function showToast(message, undo = null) {
+function showAppNotification(message, options = {}) {
+  showToast(message, options.undo || null, options);
+}
+
+function showToast(message, undo = null, options = {}) {
   clearTimeout(state.toastTimerId);
   state.undo = undo;
+  state.notificationOnDismiss = options.onDismiss || null;
   toastMessage.textContent = message;
   toastUndo.hidden = !undo;
+  const type = options.type || 'info';
+  toast.dataset.type = type;
+  document.querySelector('#toast-title').textContent = options.title || (type === 'success' ? 'Concluído' : type === 'error' ? 'Não foi possível concluir' : 'Aviso');
+  document.querySelector('#toast-symbol').textContent = type === 'success' ? '✓' : type === 'error' ? '!' : 'i';
   toast.hidden = false;
-
-  state.toastTimerId = setTimeout(() => {
+  // Popover permanece acima de diálogos sem bloquear o restante da interface.
+  if (typeof toast.showPopover === 'function') {
+    if (!toast.matches(':popover-open')) toast.showPopover();
+  } else {
+    const dialogs = [...document.querySelectorAll('dialog[open]')];
+    (dialogs.at(-1) || document.body).append(toast);
+  }
+  if (!options.persistent) state.toastTimerId = setTimeout(() => {
     state.undo = null;
     hideToast();
-  }, 7000);
+  }, 10000);
 }
 
 function hideToast() {
   clearTimeout(state.toastTimerId);
+  if (typeof toast.hidePopover === 'function' && toast.matches(':popover-open')) toast.hidePopover();
   toast.hidden = true;
   toastUndo.hidden = false;
+  state.notificationOnDismiss = null;
 }
 
 function openDrinkDialog() {
@@ -3871,4 +3888,11 @@ document.querySelector('#undo-icon-removal').addEventListener('click', () => {
     const restored = [...iconOptions.querySelectorAll('input')].find(input => input.value === icon);
     restored?.focus();
   } catch (error) { setIconCatalogStatus('Não foi possível restaurar o ícone. Tente novamente.'); }
+});
+
+document.querySelector('#toast-dismiss').addEventListener('click', () => {
+  const onDismiss = state.notificationOnDismiss;
+  state.undo = null;
+  hideToast();
+  onDismiss?.();
 });
