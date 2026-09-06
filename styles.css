@@ -3169,16 +3169,23 @@ body {
   font-size: 16px; line-height: 1; z-index: 1;
 }
 .icon-option .icon-remove:hover { background: #543239; }
-.icon-options .icon-add {
-  grid-row: 1; margin-left: 8px; padding: 0; min-height: 0;
+.icon-options .icon-add, .icon-options .icon-edit {
+  margin-left: 8px; padding: 0; min-height: 0; border-radius: 11px;
   border: 1px dashed #777; background: #19191f; color: #ddd; font-size: 1.8rem;
 }
+.icon-options .icon-add { grid-row: 1; }
+.icon-options .icon-edit { grid-row: 2; font-size: 1.5rem; }
+.icon-options .icon-edit[aria-pressed="true"] { border-style: solid; border-color: var(--accent); }
 .icon-options { padding-right: 12px; }
-.icon-add-panel { padding-top: 8px; }
-.icon-add-panel > label { font-size: .85rem; }
-.icon-add-actions { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
-.icon-add-actions input { width: 70px; min-width: 0; flex: 1; font-size: 1.3rem; }
-.icon-add-actions button { padding: 8px 12px; }
+.icon-add-panel { padding: 12px; border: 1px solid var(--border); border-radius: 12px; background: #111115; }
+.emoji-menu-header { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.emoji-menu-header label { font-size: .85rem; }
+.emoji-menu-header button { padding: 0; width: 32px; height: 32px; min-height: 0; font-size: 1.4rem; }
+#emoji-category { width: 100%; margin: 8px 0; padding: 8px; }
+.emoji-menu { display: grid; grid-template-columns: repeat(auto-fill, minmax(44px, 1fr)); gap: 4px; max-height: 216px; overflow-y: auto; overscroll-behavior: contain; }
+.emoji-menu .emoji-choice { padding: 0; height: 44px; min-width: 0; border: 1px solid transparent; border-radius: 8px; background: transparent; font-size: 1.5rem; }
+.emoji-menu .emoji-choice:hover, .emoji-menu .emoji-choice:focus-visible { border-color: var(--accent); background: #29292f; }
+.emoji-menu .emoji-choice:disabled { opacity: .3; cursor: default; }
 .icon-catalog-feedback { display: flex; align-items: center; gap: 8px; }
 .icon-catalog-feedback:has(small:empty):has(button[hidden]) { display: none; }
 .icon-catalog-feedback small { flex: 1; }

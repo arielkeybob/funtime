@@ -1,4 +1,10 @@
-# Intervalo — V1.12.0
+# Intervalo — V1.12.1
+
+## V1.12.1 — edição discreta e painel de emojis
+
+Os botões × aparecem somente após tocar na caneta abaixo do +. O mesmo card conclui a edição; cada abertura do cadastro começa com a edição desligada. O + abre um painel interno com categorias e uma seleção de emojis Unicode, sem campo de texto, imagens, dependências ou requisições externas. Não é o teclado nativo nem um catálogo completo de todos os emojis; os símbolos disponíveis são renderizados pelo aparelho. Opções já cadastradas ficam desabilitadas no painel.
+
+O catálogo padrão removido não é reposto em atualizações: preferences.iconCatalog é preservado, incluindo lista vazia. Somente dados/backups sem catálogo recebem os padrões. Restaurar um backup substitui o catálogo pelo conteúdo restaurado. DATA_VERSION permanece 9; app e footers 1.12.1, cache intervalo-v1-12-1. Arrastar e soltar permanece no roadmap.
 
 ## V1.12.0 — catálogo pessoal de ícones
 

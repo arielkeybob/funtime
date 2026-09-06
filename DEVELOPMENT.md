@@ -2036,3 +2036,11 @@ Remover uma opção não altera bebidas nem snapshots históricos. O ícone sele
 DATA_VERSION 9: preferences.iconCatalog é uma lista ordenada; dados e backups antigos recebem o catálogo padrão, listas vazias permanecem vazias. Backup inclui o catálogo; exportação de bebidas transporta somente o ícone de cada bebida. Importação preserva o catálogo local. Falhas de gravação mantêm o estado anterior e mostram erro. App/footers 1.12.0; cache intervalo-v1-12-0. Políticas e versão de aceite preservadas.
 
 Testes manuais da entrega: adicionar e excluir por toque; desfazer; cancelar edição e reabrir; remover opção selecionada/em uso; lista vazia; teclado virtual e rolagem; restaurar backup antigo/novo. Nunca limpar armazenamento real.
+
+## V1.12.1 — edição discreta e painel de emojis
+
+Os botões × aparecem somente após tocar na caneta abaixo do +. O mesmo card conclui a edição; cada abertura do cadastro começa com a edição desligada. O + abre um painel interno com categorias e uma seleção de emojis Unicode, sem campo de texto, imagens, dependências ou requisições externas. Não é o teclado nativo nem um catálogo completo de todos os emojis; os símbolos disponíveis são renderizados pelo aparelho. Opções já cadastradas ficam desabilitadas no painel.
+
+O catálogo padrão removido não é reposto em atualizações: preferences.iconCatalog é preservado, incluindo lista vazia. Somente dados/backups sem catálogo recebem os padrões. Restaurar um backup substitui o catálogo pelo conteúdo restaurado. DATA_VERSION permanece 9; app e footers 1.12.1, cache intervalo-v1-12-1. Arrastar e soltar permanece no roadmap.
+
+Validação V1.12.1: node --check app.js; node --check sw.js; node --test tests/audit.test.cjs (14 testes). Prévia isolada no navegador: exclusões ocultas inicialmente, ativação/conclusão pela caneta, excluir/desfazer e adicionar por menu com seleção automática. Armazenamento da prévia é simulado; não modifica dados reais. Android/iOS, teclado de acessibilidade, atualização em PWA instalada e restauração pela interface ainda precisam de teste manual. A seleção de emojis ocupa cerca de 3,9 KB sem compressão; alguns desenhos dependem do suporte do sistema operacional.

@@ -11,7 +11,7 @@ function extract(name) {
 function context(extra = {}) {
   const ctx = vm.createContext({ console, Blob, File, crypto: require('node:crypto').webcrypto, ...extra });
   vm.runInContext(`const DATA_VERSION=9, PICKER_ICONS=["🍺","💧"], DEFAULT_ICON='🍺', DRINK_EXPORT_TYPE='intervalo-drinks', DRINK_EXPORT_FORMAT_VERSION=1, BACKUP_EXPORT_TYPE='intervalo-backup', BACKUP_EXPORT_FORMAT_VERSION=1, DATA_STORAGE_KEY='balada-v1-data';`, ctx);
-  for (const name of ['normalizeIconCatalog', 'validateNewIcon', 'persistIconCatalog', 'createId', 'normalizeIcon', 'normalizeIntervalMinutes', 'normalizeDoseSize', 'normalizeData', 'normalizeImportedDrink', 'validateDrinkExportPayload', 'validateBackupPayload', 'confirmBackupRestore', 'buildCurrentAppData', 'persistDrinkList']) vm.runInContext(extract(name), ctx);
+  for (const name of ['normalizeIconCatalog', 'persistIconCatalog', 'createId', 'normalizeIcon', 'normalizeIntervalMinutes', 'normalizeDoseSize', 'normalizeData', 'normalizeImportedDrink', 'validateDrinkExportPayload', 'validateBackupPayload', 'confirmBackupRestore', 'buildCurrentAppData', 'persistDrinkList']) vm.runInContext(extract(name), ctx);
   vm.runInContext('async ' + extract('readJsonFile'), ctx);
   return ctx;
 }
@@ -143,10 +143,24 @@ test('catálogo migra backups antigos e preserva lista vazia e ordem personaliza
    b.data.preferences.iconCatalog=bad; assert.throws(()=>c.validateBackupPayload(b));
  }
 });
-test('entrada aceita emojis compostos e símbolos, rejeita texto e vários ícones', () => {
- const c=context();
- for(const icon of ['🧋','👩🏽‍💻','🇧🇷','1️⃣','⭐','©']) assert.equal(c.validateNewIcon(icon),icon);
- for(const icon of ['', 'abc', 'a','🍺🍷','<script>','a b']) assert.equal(c.validateNewIcon(icon),null);
+test('catálogo interno tem opções únicas por categoria e inclui todos os padrões', () => {
+ const c=vm.createContext({});
+ vm.runInContext(source.slice(source.indexOf('const EMOJI_GROUPS'), source.indexOf('function setIconCatalogStatus')),c);
+ const groups=vm.runInContext('EMOJI_GROUPS',c);
+ const icons=groups.flatMap(group=>group.icons);
+ assert.ok(icons.length>500);
+ for(const group of groups) assert.equal(new Set(group.icons).size,group.icons.length);
+ const defaults=vm.runInNewContext(source.match(/const PICKER_ICONS = (\[[\s\S]*?\]);/)[1]);
+ for(const icon of defaults) assert.ok(icons.includes(icon),icon);
+ const h=fs.readFileSync('index.html','utf8');
+ assert.equal(h.includes('id="custom-icon"'),false);
+});
+test('normalização de atualização preserva exclusões, ordem e catálogo vazio', () => {
+ const c=context(), b=backup();b.data.version=9;b.data.preferences.iconCatalog=['⭐'];
+ const updated=c.normalizeData(b.data);
+ assert.deepEqual(Array.from(updated.preferences.iconCatalog),['⭐']);
+ updated.preferences.iconCatalog=[];
+ assert.equal(c.normalizeData(updated).preferences.iconCatalog.length,0);
 });
 test('salvar catálogo preserva bebidas e snapshots e só muda estado após gravar', () => {
  let saved;
