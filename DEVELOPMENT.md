@@ -2013,3 +2013,8 @@ Versão da aplicação/footers: 1.11.0. Cache: `intervalo-v1-11-0`. DATA_VERSION
 `intervalo-terms-draft-v1` em sessionStorage guarda a versão das políticas e os estados booleanos dos três checkboxes. É restaurado ao retornar à tela na mesma sessão, sem registrar aceite automaticamente; somente Continuar grava a confirmação definitiva. O rascunho é removido após aceitar e ignorado se a versão diferir ou os dados forem inválidos. Não entra no backup. Se sessionStorage estiver indisponível, o formulário funciona, mas a navegação não pode preservar o rascunho.
 
 TERMS_VERSION permanece 1.0 nesta correção de UX. Para mudanças materiais, incrementar essa constante e a versão/data da página: o app atualizado volta a solicitar todas as confirmações. Versão 1.11.1; cache intervalo-v1-11-1; DATA_VERSION 8.
+
+
+## V1.11.2 — redação da página de políticas
+
+Descrição ajustada para uso dos autores e testes de feedback com conhecidos selecionados. Mudança editorial: TERMS_VERSION 1.0 e DATA_VERSION 8 preservados. Versão do app e footers em 1.11.2; cache intervalo-v1-11-2 para distribuir o HTML atualizado.

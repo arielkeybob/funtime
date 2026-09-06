@@ -1,4 +1,8 @@
-# Intervalo — V1.11.1
+# Intervalo — V1.11.2
+
+## V1.11.2 — redação sobre o projeto
+
+A página de políticas passa a descrever o uso pelos autores e testes de feedback com conhecidos selecionados. Ajuste editorial, sem novo aceite: TERMS_VERSION permanece 1.0 e DATA_VERSION permanece 8. Cache atualizado para `intervalo-v1-11-2` para distribuir o HTML às PWAs instaladas.
 
 ## V1.11.1 — continuidade do primeiro aceite
 
