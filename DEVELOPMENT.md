@@ -2025,3 +2025,14 @@ Descrição ajustada para uso dos autores e testes de feedback com conhecidos se
 TERMS_VERSION 1.0.1 e versão visível da página atualizadas para testar a renovação do aceite, sem mudança material no texto. App/footers 1.11.3 e cache intervalo-v1-11-3. DATA_VERSION permanece 8.
 
 Após receber e aplicar a atualização, quem aceitou 1.0 verá a tela novamente com as três caixas desmarcadas; o rascunho anterior não será reaproveitado. Continuar grava 1.0.1, dispensando novas confirmações nas próximas aberturas. Teste automatizado simula a transição 1.0 → 1.0.1 e a persistência do novo aceite. Teste manual em PWA instalada deve ser feito após publicação, sem limpar dados reais.
+
+
+## V1.12.0 — catálogo pessoal de ícones
+
+O seletor permite adicionar um emoji ou símbolo pelo teclado/colagem e remover qualquer opção pelo ×, com Desfazer dentro do editor. O card + permanece disponível mesmo com a lista vazia. Limite de 100 opções, sem duplicatas; emojis compostos são validados como uma unidade visual. Navegadores sem Intl.Segmenter exibem uma orientação de atualização ao tentar adicionar.
+
+Remover uma opção não altera bebidas nem snapshots históricos. O ícone selecionado permanece disponível no rascunho, mesmo fora do catálogo. Alterações do catálogo são preferências globais, salvas imediatamente, independentemente de Cancelar a bebida. Desfazer recupera a última exclusão enquanto o editor permanece aberto.
+
+DATA_VERSION 9: preferences.iconCatalog é uma lista ordenada; dados e backups antigos recebem o catálogo padrão, listas vazias permanecem vazias. Backup inclui o catálogo; exportação de bebidas transporta somente o ícone de cada bebida. Importação preserva o catálogo local. Falhas de gravação mantêm o estado anterior e mostram erro. App/footers 1.12.0; cache intervalo-v1-12-0. Políticas e versão de aceite preservadas.
+
+Testes manuais da entrega: adicionar e excluir por toque; desfazer; cancelar edição e reabrir; remover opção selecionada/em uso; lista vazia; teclado virtual e rolagem; restaurar backup antigo/novo. Nunca limpar armazenamento real.

@@ -1,4 +1,12 @@
-# Intervalo — V1.11.3
+# Intervalo — V1.12.0
+
+## V1.12.0 — catálogo pessoal de ícones
+
+O seletor permite adicionar um emoji ou símbolo pelo teclado/colagem e remover qualquer opção pelo ×, com Desfazer dentro do editor. O card + permanece disponível mesmo com a lista vazia. Limite de 100 opções, sem duplicatas; emojis compostos são validados como uma unidade visual. Navegadores sem Intl.Segmenter exibem uma orientação de atualização ao tentar adicionar.
+
+Remover uma opção não altera bebidas nem snapshots históricos. O ícone selecionado permanece disponível no rascunho, mesmo fora do catálogo. Alterações do catálogo são preferências globais, salvas imediatamente, independentemente de Cancelar a bebida. Desfazer recupera a última exclusão enquanto o editor permanece aberto.
+
+DATA_VERSION 9: preferences.iconCatalog é uma lista ordenada; dados e backups antigos recebem o catálogo padrão, listas vazias permanecem vazias. Backup inclui o catálogo; exportação de bebidas transporta somente o ícone de cada bebida. Importação preserva o catálogo local. Falhas de gravação mantêm o estado anterior e mostram erro. App/footers 1.12.0; cache intervalo-v1-12-0. Políticas e versão de aceite preservadas.
 
 ## V1.11.3 — teste de renovação do aceite
 

@@ -10,8 +10,8 @@ function extract(name) {
 }
 function context(extra = {}) {
   const ctx = vm.createContext({ console, Blob, File, crypto: require('node:crypto').webcrypto, ...extra });
-  vm.runInContext(`const DATA_VERSION=8, DEFAULT_ICON='🍺', DRINK_EXPORT_TYPE='intervalo-drinks', DRINK_EXPORT_FORMAT_VERSION=1, BACKUP_EXPORT_TYPE='intervalo-backup', BACKUP_EXPORT_FORMAT_VERSION=1, DATA_STORAGE_KEY='balada-v1-data';`, ctx);
-  for (const name of ['createId', 'normalizeIcon', 'normalizeIntervalMinutes', 'normalizeDoseSize', 'normalizeData', 'normalizeImportedDrink', 'validateDrinkExportPayload', 'validateBackupPayload', 'confirmBackupRestore', 'buildCurrentAppData', 'persistDrinkList']) vm.runInContext(extract(name), ctx);
+  vm.runInContext(`const DATA_VERSION=9, PICKER_ICONS=["🍺","💧"], DEFAULT_ICON='🍺', DRINK_EXPORT_TYPE='intervalo-drinks', DRINK_EXPORT_FORMAT_VERSION=1, BACKUP_EXPORT_TYPE='intervalo-backup', BACKUP_EXPORT_FORMAT_VERSION=1, DATA_STORAGE_KEY='balada-v1-data';`, ctx);
+  for (const name of ['normalizeIconCatalog', 'validateNewIcon', 'persistIconCatalog', 'createId', 'normalizeIcon', 'normalizeIntervalMinutes', 'normalizeDoseSize', 'normalizeData', 'normalizeImportedDrink', 'validateDrinkExportPayload', 'validateBackupPayload', 'confirmBackupRestore', 'buildCurrentAppData', 'persistDrinkList']) vm.runInContext(extract(name), ctx);
   vm.runInContext('async ' + extract('readJsonFile'), ctx);
   return ctx;
 }
@@ -26,7 +26,7 @@ test('backup válido conserva snapshots; bebida excluída continua restaurável'
 });
 test('backup rejeita schema futuro, datas inválidas, duplicatas e tipos incorretos', () => {
   const c=context();
-  for (const mutate of [b=>b.data.version=9,b=>b.data.events[0].consumedAt=1e30,b=>b.data.events[0].consumedAt='123',b=>b.data.events.push({...b.data.events[0]}),b=>b.data.drinks.push({...drink}),b=>b.data.events[0].doseSize='quarter',b=>b.data.preferences.cleanInterface='false',b=>b.data.drinks[0].askDoseSize='false',b=>b.data.events[0].intervalMinutes=null]) {
+  for (const mutate of [b=>b.data.version=10,b=>b.data.events[0].consumedAt=1e30,b=>b.data.events[0].consumedAt='123',b=>b.data.events.push({...b.data.events[0]}),b=>b.data.drinks.push({...drink}),b=>b.data.events[0].doseSize='quarter',b=>b.data.preferences.cleanInterface='false',b=>b.data.drinks[0].askDoseSize='false',b=>b.data.events[0].intervalMinutes=null]) {
     const b=backup(); mutate(b); assert.throws(()=>c.validateBackupPayload(b));
   }
 });
@@ -130,4 +130,31 @@ test('rascunho restaura marcações ao voltar, sem aceitar; nova versão zera es
   accepted=null;
   storage.set('intervalo-terms-draft-v1','{');
   assert.deepEqual(open('1.0.1').checks.map(input=>input.checked),[false,false,false]);
+});
+
+test('catálogo migra backups antigos e preserva lista vazia e ordem personalizada', () => {
+ const c=context(), b=backup();
+ assert.deepEqual(Array.from(c.validateBackupPayload(b).preferences.iconCatalog), ['🍺','💧']);
+ b.data.version=9; b.data.preferences.iconCatalog=[];
+ assert.equal(c.validateBackupPayload(b).preferences.iconCatalog.length,0);
+ b.data.preferences.iconCatalog=['🧋','⭐'];
+ assert.deepEqual(Array.from(c.validateBackupPayload(b).preferences.iconCatalog),['🧋','⭐']);
+ for(const bad of [null, '🍺', [''], ['⭐','⭐'], [42], Array(101).fill('⭐')]) {
+   b.data.preferences.iconCatalog=bad; assert.throws(()=>c.validateBackupPayload(b));
+ }
+});
+test('entrada aceita emojis compostos e símbolos, rejeita texto e vários ícones', () => {
+ const c=context();
+ for(const icon of ['🧋','👩🏽‍💻','🇧🇷','1️⃣','⭐','©']) assert.equal(c.validateNewIcon(icon),icon);
+ for(const icon of ['', 'abc', 'a','🍺🍷','<script>','a b']) assert.equal(c.validateNewIcon(icon),null);
+});
+test('salvar catálogo preserva bebidas e snapshots e só muda estado após gravar', () => {
+ let saved;
+ const state={drinks:[drink],events:backup().data.events,preferences:{cleanInterface:false,iconCatalog:['💧']}};
+ const c=context({state,localStorage:{setItem:(k,v)=>{saved=JSON.parse(v);}}});
+ c.persistIconCatalog([]);
+ assert.deepEqual(saved.drinks,state.drinks); assert.deepEqual(saved.events,state.events);
+ assert.equal(saved.preferences.cleanInterface,false); assert.equal(state.preferences.iconCatalog.length,0);
+ c.localStorage.setItem=()=>{throw Error('quota');};
+ assert.throws(()=>c.persistIconCatalog(['⭐'])); assert.equal(state.preferences.iconCatalog.length,0);
 });

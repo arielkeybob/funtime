@@ -205,8 +205,8 @@ window.addEventListener("appinstalled", () => {
 
 const DATA_STORAGE_KEY = "balada-v1-data";
 const LEGACY_DRINKS_STORAGE_KEY = "balada-v1-drinks";
-const DATA_VERSION = 8;
-const APP_VERSION = "1.11.3";
+const DATA_VERSION = 9;
+const APP_VERSION = "1.12.0";
 const DRINK_EXPORT_TYPE = "intervalo-drinks";
 const DRINK_EXPORT_FORMAT_VERSION = 1;
 const BACKUP_EXPORT_TYPE = "intervalo-backup";
@@ -1129,6 +1129,7 @@ function normalizeData(data) {
     events,
     preferences: {
       cleanInterface: data.preferences?.cleanInterface !== false,
+      iconCatalog: normalizeIconCatalog(data.preferences?.iconCatalog),
     },
   };
 }
@@ -1174,6 +1175,7 @@ function migrateLegacyData() {
     events,
     preferences: {
       cleanInterface: true,
+      iconCatalog: [...PICKER_ICONS],
     },
   };
 
@@ -1189,6 +1191,26 @@ function migrateLegacyData() {
 function normalizeIcon(value, fallback = DEFAULT_ICON) {
   const icon = typeof value === "string" ? value.trim() : "";
   return icon || fallback;
+}
+
+function normalizeIconCatalog(value) {
+  if (!Array.isArray(value)) return [...PICKER_ICONS];
+  return [...new Set(value.filter(icon => typeof icon === "string" && icon.trim() && icon.length <= 64).map(icon => icon.trim()))].slice(0, 100);
+}
+
+function validateNewIcon(value) {
+  const icon = value.trim().normalize("NFC");
+  if (!icon || icon.length > 64 || /[\p{Cc}\p{Z}]/u.test(icon)) return null;
+  // Graphemes preserve joined emoji, flags and skin tones as one visible symbol.
+  if (typeof Intl.Segmenter !== "function") return null;
+  if ([...new Intl.Segmenter(undefined, { granularity: "grapheme" }).segment(icon)].length !== 1) return null;
+  return /[\p{S}\p{Extended_Pictographic}\p{Regional_Indicator}\u20e3]/u.test(icon) ? icon : null;
+}
+
+function persistIconCatalog(icons) {
+  const preferences = { ...state.preferences, iconCatalog: icons };
+  localStorage.setItem(DATA_STORAGE_KEY, JSON.stringify({ ...buildCurrentAppData(), preferences }));
+  state.preferences = preferences;
 }
 
 function normalizeIntervalMinutes(value) {
@@ -1620,6 +1642,9 @@ function validateBackupPayload(payload) {
       Array.isArray(data.preferences) || (data.preferences.cleanInterface !== undefined &&
       typeof data.preferences.cleanInterface !== "boolean"))) invalid();
   // Reconstrói apenas campos conhecidos; não mescla propriedades do arquivo.
+  const catalog = data.preferences?.iconCatalog;
+  if (catalog !== undefined && (!Array.isArray(catalog) || catalog.length > 100 ||
+      catalog.some(icon => !validText(icon, 64)) || new Set(catalog.map(icon => icon.trim())).size !== catalog.length)) invalid();
   const normalized = normalizeData(data);
   if (!normalized) throw new Error("Os dados deste backup são inválidos.");
 
@@ -3096,33 +3121,105 @@ function initializeDurationPickers() {
   setDurationPicker(1, 0);
 }
 
-function buildIconPicker(selectedIcon = null) {
-  iconOptions.innerHTML = "";
+let removedCatalogIcon = null;
 
-  const hasSelection = typeof selectedIcon === "string" && selectedIcon.trim().length > 0;
-  const normalizedSelectedIcon = hasSelection ? normalizeIcon(selectedIcon) : null;
-  const icons = normalizedSelectedIcon && !PICKER_ICONS.includes(normalizedSelectedIcon)
-    ? [normalizedSelectedIcon, ...PICKER_ICONS]
-    : [...PICKER_ICONS];
+function setIconCatalogStatus(message) {
+  document.querySelector('#icon-catalog-status').textContent = message;
+}
 
-  icons.forEach((icon) => {
-    const label = document.createElement("label");
-    label.className = "icon-option";
-
-    const input = document.createElement("input");
-    input.type = "radio";
-    input.name = "icon";
+function buildIconPicker(selectedIcon = null, preserveFeedback = false) {
+  iconOptions.innerHTML = '';
+  if (!preserveFeedback) {
+    removedCatalogIcon = null;
+    document.querySelector('#undo-icon-removal').hidden = true;
+    document.querySelector('#icon-add-panel').hidden = true;
+    setIconCatalogStatus('');
+  }
+  const catalog = state.preferences.iconCatalog;
+  const selected = typeof selectedIcon === 'string' && selectedIcon.trim() ? selectedIcon.trim() : null;
+  const icons = selected && !catalog.includes(selected) ? [selected, ...catalog] : [...catalog];
+  icons.forEach(icon => {
+    const wrapper = document.createElement('div');
+    wrapper.className = 'icon-option';
+    const label = document.createElement('label');
+    const input = document.createElement('input');
+    input.type = 'radio';
+    input.name = 'icon';
     input.value = icon;
-    input.checked = normalizedSelectedIcon === icon;
-    input.addEventListener("change", () => clearDrinkFieldError("icon"));
-
-    const visual = document.createElement("span");
+    input.checked = selected === icon;
+    input.setAttribute('aria-label', 'Selecionar ' + icon);
+    input.addEventListener('change', () => clearDrinkFieldError('icon'));
+    const visual = document.createElement('span');
     visual.textContent = icon;
-    visual.setAttribute("aria-hidden", "true");
-
+    visual.setAttribute('aria-hidden', 'true');
     label.append(input, visual);
-    iconOptions.appendChild(label);
+    wrapper.append(label);
+    if (catalog.includes(icon)) {
+      const remove = document.createElement('button');
+      remove.type = 'button';
+      remove.className = 'icon-remove';
+      remove.textContent = '×';
+      remove.setAttribute('aria-label', 'Remover ' + icon + ' do catálogo');
+      remove.addEventListener('click', () => {
+        const current = iconOptions.querySelector('input:checked')?.value || null;
+        const index = state.preferences.iconCatalog.indexOf(icon);
+        try {
+          persistIconCatalog(state.preferences.iconCatalog.filter(item => item !== icon));
+          removedCatalogIcon = { icon, index };
+          buildIconPicker(current, true);
+          setIconCatalogStatus('Ícone removido da lista. Bebidas e histórico preservados.');
+          document.querySelector('#undo-icon-removal').hidden = false;
+          document.querySelector('#undo-icon-removal').focus();
+        } catch (error) {
+          setIconCatalogStatus('Não foi possível salvar. O ícone foi mantido.');
+        }
+      });
+      wrapper.append(remove);
+    } else {
+      wrapper.title = 'Ícone atual; fora do catálogo';
+    }
+    iconOptions.append(wrapper);
   });
+  const add = document.createElement('button');
+  add.type = 'button';
+  add.className = 'icon-option icon-add';
+  add.textContent = '+';
+  add.setAttribute('aria-label', 'Adicionar ícone');
+  add.addEventListener('click', () => {
+    document.querySelector('#icon-add-panel').hidden = false;
+    document.querySelector('#custom-icon').value = '';
+    document.querySelector('#custom-icon').focus();
+  });
+  iconOptions.append(add);
+}
+
+function addCatalogIcon() {
+  const field = document.querySelector('#custom-icon');
+  const icon = validateNewIcon(field.value);
+  if (!icon) {
+    setIconCatalogStatus(typeof Intl.Segmenter === 'function' ? 'Digite apenas um emoji ou símbolo, sem espaços.' : 'Atualize seu navegador para adicionar emojis.');
+    field.focus();
+    return;
+  }
+  const catalog = state.preferences.iconCatalog;
+  if (catalog.includes(icon)) {
+    setIconCatalogStatus('Esse ícone já está na lista.');
+    return;
+  }
+  if (catalog.length >= 100) {
+    setIconCatalogStatus('Limite de 100 ícones. Remova um para adicionar outro.');
+    return;
+  }
+  try {
+    persistIconCatalog([...catalog, icon]);
+    buildIconPicker(icon, true);
+    document.querySelector('#icon-add-panel').hidden = true;
+    clearDrinkFieldError('icon');
+    setIconCatalogStatus('Ícone adicionado e selecionado.');
+    iconOptions.querySelector('input:checked').focus();
+  } catch (error) {
+    setIconCatalogStatus('Não foi possível salvar o ícone. Tente novamente.');
+  }
 }
 
 function handleDrinkSubmit(event) {
@@ -3722,3 +3819,32 @@ if (shouldBootstrapInstalledApp) {
     document.body.classList.remove("security-booting");
   });
 }
+
+// Catálogo é uma preferência global, independente do rascunho da bebida.
+document.querySelector('#confirm-add-icon').addEventListener('click', addCatalogIcon);
+document.querySelector('#custom-icon').addEventListener('keydown', event => {
+  if (event.key === 'Enter') { event.preventDefault(); addCatalogIcon(); }
+});
+document.querySelector('#cancel-add-icon').addEventListener('click', () => {
+  document.querySelector('#icon-add-panel').hidden = true;
+  iconOptions.querySelector('.icon-add').focus();
+});
+document.querySelector('#undo-icon-removal').addEventListener('click', () => {
+  if (!removedCatalogIcon) return;
+  const { icon, index } = removedCatalogIcon;
+  const catalog = [...state.preferences.iconCatalog];
+  if (!catalog.includes(icon)) {
+    if (catalog.length >= 100) { setIconCatalogStatus('Remova um ícone antes de desfazer.'); return; }
+    catalog.splice(Math.min(index, catalog.length), 0, icon);
+  }
+  try {
+    persistIconCatalog(catalog);
+    const selected = iconOptions.querySelector('input:checked')?.value || null;
+    buildIconPicker(selected, true);
+    removedCatalogIcon = null;
+    document.querySelector('#undo-icon-removal').hidden = true;
+    setIconCatalogStatus('Ícone restaurado.');
+    const restored = [...iconOptions.querySelectorAll('input')].find(input => input.value === icon);
+    restored?.focus();
+  } catch (error) { setIconCatalogStatus('Não foi possível restaurar o ícone. Tente novamente.'); }
+});

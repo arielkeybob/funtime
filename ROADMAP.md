@@ -4,6 +4,11 @@ Este documento registra ideias em estudo. Os itens abaixo não representam funci
 
 ## Próximos estudos
 
+### Reordenar ícones por arrastar e soltar
+
+Permitir reorganizar o catálogo pessoal, distinguindo arraste de rolagem horizontal, seleção e exclusão no celular. Prever alternativa por teclado, feedback visual e persistência da ordem. Adiado para uma evolução própria; adicionar e excluir disponíveis na V1.12.0.
+
+
 ### Mesclar bebidas
 
 Permitir unir dois cadastros que representam a mesma bebida, especialmente após importações.

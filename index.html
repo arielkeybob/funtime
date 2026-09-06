@@ -41,7 +41,7 @@
     <footer class="browser-gate-footer">
       <span>App para estudo · não é controle de segurança</span>
       <a class="policies-link" href="./policies.html">Políticas e informações</a>
-      <span>v1.11.3 · By: arielkeybob</span>
+      <span>v1.12.0 · By: arielkeybob</span>
     </footer>
   </section>
 
@@ -231,7 +231,7 @@
     <footer class="app-footer">
       <span class="app-footer-disclaimer">App para estudo · não é controle de segurança</span>
       <a class="policies-link" href="./policies.html">Políticas e informações</a>
-      <span class="app-footer-meta">v1.11.3 · By: arielkeybob</span>
+      <span class="app-footer-meta">v1.12.0 · By: arielkeybob</span>
     </footer>
   </div>
 
@@ -257,6 +257,18 @@
         <div id="icon-options" class="icon-options" aria-label="Escolha um ícone"></div>
         <small class="icon-scroll-hint">Deslize para ver mais ícones →</small>
         <small id="drink-icon-error" class="field-error" role="alert" hidden>Escolha um ícone.</small>
+        <div id="icon-add-panel" class="icon-add-panel" hidden>
+          <label for="custom-icon">Digite ou cole um emoji ou símbolo</label>
+          <div class="icon-add-actions">
+            <input id="custom-icon" type="text" maxlength="64" autocomplete="off" aria-describedby="icon-catalog-status" placeholder="Ex.: 🧋">
+            <button id="confirm-add-icon" type="button">Adicionar</button>
+            <button id="cancel-add-icon" type="button" class="secondary">Cancelar</button>
+          </div>
+        </div>
+        <div class="icon-catalog-feedback">
+          <small id="icon-catalog-status" role="status" aria-live="polite"></small>
+          <button id="undo-icon-removal" class="secondary" type="button" hidden>Desfazer</button>
+        </div>
       </fieldset>
 
       <fieldset class="field interval-fieldset">
