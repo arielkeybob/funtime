@@ -206,7 +206,7 @@ window.addEventListener("appinstalled", () => {
 const DATA_STORAGE_KEY = "balada-v1-data";
 const LEGACY_DRINKS_STORAGE_KEY = "balada-v1-drinks";
 const DATA_VERSION = 9;
-const APP_VERSION = "1.14.2";
+const APP_VERSION = "1.14.3";
 const DRINK_EXPORT_TYPE = "intervalo-drinks";
 const DRINK_EXPORT_FORMAT_VERSION = 1;
 const BACKUP_EXPORT_TYPE = "intervalo-backup";
@@ -1779,17 +1779,17 @@ function formatTime(ms) {
 }
 
 function formatActivityCounter(activity) {
-  if (state.preferences.countingMode !== "normal") return `Restam: ${formatTime(activity.remainingMs)}`;
+  if (state.preferences.countingMode !== "normal") return `Falta: -${formatTime(activity.remainingMs)}`;
   const intervalMs = activity.latestEvent.intervalMinutes * 60000;
   const elapsedMs = Math.max(0, Math.min(intervalMs, intervalMs - activity.remainingMs));
-  return `Decorrido: ${formatTime(Math.floor(elapsedMs / 1000) * 1000)}`;
+  return `Contando: ${formatTime(Math.floor(elapsedMs / 1000) * 1000)}`;
 }
 
 function formatHistoryCounter(timestamp, intervalMinutes, now = Date.now()) {
   const remainingMs = Number(timestamp) + Number(intervalMinutes) * 60000 - now;
   if (state.preferences.countingMode === "normal" && remainingMs > 0) {
-    const seconds = Math.ceil(remainingMs / 1000);
-    return `Falta ${String(Math.floor(seconds / 60)).padStart(2, "0")}:${String(seconds % 60).padStart(2, "0")}`;
+    const minutes = Math.ceil(remainingMs / 60000);
+    return `Falta ${String(Math.floor(minutes / 60)).padStart(2, "0")}:${String(minutes % 60).padStart(2, "0")}`;
   }
   return formatHistoryElapsed(timestamp, now);
 }

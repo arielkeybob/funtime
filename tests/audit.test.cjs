@@ -206,16 +206,19 @@ test('contadores usam timestamps e intervalo histórico, com limites e transiç�
  const c=vm.createContext({state:{preferences:{countingMode:'normal'}}});
  for (const name of ['formatTime','formatHistoryElapsed','formatHistoryCounter','formatActivityCounter']) vm.runInContext(extract(name),c);
  const activity={latestEvent:{intervalMinutes:90},remainingMs:5400000};
- assert.equal(c.formatActivityCounter(activity),'Decorrido: 00:00:00');
- activity.remainingMs=5398500;assert.equal(c.formatActivityCounter(activity),'Decorrido: 00:00:01');
- activity.remainingMs=-1000;assert.equal(c.formatActivityCounter(activity),'Decorrido: 01:30:00');
- activity.remainingMs=5500000;assert.equal(c.formatActivityCounter(activity),'Decorrido: 00:00:00');
- assert.equal(c.formatHistoryCounter(100000,90,100000),'Falta 90:00');
+ assert.equal(c.formatActivityCounter(activity),'Contando: 00:00:00');
+ activity.remainingMs=5398500;assert.equal(c.formatActivityCounter(activity),'Contando: 00:00:01');
+ activity.remainingMs=-1000;assert.equal(c.formatActivityCounter(activity),'Contando: 01:30:00');
+ activity.remainingMs=5500000;assert.equal(c.formatActivityCounter(activity),'Contando: 00:00:00');
+ assert.equal(c.formatHistoryCounter(100000,90,100000),'Falta 01:30');
  assert.equal(c.formatHistoryCounter(100000,1,159999),'Falta 00:01');
+ assert.equal(c.formatHistoryCounter(100000,90,160000),'Falta 01:29');
+ assert.equal(c.formatHistoryCounter(100000,60,100000),'Falta 01:00');
+ assert.equal(c.formatHistoryCounter(100000,1440,100000),'Falta 24:00');
  assert.equal(c.formatHistoryCounter(100000,1,160000),'1 min atrás');
  c.state.preferences.countingMode='countdown';
  assert.equal(c.formatHistoryCounter(100000,90,160000),'1 min atrás');
- activity.remainingMs=5399000;assert.equal(c.formatActivityCounter(activity),'Restam: 01:29:59');
+ activity.remainingMs=5399000;assert.equal(c.formatActivityCounter(activity),'Falta: -01:29:59');
 });
 
 test('falha ao salvar contagem preserva a preferência anterior e dados', () => {
