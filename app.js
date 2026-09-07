@@ -206,7 +206,7 @@ window.addEventListener("appinstalled", () => {
 const DATA_STORAGE_KEY = "balada-v1-data";
 const LEGACY_DRINKS_STORAGE_KEY = "balada-v1-drinks";
 const DATA_VERSION = 9;
-const APP_VERSION = "1.13.1";
+const APP_VERSION = "1.14.0";
 const DRINK_EXPORT_TYPE = "intervalo-drinks";
 const DRINK_EXPORT_FORMAT_VERSION = 1;
 const BACKUP_EXPORT_TYPE = "intervalo-backup";
@@ -226,8 +226,8 @@ const PIN_LOCKOUT_MS = 30000;
 
 const PICKER_ICONS = [
   "🍬", "💊", "🍍", "🍭", "🥃", "🍺", "🍷", "🥂",
-  "👃", "🐽",  "🪏", "💗", "🌿", "🚬", "🌻", "❄️", "👇", "🧂", "🍫", "🍄",
-  "🍪", "🌵", "💧", "💦", "😵‍💫", "🕳️", "💤", "💫",
+  "👃", "🐽",  "🪏", "💗", "🌿", "🚬", "🌻", "❄️", "👇", "🧂", "🍫", 
+  "🍪", "🍄", "🌵", "💧", "💦", "😵‍💫", "🕳️", "💤", "💫",
   "🥶", "🥵", "🌊", "🪄", "🧪", "👽", "😈", "🧙‍♂️"
 ];
 const DEFAULT_ICON = "🍺";
@@ -3129,13 +3129,6 @@ function initializeDurationPickers() {
   setDurationPicker(1, 0);
 }
 
-const EMOJI_GROUPS = [
-  ['Bebidas e comidas', '🍺 🍻 🥂 🍷 🥃 🍸 🍹 🍾 🧋 🥤 🧃 🧉 ☕ 🍵 🫖 🥛 🍼 🍶 🧊 💧 🍇 🍈 🍉 🍊 🍋 🍌 🍍 🥭 🍎 🍏 🍐 🍑 🍒 🍓 🫐 🥝 🍅 🥥 🥑 🍆 🥔 🥕 🌽 🌶️ 🥒 🥬 🥦 🧄 🧅 🍄 🥜 🌰 🍞 🥐 🥖 🥨 🥯 🥞 🧇 🧀 🍖 🍗 🥩 🥓 🍔 🍟 🍕 🌭 🥪 🌮 🌯 🥙 🥚 🍳 🥗 🍿 🍱 🍘 🍙 🍚 🍛 🍜 🍝 🍠 🍢 🍣 🍤 🍥 🥟 🍡 🍦 🍧 🍨 🍩 🍪 🎂 🍰 🧁 🥧 🍫 🍬 🍭 🍮 🍯'],
-  ['Rostos e pessoas', '😀 😃 😄 😁 😆 😅 😂 🙂 🙃 😉 😊 😇 🥰 😍 🤩 😘 😋 😛 😜 🤪 😎 🤓 🧐 🤗 🤭 🤫 🤔 🤐 😐 😑 😶 😏 😒 🙄 😬 🤥 😌 😔 😪 🤤 😴 🥶 🥵 😵 😵‍💫 🤯 🥳 🥺 😢 😭 😱 😡 🤬 😈 👿 💀 ☠️ 💩 🤡 👻 👽 👾 🤖 😺 😸 😹 😻 😼 🙀 😿 😾 👋 🤚 🖐️ ✋ 🖖 👌 🤌 🤏 ✌️ 🤞 🤟 🤘 🤙 👈 👉 👆 👇 ☝️ 👍 👎 ✊ 👊 👏 🙌 👐 🤲 🤝 🙏 💪 👀 👁️ 👅 👄 👃 🧠 🫀 🫁 🦷 🦴 👶 🧒 👨 👩 🧑 👴 👵 🧙‍♂️ 🧙‍♀️ 🧚 🧛 🧜 🧞 🧟'],
-  ['Natureza e animais', '🐶 🐱 🐭 🐹 🐰 🦊 🐻 🐼 🐨 🐯 🦁 🐮 🐷 🐽 🐸 🐵 🐔 🐧 🐦 🐤 🦆 🦅 🦉 🦇 🐺 🐗 🐴 🦄 🐝 🐛 🦋 🐌 🐞 🐜 🦟 🦗 🕷️ 🦂 🐢 🐍 🦎 🦖 🦕 🐙 🦑 🦐 🦞 🦀 🐡 🐠 🐟 🐬 🐳 🦈 🐊 🐅 🐆 🦓 🦍 🦧 🐘 🦛 🦏 🐪 🦒 🦘 🦬 🐃 🐂 🐄 🐎 🐖 🐏 🐑 🦙 🐐 🦌 🐕 🐈 🐓 🦃 🦚 🦜 🦢 🦩 🕊️ 🐇 🦝 🦨 🦡 🦫 🦦 🦥 🐁 🐀 🐿️ 🦔 🐾 🌵 🎄 🌲 🌳 🌴 🌱 🌿 ☘️ 🍀 🎍 🪴 🎋 🍃 🍂 🍁 🌾 🌺 🌻 🌹 🥀 🌷 🌼 🌸 🪷 🌎 🌍 🌏 🌕 🌙 ⭐ 🌟 💫 ✨ ☀️ 🌤️ ☁️ 🌧️ ⛈️ 🌩️ ❄️ ☃️ ⛄ 🌬️ 💨 🌪️ 🌈 ☔ ⚡ 🔥 💥 🌊 💦'],
-  ['Objetos e atividades', '💊 💉 🩹 🩺 🧪 🧬 🔬 🔭 🚬 🪄 🕳️ 💤 🎉 🎊 🎈 🎁 🎀 🎂 🎃 🎄 🎆 🎇 🧨 🎮 🕹️ 🎲 ♟️ 🎯 🎳 ⚽ 🏀 🏈 ⚾ 🎾 🏐 🏉 🥏 🎱 🏓 🏸 🥊 🥋 🥅 ⛳ 🎣 🤿 🎽 🎿 🛷 🥌 🏆 🥇 🥈 🥉 🏅 🎖️ 🎭 🎨 🧵 🪡 🧶 🎼 🎵 🎶 🎤 🎧 🎷 🎸 🎹 🎺 🎻 🥁 🪘 📱 💻 ⌨️ 🖥️ 🖨️ 🖱️ 💽 💾 💿 📀 📷 📸 📹 🎥 📞 📺 📻 ⏰ ⏱️ ⏲️ 🕰️ ⌛ ⏳ 🔋 🔌 💡 🔦 🕯️ 🧯 💰 💎 ⚖️ 🔧 🔨 ⚙️ 🧰 🧲 🪜 🔒 🔑 🚪 🪑 🛏️ 🛋️ 🚿 🛁 🧼 🪥 🧽 🧹 🧺 🧻 🪣 📚 📖 📓 📝 ✏️ 🖊️ 🖌️ 🖍️ 📌 📎 ✂️ 📅 📦 ✉️ 📨 💌 🚗 🚕 🚌 🚎 🏎️ 🚓 🚑 🚒 🚚 🚲 🛴 🛵 🏍️ ✈️ 🚀 🛸 🚁 ⛵ 🚢 🏠 🏡 🏢 🏥 🏫 🏖️ 🏕️ ⛰️ 🏔️ 🌋 🗻 🗽 🗼 🏰'],
-  ['Símbolos', '❤️ 🧡 💛 💚 💙 💜 🖤 🤍 🤎 💔 ❣️ 💕 💞 💓 💗 💖 💘 💝 💟 ☮️ ✝️ ☪️ 🕉️ ☸️ ✡️ 🔯 ☯️ ☦️ 🛐 ♈ ♉ ♊ ♋ ♌ ♍ ♎ ♏ ♐ ♑ ♒ ♓ 🆔 ⚛️ ☢️ ☣️ 🆚 🆘 ❌ ⭕ 🛑 ⛔ 📛 🚫 💯 💢 ♨️ ❗ ❓ ‼️ ⁉️ ⚠️ 🚸 🔱 ⚜️ ♻️ ✅ ❎ 🌐 💠 🔴 🟠 🟡 🟢 🔵 🟣 ⚫ ⚪ 🟤 🔺 🔻 🔸 🔹 🔶 🔷 🔳 🔲 ▪️ ▫️ ◼️ ◻️ ⬛ ⬜ 🔈 🔉 🔊 🔇 🔔 🔕 📣 📢 💬 💭 🗯️ ♠️ ♣️ ♥️ ♦️ 🃏 🎴 🀄 🏁 🚩 🎌 🏳️ 🏴 🏳️‍🌈 🇧🇷 🇵🇹 🇺🇸 🇦🇷 🇺🇾 🇨🇱 🇲🇽 🇪🇸 🇫🇷 🇮🇹 🇩🇪 🇬🇧 🇯🇵 🇨🇳 🇨🇦']
-].map(([name, icons]) => ({ name, icons: icons.split(' ') }));
 let removedCatalogIcon = null;
 let editingIconCatalog = false;
 
@@ -3235,19 +3228,56 @@ function renderEmojiMenu() {
   const category = document.querySelector('#emoji-category');
   if (!category.options.length) {
     EMOJI_GROUPS.forEach((group, index) => category.add(new Option(group.name, index)));
+    const fragment = document.createDocumentFragment();
+    EMOJI_GROUPS.forEach((group, index) => {
+      const section = document.createElement('section');
+      section.className = 'emoji-section';
+      section.dataset.category = String(index);
+      const heading = document.createElement('h3');
+      heading.id = 'emoji-heading-' + index;
+      heading.textContent = group.name;
+      section.setAttribute('aria-labelledby', heading.id);
+      const choices = document.createElement('div');
+      choices.className = 'emoji-choices';
+      group.icons.forEach(icon => {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'emoji-choice';
+        button.textContent = icon;
+        choices.append(button);
+      });
+      section.append(heading, choices);
+      fragment.append(section);
+    });
+    grid.append(fragment);
   }
-  grid.replaceChildren();
-  EMOJI_GROUPS[Number(category.value) || 0].icons.forEach(icon => {
-    const button = document.createElement('button');
-    button.type = 'button';
-    button.className = 'emoji-choice';
-    button.textContent = icon;
+  grid.querySelectorAll('.emoji-choice').forEach(button => {
+    const icon = button.textContent;
     button.disabled = state.preferences.iconCatalog.includes(icon);
     button.setAttribute('aria-label', button.disabled ? icon + ' já adicionado' : 'Adicionar ' + icon);
-    button.addEventListener('click', () => addCatalogIcon(icon));
-    grid.append(button);
   });
-  grid.scrollTop = 0;
+  scrollToEmojiCategory();
+}
+
+function scrollToEmojiCategory() {
+  const grid = document.querySelector('#emoji-menu');
+  const section = grid.children[Number(document.querySelector('#emoji-category').value) || 0];
+  if (!section) return;
+  // Scroll only the palette, preserving the form and dropdown focus.
+  grid.scrollTop += section.getBoundingClientRect().top - grid.getBoundingClientRect().top;
+}
+
+function syncEmojiCategory() {
+  const grid = document.querySelector('#emoji-menu');
+  if (!grid.clientHeight) return;
+  const top = grid.getBoundingClientRect().top;
+  let active = 0;
+  for (const section of grid.children) {
+    if (section.getBoundingClientRect().top > top + 2) break;
+    active = Number(section.dataset.category);
+  }
+  if (grid.scrollTop + grid.clientHeight >= grid.scrollHeight - 2) active = grid.children.length - 1;
+  document.querySelector('#emoji-category').value = String(active);
 }
 
 function addCatalogIcon(icon) {
@@ -3864,7 +3894,12 @@ if (shouldBootstrapInstalledApp) {
 }
 
 // Catálogo é uma preferência global, independente do rascunho da bebida.
-document.querySelector('#emoji-category').addEventListener('change', renderEmojiMenu);
+document.querySelector('#emoji-category').addEventListener('change', scrollToEmojiCategory);
+document.querySelector('#emoji-menu').addEventListener('scroll', syncEmojiCategory, { passive: true });
+document.querySelector('#emoji-menu').addEventListener('click', event => {
+  const button = event.target.closest('.emoji-choice');
+  if (button && !button.disabled) addCatalogIcon(button.textContent);
+});
 document.querySelector('#cancel-add-icon').addEventListener('click', () => {
   document.querySelector('#icon-add-panel').hidden = true;
   iconOptions.querySelector('.icon-add').setAttribute('aria-expanded', 'false');

@@ -145,10 +145,13 @@ test('catálogo migra backups antigos e preserva lista vazia e ordem personaliza
 });
 test('catálogo interno tem opções únicas por categoria e inclui todos os padrões', () => {
  const c=vm.createContext({});
- vm.runInContext(source.slice(source.indexOf('const EMOJI_GROUPS'), source.indexOf('function setIconCatalogStatus')),c);
+ vm.runInContext(fs.readFileSync('emoji-data.js', 'utf8'),c);
  const groups=vm.runInContext('EMOJI_GROUPS',c);
  const icons=groups.flatMap(group=>group.icons);
- assert.ok(icons.length>500);
+ assert.equal(icons.length,3781);
+ assert.equal(new Set(icons).size,3781);
+ const segmenter = new Intl.Segmenter('pt', {granularity:'grapheme'});
+ for (const icon of icons) { assert.ok(icon.length <= 64); assert.equal([...segmenter.segment(icon)].length,1,icon); }
  for(const group of groups) assert.equal(new Set(group.icons).size,group.icons.length);
  const defaults=vm.runInNewContext(source.match(/const PICKER_ICONS = (\[[\s\S]*?\]);/)[1]);
  for(const icon of defaults) assert.ok(icons.includes(icon),icon);
@@ -171,4 +174,19 @@ test('salvar catálogo preserva bebidas e snapshots e só muda estado após grav
  assert.equal(saved.preferences.cleanInterface,false); assert.equal(state.preferences.iconCatalog.length,0);
  c.localStorage.setItem=()=>{throw Error('quota');};
  assert.throws(()=>c.persistIconCatalog(['⭐'])); assert.equal(state.preferences.iconCatalog.length,0);
+});
+
+
+test('rolagem sincroniza categoria; dropdown salta sem rolar o formulário', () => {
+ const category={value:'0'};
+ const grid={scrollTop:0,clientHeight:216,scrollHeight:1200,getBoundingClientRect:()=>({top:100})};
+ grid.children=[0,400,800].map((offset,index)=>({dataset:{category:String(index)},getBoundingClientRect:()=>({top:100+offset-grid.scrollTop})}));
+ const c=vm.createContext({document:{querySelector:selector=>selector==='#emoji-menu'?grid:category}});
+ vm.runInContext(extract('syncEmojiCategory')+'\n'+extract('scrollToEmojiCategory'),c);
+ grid.scrollTop=450;c.syncEmojiCategory();assert.equal(category.value,'1');
+ grid.scrollTop=50;c.syncEmojiCategory();assert.equal(category.value,'0');
+ category.value='2';c.scrollToEmojiCategory();assert.equal(grid.scrollTop,800);
+ c.syncEmojiCategory();assert.equal(category.value,'2');
+ grid.scrollTop=984;c.syncEmojiCategory();assert.equal(category.value,'2');
+ category.value='0';c.scrollToEmojiCategory();assert.equal(grid.scrollTop,0);
 });

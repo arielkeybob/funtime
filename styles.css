@@ -3182,7 +3182,11 @@ body {
 .emoji-menu-header label { font-size: .85rem; }
 .emoji-menu-header button { padding: 0; width: 32px; height: 32px; min-height: 0; font-size: 1.4rem; }
 #emoji-category { width: 100%; margin: 8px 0; padding: 8px; }
-.emoji-menu { display: grid; grid-template-columns: repeat(auto-fill, minmax(44px, 1fr)); gap: 4px; max-height: 216px; overflow-y: auto; overscroll-behavior: contain; }
+.emoji-menu { max-height: 264px; overflow-y: auto; overscroll-behavior: contain; overflow-anchor: none; }
+.emoji-section { margin: 0 0 12px; }
+.emoji-section:last-child { margin-bottom: 0; }
+.emoji-section h3 { margin: 0; padding: 8px 2px; font-size: .8rem; color: var(--muted); }
+.emoji-choices { display: grid; grid-template-columns: repeat(auto-fill, minmax(44px, 1fr)); gap: 4px; }
 .emoji-menu .emoji-choice { padding: 0; height: 44px; min-width: 0; border: 1px solid transparent; border-radius: 8px; background: transparent; font-size: 1.5rem; }
 .emoji-menu .emoji-choice:hover, .emoji-menu .emoji-choice:focus-visible { border-color: var(--accent); background: #29292f; }
 .emoji-menu .emoji-choice:disabled { opacity: .3; cursor: default; }

@@ -1,7 +1,7 @@
 # Intervalo — documentação de desenvolvimento
 
-**Versão da aplicação:** `v1.10.6`\
-**Versão do modelo persistido:** `DATA_VERSION = 8`\
+**Versão da aplicação:** `v1.14.0`\
+**Versão do modelo persistido:** `DATA_VERSION = 9`\
 **Autor exibido na interface:** `arielkeybob`  
 **Stack:** HTML + CSS + JavaScript puro  
 **Persistência:** `localStorage`  
@@ -2068,3 +2068,12 @@ showAppNotification(message, {title, type, persistent, undo, onDismiss}) central
 App/footer principal 1.13.1, cache intervalo-v1-13-1; DATA_VERSION 9 e políticas/aceite inalterados. Preservada a alteração manual “Excluir bebida mas manter histórico”.
 
 Validação: node --check app.js, sw.js, reset.js e ui.js; node --test tests/audit.test.cjs tests/reset.test.cjs tests/ui.test.cjs. Prévia isolada em 390×844: seleção inicial vazia, selecionar/desmarcar todas, bloqueio de confirmação vazia, transição para autenticação, exclusão simulada e aviso persistente. Sem alterações ao armazenamento real. Ainda não testados: teclado virtual e biometria em aparelhos Android/iOS, atualização da PWA instalada e todos os diálogos em dispositivos reais.
+
+
+## V1.14.0 — catálogo completo e rolagem de emojis
+
+O painel oferece 3.781 emojis Unicode 16.0 em nove categorias, incluindo tons de pele, sequências compostas e bandeiras. Dados locais em emoji-data.js, carregados antes de app.js e incluídos no pré-cache; fonte https://unicode.org/Public/emoji/16.0/emoji-test.txt e licença em UNICODE-LICENSE.txt. Os desenhos e o suporte a emojis recentes dependem do sistema; não são imagens do WhatsApp.
+
+Todas as categorias aparecem em uma rolagem contínua com títulos. O dropdown acompanha a categoria no topo da área visível; selecionar uma categoria manualmente desloca somente a lista de emojis. O painel é construído uma vez e atualiza as opções já adicionadas ao reabrir. Catálogo pessoal mantém o limite de 100 favoritos, exclusões e ordem; bebidas e snapshots preservados. DATA_VERSION permanece 9; app/footer 1.14.0 e cache intervalo-v1-14-0. Políticas e aceite inalterados.
+
+Validação: node --check app.js, sw.js e emoji-data.js; node --test tests/audit.test.cjs tests/reset.test.cjs tests/ui.test.cjs. Cobertura do catálogo, unicidade, sequências compostas, limites de persistência e sincronização/salto com geometria simulada. Não realizados: testes visuais/manuais no navegador, toque em Android/iOS, leitor de tela e atualização da PWA instalada. Não foi alterado armazenamento real.
