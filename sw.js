@@ -1,5 +1,5 @@
-const APP_VERSION = "2.0.0-dev.1";
-const CACHE_NAME = "funtime-v2-0-0-dev-1";
+const APP_VERSION = "2.0.0-dev.2";
+const CACHE_NAME = "funtime-v2-0-0-dev-2";
 const SHARE_IMPORT_CACHE_NAME = "funtime-share-target-v1";
 const SHARE_IMPORT_REQUEST_PATH = "./__shared-drinks-import__";
 const SHARE_TARGET_MAX_BYTES = 1500000;
@@ -11,6 +11,7 @@ const APP_SHELL = [
   "./app.js",
   "./migration.js",
   "./transition.js",
+  "./receiver.js",
   "./boot.js",
   "./emoji-data.js",
   "./ui.js",
@@ -141,7 +142,7 @@ self.addEventListener("fetch", (event) => {
   if (
     request.method === "POST" &&
     url.origin === self.location.origin &&
-    url.pathname.endsWith("/share-target")
+    url.pathname === new URL("./share-target", self.registration.scope).pathname
   ) {
     event.respondWith(handleShareTargetRequest(request));
     return;
@@ -149,6 +150,8 @@ self.addEventListener("fetch", (event) => {
 
   if (request.method !== "GET") return;
   if (url.origin !== self.location.origin) return;
+  // Não guardar recursos da ponte nem devolver o shell v2 fora do próprio escopo.
+  if (!url.pathname.startsWith(new URL(self.registration.scope).pathname)) return;
 
   event.respondWith(
     caches.open(CACHE_NAME).then(async (cache) => {

@@ -1,6 +1,6 @@
 # FunTime — documentação de desenvolvimento
 
-**Versão da aplicação:** `v2.0.0-dev.1`\
+**Versão da aplicação:** `v2.0.0-dev.2`\
 **Versão do modelo persistido:** `DATA_VERSION = 9`\
 **Autor exibido na interface:** `arielkeybob`  
 **Stack:** HTML + CSS + JavaScript puro  
@@ -8,11 +8,13 @@
 **Backend:** não existe  
 **Build step:** não existe
 
-## Preparação v2.0.0-dev.1
+## Preparação v2.0.0-dev.2
 
-Novo conjunto raster em `icons/*-v2.png`, mestre em `icons/funtime-master-v2.png`. `scripts/export-icons.cjs` usa Sharp apenas para exportar os tamanhos durante manutenção; não é dependência do app nem etapa de build para execução. O manifesto tem id `/funtime/`, com ícone maskable separado. Cache `funtime-v2-0-0-dev-1`; sua limpeza preserva os shells v1.
+Novo conjunto raster em `icons/*-v2.png`, mestre em `icons/funtime-master-v2.png`. `scripts/export-icons.cjs` usa Sharp apenas para exportar os tamanhos durante manutenção; não é dependência do app nem etapa de build para execução. O manifesto tem id `/funtime/`, com ícone maskable separado. Cache `funtime-v2-0-0-dev-2`; sua limpeza preserva os shells v1 e o fetch não intercepta recursos de `/intervalo/`.
 
-Boot temporariamente interrompido antes de acessar dados ou registrar SW: esta é uma prévia de identidade, não uma instalação funcional da v2. Implementar o receptor descrito em TRANSITION-V2.md antes de remover esse bloqueio. Os testes de atualização v1 devem ser executados contra a ponte preservada em main; não confundir esta prévia com uma atualização v1.16. Consulte V2-PREPARATION.md.
+`receiver.js` implementa inspeção, validação da ponte ativa, preparação e registro verificado de posse. Boot só permite `/funtime/` ou seu index, oferece instalação em abas comuns sem acessar dados privados e mantém o Web Lock por toda a vida da janela instalada. Sem posse, valida a ponte antes de esperar o lock e novamente sob o lock; estado existente sem ponte falha fechado. A confirmação antecede migração e posse. Sem dados, requer escolha explícita entre backup e início vazio; a restauração usa o fluxo existente com prévia e confirmação. Posse existente exige a presença dos dados, evitando recriação silenciosa depois de perda de armazenamento.
+
+Primeiro acesso transferido exige novo desbloqueio, sem sessão herdada da v1. Dados, segurança e aceite permanecem na mesma origem, sem transportar segredos via backup. O app busca pendências nos caminhos `/intervalo/` e `/funtime/`, em ambos os caches de compartilhamento. Testes históricos usam `tests/bridge-fixture.cjs`, congelando a v1.16 no commit `7c75410`; testes do receptor usam as duas versões reais. Consulte V2-PREPARATION.md.
 
 ## V1.16.0 — diário compacto e contrato de posse
 

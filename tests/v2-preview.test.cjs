@@ -15,18 +15,18 @@ test('ícones declarados têm dimensões PNG corretas e identidade v2',()=>{
     assert.doesNotMatch(fs.readFileSync(file,'utf8'),/v164\.png/);
   }
 });
-test('prévia não acessa armazenamento, não registra worker e não abre app',async()=>{
+test('v2 no endereço antigo não acessa armazenamento nem registra worker',async()=>{
   const elements=new Map();
   const context=vm.createContext({
-    document:{querySelector(selector){if(!elements.has(selector))elements.set(selector,{});return elements.get(selector);}},
+    document:{body:{classList:{add(){}}},querySelector(selector){if(!elements.has(selector))elements.set(selector,{});return elements.get(selector);}},
     navigator:{serviceWorker:{addEventListener(){},register(){assert.fail('Não registrar worker');}}},
-    window:{addEventListener(){}},
+    window:{addEventListener(){},location:{pathname:'/intervalo/'}},
     localStorage:{getItem(){assert.fail('Não ler dados');}},
-    console
+    console:{error(){}}
   });
   vm.runInContext(fs.readFileSync('boot.js','utf8'),context);
   await new Promise(resolve=>setImmediate(resolve));
-  assert.match(elements.get('#startup-message').textContent,/em preparação/);
+  assert.match(elements.get('#startup-message').textContent,/funtime/);
   assert.equal(elements.get('#startup-continue').hidden,true);
-  assert.equal(elements.get('#startup-retry').hidden,true);
+  assert.equal(elements.get('#startup-retry').hidden,false);
 });

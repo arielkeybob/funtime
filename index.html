@@ -19,7 +19,9 @@
     <h1>FunTime</h1>
     <p id="startup-message">Preparando o app…</p>
     <a id="startup-continue" class="primary-button" aria-describedby="startup-message" hidden>Abrir FunTime 2</a>
-    <button id="startup-retry" type="button" hidden>Tentar novamente</button>
+    <button id="startup-backup" class="primary-button" type="button" hidden>Tenho um backup</button>
+    <button id="startup-retry" class="primary-button" type="button" hidden>Tentar novamente</button>
+    <a id="startup-old" href="/intervalo/" hidden>Abrir versão anterior</a>
     <small>App para estudo · não é controle de segurança</small>
   </section>
   <section id="browser-gate" class="browser-gate" hidden aria-labelledby="browser-gate-title">
@@ -51,7 +53,7 @@
     <footer class="browser-gate-footer">
       <span>App para estudo · não é controle de segurança</span>
       <a class="policies-link" href="./policies.html">Políticas e informações</a>
-      <span>v2.0.0-dev.1 · By: arielkeybob</span>
+      <span>v2.0.0-dev.2 · By: arielkeybob</span>
     </footer>
   </section>
 
@@ -259,7 +261,7 @@
     <footer class="app-footer">
       <span class="app-footer-disclaimer">App para estudo · não é controle de segurança</span>
       <a class="policies-link" href="./policies.html">Políticas e informações</a>
-      <span class="app-footer-meta">v2.0.0-dev.1 · By: arielkeybob</span>
+      <span class="app-footer-meta">v2.0.0-dev.2 · By: arielkeybob</span>
     </footer>
   </div>
 
@@ -798,6 +800,7 @@
   </dialog>
   <script src="./migration.js" defer></script>
   <script src="./transition.js" defer></script>
+  <script src="./receiver.js" defer></script>
   <script src="./boot.js" defer></script>
 </body>
 </html>

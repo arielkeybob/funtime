@@ -7,6 +7,7 @@ const path=require('node:path');
 const {execFileSync}=require('node:child_process');
 const {pbkdf2Sync}=require('node:crypto');
 const {chromium}=require('playwright');
+const {bridgeFile}=require('./bridge-fixture.cjs');
 const baselines={ '1.14.3':'06feefe693059ce7ff5586e04ce847e704eacdec', '1.15.0':'5edf167ee9943ef836689af50d9a43f606c10861' };
 
 for(const [baseVersion,baseline] of Object.entries(baselines)) test(`atualização real do SW: v${baseVersion} → v1.16.0, PIN, duas janelas, arquivos e offline`, {timeout:90000}, async()=>{
@@ -19,7 +20,7 @@ for(const [baseVersion,baseline] of Object.entries(baselines)) test(`atualizaç�
     const file=decodeURIComponent(new URL(req.url,'http://localhost').pathname).replace(/^\/+/, '')||'index.html';
     if(file.includes('..')){res.writeHead(403).end();return;}
     let bytes;
-    try{bytes=current?fs.readFileSync(path.join(root,file)):old.get(file);}catch{}
+    try{bytes=current?bridgeFile(file):old.get(file);}catch{}
     if(!bytes){res.writeHead(404).end();return;}
     const type={'.js':'text/javascript','.html':'text/html','.css':'text/css','.webmanifest':'application/manifest+json','.png':'image/png'}[path.extname(file)]||'text/plain';
     res.writeHead(200,{'Content-Type':type,'Cache-Control':'no-store'});res.end(bytes);

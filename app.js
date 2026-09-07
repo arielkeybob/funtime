@@ -206,7 +206,7 @@ window.addEventListener("appinstalled", () => {
 const DATA_STORAGE_KEY = "funtime-v1-data";
 const LEGACY_DRINKS_STORAGE_KEY = "balada-v1-drinks";
 const DATA_VERSION = 9;
-const APP_VERSION = "2.0.0-dev.1";
+const APP_VERSION = "2.0.0-dev.2";
 const DRINK_EXPORT_TYPE = "funtime-drinks";
 const DRINK_EXPORT_FORMAT_VERSION = 1;
 const BACKUP_EXPORT_TYPE = "funtime-backup";
@@ -1715,18 +1715,23 @@ async function readPendingSharedDrinkFile() {
   if (!("caches" in window)) return null;
 
   try {
-    const requestUrl = new URL(SHARE_IMPORT_REQUEST_PATH, window.location.href).href;
+    const requestUrls = [...new Set([
+      new URL('/intervalo/__shared-drinks-import__', window.location.origin).href,
+      new URL(SHARE_IMPORT_REQUEST_PATH, window.location.href).href
+    ])];
     // Se ambas as gerações têm arquivos, mostrar a pendência antiga primeiro sem apagá-las em conjunto.
     for (const name of ["intervalo-share-target-v1", SHARE_IMPORT_CACHE_NAME]) {
       if (!(await caches.has(name))) continue;
       const cache = await caches.open(name);
-      const response = await cache.match(requestUrl);
-      if (!response) continue;
-      const filename = decodeURIComponent(response.headers.get("X-FunTime-Filename") || response.headers.get("X-Intervalo-Filename") || "FunTime-Bebidas.json");
-      const text = await response.text();
-      const file = new File([text], filename, { type: "application/json" });
-      if (!(await cache.delete(requestUrl))) throw new Error("Não foi possível consumir o arquivo recebido.");
-      return file;
+      for (const requestUrl of requestUrls) {
+        const response = await cache.match(requestUrl);
+        if (!response) continue;
+        const filename = decodeURIComponent(response.headers.get("X-FunTime-Filename") || response.headers.get("X-Intervalo-Filename") || "FunTime-Bebidas.json");
+        const text = await response.text();
+        const file = new File([text], filename, { type: "application/json" });
+        if (!(await cache.delete(requestUrl))) throw new Error("Não foi possível consumir o arquivo recebido.");
+        return file;
+      }
     }
     return null;
   } catch (error) {
@@ -1750,7 +1755,10 @@ async function maybeHandleSharedDrinkImport() {
     for (const name of ["intervalo-share-target-v1", SHARE_IMPORT_CACHE_NAME]) {
       if (await caches.has(name)) {
         const cache = await caches.open(name);
-        pending ||= Boolean(await cache.match(new URL(SHARE_IMPORT_REQUEST_PATH, window.location.href).href));
+        for (const requestUrl of [new URL('/intervalo/__shared-drinks-import__', window.location.origin).href,
+          new URL(SHARE_IMPORT_REQUEST_PATH, window.location.href).href]) {
+          pending ||= Boolean(await cache.match(requestUrl));
+        }
       }
     }
   }
@@ -3936,6 +3944,13 @@ async function bootstrapApp() {
   render();
   startClock();
   await initializeSecurity();
+  if (globalThis.FunTimeRestoreRequested) {
+    globalThis.FunTimeRestoreRequested = false;
+    openSettingsView();
+    restoreBackupButton.scrollIntoView({ block: "center" });
+    restoreBackupButton.focus();
+    showAppNotification("Toque em Restaurar backup e selecione o arquivo da versão anterior. Você poderá conferir a prévia antes de aplicar. Configure o bloqueio deste aparelho depois da restauração.", { title: "Recuperar seus dados", persistent: true });
+  }
   showRestoreSuccessIfNeeded();
   await maybeHandleSharedDrinkImport();
 }

@@ -1,6 +1,8 @@
-# FunTime — V2.0.0-dev.1
+# FunTime — V2.0.0-dev.2
 
-Preparação local da v2 iniciada: novo ícone de abacaxi com relógio, manifesto com identidade `/funtime/` e cache separado da v1. A tela desta prévia informa que a instalação ainda não está disponível e não abre armazenamento nem registra Service Worker. O receptor de migração será a próxima etapa. Não publicar esta árvore sobre `/intervalo/`. A ponte v1.16 está preservada em `main`, commit `7c75410`.
+Prévia funcional da v2: novo ícone de abacaxi com relógio, manifesto com identidade `/funtime/` e cache separado da v1. Pelo navegador, oferece instalação sem ler dados privados; pelo novo ícone, confirma a utilização dos dados existentes ou oferece backup/início sem dados. A transferência exige ponte v1.16 compatível e exclusividade de escrita, preservando bebidas, histórico, proteção e preferências. Não publicar esta árvore sobre `/intervalo/`. A ponte v1.16 está preservada no repositório `intervalo`, commit `7c75410`.
+
+Teste em [FunTime 2](https://arielkeybob.github.io/funtime/): faça backup na versão anterior, instale pelo novo endereço, feche a janela antiga e abra o novo ícone. Após confirmar a transferência, use a v2: a antiga deixa de editar os dados. Se o sistema separar o armazenamento, escolha “Tenho um backup” e use a restauração com prévia. O convite automático na v1 ainda não está ativado; esta versão continua em testes.
 
 Estado e próximos passos em [V2-PREPARATION.md](V2-PREPARATION.md). As seções seguintes documentam as entregas anteriores.
 

@@ -4,7 +4,7 @@ Este documento registra decisões de evolução e ideias em estudo. A migração
 
 ## Decisão acordada — FunTime v1.x → v2.0
 
-Preparação da v2 iniciada na branch `codex/funtime-v2`: conceito do ícone recebido, arte final gerada e integrada; nova identidade de manifesto preparada. Versão `2.0.0-dev.1`, sem receptor ou publicação. Próxima etapa: transferência sob lock e confirmação de armazenamento no contexto instalado, seguida da hospedagem dos dois endereços. Detalhes em [V2-PREPARATION.md](V2-PREPARATION.md).
+Preparação da v2 na branch `codex/funtime-v2`: ícones e identidade publicados na dev.1, commit `82499a5`, no repositório `funtime` e Pages `/funtime/`. A dev.2 implementa o receptor real, escolha explícita para armazenamento vazio, instalação e pendências do caminho antigo. Próxima etapa: testes de instalação/armazenamento nos aparelhos e correções antes de ativar o convite automático. A ponte permanece publicada em `/intervalo/`. Detalhes em [V2-PREPARATION.md](V2-PREPARATION.md).
 
 Registrada em 07/09/2026. Primeira fase v1.15.0 enviada ao repositório no commit `5edf167`. A segunda fase v1.16.0 integra esta entrega. Base da migração: v1.14.3, DATA_VERSION 9. O deployment do GitHub Pages deve ser conferido separadamente após o push. Consulte [MIGRATION-FUNTIME.md](MIGRATION-FUNTIME.md) e [TRANSITION-V2.md](TRANSITION-V2.md).
 

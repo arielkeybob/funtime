@@ -5,6 +5,7 @@ const fs=require('node:fs');
 const http=require('node:http');
 const path=require('node:path');
 const {chromium}=require('playwright');
+const {bridgeFile}=require('./bridge-fixture.cjs');
 const receiver=`<!doctype html><meta charset="utf-8"><p id="status">Pronto</p>
 <script src="/intervalo/transition.js"></script><script>
 window.takeOver = async () => {
@@ -46,7 +47,8 @@ test('duas instalações na mesma origem: receptor aguarda, v1 para antes de ler
     if(file.includes('..')){res.writeHead(403).end();return;}
     try{
       const type={'.js':'text/javascript','.html':'text/html','.css':'text/css','.png':'image/png','.webmanifest':'application/manifest+json'}[path.extname(file)]||'text/plain';
-      res.writeHead(200,{'Content-Type':type,'Cache-Control':'no-store'}).end(fs.readFileSync(path.join(root,file)));
+      const bytes=bridgeFile(file);if(!bytes){res.writeHead(404).end();return;}
+      res.writeHead(200,{'Content-Type':type,'Cache-Control':'no-store'}).end(bytes);
     }catch{res.writeHead(404).end();}
   });
   await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));

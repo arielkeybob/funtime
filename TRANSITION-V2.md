@@ -1,5 +1,7 @@
 # FunTime v1.16.0 — preparação da transição para v2
 
+Atualização de continuidade: o contrato abaixo está implementado na prévia v2.0.0-dev.2 por `receiver.js` e pelo boot v2. Estado atual em [V2-PREPARATION.md](V2-PREPARATION.md). As seções seguintes preservam o registro original da ponte v1.16.
+
 Registrado em 07/09/2026. Segunda fase v1.16.0 implementada, validada e incluída nesta entrega. A v2, seu ícone, sua publicação e o novo repositório ainda não foram executados. A v1.15.0 foi enviada a `origin/main` no commit `5edf167`; o deployment do GitHub Pages deve ser conferido separadamente após cada push.
 
 ## Entrega desta fase

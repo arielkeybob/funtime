@@ -2180,6 +2180,9 @@ body {
 .startup-screen small { display: block; margin-top: 24px; }
 .startup-screen #startup-continue { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 10px 18px; margin-top: 16px; text-decoration: none; }
 .startup-screen #startup-retry:not([hidden]) { display: block; min-height: 44px; margin: 12px auto 0; }
+.startup-screen #startup-backup:not([hidden]), .startup-screen #startup-old:not([hidden]) { display: block; min-height: 44px; margin: 12px auto 0; padding: 10px 14px; }
+.startup-screen #startup-retry { padding: 10px 18px; }
+.startup-screen #startup-old { color: #c5c5d0; font-size: 0.9rem; }
 .security-booting #app-shell,
 .app-locked #app-shell {
   visibility: hidden;

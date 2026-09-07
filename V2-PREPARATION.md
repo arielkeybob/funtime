@@ -3,10 +3,11 @@
 ## Estado
 
 - Branch de trabalho: `codex/funtime-v2`; base: v1.16.0, commit `7c75410` em main.
-- Versão de desenvolvimento: `2.0.0-dev.1`. App, boot, SW e footers alinhados; DATA_VERSION 9 e termos 1.0.1.
+- Versão de desenvolvimento: `2.0.0-dev.2`. App, boot, SW e footers alinhados; DATA_VERSION 9 e termos 1.0.1.
 - Ícones novos integrados no HTML, página de políticas, manifesto e pré-cache. Arquivos antigos permanecem disponíveis para compatibilidade e comparação, sem referências na interface atual.
 - Manifesto com id `/funtime/`. Start URL e escopo relativos devem resolver para `/funtime/` no deployment final. Shell v2 não remove caches da ponte v1.
-- A prévia mostra o novo ícone e bloqueia a inicialização antes de qualquer acesso a dados ou registro de SW. O fluxo v1 ainda presente no boot é material de migração, não o receptor final.
+- Dev.1 publicada no commit `82499a5` como prévia visual. Dev.2 libera instalação e receptor: confirma ponte ativa e lock, pede consentimento antes de assumir dados existentes e registra posse somente depois de migração e leitura verificadas. A v1 passa a apontar para a v2 após a transferência.
+- Sem dados acessíveis, nenhuma migração é anunciada como concluída: é preciso escolher backup ou início vazio. Backup abre Configurações após o aceite para selecionar arquivo, revisar e confirmar a restauração; não inclui PIN/credenciais/aceite. Esse caminho usa um estado novo explicitamente autorizado e não tenta adivinhar se havia dados em outro armazenamento.
 - Publicação da prévia autorizada para teste no celular: repositório `arielkeybob/funtime`, Pages em `/funtime/`, branch publicada `main`. A ponte `arielkeybob/intervalo` permanece na v1.16. Nenhum marcador `transition.json` pronto é incluído.
 
 ## Arte
@@ -23,12 +24,12 @@ Variante maskable gerada separadamente pela mesma ferramenta e salva em `icons/f
 
 Validação desta etapa: 50 testes existentes de dados/interface e 2 testes da prévia aprovados; sintaxe de app.js, sw.js, boot.js e exportador verificada. PNGs e dimensões conferidos; inspeção visual dos dois desenhos. Testes de migração entre instalações reais, launcher Android/iOS e receptor v2 ainda pendentes. Nenhum armazenamento real foi acessado.
 
-## Próxima etapa funcional
+## Próxima etapa de validação
 
-1. Implementar receptor real seguindo TRANSITION-V2.md: confirmar ponte ativa, obter o lock compartilhado, validar/reler dados e proteção, gravar/verificar posse antes de escritas incompatíveis.
-2. Distinguir instalação nova, armazenamento compartilhado e armazenamento isolado; oferecer restauração com prévia quando necessário, sem confirmar uma migração vazia.
-3. Consumir pendências de compartilhamento do endereço antigo, com prévia e confirmação; preservar sessão/segurança conforme o contexto real.
-4. Substituir o fluxo v1 do boot, retirar o bloqueio da prévia e testar os dois apps reais sob a mesma origem, inclusive falhas e retorno offline.
-5. Preparar repositório/deployment funtime mantendo a ponte intervalo; validar Android/iOS e só então publicar o marcador ready.
+Validação dev.2: 65 testes Node aprovados; seis cenários integrados no Edge aprovados (dois saltos históricos para a ponte congelada, um receptor simulado da ponte e três fluxos com receptor v2 real). Incluem espera pela última gravação v1, PIN incorreto/correto, continuidade offline, ausência de ponte, início sem dados e restauração com prévia/confirmação. Sintaxe de app.js, sw.js, boot.js e receiver.js conferida. Inspeção visual em 390×844. O modo instalado é simulado nos perfis temporários; testes reais Android/iOS e biometria permanecem pendentes.
 
-O usuário autorizou commit, push e disponibilização da prévia para testar no celular. Esta fase não equivale ao lançamento funcional da v2: a tela continua informando que a instalação e transferência não estão disponíveis.
+1. Testar instalação real Android/iOS, recortes dos ícones, desbloqueio/biometria e comportamento do armazenamento entre instalações. Fazer backup antes; manter o ícone antigo até conferir os dados na v2.
+2. Conferir restauração quando não houver dados compartilhados e recebimento de arquivos pelo compartilhamento nativo do aparelho.
+3. Corrigir os problemas encontrados e estabilizar a versão 2.0.0. Publicar o marcador ready somente depois de validar a entrega; os dois repositórios e endereços já existem.
+
+O usuário autorizou commit, push e disponibilização da prévia funcional para testar no celular. Esta fase continua sendo uma versão de desenvolvimento, sem anúncio automático na v1.
