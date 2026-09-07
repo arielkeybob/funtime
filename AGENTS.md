@@ -1,10 +1,11 @@
-# Continuidade do Intervalo
+# Continuidade do FunTime
 
-- Trabalhe e responda em português. Este é o app Intervalo; `balada` permanece como nome da pasta e de chaves legadas.
+- Trabalhe e responda em português. Este é o app FunTime, anteriormente Intervalo; `balada` permanece como nome da pasta e referência de compatibilidade de dados antigos durante a v1.x.
 - Use diretamente `C:\xampp\htdocs\balada`. Confira branch, diff e estado Git antes de editar; preserve alterações do usuário. Faça commit e push quando solicitados, sem interpretar exemplos antigos de publicação como autorização atual.
 - O remote esperado é `https://github.com/arielkeybob/intervalo.git`. Se ocorrer `dubious ownership`, use `git -c safe.directory=C:/xampp/htdocs/balada ...` restrito ao comando; não altere configuração global.
 - Leia [README.md](README.md) para o produto, [DEVELOPMENT.md](DEVELOPMENT.md) para arquitetura/testes e [ROADMAP.md](ROADMAP.md) para ideias futuras. [CONTEXT.md](CONTEXT.md) registra a recuperação do histórico e seus limites. Confirme alegações históricas no código.
-- Preserve HTML/CSS/JavaScript puro, sem build ou backend, salvo mudança de escopo solicitada. O histórico local é a fonte de verdade; cálculos usam timestamps e snapshots históricos. Preserve dados e migrações, inclusive chaves legadas.
+- A migração de marca para FunTime foi acordada: versões v1.x preservam a instalação e migram dados; v2.0 pode assumir nova identidade/instalação, repositório, URL e ícone. Consulte o estado da implementação em [MIGRATION-FUNTIME.md](MIGRATION-FUNTIME.md) e as próximas fases em [ROADMAP.md](ROADMAP.md). Pasta e remote acima permanecem atuais; planejamento não é autorização automática de publicação.
+- Preserve HTML/CSS/JavaScript puro, sem build ou backend, salvo mudança de escopo solicitada. O histórico local é a fonte de verdade; cálculos usam timestamps e snapshots históricos. Preserve dados e compatibilidade das migrações; na migração FunTime, chaves legadas só são removidas após verificar os destinos conforme MIGRATION-FUNTIME.md.
 - Mantenha a interface limpa e compacta ativada por padrão, sem ocultar erros, alertas essenciais ou o disclaimer. Use o rótulo **Exportar bebidas**. Exportar/importar bebidas e backup/restauração devem continuar visual e funcionalmente separados.
 - Importar bebidas preserva o histórico. Backup inclui bebidas, histórico e preferências; exclui PIN, credenciais, bloqueio e sessão do aparelho. Preserve prévias e confirmação antes de aplicar arquivos.
 - Compartilhamento entre usuários, relações entre bebidas, mesclagem e backup criptografado permanecem no roadmap, sem implementação até solicitação. O app acompanha intervalos configurados e não determina segurança para consumo.

@@ -10,7 +10,7 @@ function extract(name) {
 }
 function context(extra = {}) {
   const ctx = vm.createContext({ console, Blob, File, crypto: require('node:crypto').webcrypto, ...extra });
-  vm.runInContext(`const DATA_VERSION=9, PICKER_ICONS=["🍺","💧"], DEFAULT_ICON='🍺', DRINK_EXPORT_TYPE='intervalo-drinks', DRINK_EXPORT_FORMAT_VERSION=1, BACKUP_EXPORT_TYPE='intervalo-backup', BACKUP_EXPORT_FORMAT_VERSION=1, DATA_STORAGE_KEY='balada-v1-data';`, ctx);
+  vm.runInContext(`const DATA_VERSION=9, PICKER_ICONS=["🍺","💧"], DEFAULT_ICON='🍺', DRINK_EXPORT_TYPE='funtime-drinks', DRINK_EXPORT_FORMAT_VERSION=1, BACKUP_EXPORT_TYPE='funtime-backup', BACKUP_EXPORT_FORMAT_VERSION=1, DATA_STORAGE_KEY='funtime-v1-data';`, ctx);
   for (const name of ['normalizeIconCatalog', 'persistIconCatalog', 'createId', 'normalizeIcon', 'normalizeIntervalMinutes', 'normalizeDoseSize', 'normalizeData', 'normalizeImportedDrink', 'validateDrinkExportPayload', 'validateBackupPayload', 'confirmBackupRestore', 'buildCurrentAppData', 'persistDrinkList']) vm.runInContext(extract(name), ctx);
   vm.runInContext('async ' + extract('readJsonFile'), ctx);
   return ctx;
@@ -23,6 +23,18 @@ test('backup válido conserva snapshots; bebida excluída continua restaurável'
   assert.equal(c.validateBackupPayload(b).events[0].intervalMinutes,90);
   b.data.drinks=[];
   assert.equal(c.validateBackupPayload(b).events.length,1);
+});
+
+test('FunTime lê arquivos das duas marcas e distingue bebidas de backup', () => {
+  const c=context();
+  for (const prefix of ['intervalo', 'funtime']) {
+    const b=backup(); b.type=`${prefix}-backup`;
+    assert.equal(c.validateBackupPayload(b).events[0].id,'e1');
+    const drinks={type:`${prefix}-drinks`,formatVersion:1,drinks:[drink]};
+    assert.equal(c.validateDrinkExportPayload(drinks).length,1);
+    assert.throws(()=>c.validateDrinkExportPayload(b),/Restaurar backup/);
+    assert.throws(()=>c.validateBackupPayload(drinks),/Importar bebidas/);
+  }
 });
 test('backup rejeita schema futuro, datas inválidas, duplicatas e tipos incorretos', () => {
   const c=context();

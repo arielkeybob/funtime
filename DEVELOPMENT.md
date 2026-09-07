@@ -1,12 +1,24 @@
-# Intervalo — documentação de desenvolvimento
+# FunTime — documentação de desenvolvimento
 
-**Versão da aplicação:** `v1.14.3`\
+**Versão da aplicação:** `v1.15.0`\
 **Versão do modelo persistido:** `DATA_VERSION = 9`\
 **Autor exibido na interface:** `arielkeybob`  
 **Stack:** HTML + CSS + JavaScript puro  
 **Persistência:** `localStorage`  
 **Backend:** não existe  
 **Build step:** não existe
+
+## V1.15.0 — migração de identidade e armazenamento
+
+O ponto de entrada agora carrega `migration.js` e `boot.js`. Na PWA, o boot verifica a versão ativa do SW e solicita `FUNTIME_PREPARE`: páginas antigas do app são navegadas para o shell novo e precisam responder ao protocolo antes da migração. Uma janela obtém o Web Lock `funtime-app-writer-v1` por toda sua vida; as demais aguardam, sem carregar estado privado ou escrever. O retorno de BFCache recarrega a página. A tela comum de instalação carrega estado vazio em memória e não ocupa esse lock.
+
+O diário `funtime-migration-v1` tem etapas `prepared`, `committed`, `done`. Guarda temporariamente os valores de origem/destino, inclusive segurança; nunca é incluído nos backups. Cópias são relidas, conflitos bloqueiam e a limpeza só ocorre após a confirmação conjunta. Ao concluir, o diário fica apenas com versão/estado. Não há transação nativa entre várias chaves de localStorage; o protocolo permite retomar após falhas sem iniciar o app durante estado parcial. Não fazer downgrade para código antigo após a migração; ele desconhece os novos nomes.
+
+Os dados usam `funtime-v1-data`, segurança `funtime-security-v1` e aceite `funtime-terms-v1`. Sessão, rascunho e aviso de restauração usam sessionStorage com prefixo `funtime-`; falha da sessão impede reaproveitar desbloqueio. Os adaptadores para `balada-*`, `intervalo-*` e os tipos de arquivos antigos são compatibilidade intencional. O reset considera as duas gerações e mantém estado vazio válido e aceite, sem ressuscitar dados.
+
+O shell passa a `funtime-v1-15-0` e o SW procura recursos apenas no cache ativo, evitando misturar gerações. A limpeza remove caches versionados de shell; caches de recebimento ficam preservados. Na leitura de compartilhamento, pendência antiga tem precedência; se houver também uma nova, ela permanece para a próxima abertura. O arquivo só é retirado depois de seu conteúdo ser lido e construído. Os headers das duas gerações são reconhecidos.
+
+Além dos testes existentes, executar `node --test tests/migration.test.cjs`. O teste `node --test tests/migration-browser.test.cjs` exige Playwright no NODE_PATH e Edge instalado (ou PWA_BROWSER_CHANNEL compatível). Ele serve a v1.14.3 do commit `06feefe693059ce7ff5586e04ce847e704eacdec` e a árvore atual em uma origem HTTP local temporária, com perfis isolados. Não acessa dados reais. O modo instalado é simulado via navigator.standalone; isso testa o código/SW no navegador, não a instalação no launcher nem biometria real. Situação final dos testes em [MIGRATION-FUNTIME.md](MIGRATION-FUNTIME.md).
 
 > Este documento descreve a arquitetura e o comportamento técnico da versão `v1.10.2`. Ele foi escrito para facilitar manutenção, depuração e evolução do projeto sem depender do histórico da conversa em que o app foi criado.
 

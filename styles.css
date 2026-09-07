@@ -2175,6 +2175,9 @@ body {
 }
 
 /* V1.8.0 — Configurações, privacidade e bloqueio do aplicativo */
+.boot-pending > :not(#startup-screen) { display: none !important; }
+.startup-screen { max-width: 420px; margin: 15vh auto; padding: 24px; text-align: center; }
+.startup-screen small { display: block; margin-top: 24px; }
 .security-booting #app-shell,
 .app-locked #app-shell {
   visibility: hidden;

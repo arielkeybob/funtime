@@ -1,6 +1,6 @@
-const APP_VERSION = "1.14.3";
-const CACHE_NAME = "intervalo-v1-14-3";
-const SHARE_IMPORT_CACHE_NAME = "intervalo-share-target-v1";
+const APP_VERSION = "1.15.0";
+const CACHE_NAME = "funtime-v1-15-0";
+const SHARE_IMPORT_CACHE_NAME = "funtime-share-target-v1";
 const SHARE_IMPORT_REQUEST_PATH = "./__shared-drinks-import__";
 const SHARE_TARGET_MAX_BYTES = 1500000;
 
@@ -9,6 +9,8 @@ const APP_SHELL = [
   "./index.html",
   "./styles.css",
   "./app.js",
+  "./migration.js",
+  "./boot.js",
   "./emoji-data.js",
   "./ui.js",
   "./reset.js",
@@ -51,7 +53,7 @@ self.addEventListener("activate", (event) => {
       caches.keys().then((keys) =>
         Promise.all(
           keys
-            .filter((key) => key.startsWith("intervalo-") && key !== CACHE_NAME && key !== SHARE_IMPORT_CACHE_NAME)
+            .filter((key) => /^(?:intervalo|funtime)-v\d/.test(key) && key !== CACHE_NAME)
             .map((key) => caches.delete(key))
         )
       ),
@@ -67,7 +69,38 @@ self.addEventListener("message", (event) => {
   if (event.data?.type === "SKIP_WAITING") {
     self.skipWaiting();
   }
+  if (event.data?.type === "FUNTIME_PREPARE") {
+    event.waitUntil(prepareMigrationClients().then(
+      () => event.ports[0]?.postMessage({ ready: true }),
+      () => event.ports[0]?.postMessage({ ready: false })
+    ));
+  }
 });
+
+function isAppWindow(client) {
+  const url = new URL(client.url), scope = new URL(self.registration.scope);
+  return url.origin === scope.origin && (url.pathname === scope.pathname || url.pathname === `${scope.pathname}index.html`);
+}
+
+function hasMigrationBoot(client) {
+  return new Promise(resolve => {
+    const channel = new MessageChannel();
+    const timer = setTimeout(() => { channel.port1.close(); resolve(false); }, 1500);
+    channel.port1.onmessage = event => { clearTimeout(timer); channel.port1.close(); resolve(event.data?.protocol === 1); };
+    client.postMessage({ type: "FUNTIME_BOOT_CHECK" }, [channel.port2]);
+  });
+}
+
+async function prepareMigrationClients() {
+  // Novas navegações já recebem o shell novo. Retirar código antigo antes de tocar nas chaves.
+  const clients = (await self.clients.matchAll({ type: "window", includeUncontrolled: true })).filter(isAppWindow);
+  await Promise.all(clients.map(async client => {
+    if (await hasMigrationBoot(client)) return;
+    const updated = await client.navigate(client.url);
+    if (!updated && await self.clients.get(client.id)) throw new Error("Não foi possível atualizar a janela.");
+    if (updated && !(await hasMigrationBoot(updated))) throw new Error("Janela ainda não atualizada.");
+  }));
+}
 
 async function handleShareTargetRequest(request) {
   try {
@@ -87,7 +120,7 @@ async function handleShareTargetRequest(request) {
       new Response(text, {
         headers: {
           "Content-Type": "application/json;charset=utf-8",
-          "X-Intervalo-Filename": encodeURIComponent(file.name || "Intervalo-Bebidas.json")
+          "X-FunTime-Filename": encodeURIComponent(file.name || "FunTime-Bebidas.json")
         }
       })
     );
@@ -116,12 +149,13 @@ self.addEventListener("fetch", (event) => {
   if (url.origin !== self.location.origin) return;
 
   event.respondWith(
-    caches.match(request).then(async (cached) => {
+    caches.open(CACHE_NAME).then(async (cache) => {
+      const cached = await cache.match(request);
       if (cached) return cached;
 
       // Para navegações dentro do escopo, o index em cache é o fallback offline.
       if (request.mode === "navigate") {
-        const cachedIndex = await caches.match("./index.html");
+        const cachedIndex = await cache.match("./index.html");
         if (cachedIndex) return cachedIndex;
       }
 
@@ -134,7 +168,7 @@ self.addEventListener("fetch", (event) => {
         return response;
       } catch (error) {
         if (request.mode === "navigate") {
-          const fallback = await caches.match("./index.html");
+          const fallback = await cache.match("./index.html");
           if (fallback) return fallback;
         }
         throw error;

@@ -1,7 +1,7 @@
 {
   "id": "./",
-  "name": "Intervalo",
-  "short_name": "Intervalo",
+  "name": "FunTime",
+  "short_name": "FunTime",
   "description": "Registro pessoal de bebidas e acompanhamento de intervalos configurados.",
   "start_url": "./",
   "scope": "./",

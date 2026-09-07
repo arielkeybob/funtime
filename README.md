@@ -1,4 +1,16 @@
-# Intervalo — V1.14.3
+# FunTime — V1.15.0
+
+## V1.15.0 — primeira fase da migração FunTime
+
+FunTime é o novo nome do Intervalo. A atualização mantém a identidade instalada, o endereço, o repositório e o ícone da v1.x. A nova identidade/instalação e o novo ícone ficam para a v2.0, conforme [ROADMAP.md](ROADMAP.md).
+
+Antes de abrir os dados, `boot.js` coordena a atualização das janelas antigas pelo Service Worker e obtém exclusividade de escrita usando Web Locks. Uma janela instalada usa o app por vez; outras aguardam e continuam automaticamente quando ela fecha. A página comum de instalação não lê os dados privados nem ocupa essa exclusividade. É necessário um navegador com Web Locks e Service Worker, em HTTPS ou localhost.
+
+`migration.js` transfere dados, proteção e aceite para `funtime-*`, com diário recuperável, verificação das gravações e limpeza posterior das origens. Falhas bloqueiam a abertura com erro visível; não descartam a origem para iniciar vazia ou sem proteção. Uma origem antiga que reapareça após a conclusão é tratada como conflito, sem mesclagem automática.
+
+Novos arquivos usam `FunTime-Bebidas-…txt` / `FunTime-Backup-…json` e tipos `funtime-drinks` / `funtime-backup`. O app também lê os tipos antigos; versões antigas podem rejeitar os arquivos novos. Histórico e preferências continuam fora da importação de bebidas, e segurança/aceite/sessão/diário de migração continuam fora do backup. Importações compartilhadas pendentes da geração antiga são preservadas.
+
+APP_VERSION e footers 1.15.0; cache `funtime-v1-15-0`; DATA_VERSION 9 e TERMS_VERSION 1.0.1 preservados. O nome no launcher depende da atualização de metadados feita pelo sistema. Plano, protocolo e validação em [MIGRATION-FUNTIME.md](MIGRATION-FUNTIME.md). As seções abaixo registram versões históricas do Intervalo.
 
 ## V1.14.3 — formato e rótulos dos contadores
 

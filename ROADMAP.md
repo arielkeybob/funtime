@@ -1,6 +1,33 @@
-# Roadmap · Intervalo
+# Roadmap · FunTime
 
-Este documento registra ideias em estudo. Os itens abaixo não representam funcionalidades confirmadas e podem mudar conforme testes de UX, limitações técnicas e requisitos de privacidade e segurança.
+Este documento registra decisões de evolução e ideias em estudo. A migração FunTime abaixo foi acordada com o usuário; os demais estudos não representam funcionalidades confirmadas e podem mudar conforme testes de UX, limitações técnicas e requisitos de privacidade e segurança.
+
+## Decisão acordada — FunTime v1.x → v2.0
+
+Registrada em 07/09/2026. Primeira fase implementada localmente na v1.15.0; publicação não realizada. Base da migração: v1.14.3, DATA_VERSION 9. Consulte os testes e limites em [MIGRATION-FUNTIME.md](MIGRATION-FUNTIME.md).
+
+O usuário quer substituir a identidade Intervalo por FunTime, incluindo posteriormente repositório, URL do GitHub Pages e referências internas. A transição terá versões v1.x que migram automaticamente ao tocar em Atualizar. Na v2.0, o usuário aceita uma mudança mais ampla, mesmo que os dispositivos interpretem FunTime como um novo app e precisem de nova instalação. O usuário pretende fornecer um novo ícone para distinguir a v2 da anterior.
+
+- **v1.15.0 — primeira fase:** marca FunTime, armazenamento com nomes FunTime e compatibilidade com dados/arquivos anteriores, mantendo endereço e identidade da PWA atual. Implementação e validação em [MIGRATION-FUNTIME.md](MIGRATION-FUNTIME.md).
+- **v1.x seguinte — preparação da v2:** consolidar migração recuperável, validar a passagem entre instalações e preparar orientação quando a v2 estiver disponível. v1.16.0 é uma previsão, não uma release obrigatória nem concluída.
+- **v2.0.0 — identidade definitiva:** novo ícone fornecido pelo usuário, nova identidade da PWA, repositório `funtime`, GitHub Pages em `/funtime/`, referências e caminhos atuais FunTime. Mudança da pasta local também deverá ser coordenada nessa etapa.
+
+### Critérios de continuidade
+
+- Quem pular versões intermediárias também deve conseguir migrar. Manter migrações cumulativas e compatibilidade de arquivos antigos; não remover o suporte apenas porque uma versão intermediária foi publicada.
+- Planejar uma ponte no endereço antigo antes de renomear o repositório. Instalações antigas precisam continuar encontrando a atualização, o manifest e os recursos de transição necessários.
+- Preservar bebidas, IDs, eventos, timestamps, snapshots e preferências. Evitar duas instalações gravando estados divergentes; o mecanismo de transferência e de desativação de escrita da instalação antiga precisa ser projetado e testado antes da v2.
+- A preservação automática da proteção entre instalações depende do navegador, armazenamento e origem. Não prometer reaproveitamento universal de credenciais nem incluir PIN/credenciais nos backups.
+- O botão Atualizar controla a atualização do app; nome/ícone no sistema dependem do navegador e podem não acompanhar imediatamente. A v1 mantém a identidade instalada; a v2 pode rompê-la explicitamente.
+- FunTime será a marca atual. Referências antigas indispensáveis à leitura de formatos e migrações ficarão isoladas e documentadas; histórico documental e Git não serão reescritos para fingir que a marca antiga nunca existiu. A palavra “intervalo” como duração permanece.
+- A primeira fase foi solicitada após o registro do plano. Essa implementação local não implica autorização de commit, push, renomeação remota ou publicação; as fases seguintes continuam planejadas.
+
+### Referências técnicas
+
+- [Identidade da PWA](https://developer.chrome.com/docs/capabilities/pwa-manifest-id): preservar o identificador efetivo mantém a identidade instalada; alterá-lo pode criar outro app.
+- [Atualização de PWA e metadados](https://web.dev/learn/pwa/update): atualização do Service Worker e dos metadados da instalação são processos distintos e dependem da plataforma.
+- [Web Storage](https://developer.mozilla.org/en-US/docs/Web/API/Web_Storage_API): localStorage pertence à origem, não ao caminho; mudar somente `/intervalo/` para `/funtime/` não cria, por si só, outro armazenamento.
+- [Renomeação de repositório](https://docs.github.com/en/repositories/creating-and-managing-repositories/renaming-a-repository): planejar separadamente o endereço do GitHub Pages.
 
 ## Próximos estudos
 

@@ -68,14 +68,14 @@ function setBrowserInstallUI(mode) {
   if (mode === "pending") {
     status.hidden = false;
     statusTitle.textContent = "Instalação iniciada";
-    statusText.textContent = "Aguarde o ícone do Intervalo aparecer no aparelho. Depois, abra por ele.";
+    statusText.textContent = "Aguarde o ícone do FunTime aparecer no aparelho. Depois, abra por ele.";
     return;
   }
 
   if (mode === "installed") {
     status.hidden = false;
-    statusTitle.textContent = "Intervalo detectado";
-    statusText.textContent = "O navegador detectou o app neste aparelho. Abra pelo ícone do Intervalo.";
+    statusTitle.textContent = "FunTime detectado";
+    statusText.textContent = "O navegador detectou o app neste aparelho. Abra pelo ícone do FunTime.";
     return;
   }
 
@@ -203,20 +203,20 @@ window.addEventListener("appinstalled", () => {
 
 
 
-const DATA_STORAGE_KEY = "balada-v1-data";
+const DATA_STORAGE_KEY = "funtime-v1-data";
 const LEGACY_DRINKS_STORAGE_KEY = "balada-v1-drinks";
 const DATA_VERSION = 9;
-const APP_VERSION = "1.14.3";
-const DRINK_EXPORT_TYPE = "intervalo-drinks";
+const APP_VERSION = "1.15.0";
+const DRINK_EXPORT_TYPE = "funtime-drinks";
 const DRINK_EXPORT_FORMAT_VERSION = 1;
-const BACKUP_EXPORT_TYPE = "intervalo-backup";
+const BACKUP_EXPORT_TYPE = "funtime-backup";
 const BACKUP_EXPORT_FORMAT_VERSION = 1;
 const DRINK_FILE_MAX_BYTES = 1500000;
 const BACKUP_FILE_MAX_BYTES = 20000000;
-const SHARE_IMPORT_CACHE_NAME = "intervalo-share-target-v1";
+const SHARE_IMPORT_CACHE_NAME = "funtime-share-target-v1";
 const SHARE_IMPORT_REQUEST_PATH = "./__shared-drinks-import__";
-const SECURITY_STORAGE_KEY = "intervalo-security-v1";
-const SECURITY_SESSION_KEY = "intervalo-security-session-v1";
+const SECURITY_STORAGE_KEY = "funtime-security-v1";
+const SECURITY_SESSION_KEY = "funtime-security-session-v1";
 const SECURITY_CONFIG_VERSION = 3;
 const PIN_LENGTH = 4;
 const LEGACY_PIN_LENGTH = 6;
@@ -245,7 +245,7 @@ const LONG_PRESS_MOVE_TOLERANCE = 12;
 const DOUBLE_TAP_MAX_DELAY_MS = 430;
 const DOUBLE_TAP_FEEDBACK_MS = 430;
 
-const initialData = loadAppData();
+const initialData = IS_STANDALONE_APP ? loadAppData() : normalizeData({ drinks: [], events: [] });
 
 const state = {
   drinks: initialData.drinks,
@@ -266,7 +266,7 @@ const state = {
   toastTimerId: null,
   reorderAnimationUntil: 0,
   pendingDoubleTap: null,
-  securityConfig: loadSecurityConfig(),
+  securityConfig: IS_STANDALONE_APP ? loadSecurityConfig() : getDefaultSecurityConfig(),
   securityLocked: false,
   securityHiddenAt: null,
   privacyShieldVisible: false,
@@ -443,6 +443,7 @@ function loadSecurityConfig() {
   try {
     const raw = localStorage.getItem(SECURITY_STORAGE_KEY);
     if (!raw) return getDefaultSecurityConfig();
+    globalThis.FunTimeMigration?.validate(raw, SECURITY_STORAGE_KEY);
     const parsed = JSON.parse(raw);
     const config = getDefaultSecurityConfig();
     config.enabled = Boolean(parsed.enabled);
@@ -472,11 +473,13 @@ function loadSecurityConfig() {
     return config;
   } catch (error) {
     console.warn("Não foi possível carregar as configurações de segurança.", error);
+    if (globalThis.FunTimeMigration) throw new Error("Não foi possível ler a proteção do app. Tente novamente.");
     return getDefaultSecurityConfig();
   }
 }
 
 function loadSecuritySession() {
+  if (globalThis.FunTimeSessionReady === false) return null;
   try {
     const raw = sessionStorage.getItem(SECURITY_SESSION_KEY);
     if (!raw) return null;
@@ -620,11 +623,11 @@ async function createDeviceCredential() {
   const credential = await navigator.credentials.create({
     publicKey: {
       challenge,
-      rp: { name: "Intervalo" },
+      rp: { name: "FunTime" },
       user: {
         id: userId,
-        name: `intervalo-${Date.now()}@local`,
-        displayName: "Intervalo",
+        name: `funtime-${Date.now()}@local`,
+        displayName: "FunTime",
       },
       pubKeyCredParams: [
         { type: "public-key", alg: -7 },
@@ -1068,6 +1071,7 @@ function loadAppData() {
     const raw = localStorage.getItem(DATA_STORAGE_KEY);
 
     if (raw) {
+      globalThis.FunTimeMigration?.validate(raw, DATA_STORAGE_KEY);
       const parsed = JSON.parse(raw);
       const normalized = normalizeData(parsed);
 
@@ -1075,8 +1079,10 @@ function loadAppData() {
         return normalized;
       }
     }
+    if (globalThis.FunTimeMigration) throw new Error("Os dados migrados não estão disponíveis.");
   } catch (error) {
     console.error("Não foi possível carregar os dados atuais.", error);
+    if (globalThis.FunTimeMigration) throw new Error("Não foi possível ler seus dados. Tente novamente.");
   }
 
   return migrateLegacyData();
@@ -1288,8 +1294,8 @@ async function deliverDrinksExport(file) {
     try {
       await navigator.share({
         files: [file],
-        title: "Intervalo — bebidas",
-        text: "Arquivo de bebidas exportado pelo Intervalo.",
+        title: "FunTime — bebidas",
+        text: "Arquivo de bebidas exportado pelo FunTime.",
       });
       return "native";
     } catch (error) {
@@ -1322,7 +1328,7 @@ function exportDrinks() {
     })),
   };
 
-  const filename = `Intervalo-Bebidas-${getFileDateStamp()}.txt`;
+  const filename = `FunTime-Bebidas-${getFileDateStamp()}.txt`;
   const file = new File(
     [JSON.stringify(payload, null, 2)],
     filename,
@@ -1346,7 +1352,7 @@ function createBackup() {
     data: buildCurrentAppData(),
   };
 
-  const filename = `Intervalo-Backup-${getFileDateStamp({ includeTime: true })}.json`;
+  const filename = `FunTime-Backup-${getFileDateStamp({ includeTime: true })}.json`;
   const file = new File(
     [JSON.stringify(payload, null, 2)],
     filename,
@@ -1409,11 +1415,11 @@ function normalizeImportedDrink(raw, usedIds = new Set()) {
 }
 
 function validateDrinkExportPayload(payload) {
-  if (!payload || payload.type !== DRINK_EXPORT_TYPE) {
-    if (payload?.type === BACKUP_EXPORT_TYPE) {
+  if (!payload || ![DRINK_EXPORT_TYPE, "intervalo-drinks"].includes(payload.type)) {
+    if ([BACKUP_EXPORT_TYPE, "intervalo-backup"].includes(payload?.type)) {
       throw new Error("Este arquivo é um backup. Use “Restaurar backup”.");
     }
-    throw new Error("Este não é um arquivo de bebidas do Intervalo.");
+    throw new Error("Este não é um arquivo de bebidas do FunTime.");
   }
 
   if (payload.formatVersion !== DRINK_EXPORT_FORMAT_VERSION) {
@@ -1599,11 +1605,11 @@ function confirmDrinkImport() {
 }
 
 function validateBackupPayload(payload) {
-  if (!payload || payload.type !== BACKUP_EXPORT_TYPE) {
-    if (payload?.type === DRINK_EXPORT_TYPE) {
+  if (!payload || ![BACKUP_EXPORT_TYPE, "intervalo-backup"].includes(payload.type)) {
+    if ([DRINK_EXPORT_TYPE, "intervalo-drinks"].includes(payload?.type)) {
       throw new Error("Este arquivo contém somente bebidas. Use “Importar bebidas”.");
     }
-    throw new Error("Este não é um backup do Intervalo.");
+    throw new Error("Este não é um backup do FunTime.");
   }
 
   if (payload.formatVersion !== BACKUP_EXPORT_FORMAT_VERSION) {
@@ -1695,7 +1701,7 @@ function confirmBackupRestore() {
   try {
     // Gravação única: se o setItem falhar, o estado atual permanece intacto.
     localStorage.setItem(DATA_STORAGE_KEY, JSON.stringify(pending.data));
-    try { sessionStorage.setItem("intervalo-restore-success-v1", "1"); } catch { /* Aviso opcional: dados já restaurados. */ }
+    try { sessionStorage.setItem("funtime-restore-success-v1", "1"); } catch { /* Aviso opcional: dados já restaurados. */ }
     closeBackupRestoreDialog();
     window.location.reload();
   } catch (error) {
@@ -1709,17 +1715,20 @@ async function readPendingSharedDrinkFile() {
   if (!("caches" in window)) return null;
 
   try {
-    const cache = await caches.open(SHARE_IMPORT_CACHE_NAME);
     const requestUrl = new URL(SHARE_IMPORT_REQUEST_PATH, window.location.href).href;
-    const response = await cache.match(requestUrl);
-
-    if (!response) return null;
-
-    await cache.delete(requestUrl);
-
-    const filename = decodeURIComponent(response.headers.get("X-Intervalo-Filename") || "Intervalo-Bebidas.json");
-    const text = await response.text();
-    return new File([text], filename, { type: "application/json" });
+    // Se ambas as gerações têm arquivos, mostrar a pendência antiga primeiro sem apagá-las em conjunto.
+    for (const name of ["intervalo-share-target-v1", SHARE_IMPORT_CACHE_NAME]) {
+      if (!(await caches.has(name))) continue;
+      const cache = await caches.open(name);
+      const response = await cache.match(requestUrl);
+      if (!response) continue;
+      const filename = decodeURIComponent(response.headers.get("X-FunTime-Filename") || response.headers.get("X-Intervalo-Filename") || "FunTime-Bebidas.json");
+      const text = await response.text();
+      const file = new File([text], filename, { type: "application/json" });
+      if (!(await cache.delete(requestUrl))) throw new Error("Não foi possível consumir o arquivo recebido.");
+      return file;
+    }
+    return null;
   } catch (error) {
     console.warn("Não foi possível recuperar o arquivo recebido.", error);
     return null;
@@ -1736,7 +1745,16 @@ function cleanSharedImportUrl() {
 
 async function maybeHandleSharedDrinkImport() {
   const url = new URL(window.location.href);
-  if (!url.searchParams.has("import-shared")) return;
+  let pending = url.searchParams.has("import-shared");
+  if (!pending && "caches" in window) {
+    for (const name of ["intervalo-share-target-v1", SHARE_IMPORT_CACHE_NAME]) {
+      if (await caches.has(name)) {
+        const cache = await caches.open(name);
+        pending ||= Boolean(await cache.match(new URL(SHARE_IMPORT_REQUEST_PATH, window.location.href).href));
+      }
+    }
+  }
+  if (!pending) return;
 
   if (state.securityConfig.enabled && state.securityLocked) {
     state.pendingSharedImportCheck = true;
@@ -1756,8 +1774,8 @@ async function maybeHandleSharedDrinkImport() {
 
 function showRestoreSuccessIfNeeded() {
   try {
-    if (sessionStorage.getItem("intervalo-restore-success-v1") !== "1") return;
-    sessionStorage.removeItem("intervalo-restore-success-v1");
+    if (sessionStorage.getItem("funtime-restore-success-v1") !== "1") return;
+    sessionStorage.removeItem("funtime-restore-success-v1");
   } catch { return; }
   showToast("Backup restaurado.");
 }
@@ -3899,7 +3917,8 @@ if ("serviceWorker" in navigator) {
     window.location.reload();
   });
 
-  window.addEventListener("load", initializeServiceWorker);
+  if (document.readyState === "complete") initializeServiceWorker();
+  else window.addEventListener("load", initializeServiceWorker);
   window.addEventListener("online", () => checkForAppUpdate({ force: true }));
 }
 
@@ -3926,7 +3945,7 @@ const shouldBootstrapInstalledApp = initializeRuntimeMode();
 if (shouldBootstrapInstalledApp) {
   bootstrapApp().catch((error) => {
     console.error("Falha ao inicializar o aplicativo.", error);
-    document.body.classList.remove("security-booting");
+    globalThis.FunTimeBootFailure?.(new Error("Não foi possível abrir o app. Tente novamente."));
   });
 }
 

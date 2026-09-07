@@ -111,11 +111,21 @@ async function executeDataReset(pending) {
   if (pending.action === 'all') {
     // O estado vazio válido impede ressuscitar dados legados, inclusive se a limpeza falhar.
     localStorage.removeItem(LEGACY_DRINKS_STORAGE_KEY);
-    if ('caches' in window) await caches.delete(SHARE_IMPORT_CACHE_NAME);
+    if (globalThis.FunTimeMigration) {
+      for (const key of FunTimeMigration.oldKeys) {
+        if (key !== 'intervalo-terms-v1' && key !== 'intervalo-security-v1') localStorage.removeItem(key);
+      }
+      for (const [key] of FunTimeMigration.sessionPairs) sessionStorage.removeItem(key);
+    }
+    if ('caches' in window) {
+      await caches.delete(SHARE_IMPORT_CACHE_NAME);
+      await caches.delete('intervalo-share-target-v1');
+    }
     sessionStorage.removeItem(SECURITY_SESSION_KEY);
-    sessionStorage.removeItem('intervalo-restore-success-v1');
-    sessionStorage.removeItem('intervalo-terms-draft-v1');
+    sessionStorage.removeItem('funtime-restore-success-v1');
+    sessionStorage.removeItem('funtime-terms-draft-v1');
     // Proteção é removida por último. Não usar clear(): a origem pode hospedar outros apps.
+    localStorage.removeItem('intervalo-security-v1');
     localStorage.removeItem(SECURITY_STORAGE_KEY);
     state.securityConfig = getDefaultSecurityConfig();
     clearTimeout(state.pinLockoutTimer);

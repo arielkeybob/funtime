@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#09090b">
   <meta name="description" content="App simples para anotar bebidas e acompanhar intervalos configurados.">
-  <title>Início · Intervalo</title>
+  <title>Início · FunTime</title>
 
   <link rel="manifest" href="./manifest.webmanifest">
   <link rel="icon" href="./icons/favicon-32-v164.png" sizes="32x32">
@@ -13,12 +13,18 @@
   <link rel="apple-touch-icon" href="./icons/apple-touch-icon-v164.png" sizes="180x180">
   <link rel="stylesheet" href="./styles.css">
 </head>
-<body class="clean-mode security-booting">
+<body class="clean-mode security-booting boot-pending">
+  <section id="startup-screen" class="startup-screen" role="status" aria-live="polite">
+    <h1>FunTime</h1>
+    <p id="startup-message">Preparando o app…</p>
+    <button id="startup-retry" type="button" hidden>Tentar novamente</button>
+    <small>App para estudo · não é controle de segurança</small>
+  </section>
   <section id="browser-gate" class="browser-gate" hidden aria-labelledby="browser-gate-title">
     <main class="browser-gate-main">
       <div class="browser-gate-card">
         <img class="browser-gate-logo" src="./icons/icon-192-v164.png" alt="">
-        <h1 id="browser-gate-title">Intervalo</h1>
+        <h1 id="browser-gate-title">FunTime</h1>
         <p class="browser-gate-lead">Instale o app para continuar.</p>
 
         <div class="browser-install-panel">
@@ -43,12 +49,12 @@
     <footer class="browser-gate-footer">
       <span>App para estudo · não é controle de segurança</span>
       <a class="policies-link" href="./policies.html">Políticas e informações</a>
-      <span>v1.14.3 · By: arielkeybob</span>
+      <span>v1.15.0 · By: arielkeybob</span>
     </footer>
   </section>
 
   <section id="terms-screen" class="information-page terms-screen" hidden aria-labelledby="terms-title">
-    <p class="eyebrow">Intervalo · Projeto de estudo</p>
+    <p class="eyebrow">FunTime · Projeto de estudo</p>
     <h1 id="terms-title" tabindex="-1">Antes de continuar</h1>
     <p>Um projeto para estudo de programação e fins acadêmicos e didáticos. Anote bebidas e acompanhe intervalos que você configura.</p>
     <form id="terms-form">
@@ -251,7 +257,7 @@
     <footer class="app-footer">
       <span class="app-footer-disclaimer">App para estudo · não é controle de segurança</span>
       <a class="policies-link" href="./policies.html">Políticas e informações</a>
-      <span class="app-footer-meta">v1.14.3 · By: arielkeybob</span>
+      <span class="app-footer-meta">v1.15.0 · By: arielkeybob</span>
     </footer>
   </div>
 
@@ -684,7 +690,7 @@
         </button>
         <button id="choose-pin-auth" class="security-method-option" type="button">
           <span class="security-method-icon" aria-hidden="true">••</span>
-          <span><strong>PIN do aplicativo</strong><small>Crie um PIN de 4 dígitos exclusivo para o Intervalo.</small></span>
+          <span><strong>PIN do aplicativo</strong><small>Crie um PIN de 4 dígitos exclusivo para o FunTime.</small></span>
         </button>
       </div>
       <p id="security-method-error" class="form-error" role="alert" hidden></p>
@@ -721,7 +727,7 @@
     <div class="lock-card">
       <img class="lock-logo" src="./icons/icon-192-v164.png" alt="">
       <p class="eyebrow">Uso pessoal</p>
-      <h1 id="lock-title">Intervalo</h1>
+      <h1 id="lock-title">FunTime</h1>
       <p class="lock-message">Aplicativo bloqueado</p>
 
       <div id="device-unlock-panel" class="unlock-panel" hidden>
@@ -743,7 +749,7 @@
 
   <div id="privacy-shield" class="privacy-shield" hidden>
     <img src="./icons/icon-192-v164.png" alt="">
-    <strong>Intervalo</strong>
+    <strong>FunTime</strong>
   </div>
 
 
@@ -788,10 +794,7 @@
       <div class="dialog-actions"><button id="reset-cancel" type="button" class="secondary">Cancelar</button><button id="reset-submit" type="submit" class="reset-confirm">Continuar</button></div>
     </form>
   </dialog>
-  <script src="./policies.js" defer></script>
-  <script src="./ui.js" defer></script>
-  <script src="./emoji-data.js" defer></script>
-  <script src="./app.js" defer></script>
-  <script src="./reset.js" defer></script>
+  <script src="./migration.js" defer></script>
+  <script src="./boot.js" defer></script>
 </body>
 </html>
