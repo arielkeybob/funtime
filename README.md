@@ -1,4 +1,10 @@
-# Intervalo — V1.14.0
+# Intervalo — V1.14.1
+
+## V1.14.1 — emojis sem variações de tom de pele
+
+Removidas 1.875 variações de tom de pele do painel. Permanecem 1.906 emojis, com a apresentação padrão (amarela quando aplicável), nas mesmas nove categorias e com rolagem contínua. Ícones pessoais já salvos, bebidas e snapshots históricos são preservados.
+
+App e footers 1.14.1; cache intervalo-v1-14-1; DATA_VERSION permanece 9. Validação: node --check app.js, sw.js e emoji-data.js; node --test tests/audit.test.cjs tests/reset.test.cjs tests/ui.test.cjs, incluindo ausência de modificadores de pele e presença de emojis padrão. Não realizados testes manuais em celular/navegador nem atualização de PWA instalada.
 
 ## V1.14.0 — catálogo completo e rolagem de emojis
 

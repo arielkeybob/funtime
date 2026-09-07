@@ -148,8 +148,10 @@ test('catálogo interno tem opções únicas por categoria e inclui todos os pad
  vm.runInContext(fs.readFileSync('emoji-data.js', 'utf8'),c);
  const groups=vm.runInContext('EMOJI_GROUPS',c);
  const icons=groups.flatMap(group=>group.icons);
- assert.equal(icons.length,3781);
- assert.equal(new Set(icons).size,3781);
+ assert.equal(icons.length,1906);
+ assert.equal(new Set(icons).size,1906);
+ assert.ok(icons.every(icon => !/[\u{1F3FB}-\u{1F3FF}]/u.test(icon)));
+ for (const icon of ['👋', '👍', '🙏', '🧑', '👨', '👩', '🧙‍♂️', '🤝']) assert.ok(icons.includes(icon), icon);
  const segmenter = new Intl.Segmenter('pt', {granularity:'grapheme'});
  for (const icon of icons) { assert.ok(icon.length <= 64); assert.equal([...segmenter.segment(icon)].length,1,icon); }
  for(const group of groups) assert.equal(new Set(group.icons).size,group.icons.length);
