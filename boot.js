@@ -35,7 +35,7 @@
       return false;
     }
     const version = await request(worker, "GET_VERSION");
-    if (version?.version !== "1.16.0") {
+    if (version?.version !== "2.0.0-dev.1") {
       // Não ativar uma atualização sem a ação explícita do usuário.
       await registration.update();
       show("Há uma atualização necessária para abrir o FunTime.");
@@ -127,6 +127,12 @@
     document.body.classList.remove("boot-pending");
   }
   async function start() {
+    // Prévia de identidade: não instalar nem assumir dados antes do receptor v2.
+    show("FunTime 2.0 em preparação. A instalação e a transferência de dados ainda não estão disponíveis. Continue usando a versão 1.16.");
+    retry.hidden = true;
+    continueLink.hidden = true;
+    return;
+    /* O fluxo v1 abaixo será substituído pelo receptor v2 antes da liberação. */
     if (hasNewOwner()) return;
     const releasePromise = discoverNewRelease();
     const installed = navigator.standalone === true || ["standalone", "fullscreen", "minimal-ui"].some(mode => matchMedia(`(display-mode: ${mode})`).matches);

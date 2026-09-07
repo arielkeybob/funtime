@@ -4,6 +4,8 @@ Este documento registra decisões de evolução e ideias em estudo. A migração
 
 ## Decisão acordada — FunTime v1.x → v2.0
 
+Preparação da v2 iniciada na branch `codex/funtime-v2`: conceito do ícone recebido, arte final gerada e integrada; nova identidade de manifesto preparada. Versão `2.0.0-dev.1`, sem receptor ou publicação. Próxima etapa: transferência sob lock e confirmação de armazenamento no contexto instalado, seguida da hospedagem dos dois endereços. Detalhes em [V2-PREPARATION.md](V2-PREPARATION.md).
+
 Registrada em 07/09/2026. Primeira fase v1.15.0 enviada ao repositório no commit `5edf167`. A segunda fase v1.16.0 integra esta entrega. Base da migração: v1.14.3, DATA_VERSION 9. O deployment do GitHub Pages deve ser conferido separadamente após o push. Consulte [MIGRATION-FUNTIME.md](MIGRATION-FUNTIME.md) e [TRANSITION-V2.md](TRANSITION-V2.md).
 
 O usuário quer substituir a identidade Intervalo por FunTime, incluindo posteriormente repositório, URL do GitHub Pages e referências internas. A transição terá versões v1.x que migram automaticamente ao tocar em Atualizar. Na v2.0, o usuário aceita uma mudança mais ampla, mesmo que os dispositivos interpretem FunTime como um novo app e precisem de nova instalação. O usuário pretende fornecer um novo ícone para distinguir a v2 da anterior.

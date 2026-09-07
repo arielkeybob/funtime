@@ -1,4 +1,8 @@
-# FunTime — V1.16.0
+# FunTime — V2.0.0-dev.1
+
+Preparação local da v2 iniciada: novo ícone de abacaxi com relógio, manifesto com identidade `/funtime/` e cache separado da v1. A tela desta prévia informa que a instalação ainda não está disponível e não abre armazenamento nem registra Service Worker. O receptor de migração será a próxima etapa. Não publicar esta árvore sobre `/intervalo/`. A ponte v1.16 está preservada em `main`, commit `7c75410`.
+
+Estado e próximos passos em [V2-PREPARATION.md](V2-PREPARATION.md). As seções seguintes documentam as entregas anteriores.
 
 ## V1.16.0 — preparação da transição para v2
 

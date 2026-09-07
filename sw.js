@@ -1,5 +1,5 @@
-const APP_VERSION = "1.16.0";
-const CACHE_NAME = "funtime-v1-16-0";
+const APP_VERSION = "2.0.0-dev.1";
+const CACHE_NAME = "funtime-v2-0-0-dev-1";
 const SHARE_IMPORT_CACHE_NAME = "funtime-share-target-v1";
 const SHARE_IMPORT_REQUEST_PATH = "./__shared-drinks-import__";
 const SHARE_TARGET_MAX_BYTES = 1500000;
@@ -18,10 +18,11 @@ const APP_SHELL = [
   "./policies.js",
   "./policies.html",
   "./manifest.webmanifest",
-  "./icons/icon-192-v164.png",
-  "./icons/icon-512-v164.png",
-  "./icons/apple-touch-icon-v164.png",
-  "./icons/favicon-32-v164.png"
+  "./icons/icon-192-v2.png",
+  "./icons/icon-512-v2.png",
+  "./icons/icon-maskable-512-v2.png",
+  "./icons/apple-touch-icon-v2.png",
+  "./icons/favicon-32-v2.png"
 ];
 
 async function precacheAppShell() {
@@ -54,7 +55,7 @@ self.addEventListener("activate", (event) => {
       caches.keys().then((keys) =>
         Promise.all(
           keys
-            .filter((key) => /^(?:intervalo|funtime)-v1-/.test(key) && key !== CACHE_NAME)
+            .filter((key) => /^funtime-v2-/.test(key) && key !== CACHE_NAME)
             .map((key) => caches.delete(key))
         )
       ),

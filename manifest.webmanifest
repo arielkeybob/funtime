@@ -1,5 +1,5 @@
 {
-  "id": "./",
+  "id": "/funtime/",
   "name": "FunTime",
   "short_name": "FunTime",
   "description": "Registro pessoal de bebidas e acompanhamento de intervalos configurados.",
@@ -13,22 +13,28 @@
     {
       "platform": "webapp",
       "url": "./manifest.webmanifest",
-      "id": "./"
+      "id": "/funtime/"
     }
   ],
   "prefer_related_applications": false,
   "icons": [
     {
-      "src": "./icons/icon-192-v164.png",
+      "src": "./icons/icon-192-v2.png",
       "sizes": "192x192",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
     },
     {
-      "src": "./icons/icon-512-v164.png",
+      "src": "./icons/icon-512-v2.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
+    },
+    {
+      "src": "./icons/icon-maskable-512-v2.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
     }
   ],
   "share_target": {
