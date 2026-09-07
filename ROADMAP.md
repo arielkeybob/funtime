@@ -4,12 +4,12 @@ Este documento registra decisões de evolução e ideias em estudo. A migração
 
 ## Decisão acordada — FunTime v1.x → v2.0
 
-Registrada em 07/09/2026. Primeira fase implementada localmente na v1.15.0; publicação não realizada. Base da migração: v1.14.3, DATA_VERSION 9. Consulte os testes e limites em [MIGRATION-FUNTIME.md](MIGRATION-FUNTIME.md).
+Registrada em 07/09/2026. Primeira fase v1.15.0 enviada ao repositório no commit `5edf167`. A segunda fase v1.16.0 integra esta entrega. Base da migração: v1.14.3, DATA_VERSION 9. O deployment do GitHub Pages deve ser conferido separadamente após o push. Consulte [MIGRATION-FUNTIME.md](MIGRATION-FUNTIME.md) e [TRANSITION-V2.md](TRANSITION-V2.md).
 
 O usuário quer substituir a identidade Intervalo por FunTime, incluindo posteriormente repositório, URL do GitHub Pages e referências internas. A transição terá versões v1.x que migram automaticamente ao tocar em Atualizar. Na v2.0, o usuário aceita uma mudança mais ampla, mesmo que os dispositivos interpretem FunTime como um novo app e precisem de nova instalação. O usuário pretende fornecer um novo ícone para distinguir a v2 da anterior.
 
 - **v1.15.0 — primeira fase:** marca FunTime, armazenamento com nomes FunTime e compatibilidade com dados/arquivos anteriores, mantendo endereço e identidade da PWA atual. Implementação e validação em [MIGRATION-FUNTIME.md](MIGRATION-FUNTIME.md).
-- **v1.x seguinte — preparação da v2:** consolidar migração recuperável, validar a passagem entre instalações e preparar orientação quando a v2 estiver disponível. v1.16.0 é uma previsão, não uma release obrigatória nem concluída.
+- **v1.16.0 — preparação da v2:** diário compacto e recuperação de versões anteriores, caches separados por geração, descoberta segura da publicação em `/funtime/transition.json`, contrato de posse e orientação após a futura transferência. A passagem na mesma origem é exercitada com um receptor de teste; o app v2 e sua publicação continuam pendentes. Detalhes em [TRANSITION-V2.md](TRANSITION-V2.md).
 - **v2.0.0 — identidade definitiva:** novo ícone fornecido pelo usuário, nova identidade da PWA, repositório `funtime`, GitHub Pages em `/funtime/`, referências e caminhos atuais FunTime. Mudança da pasta local também deverá ser coordenada nessa etapa.
 
 ### Critérios de continuidade

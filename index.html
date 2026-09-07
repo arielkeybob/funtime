@@ -17,6 +17,7 @@
   <section id="startup-screen" class="startup-screen" role="status" aria-live="polite">
     <h1>FunTime</h1>
     <p id="startup-message">Preparando o app…</p>
+    <a id="startup-continue" class="primary-button" aria-describedby="startup-message" hidden>Abrir FunTime 2</a>
     <button id="startup-retry" type="button" hidden>Tentar novamente</button>
     <small>App para estudo · não é controle de segurança</small>
   </section>
@@ -49,7 +50,7 @@
     <footer class="browser-gate-footer">
       <span>App para estudo · não é controle de segurança</span>
       <a class="policies-link" href="./policies.html">Políticas e informações</a>
-      <span>v1.15.0 · By: arielkeybob</span>
+      <span>v1.16.0 · By: arielkeybob</span>
     </footer>
   </section>
 
@@ -257,7 +258,7 @@
     <footer class="app-footer">
       <span class="app-footer-disclaimer">App para estudo · não é controle de segurança</span>
       <a class="policies-link" href="./policies.html">Políticas e informações</a>
-      <span class="app-footer-meta">v1.15.0 · By: arielkeybob</span>
+      <span class="app-footer-meta">v1.16.0 · By: arielkeybob</span>
     </footer>
   </div>
 
@@ -795,6 +796,7 @@
     </form>
   </dialog>
   <script src="./migration.js" defer></script>
+  <script src="./transition.js" defer></script>
   <script src="./boot.js" defer></script>
 </body>
 </html>

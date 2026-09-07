@@ -1,5 +1,7 @@
 # Migração FunTime — fase 1 (v1.15.0)
 
+Nota de continuidade: a primeira fase abaixo foi enviada ao repositório no commit `5edf167`. Seu texto registra a entrega original. A segunda fase v1.16.0 e o contrato da futura v2 estão em [TRANSITION-V2.md](TRANSITION-V2.md); o diário compacto e a migração assíncrona dessa fase substituem o protocolo interno descrito para a v1.15.
+
 Data: 07/09/2026. **Estado: implementado localmente, sem publicação.** Decisão geral e destino v2.0 em [ROADMAP.md](ROADMAP.md). Base da migração: app v1.14.3; destino v1.15.0; DATA_VERSION 9 e TERMS_VERSION 1.0.1 preservados; pasta `C:\xampp\htdocs\balada`, remote `https://github.com/arielkeybob/intervalo.git`.
 
 As seções 1–5 preservam a especificação que orientou a implementação. O protocolo efetivamente adotado, evidências e limitações estão em **Implementação e validação** ao final.

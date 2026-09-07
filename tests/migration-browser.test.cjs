@@ -7,9 +7,9 @@ const path=require('node:path');
 const {execFileSync}=require('node:child_process');
 const {pbkdf2Sync}=require('node:crypto');
 const {chromium}=require('playwright');
-const baseline='06feefe693059ce7ff5586e04ce847e704eacdec'; // v1.14.3
+const baselines={ '1.14.3':'06feefe693059ce7ff5586e04ce847e704eacdec', '1.15.0':'5edf167ee9943ef836689af50d9a43f606c10861' };
 
-test('atualização real do SW: v1.14.3 → FunTime, PIN, duas janelas, arquivos e offline', {timeout:90000}, async()=>{
+for(const [baseVersion,baseline] of Object.entries(baselines)) test(`atualização real do SW: v${baseVersion} → v1.16.0, PIN, duas janelas, arquivos e offline`, {timeout:90000}, async()=>{
   let current=false;
   const old=new Map(),root=process.cwd();
   const git=(...args)=>execFileSync('git',['-c',`safe.directory=${root.replaceAll('\\','/')}`,...args],{cwd:root});
@@ -30,28 +30,37 @@ test('atualização real do SW: v1.14.3 → FunTime, PIN, duas janelas, arquivos
   try{
     browser=await chromium.launch({headless:true,channel:process.env.PWA_BROWSER_CHANNEL||'msedge'});
     const context=await browser.newContext({viewport:{width:390,height:844}});
-    await context.addInitScript(()=>Object.defineProperty(navigator,'standalone',{value:true}));
+    await context.addInitScript(()=>{
+      Object.defineProperty(navigator,'standalone',{value:true});
+      // Exercitar download de forma determinística; a folha nativa é validada no aparelho.
+      Object.defineProperty(navigator,'canShare',{value:()=>false,configurable:true});
+    });
     const errors=[];
     context.on('page',p=>p.on('pageerror',e=>errors.push(e.message)));
     const a=await context.newPage();
     await a.goto(base);
     await a.evaluate(()=>navigator.serviceWorker.ready);
+    // A v1.15 recarrega após a primeira ativação do SW. Só semear depois do boot.
+    await a.locator('#terms-screen').waitFor({state:'visible'});
     const data={version:9,drinks:[{id:'d',name:'Teste de migração',icon:'🍍',intervalMinutes:30,askDoseSize:false}],events:[{id:'e',drinkId:'d',drinkName:'Snapshot preservado',drinkIcon:'💧',consumedAt:1700000000000,intervalMinutes:90,doseSize:null}],preferences:{cleanInterface:true,countingMode:'normal',iconCatalog:[]}};
     const salt=Buffer.from('fixture-salt-1234');
     const protection={version:3,enabled:true,method:'pin',relockSeconds:0,pin:{salt:salt.toString('base64url'),hash:pbkdf2Sync('1234',salt,210000,32,'sha256').toString('base64url'),iterations:210000,length:4}};
     const seed={'balada-v1-data':JSON.stringify(data),'intervalo-security-v1':JSON.stringify(protection),'intervalo-terms-v1':JSON.stringify({termsAccepted:true,termsVersion:'1.0.1',termsAcceptedAt:1700000000000})};
-    await a.evaluate(seed=>{for(const [k,v]of Object.entries(seed))localStorage.setItem(k,v);},seed);
+    const input=baseVersion==='1.15.0'?Object.fromEntries(Object.entries(seed).map(([key,value])=>[key.replace('balada-v1-data','funtime-v1-data').replace('intervalo-','funtime-'),value])):seed;
+    await a.evaluate(seed=>{for(const [k,v]of Object.entries(seed))localStorage.setItem(k,v);},input);
     await a.reload();await a.locator('#pin-unlock-value').waitFor({state:'visible'});
     // Uma segunda janela antiga permanece aberta quando o usuário atualiza a primeira.
-    const b=await context.newPage();await b.goto(base);await b.locator('#pin-unlock-value').waitFor({state:'visible'});
+    const b=await context.newPage();await b.goto(base);
+    if(baseVersion==='1.15.0')await b.waitForFunction(()=>document.querySelector('#startup-message').textContent.includes('outra janela'));
+    else await b.locator('#pin-unlock-value').waitFor({state:'visible'});
     current=true;
     await a.evaluate(async()=>{const r=await navigator.serviceWorker.getRegistration();await r.update();});
     await a.locator('#apply-update').waitFor({state:'visible'});
     await a.locator('#pin-unlock-value').fill('1234');await a.locator('#pin-unlock-button').click();
     await a.locator('#lock-screen').waitFor({state:'hidden'});
     await a.locator('#apply-update').click();
-    await a.waitForFunction(()=>document.title.includes('FunTime'));
-    await b.waitForFunction(()=>document.title.includes('FunTime'));
+    await a.waitForFunction(()=>document.querySelector('.app-footer-meta').textContent.includes('1.16.0'));
+    await b.waitForFunction(()=>document.querySelector('.app-footer-meta').textContent.includes('1.16.0'));
     await a.waitForFunction(()=>localStorage.getItem('funtime-migration-v1')===JSON.stringify({version:1,phase:'done'}));
     const pages=[a,b];
     let active;
@@ -78,13 +87,14 @@ test('atualização real do SW: v1.14.3 → FunTime, PIN, duas janelas, arquivos
     assert.equal(await active.locator('#terms-screen').isVisible(),false);
     if(process.env.PWA_SCREENSHOT_DIR){
       fs.mkdirSync(process.env.PWA_SCREENSHOT_DIR,{recursive:true});
-      await active.screenshot({path:path.join(process.env.PWA_SCREENSHOT_DIR,'funtime-v115-home.png'),fullPage:true});
+      await active.screenshot({path:path.join(process.env.PWA_SCREENSHOT_DIR,'funtime-v116-home.png'),fullPage:true});
     }
     const formats=await active.evaluate(()=>({drinks:DRINK_EXPORT_TYPE,backup:BACKUP_EXPORT_TYPE,data:DATA_VERSION}));
     assert.deepEqual(formats,{drinks:'funtime-drinks',backup:'funtime-backup',data:9});
     await active.evaluate(()=>openSettingsView());
     for(const [button,prefix,type] of [['#export-drinks','FunTime-Bebidas-','funtime-drinks'],['#create-backup','FunTime-Backup-','funtime-backup']]){
-      const downloadPromise=active.waitForEvent('download');await active.locator(button).click();const download=await downloadPromise;
+      const downloadPromise=active.waitForEvent('download',{timeout:10000});await active.locator(button).click();
+      const download=await downloadPromise.catch(async error=>{throw new Error(`${button}: ${error.message}; ${JSON.stringify(await active.evaluate(()=>({view:state.currentView,locked:state.securityLocked,drinks:state.drinks.length,version:APP_VERSION,notice:document.querySelector('#toast-message').textContent})))}`);});
       assert.ok(download.suggestedFilename().startsWith(prefix));
       const payload=JSON.parse(fs.readFileSync(await download.path(),'utf8'));assert.equal(payload.type,type);
       assert.equal(JSON.stringify(payload).includes(protection.pin.hash),false);

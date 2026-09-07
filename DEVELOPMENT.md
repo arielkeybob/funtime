@@ -1,12 +1,20 @@
 # FunTime — documentação de desenvolvimento
 
-**Versão da aplicação:** `v1.15.0`\
+**Versão da aplicação:** `v1.16.0`\
 **Versão do modelo persistido:** `DATA_VERSION = 9`\
 **Autor exibido na interface:** `arielkeybob`  
 **Stack:** HTML + CSS + JavaScript puro  
 **Persistência:** `localStorage`  
 **Backend:** não existe  
 **Build step:** não existe
+
+## V1.16.0 — diário compacto e contrato de posse
+
+`FunTimeMigration.migrate()` agora é assíncrona e deve ser aguardada sob o lock exclusivo. O diário interno usa SHA-256 das origens/destinos durante prepared/committed; as cópias completas dos diários v1.15 são validadas e substituídas pelo formato compacto antes da retomada. O estado final continua version 1/done. DATA_VERSION permanece 9. Não é criptografia de backup.
+
+`transition.js`, carregado antes do boot e incluído no cache, consulta `/funtime/transition.json` sem dados privados. Somente uma resposta JSON direta, ready, versão 2.x e protocolo compatível oferece abrir a nova instalação; ausência, erro ou resposta inválida mantêm a v1 normal. Também lê `funtime-installation-owner-v1`, que a v1 nunca grava. Se a futura v2 registrar posse válida, o boot interrompe antes de ler dados/segurança ou carregar app.js e mostra um link restrito a `/funtime/` na mesma origem. O lock `funtime-app-writer-v1` deverá ser compartilhado pela v2. O registro e o diário continuam fora do backup.
+
+O handshake de janelas passa a protocol 2, incluindo a atualização de páginas v1.15. `GET_VERSION` e a resposta de `FUNTIME_PREPARE` anunciam capacidade de transição. Limpeza de shells fica restrita à geração v1, preservando v2 e caches de importação. Detalhes e condições de publicação em [TRANSITION-V2.md](TRANSITION-V2.md).
 
 ## V1.15.0 — migração de identidade e armazenamento
 

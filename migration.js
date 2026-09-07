@@ -73,56 +73,96 @@ globalThis.FunTimeMigration = (() => {
     storage.setItem(key, value);
     if (storage.getItem(key) !== value) throw new Error("Não foi possível verificar a gravação. Tente novamente.");
   }
-  function migrate(storage) {
-    const existing = storage.getItem(markerKey);
-    let journal = existing === null ? null : parse(existing);
-    if (journal && (journal.version !== 1 || !["prepared", "committed", "done"].includes(journal.phase))) fail();
-    if (journal?.phase === "done") {
-      // Nunca reaproveitar uma origem reaparecida: um cliente antigo pode ter escrito nela.
+  async function fingerprint(raw) {
+    if (raw === null) return null;
+    const bytes = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(raw));
+    return Array.from(new Uint8Array(bytes), byte => byte.toString(16).padStart(2, "0")).join("");
+  }
+  async function hashes(values) {
+    return Object.fromEntries(await Promise.all(Object.entries(values).map(async ([key, raw]) => [key, await fingerprint(raw)])));
+  }
+  async function compactV115(storage, previous, journal) {
+    const validRaw = raw => raw === null || typeof raw === "string";
+    if (!["prepared", "committed"].includes(journal.phase) || !object(journal.sources) || !object(journal.targets) ||
+        oldKeys.some(key => !Object.hasOwn(journal.sources, key) || !validRaw(journal.sources[key])) ||
+        pairs.some(([, key]) => !Object.hasOwn(journal.targets, key) || !validRaw(journal.targets[key]))) fail();
+    const before = {};
+    for (const old of oldKeys) {
+      before[old] = storage.getItem(old);
+      if (before[old] !== journal.sources[old] && !(journal.phase === "committed" && before[old] === null)) fail();
+    }
+    for (const [, key] of pairs) {
+      before[key] = storage.getItem(key);
+      validate(journal.targets[key], key);
+      if (before[key] !== journal.targets[key] && !(journal.phase === "prepared" && before[key] === null)) fail();
+    }
+    const compact = { version: 2, phase: journal.phase, sources: await hashes(journal.sources), targets: await hashes(journal.targets) };
+    if (storage.getItem(markerKey) !== previous || Object.entries(before).some(([key, raw]) => storage.getItem(key) !== raw)) fail();
+    // Libera espaço ocupado pelo diário antigo sem apagar nenhuma origem ou destino.
+    verifiedWrite(storage, markerKey, JSON.stringify(compact));
+    return compact;
+  }
+  async function migrate(storage) {
+    const previous = storage.getItem(markerKey);
+    let journal = previous === null ? null : parse(previous);
+    if (previous !== null && !object(journal)) fail();
+    if (journal?.version === 1 && journal.phase === "done") {
       if (oldKeys.some(key => storage.getItem(key) !== null)) fail();
       for (const [, key] of pairs) validate(storage.getItem(key), key);
       if (storage.getItem(pairs[0][1]) === null) fail();
       return;
     }
+    if (journal?.version === 1) journal = await compactV115(storage, previous, journal);
+    if (journal && (journal.version !== 2 || !["prepared", "committed"].includes(journal.phase))) fail();
     if (!journal) {
       const sources = Object.fromEntries(oldKeys.map(key => [key, storage.getItem(key)]));
-      const targets = {};
+      const before = {}, targets = {};
       for (const [old, key] of pairs) {
-        const source = sources[old], target = storage.getItem(key);
-        validate(source, key);
-        validate(target, key);
-        if (source !== null && target !== null && source !== target) fail();
-        targets[key] = target ?? source;
+        before[key] = storage.getItem(key);
+        validate(sources[old], key);
+        validate(before[key], key);
+        if (sources[old] !== null && before[key] !== null && sources[old] !== before[key]) fail();
+        targets[key] = before[key] ?? sources[old];
       }
-      if (targets[pairs[0][1]] === null) targets[pairs[0][1]] = fromLegacy(sources[legacyKey]);
+      targets[pairs[0][1]] ??= fromLegacy(sources[legacyKey]);
       validate(targets[pairs[0][1]], pairs[0][1]);
-      journal = { version: 1, phase: "prepared", sources, targets };
+      journal = { version: 2, phase: "prepared", sources: await hashes(sources), targets: await hashes(targets) };
+      // Web Crypto é assíncrona. Confirmar que nada mudou durante o cálculo.
+      if (storage.getItem(markerKey) !== previous || oldKeys.some(key => storage.getItem(key) !== sources[key]) ||
+          pairs.some(([, key]) => storage.getItem(key) !== before[key])) fail();
       verifiedWrite(storage, markerKey, JSON.stringify(journal));
     }
+    const validHash = value => value === null || (typeof value === "string" && /^[a-f0-9]{64}$/.test(value));
     if (!object(journal.sources) || !object(journal.targets) ||
-        oldKeys.some(key => !(key in journal.sources))) fail();
-    for (const [, key] of pairs) {
-      if (!(key in journal.targets) || (journal.targets[key] !== null && typeof journal.targets[key] !== "string")) fail();
-      validate(journal.targets[key], key);
-    }
+        oldKeys.some(key => !Object.hasOwn(journal.sources, key) || !validHash(journal.sources[key])) ||
+        pairs.some(([, key]) => !Object.hasOwn(journal.targets, key) || !validHash(journal.targets[key])) ||
+        journal.targets[pairs[0][1]] === null) fail();
     for (const old of oldKeys) {
-      const current = storage.getItem(old);
-      if (current !== journal.sources[old] && !(journal.phase === "committed" && current === null)) fail();
+      const raw = storage.getItem(old);
+      if (!(journal.phase === "committed" && raw === null) && await fingerprint(raw) !== journal.sources[old]) fail();
+      if (storage.getItem(old) !== raw) fail();
     }
-    for (const [, key] of pairs) {
-      const target = storage.getItem(key), planned = journal.targets[key];
-      if (target !== null && target !== planned) fail();
-      if (journal.phase === "committed" && target !== planned) fail();
-      if (target === null && planned !== null) verifiedWrite(storage, key, planned);
+    for (const [old, key] of pairs) {
+      const current = storage.getItem(key);
+      let candidate = current;
+      if (candidate === null && journal.phase === "prepared") {
+        candidate = storage.getItem(old);
+        if (candidate === null && key === pairs[0][1]) candidate = fromLegacy(storage.getItem(legacyKey));
+      }
+      validate(candidate, key);
+      if (await fingerprint(candidate) !== journal.targets[key] || storage.getItem(key) !== current) fail();
+      if (current === null && candidate !== null) verifiedWrite(storage, key, candidate);
     }
-    // Não apagar a origem antes de concluir e reler todos os destinos críticos.
     journal.phase = "committed";
     verifiedWrite(storage, markerKey, JSON.stringify(journal));
     for (const old of oldKeys) {
-      if (storage.getItem(old) !== null && storage.getItem(old) !== journal.sources[old]) fail();
+      const raw = storage.getItem(old);
+      if (raw !== null && await fingerprint(raw) !== journal.sources[old]) fail();
+      if (storage.getItem(old) !== raw) fail();
       storage.removeItem(old);
       if (storage.getItem(old) !== null) throw new Error("Não foi possível concluir a limpeza da migração. Tente novamente.");
     }
+    // O marcador final continua compatível com os leitores da v1.15.0.
     verifiedWrite(storage, markerKey, JSON.stringify({ version: 1, phase: "done" }));
   }
   function migrateSession(storage) {

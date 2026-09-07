@@ -1,5 +1,5 @@
-const APP_VERSION = "1.15.0";
-const CACHE_NAME = "funtime-v1-15-0";
+const APP_VERSION = "1.16.0";
+const CACHE_NAME = "funtime-v1-16-0";
 const SHARE_IMPORT_CACHE_NAME = "funtime-share-target-v1";
 const SHARE_IMPORT_REQUEST_PATH = "./__shared-drinks-import__";
 const SHARE_TARGET_MAX_BYTES = 1500000;
@@ -10,6 +10,7 @@ const APP_SHELL = [
   "./styles.css",
   "./app.js",
   "./migration.js",
+  "./transition.js",
   "./boot.js",
   "./emoji-data.js",
   "./ui.js",
@@ -53,7 +54,7 @@ self.addEventListener("activate", (event) => {
       caches.keys().then((keys) =>
         Promise.all(
           keys
-            .filter((key) => /^(?:intervalo|funtime)-v\d/.test(key) && key !== CACHE_NAME)
+            .filter((key) => /^(?:intervalo|funtime)-v1-/.test(key) && key !== CACHE_NAME)
             .map((key) => caches.delete(key))
         )
       ),
@@ -64,14 +65,14 @@ self.addEventListener("activate", (event) => {
 
 self.addEventListener("message", (event) => {
   if (event.data?.type === "GET_VERSION") {
-    event.ports[0]?.postMessage({ version: APP_VERSION });
+    event.ports[0]?.postMessage({ version: APP_VERSION, migrationProtocol: 2, transitionProtocol: 1 });
   }
   if (event.data?.type === "SKIP_WAITING") {
     self.skipWaiting();
   }
   if (event.data?.type === "FUNTIME_PREPARE") {
     event.waitUntil(prepareMigrationClients().then(
-      () => event.ports[0]?.postMessage({ ready: true }),
+      () => event.ports[0]?.postMessage({ ready: true, protocol: 2, transitionProtocol: 1 }),
       () => event.ports[0]?.postMessage({ ready: false })
     ));
   }
@@ -86,7 +87,7 @@ function hasMigrationBoot(client) {
   return new Promise(resolve => {
     const channel = new MessageChannel();
     const timer = setTimeout(() => { channel.port1.close(); resolve(false); }, 1500);
-    channel.port1.onmessage = event => { clearTimeout(timer); channel.port1.close(); resolve(event.data?.protocol === 1); };
+    channel.port1.onmessage = event => { clearTimeout(timer); channel.port1.close(); resolve(event.data?.protocol === 2); };
     client.postMessage({ type: "FUNTIME_BOOT_CHECK" }, [channel.port2]);
   });
 }

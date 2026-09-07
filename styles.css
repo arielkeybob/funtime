@@ -2178,6 +2178,8 @@ body {
 .boot-pending > :not(#startup-screen) { display: none !important; }
 .startup-screen { max-width: 420px; margin: 15vh auto; padding: 24px; text-align: center; }
 .startup-screen small { display: block; margin-top: 24px; }
+.startup-screen #startup-continue { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 10px 18px; margin-top: 16px; text-decoration: none; }
+.startup-screen #startup-retry:not([hidden]) { display: block; min-height: 44px; margin: 12px auto 0; }
 .security-booting #app-shell,
 .app-locked #app-shell {
   visibility: hidden;

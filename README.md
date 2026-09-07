@@ -1,4 +1,12 @@
-# FunTime — V1.15.0
+# FunTime — V1.16.0
+
+## V1.16.0 — preparação da transição para v2
+
+A migração usa um diário compacto com SHA-256 para reduzir o espaço temporário, preservando cópia verificada antes de remover a origem. Diários interrompidos da v1.15.0 também são compactados e retomados. O schema dos dados e os formatos de arquivos permanecem compatíveis.
+
+A v1 descobre a publicação por um marcador JSON em `/funtime/transition.json`, sem enviar dados privados, e só então oferece abrir a nova instalação ou continuar na v1.16 para fazer backup. Depois que a futura v2 assumir e validar os dados, a instalação antiga passa a orientar somente a abertura do FunTime 2, sem carregar dados nem permitir escritas. Enquanto o marcador não existir ou estiver indisponível, o app funciona normalmente. A limpeza de caches da v1 também preserva os caches da geração v2.
+
+App, boot, SW e footers 1.16.0; cache `funtime-v1-16-0`; DATA_VERSION 9 e TERMS_VERSION 1.0.1 preservados. O repositório, endereço e ícone continuam os da v1.x. Implementação, contrato da futura v2 e limites dos testes em [TRANSITION-V2.md](TRANSITION-V2.md).
 
 ## V1.15.0 — primeira fase da migração FunTime
 

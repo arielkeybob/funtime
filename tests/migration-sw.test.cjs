@@ -11,26 +11,34 @@ function worker(extra={}){
 }
 test('ativação limpa apenas shells antigos e conserva pendências e caches de outros apps',async()=>{
   const removed=[];
-  const {handlers}=worker({caches:{keys:async()=>['intervalo-v1-14-3','funtime-v1-14-9','funtime-v1-15-0','intervalo-share-target-v1','funtime-share-target-v1','other-v1','intervalo-arquivo'],delete:async key=>removed.push(key)}});
+  const {handlers}=worker({caches:{keys:async()=>['intervalo-v1-14-3','funtime-v1-14-9','funtime-v1-16-0','funtime-v2-0-0','intervalo-share-target-v1','funtime-share-target-v1','other-v1','intervalo-arquivo'],delete:async key=>removed.push(key)}});
   let work;handlers.activate({waitUntil:p=>work=p});await work;
   assert.deepEqual(removed,['intervalo-v1-14-3','funtime-v1-14-9']);
 });
 test('ponte distingue páginas prontas e atualiza somente janelas antigas do app',async()=>{
   let navigated=0;
-  const ready={id:'new',url:'https://example.test/intervalo/',postMessage:(data,ports)=>ports[0].postMessage({protocol:1})};
-  const old={id:'old',url:'https://example.test/intervalo/index.html?x=1',postMessage:(data,ports)=>ports[0].postMessage({protocol:0}),navigate:async()=>{navigated++;return ready;}};
+  const ready={id:'new',url:'https://example.test/intervalo/',postMessage:(data,ports)=>ports[0].postMessage({protocol:2})};
+  const old={id:'old',url:'https://example.test/intervalo/index.html?x=1',postMessage:(data,ports)=>ports[0].postMessage({protocol:1}),navigate:async()=>{navigated++;return ready;}};
   const {ctx,self}=worker();self.clients.matchAll=async()=>[ready,old,{url:'https://example.test/other/'},{url:'https://example.test/intervalo/policies.html'}];
   await ctx.prepareMigrationClients();assert.equal(navigated,1);
 });
 test('janela que não atualiza impede autorizar migração',async()=>{
-  const stale={id:'old',url:'https://example.test/intervalo/',postMessage:(data,ports)=>ports[0].postMessage({protocol:0})};stale.navigate=async()=>stale;
+  const stale={id:'old',url:'https://example.test/intervalo/',postMessage:(data,ports)=>ports[0].postMessage({protocol:1})};stale.navigate=async()=>stale;
   const {ctx,self}=worker();self.clients.matchAll=async()=>[stale];
   await assert.rejects(ctx.prepareMigrationClients(),/ainda não atualizada/);
 });
 test('fetch usa somente cache da versão ativa, nunca cache global de outra geração',async()=>{
   const seen=[];
   const cache={match:async request=>{seen.push(typeof request==='string'?request:request.url);return new Response('FunTime');}};
-  const {handlers}=worker({caches:{open:async key=>{assert.equal(key,'funtime-v1-15-0');return cache;},match:()=>{throw Error('cache global proibido');}}});
+  const {handlers}=worker({caches:{open:async key=>{assert.equal(key,'funtime-v1-16-0');return cache;},match:()=>{throw Error('cache global proibido');}}});
   let response;handlers.fetch({request:new Request('https://example.test/intervalo/app.js'),respondWith:p=>response=p});
   assert.equal(await (await response).text(),'FunTime');assert.equal(seen.length,1);
+});
+
+test('worker anuncia capacidades verificáveis pela futura v2 antes de assumir os dados',async()=>{
+  const {handlers,self}=worker();let version,ready,work;self.clients.matchAll=async()=>[];
+  handlers.message({data:{type:'GET_VERSION'},ports:[{postMessage:value=>version=value}]});
+  assert.equal(version.version,'1.16.0');assert.equal(version.migrationProtocol,2);assert.equal(version.transitionProtocol,1);
+  handlers.message({data:{type:'FUNTIME_PREPARE'},ports:[{postMessage:value=>ready=value}],waitUntil:value=>work=value});await work;
+  assert.equal(ready.ready,true);assert.equal(ready.protocol,2);assert.equal(ready.transitionProtocol,1);
 });

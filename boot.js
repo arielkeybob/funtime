@@ -4,6 +4,7 @@
   const screen = document.querySelector("#startup-screen");
   const message = document.querySelector("#startup-message");
   const retry = document.querySelector("#startup-retry");
+  const continueLink = document.querySelector("#startup-continue");
   let booted = false;
   let failed = false;
   function show(text) { message.textContent = text; }
@@ -18,7 +19,7 @@
   if ("serviceWorker" in navigator) {
     // O worker distingue estas páginas das versões antigas antes de autorizar migração.
     navigator.serviceWorker.addEventListener("message", event => {
-      if (event.data?.type === "FUNTIME_BOOT_CHECK") event.ports[0]?.postMessage({ protocol: 1 });
+      if (event.data?.type === "FUNTIME_BOOT_CHECK") event.ports[0]?.postMessage({ protocol: 2 });
     });
     navigator.serviceWorker.addEventListener("controllerchange", () => {
       if (!booted) window.location.reload();
@@ -34,7 +35,7 @@
       return false;
     }
     const version = await request(worker, "GET_VERSION");
-    if (version?.version !== "1.15.0") {
+    if (version?.version !== "1.16.0") {
       // Não ativar uma atualização sem a ação explícita do usuário.
       await registration.update();
       show("Há uma atualização necessária para abrir o FunTime.");
@@ -74,12 +75,50 @@
     screen.hidden = false;
     document.body.classList.add("boot-pending");
     console.error("Falha ao preparar o FunTime.", error);
-    show(error.message || "Não foi possível preparar o app. Seus dados não foram descartados.");
+    const storageMessage = error.name === "QuotaExceededError"
+      ? "Não há espaço no navegador para concluir a migração. Seus dados foram preservados. Tente novamente quando houver espaço disponível."
+      : error.name === "SecurityError"
+        ? "O navegador bloqueou o acesso ao armazenamento do app. Verifique as permissões e tente novamente."
+        : null;
+    show(storageMessage || error.message || "Não foi possível preparar o app. Seus dados não foram descartados.");
+    continueLink.hidden = true;
     retry.hidden = false;
     retry.textContent = "Tentar novamente";
     retry.onclick = () => window.location.reload();
   }
   globalThis.FunTimeBootFailure = showError;
+  function hasNewOwner() {
+    const owner = FunTimeTransition.readOwner(localStorage, window.location.origin);
+    if (!owner) return false;
+    show("Seus dados agora são usados pelo FunTime 2. Continue pela nova versão.");
+    retry.hidden = true;
+    continueLink.href = owner.url;
+    continueLink.hidden = false;
+    return true;
+  }
+  function discoverNewRelease() {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 2500);
+    return FunTimeTransition.discoverRelease(window.fetch.bind(window), window.location.origin, controller.signal)
+      .finally(() => clearTimeout(timer));
+  }
+  function offerNewRelease(release) {
+    if (!release) return Promise.resolve(false);
+    show(`O FunTime ${release.appVersion} está disponível como uma nova instalação. Faça um backup antes da mudança.`);
+    continueLink.href = release.url;
+    continueLink.hidden = false;
+    retry.hidden = false;
+    retry.textContent = "Continuar na versão 1.16";
+    return new Promise(resolve => {
+      retry.onclick = () => {
+        retry.disabled = true;
+        continueLink.hidden = true;
+        show("Abrindo a versão atual…");
+        resolve(true);
+      };
+      // O link navega na mesma janela. A destruição desta página libera o lock para a v2.
+    });
+  }
   async function loadApp() {
     for (const src of ["./policies.js", "./ui.js", "./emoji-data.js", "./app.js", "./reset.js"]) await loadScript(src);
     if (failed) return;
@@ -88,25 +127,38 @@
     document.body.classList.remove("boot-pending");
   }
   async function start() {
+    if (hasNewOwner()) return;
+    const releasePromise = discoverNewRelease();
     const installed = navigator.standalone === true || ["standalone", "fullscreen", "minimal-ui"].some(mode => matchMedia(`(display-mode: ${mode})`).matches);
     // A página de instalação não lê/grava dados privados nem mantém o bloqueio de escrita.
-    if (!installed) { await loadApp(); return; }
+    if (!installed) {
+      if (await offerNewRelease(await releasePromise)) await loadApp();
+      else if (!(await releasePromise)) await loadApp();
+      return;
+    }
     if (!navigator.locks) throw new Error("Este navegador precisa ser atualizado para migrar os dados com proteção contra janelas simultâneas.");
     if (!(await prepareWorker())) return;
     show("Se o FunTime estiver aberto em outra janela, feche-a para continuar aqui.");
     // Uma janela escritora por origem. As demais aguardam e carregam o estado mais recente.
-    await navigator.locks.request("funtime-app-writer-v1", async () => {
+    await navigator.locks.request(FunTimeTransition.writerLock, async () => {
       try {
+        if (hasNewOwner()) return;
         // Revalidar depois de aguardar: outra janela pode ter concluído a migração.
         if (!(await prepareWorker())) return;
         show("Preparando seus dados…");
-        FunTimeMigration.migrate(localStorage);
+        await FunTimeMigration.migrate(localStorage);
+        if (hasNewOwner()) return;
         globalThis.FunTimeSessionReady = false;
         try { FunTimeMigration.migrateSession(sessionStorage); globalThis.FunTimeSessionReady = true; }
         catch { /* Sem sessão confiável, o app exige o desbloqueio normal. */ }
         window.addEventListener("storage", event => {
-          if (FunTimeMigration.oldKeys.includes(event.key)) window.location.reload();
+          if (FunTimeMigration.oldKeys.includes(event.key) || event.key === FunTimeTransition.ownerKey || event.key === null) window.location.reload();
         });
+        if (await offerNewRelease(await releasePromise)) {
+          await loadApp();
+          await new Promise(() => {});
+        }
+        if (continueLink.hidden === false) return;
         await loadApp();
       } catch (error) { showError(error); }
       // O navegador libera o Web Lock ao destruir a página. Não liberar no background.
