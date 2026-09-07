@@ -192,3 +192,38 @@ test('rolagem sincroniza categoria; dropdown salta sem rolar o formulário', () 
  grid.scrollTop=984;c.syncEmojiCategory();assert.equal(category.value,'2');
  category.value='0';c.scrollToEmojiCategory();assert.equal(grid.scrollTop,0);
 });
+
+
+test('preferência de contagem migra como regressiva e é preservada no backup', () => {
+ const c=context(), b=backup();
+ assert.equal(c.normalizeData(b.data).preferences.countingMode,'countdown');
+ b.data.preferences.countingMode='normal';
+ assert.equal(c.validateBackupPayload(b).preferences.countingMode,'normal');
+ b.data.preferences.countingMode='invalid';assert.throws(()=>c.validateBackupPayload(b));
+});
+
+test('contadores usam timestamps e intervalo histórico, com limites e transição', () => {
+ const c=vm.createContext({state:{preferences:{countingMode:'normal'}}});
+ for (const name of ['formatTime','formatHistoryElapsed','formatHistoryCounter','formatActivityCounter']) vm.runInContext(extract(name),c);
+ const activity={latestEvent:{intervalMinutes:90},remainingMs:5400000};
+ assert.equal(c.formatActivityCounter(activity),'Decorrido: 00:00:00');
+ activity.remainingMs=5398500;assert.equal(c.formatActivityCounter(activity),'Decorrido: 00:00:01');
+ activity.remainingMs=-1000;assert.equal(c.formatActivityCounter(activity),'Decorrido: 01:30:00');
+ activity.remainingMs=5500000;assert.equal(c.formatActivityCounter(activity),'Decorrido: 00:00:00');
+ assert.equal(c.formatHistoryCounter(100000,90,100000),'Falta 90:00');
+ assert.equal(c.formatHistoryCounter(100000,1,159999),'Falta 00:01');
+ assert.equal(c.formatHistoryCounter(100000,1,160000),'1 min atrás');
+ c.state.preferences.countingMode='countdown';
+ assert.equal(c.formatHistoryCounter(100000,90,160000),'1 min atrás');
+ activity.remainingMs=5399000;assert.equal(c.formatActivityCounter(activity),'Restam: 01:29:59');
+});
+
+test('falha ao salvar contagem preserva a preferência anterior e dados', () => {
+ const state={preferences:{countingMode:'countdown'},drinks:[drink],events:backup().data.events};
+ let saved;
+ const c=context({state, countingModeInput:{value:'normal'},refreshDataViews:()=>{},showToast:()=>{},showAppNotification:()=>{},localStorage:{setItem:(k,v)=>{saved=JSON.parse(v);}}});
+ vm.runInContext(extract('changeCountingMode'),c);
+ c.changeCountingMode('normal');assert.equal(saved.preferences.countingMode,'normal');assert.deepEqual(saved.events,state.events);
+ c.localStorage.setItem=()=>{throw Error('quota');};c.changeCountingMode('countdown');
+ assert.equal(state.preferences.countingMode,'normal');assert.equal(c.countingModeInput.value,'normal');
+});

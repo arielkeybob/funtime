@@ -206,7 +206,7 @@ window.addEventListener("appinstalled", () => {
 const DATA_STORAGE_KEY = "balada-v1-data";
 const LEGACY_DRINKS_STORAGE_KEY = "balada-v1-drinks";
 const DATA_VERSION = 9;
-const APP_VERSION = "1.14.1";
+const APP_VERSION = "1.14.2";
 const DRINK_EXPORT_TYPE = "intervalo-drinks";
 const DRINK_EXPORT_FORMAT_VERSION = 1;
 const BACKUP_EXPORT_TYPE = "intervalo-backup";
@@ -368,6 +368,7 @@ const dismissUpdateButton = document.querySelector("#dismiss-update");
 const appShell = document.querySelector("#app-shell");
 const settingsHeader = document.querySelector("#settings-header");
 const settingsView = document.querySelector("#settings-view");
+const countingModeInput = document.querySelector("#counting-mode");
 const cleanInterfaceInput = document.querySelector("#clean-interface");
 const exportDrinksButton = document.querySelector("#export-drinks");
 const importDrinksButton = document.querySelector("#import-drinks");
@@ -418,6 +419,7 @@ function applyInterfacePreferences() {
 }
 
 function updateInterfaceSettingsUI() {
+  countingModeInput.value = state.preferences.countingMode === "normal" ? "normal" : "countdown";
   if (!cleanInterfaceInput) return;
   cleanInterfaceInput.checked = state.preferences?.cleanInterface !== false;
 }
@@ -1129,6 +1131,7 @@ function normalizeData(data) {
     events,
     preferences: {
       cleanInterface: data.preferences?.cleanInterface !== false,
+      countingMode: data.preferences?.countingMode === "normal" ? "normal" : "countdown",
       iconCatalog: normalizeIconCatalog(data.preferences?.iconCatalog),
     },
   };
@@ -1175,6 +1178,7 @@ function migrateLegacyData() {
     events,
     preferences: {
       cleanInterface: true,
+      countingMode: "countdown",
       iconCatalog: [...PICKER_ICONS],
     },
   };
@@ -1632,6 +1636,7 @@ function validateBackupPayload(payload) {
   if (data.preferences !== undefined && (!data.preferences || typeof data.preferences !== "object" ||
       Array.isArray(data.preferences) || (data.preferences.cleanInterface !== undefined &&
       typeof data.preferences.cleanInterface !== "boolean"))) invalid();
+  if (data.preferences?.countingMode !== undefined && !["countdown", "normal"].includes(data.preferences.countingMode)) invalid();
   // Reconstrói apenas campos conhecidos; não mescla propriedades do arquivo.
   const catalog = data.preferences?.iconCatalog;
   if (catalog !== undefined && (!Array.isArray(catalog) || catalog.length > 100 ||
@@ -1773,6 +1778,36 @@ function formatTime(ms) {
     .join(":");
 }
 
+function formatActivityCounter(activity) {
+  if (state.preferences.countingMode !== "normal") return `Restam: ${formatTime(activity.remainingMs)}`;
+  const intervalMs = activity.latestEvent.intervalMinutes * 60000;
+  const elapsedMs = Math.max(0, Math.min(intervalMs, intervalMs - activity.remainingMs));
+  return `Decorrido: ${formatTime(Math.floor(elapsedMs / 1000) * 1000)}`;
+}
+
+function formatHistoryCounter(timestamp, intervalMinutes, now = Date.now()) {
+  const remainingMs = Number(timestamp) + Number(intervalMinutes) * 60000 - now;
+  if (state.preferences.countingMode === "normal" && remainingMs > 0) {
+    const seconds = Math.ceil(remainingMs / 1000);
+    return `Falta ${String(Math.floor(seconds / 60)).padStart(2, "0")}:${String(seconds % 60).padStart(2, "0")}`;
+  }
+  return formatHistoryElapsed(timestamp, now);
+}
+
+function changeCountingMode(mode) {
+  if (!["normal", "countdown"].includes(mode)) return;
+  const preferences = { ...state.preferences, countingMode: mode };
+  try {
+    localStorage.setItem(DATA_STORAGE_KEY, JSON.stringify({ ...buildCurrentAppData(), preferences }));
+    state.preferences = preferences;
+    refreshDataViews();
+    showToast(mode === "normal" ? "Contagem normal ativada." : "Contagem regressiva ativada.");
+  } catch (error) {
+    countingModeInput.value = state.preferences.countingMode === "normal" ? "normal" : "countdown";
+    showAppNotification("Não foi possível salvar a preferência. Tente novamente.", { type: "error" });
+  }
+}
+
 function formatClock(timestamp) {
   return new Intl.DateTimeFormat("pt-BR", {
     hour: "2-digit",
@@ -1815,7 +1850,7 @@ function updateHistoryElapsedLabels() {
     const intervalMinutes = Number(element.dataset.intervalMinutes);
     if (!Number.isFinite(timestamp)) return;
 
-    const label = formatHistoryElapsed(timestamp, now);
+    const label = formatHistoryCounter(timestamp, intervalMinutes, now);
     const intervalMs = Number.isFinite(intervalMinutes) ? Math.max(0, intervalMinutes) * 60 * 1000 : 0;
     const intervalCompleted = intervalMs === 0 || now - timestamp >= intervalMs;
 
@@ -1825,8 +1860,8 @@ function updateHistoryElapsedLabels() {
     element.setAttribute(
       "aria-label",
       intervalCompleted
-        ? `Tempo desde o consumo: ${label}. O intervalo configurado já terminou.`
-        : `Tempo desde o consumo: ${label}. O intervalo configurado ainda está em andamento.`
+        ? `${label}. O intervalo configurado já terminou.`
+        : `${label}. O intervalo configurado ainda está em andamento.`
     );
   });
 }
@@ -2252,13 +2287,13 @@ function render() {
 
     if (activity.state === "new") {
       stateLabel.textContent = "SEM REGISTRO";
-      status.textContent = `Intervalo configurado: ${formatInterval(drink.intervalMinutes)}`;
+      status.textContent = `Intervalo: ${formatInterval(drink.intervalMinutes).replaceAll(" ", "\u00a0")}`;
       time.textContent = "Anotar primeira dose";
       mainButton.setAttribute("aria-label", `Anotar ${drink.name} agora com dois toques rápidos. Toque e segure para anotar outra dose.`);
     } else if (activity.state === "waiting") {
       stateLabel.hidden = true;
       setClockStatus(status, "Tomou às", activity.latestEvent.consumedAt, getDoseStatusSuffix(activity.latestEvent));
-      time.textContent = `Restam: ${formatTime(activity.remainingMs)}`;
+      time.textContent = formatActivityCounter(activity);
       mainButton.setAttribute(
         "aria-label",
         `${drink.name}: intervalo em andamento. ${formatTime(activity.remainingMs)} restantes. Toque duas vezes para abrir as opções de anotação ou toque e segure para anotar outra dose.`
@@ -2271,7 +2306,7 @@ function render() {
         activity.latestEvent.consumedAt,
         `${getDoseStatusSuffix(activity.latestEvent)} · ${activity.violationClusterCount} registros em sequência`
       );
-      time.textContent = `Restam: ${formatTime(activity.remainingMs)}`;
+      time.textContent = formatActivityCounter(activity);
       mainButton.setAttribute(
         "aria-label",
         `${drink.name}: atenção. ${activity.violationClusterCount} anotações em sequência antes do intervalo terminar. ${formatTime(activity.remainingMs)} restantes. Toque duas vezes para abrir as opções ou toque e segure para anotar outra dose.`
@@ -2392,12 +2427,12 @@ function renderHistory() {
       elapsed.className = `history-event-elapsed ${intervalCompleted ? "is-after-interval" : "is-within-interval"}`;
       elapsed.dataset.consumedAt = String(event.consumedAt);
       elapsed.dataset.intervalMinutes = String(event.intervalMinutes);
-      elapsed.textContent = formatHistoryElapsed(event.consumedAt);
+      elapsed.textContent = formatHistoryCounter(event.consumedAt, event.intervalMinutes);
       elapsed.setAttribute(
         "aria-label",
         intervalCompleted
-          ? `Tempo desde o consumo: ${elapsed.textContent}. O intervalo configurado já terminou.`
-          : `Tempo desde o consumo: ${elapsed.textContent}. O intervalo configurado ainda está em andamento.`
+          ? `${elapsed.textContent}. O intervalo configurado já terminou.`
+          : `${elapsed.textContent}. O intervalo configurado ainda está em andamento.`
       );
       body.appendChild(elapsed);
 
@@ -2594,7 +2629,7 @@ function showToast(message, undo = null, options = {}) {
   if (!options.persistent) state.toastTimerId = setTimeout(() => {
     state.undo = null;
     hideToast();
-  }, 10000);
+  }, type === "error" || undo ? 6000 : 4000);
 }
 
 function hideToast() {
@@ -3597,6 +3632,8 @@ document.querySelector("#open-history").addEventListener("click", () => openHist
 document.querySelector("#close-history").addEventListener("click", closeHistoryView);
 document.querySelector("#open-settings").addEventListener("click", openSettingsView);
 document.querySelector("#close-settings").addEventListener("click", closeSettingsView);
+
+countingModeInput.addEventListener("change", () => changeCountingMode(countingModeInput.value));
 
 cleanInterfaceInput.addEventListener("change", () => {
   state.preferences.cleanInterface = cleanInterfaceInput.checked;

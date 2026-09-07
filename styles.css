@@ -3258,3 +3258,13 @@ body {
   dialog.dialog.app-dialog .app-dialog-actions button { min-height: 48px; }
   #toast.app-notification { inset: auto 12px max(12px, env(safe-area-inset-bottom)) 12px; width: auto; padding: 18px; }
 }
+
+/* Avisos compactos, preservando ações e contraste. */
+#counting-mode { width: 100%; margin: 8px 0 16px; }
+#toast.app-notification { width: min(380px, calc(100vw - 24px)); padding: 12px; gap: 6px 8px; grid-template-columns: 28px 1fr auto; border-width: 1px; border-radius: 12px; font-size: .875rem; box-shadow: 0 6px 24px #0008; }
+#toast-title { font-size: .9rem; }
+#toast-message { line-height: 1.35; }
+.notification-symbol { width: 26px; height: 26px; font-size: 1rem; }
+#toast-dismiss { background: #34343d; color: #fff; border: 1px solid #62626d; }
+#toast button { padding: 6px 12px; font-size: .85rem; }
+@media (max-width: 600px) { #toast.app-notification { width: auto; } }

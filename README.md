@@ -1,4 +1,14 @@
-# Intervalo — V1.14.1
+# Intervalo — V1.14.2
+
+## V1.14.2 — escolha da contagem e avisos compactos
+
+Configurações → Interface permite escolher Contagem regressiva (padrão) ou Contagem normal. A regressiva mantém o início e o histórico anteriores. A normal mostra Decorrido: HH:MM:SS no início, de zero até o intervalo do último snapshot; ao concluir, mantém a ação Anotar nova dose. No histórico, cada intervalo ainda ativo mostra Falta MM:SS (minutos totais, por exemplo 90:00); concluídos mostram tempo atrás. Cálculos continuam baseados em timestamps e intervalos históricos, inclusive após reabrir o app ou alterar a bebida.
+
+O rótulo inicial passa a Intervalo, com duração sem quebra interna. Avisos comuns duram 4 segundos; erros e ações com Desfazer, 6 segundos. Layout e botão Entendi mais discretos, com alvos de toque de 44px; avisos persistentes continuam exigindo dispensa.
+
+preferences.countingMode é opcional e aceita countdown/normal, com padrão regressivo para dados e backups anteriores. Backup inclui a preferência; importação de bebidas preserva a local. Falha ao gravar mantém a escolha anterior. DATA_VERSION permanece 9, pois o campo é opcional e compatível; app/footer 1.14.2 e cache intervalo-v1-14-2. Políticas e aceite preservados.
+
+Validação: node --check app.js e sw.js; node --test tests/audit.test.cjs tests/reset.test.cjs tests/ui.test.cjs (32 testes). Cobertura de migração, backup, falha de gravação, limites e transição dos contadores, tempos dos avisos e persistência dos avisos essenciais. Não realizados testes visuais/manuais no navegador ou celular, leitor de tela e atualização da PWA instalada. Armazenamento real preservado.
 
 ## V1.14.1 — emojis sem variações de tom de pele
 
