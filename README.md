@@ -1,4 +1,6 @@
-# FunTime — V2.0.5
+# FunTime — V2.0.6
+
+V2.0.6 em validação: toque separado do mouse, tolerância de 18px durante a pressão longa e acompanhamento pelo identificador do contato até touchend/touchcancel. Configurações → **Diagnóstico de toque** permite registrar e exportar eventos para investigar falhas no aparelho. Começa desligado em cada abertura; registro só em memória, sem bebidas, ícones, histórico ou PIN. App, boot, footers e cache `funtime-v2-0-6` preparados; DATA_VERSION 9 preservado. Validação no aparelho real ainda pendente.
 
 V2.0.5: segure um ícone por meio segundo para reorganizar; solte para salvar. Deslizar antes disso continua rolando a lista. Durante o arraste aparece a área vermelha **Solte aqui para excluir**: só soltar dentro dela remove a opção do catálogo, com Desfazer, preservando bebidas e histórico. A caneta volta a ativar somente os × vermelhos; nesse modo não há arraste. Sem alças ou menu. Pelo teclado, Alt + setas/Home/End reorganiza o ícone focado. App, boot e footers 2.0.5; cache `funtime-v2-0-5`; DATA_VERSION 9 e aceite preservados. Commit/push autorizados após validação.
 

@@ -264,7 +264,7 @@ document.addEventListener("visibilitychange", () => {
 const DATA_STORAGE_KEY = "funtime-v1-data";
 const LEGACY_DRINKS_STORAGE_KEY = "balada-v1-drinks";
 const DATA_VERSION = 9;
-const APP_VERSION = "2.0.5";
+const APP_VERSION = "2.0.6";
 const DRINK_EXPORT_TYPE = "funtime-drinks";
 const DRINK_EXPORT_FORMAT_VERSION = 1;
 const BACKUP_EXPORT_TYPE = "funtime-backup";
@@ -3331,7 +3331,7 @@ function attachIconGestures(wrapper, input, icon) {
     event.preventDefault();
     if (!cancelIconDrag) commitIconMove(icon, target);
   });
-  handle.addEventListener('contextmenu', event => event.preventDefault());
+  handle.addEventListener('contextmenu', event => { globalThis.FunTimeTouchDebug?.record('context-menu', event); event.preventDefault(); });
   handle.addEventListener('dragstart', event => event.preventDefault());
   // Registrar antes de touchstart: o navegador precisa saber que o gesto
   // pode ser consumido depois da pressão longa, antes de iniciar a rolagem.
@@ -3341,10 +3341,13 @@ function attachIconGestures(wrapper, input, icon) {
   handle.addEventListener('click', event => {
     if (suppressClick && event.detail !== 0) { event.preventDefault(); event.stopPropagation(); }
   }, true);
-  handle.addEventListener('pointerdown', event => {
+  const startPress = event => {
     suppressClick = false;
     if (editingIconCatalog || event.button !== 0 || !event.isPrimary || cancelIconDrag) return;
-    const cancel = () => {
+    let latest = event;
+    globalThis.FunTimeTouchDebug?.record('press-start', event);
+    const cancel = reason => {
+      globalThis.FunTimeTouchDebug?.record('press-end', latest, typeof reason === 'string' ? reason : reason?.type || 'app-cancel');
       clearTimeout(timer);
       window.removeEventListener('pointermove', move);
       window.removeEventListener('pointerup', cancel);
@@ -3354,33 +3357,70 @@ function attachIconGestures(wrapper, input, icon) {
       window.removeEventListener('keydown', escape, true);
       document.removeEventListener('scroll', cancel, true);
       document.removeEventListener('visibilitychange', cancel);
+      document.removeEventListener('touchmove', touchMove, true);
+      document.removeEventListener('touchend', cancel);
+      document.removeEventListener('touchcancel', cancel);
+      document.removeEventListener('touchstart', extraTouch);
       cancelIconDrag = null;
     };
     const move = next => {
-      if (next.pointerId === event.pointerId && Math.hypot(next.clientX - event.clientX, next.clientY - event.clientY) > 10) cancel();
+      if (next.pointerId !== event.pointerId) return;
+      latest = next;
+      const distance = Math.hypot(next.clientX - event.clientX, next.clientY - event.clientY);
+      globalThis.FunTimeTouchDebug?.record('press-move', next, '', distance);
+      if (distance > (event.isTouch ? 18 : 10)) cancel('scroll-intent');
     };
+    const touchMove = next => {
+      const touch = [...next.touches].find(touch => touch.identifier === event.pointerId);
+      if (!touch || next.touches.length !== 1) { cancel('multiple-or-missing-touch'); return; }
+      move(iconTouchPoint(touch, next));
+      // Pequena oscilação durante a espera não deve entregar o gesto ao navegador.
+      if (cancelIconDrag === cancel && next.cancelable) next.preventDefault();
+    };
+    const extraTouch = next => { if (next.touches.length !== 1) cancel('multiple-touch'); };
     const anotherPointer = next => { if (next.pointerId !== event.pointerId) cancel(); };
     const escape = next => { if (next.key === 'Escape') { next.preventDefault(); next.stopImmediatePropagation(); cancel(); } };
     const timer = setTimeout(() => {
-      cancel();
+      cancel('activated');
       if (!handle.isConnected || !drinkDialog.open || document.hidden || editingIconCatalog) return;
       suppressClick = true;
       input.focus({ preventScroll: true });
-      beginIconDrag(wrapper, handle, icon, event);
+      beginIconDrag(wrapper, handle, icon, latest);
     }, 500);
     cancelIconDrag = cancel;
-    window.addEventListener('pointermove', move);
-    window.addEventListener('pointerup', cancel);
-    window.addEventListener('pointercancel', cancel);
-    window.addEventListener('pointerdown', anotherPointer);
+    if (event.isTouch) {
+      document.addEventListener('touchmove', touchMove, { capture: true, passive: false });
+      document.addEventListener('touchend', cancel);
+      document.addEventListener('touchcancel', cancel);
+      document.addEventListener('touchstart', extraTouch);
+    } else {
+      window.addEventListener('pointermove', move);
+      window.addEventListener('pointerup', cancel);
+      window.addEventListener('pointercancel', cancel);
+      window.addEventListener('pointerdown', anotherPointer);
+    }
     window.addEventListener('blur', cancel);
     window.addEventListener('keydown', escape, true);
     document.addEventListener('scroll', cancel, true);
     document.addEventListener('visibilitychange', cancel);
+  };
+  handle.addEventListener('touchstart', event => {
+    if (event.touches.length === 1) startPress(iconTouchPoint(event.touches[0], event));
+  }, { passive: true });
+  handle.addEventListener('pointerdown', event => {
+    if (event.pointerType !== 'touch') startPress(event);
   });
 }
 
+function iconTouchPoint(touch, event) {
+  return { isTouch: true, button: 0, isPrimary: true, pointerType: 'touch',
+    pointerId: touch.identifier, clientX: touch.clientX, clientY: touch.clientY,
+    width: touch.radiusX * 2, height: touch.radiusY * 2, pressure: touch.force,
+    type: event.type, cancelable: event.cancelable };
+}
+
 function beginIconDrag(wrapper, handle, icon, event) {
+    globalThis.FunTimeTouchDebug?.record('drag-start', event);
     const pointerId = event.pointerId;
     const startX = event.clientX, startY = event.clientY;
     let x = startX, y = startY, targetIndex = null, frame, previewIndex = -1, overTrash = false;
@@ -3450,7 +3490,7 @@ function beginIconDrag(wrapper, handle, icon, event) {
       update();
       frame = requestAnimationFrame(tick);
     };
-    const move = event => { if (event.pointerId === pointerId) { x = event.clientX; y = event.clientY; } };
+    const move = event => { if (event.pointerId === pointerId) { x = event.clientX; y = event.clientY; globalThis.FunTimeTouchDebug?.record('drag-move', event); } };
     const finish = () => {
       cancelAnimationFrame(frame);
       nodes.forEach(node => { node.style.transform = ''; });
@@ -3469,35 +3509,62 @@ function beginIconDrag(wrapper, handle, icon, event) {
       window.removeEventListener('blur', cancel);
       window.removeEventListener('resize', cancel);
       window.removeEventListener('pointerdown', anotherPointer);
+      document.removeEventListener('touchend', touchEnd, true);
+      document.removeEventListener('touchcancel', cancel, true);
+      document.removeEventListener('touchstart', extraTouch, true);
+      handle.removeEventListener('pointercancel', tracePointerCancel);
       cancelIconDrag = null;
-      if (handle.hasPointerCapture(pointerId)) handle.releasePointerCapture(pointerId);
+      if (!event.isTouch && handle.hasPointerCapture(pointerId)) handle.releasePointerCapture(pointerId);
     };
-    const cancel = () => { finish(); };
+    const cancel = reason => { globalThis.FunTimeTouchDebug?.record('drag-cancel', reason, reason?.type || 'app-cancel'); finish(); };
     const drop = event => {
       if (event.pointerId !== pointerId) return;
       x = event.clientX; y = event.clientY;
       update();
       const destination = targetIndex;
       const shouldDelete = overTrash;
+      globalThis.FunTimeTouchDebug?.record('drag-drop', event, shouldDelete ? 'trash' : destination !== null ? 'grid' : 'outside');
       finish();
       if (shouldDelete) removeCatalogIcon(icon);
       else if (destination !== null) commitIconMove(icon, destination);
     };
     const escape = event => { if (event.key === 'Escape') { event.preventDefault(); event.stopImmediatePropagation(); cancel(); } };
-    const preventTouchScroll = event => { if (event.cancelable) event.preventDefault(); };
+    const preventTouchScroll = next => {
+      if (event.isTouch) {
+        const touch = [...next.touches].find(touch => touch.identifier === pointerId);
+        if (!touch || next.touches.length !== 1) { cancel(next); return; }
+        move(iconTouchPoint(touch, next));
+      }
+      if (next.cancelable) next.preventDefault();
+    };
+    const touchEnd = next => {
+      const touch = [...next.changedTouches].find(touch => touch.identifier === pointerId);
+      if (!touch) return;
+      if (next.cancelable) next.preventDefault();
+      drop(iconTouchPoint(touch, next));
+    };
+    const extraTouch = next => { if (next.touches.length !== 1) cancel(next); };
+    const tracePointerCancel = next => globalThis.FunTimeTouchDebug?.record('pointer-cancel-ignored', next);
     const anotherPointer = event => { if (event.pointerId !== pointerId) cancel(); };
-    handle.setPointerCapture(pointerId);
     cancelIconDrag = cancel;
-    handle.addEventListener('pointermove', move);
-    handle.addEventListener('pointerup', drop);
-    handle.addEventListener('pointercancel', cancel);
-    handle.addEventListener('lostpointercapture', cancel);
+    if (event.isTouch) {
+      document.addEventListener('touchend', touchEnd, true);
+      document.addEventListener('touchcancel', cancel, true);
+      document.addEventListener('touchstart', extraTouch, true);
+      handle.addEventListener('pointercancel', tracePointerCancel);
+    } else {
+      handle.setPointerCapture(pointerId);
+      handle.addEventListener('pointermove', move);
+      handle.addEventListener('pointerup', drop);
+      handle.addEventListener('pointercancel', cancel);
+      handle.addEventListener('lostpointercapture', cancel);
+      window.addEventListener('pointerdown', anotherPointer);
+    }
     window.addEventListener('keydown', escape, true);
     document.addEventListener('touchmove', preventTouchScroll, { capture: true, passive: false });
     document.addEventListener('visibilitychange', cancel);
     window.addEventListener('blur', cancel);
     window.addEventListener('resize', cancel);
-    window.addEventListener('pointerdown', anotherPointer);
     tick();
 }
 

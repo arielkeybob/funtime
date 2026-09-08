@@ -37,7 +37,7 @@
       return false;
     }
     const version = await request(worker, "GET_VERSION");
-    if (version?.version !== "2.0.5") {
+    if (version?.version !== "2.0.6") {
       // Não ativar uma atualização sem a ação explícita do usuário.
       await registration.update();
       show("Há uma atualização necessária para abrir o FunTime.");
@@ -114,7 +114,7 @@
     });
   }
   async function loadApp() {
-    for (const src of ["./policies.js", "./ui.js", "./emoji-data.js", "./app.js", "./reset.js", "./navigation.js"]) await loadScript(src);
+    for (const src of ["./policies.js", "./ui.js", "./emoji-data.js", "./touch-debug.js", "./app.js", "./reset.js", "./navigation.js"]) await loadScript(src);
     if (failed) return;
     booted = true;
     screen.hidden = true;

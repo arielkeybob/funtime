@@ -33,6 +33,12 @@ test('Ícones: arraste, teclado, cancelamento e persistência em perfil isolado'
       state.events = [{ id: 'e', drinkId: 'd', drinkName: 'Teste', drinkIcon: '💧', consumedAt: Date.now(), intervalMinutes: 30, doseSize: null }];
       saveData(); render();
     });
+    await page.evaluate(() => openSettingsView());
+    await page.locator('#touch-debug-panel summary').click();
+    assert.equal(await page.locator('#touch-debug-enabled').isChecked(), false);
+    assert.equal(await page.locator('#export-touch-debug').isDisabled(), true);
+    await page.locator('label[for=touch-debug-enabled]').click();
+    await page.evaluate(() => closeSettingsView());
     await page.evaluate(() => {
       persistIconCatalog(['💧', '🍺', '⭐', '🍷']);
       openEditDrinkDialog('d');
@@ -108,6 +114,18 @@ test('Ícones: arraste, teclado, cancelamento e persistência em perfil isolado'
       await touch(cancel ? 'touchCancel' : 'touchEnd');
     };
     await touchDrag('⭐', true); assert.deepEqual(await order(), original);
+    // Contato largo e oscilação de 12px durante a espera não soltam o ícone.
+    await settled();
+    const broadStart = await center(card('💧'));
+    await touch('touchStart', { ...broadStart, radiusX: 22, radiusY: 18, force: .4 });
+    await touch('touchMove', { x: broadStart.x + 12, y: broadStart.y + 4, radiusX: 28, radiusY: 23, force: .5 });
+    await page.waitForFunction(() => !!document.querySelector('.icon-drag-ghost'));
+    await card('💧').dispatchEvent('pointercancel', { pointerType: 'touch', bubbles: true });
+    assert.equal(await page.locator('.icon-drag-ghost').count(), 1);
+    await touch('touchMove', { ...await center(card('⭐')), radiusX: 30, radiusY: 24, force: .3 });
+    await touch('touchEnd');
+    assert.deepEqual(await order(), ['🍺', '⭐', '💧', '🍷']);
+    await page.locator('#undo-icon-reorder').click();
     await touchDrag('⭐'); assert.deepEqual(await order(), ['🍺', '⭐', '💧', '🍷']);
     await touchDrag('trash'); assert.deepEqual(await order(), ['🍺', '⭐', '🍷']);
     await page.locator('#undo-icon-removal').click(); assert.deepEqual(await order(), ['🍺', '⭐', '💧', '🍷']);
@@ -126,14 +144,29 @@ test('Ícones: arraste, teclado, cancelamento e persistência em perfil isolado'
     await page.getByRole('button', { name: 'Remover ⭐ do catálogo', exact: true }).click();
     await page.locator('#undo-icon-removal').click();
     assert.deepEqual(await order(), ['🍺', '⭐', '💧', '🍷']);
-    await page.locator('.icon-edit').click(); await page.keyboard.press('Escape'); await page.reload();
+    await page.locator('.icon-edit').click(); await page.keyboard.press('Escape');
+    await page.evaluate(() => openSettingsView());
+    await page.locator('label[for=touch-debug-enabled]').click();
+    await page.screenshot({ path: path.join(require('node:os').tmpdir(), 'funtime-touch-debug.png') });
+    const downloadPromise = page.waitForEvent('download');
+    await page.locator('#export-touch-debug').click();
+    const report = JSON.parse(fs.readFileSync(await (await downloadPromise).path(), 'utf8'));
+    assert.equal(report.type, 'funtime-touch-debug');
+    assert.ok(report.events.some(entry => entry.stage === 'pointer-cancel-ignored'));
+    assert.ok(report.events.some(entry => entry.width >= 44));
+    assert.equal(JSON.stringify(report).includes('💧'), false);
+    assert.equal(JSON.stringify(report).includes('Teste'), false);
+    await page.reload();
     await page.waitForFunction(() => typeof state !== 'undefined' && !document.body.classList.contains('boot-pending'));
     assert.deepEqual(await order(), ['🍺', '⭐', '💧', '🍷']);
+    assert.equal(await page.locator('#touch-debug-enabled').isChecked(), false);
+    assert.equal(await page.locator('#export-touch-debug').isDisabled(), true);
     const longCatalog = Array.from({ length: 100 }, (_, index) => String.fromCodePoint(0x1f400 + index));
     await page.evaluate(catalog => { persistIconCatalog(catalog); openEditDrinkDialog('d'); }, longCatalog);
     const grid = await page.locator('#icon-options').boundingBox();
     // Deslize rápido continua nativo, sem iniciar arraste.
     await touch('touchStart', { x: grid.x + grid.width - 30, y: grid.y + 25 });
+    await touch('touchMove', { x: grid.x + grid.width - 38, y: grid.y + 25 });
     for (let i = 1; i <= 5; i++) await touch('touchMove', { x: grid.x + grid.width - 30 - i * 35, y: grid.y + 25 });
     await touch('touchEnd');
     await page.waitForFunction(() => iconOptions.scrollLeft > 0);

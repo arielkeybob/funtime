@@ -34,8 +34,11 @@
     if (state.securityLocked || document.body.classList.contains('terms-pending')) return [];
     const next = [];
     if (state.currentView !== 'home') next.push({ id: state.currentView, close: () => closeHistoryView() });
-    const details = document.querySelector('#settings-view details[open]');
-    if (state.currentView === 'settings' && details) next.push({ id: 'reset-section', close: () => { details.open = false; } });
+    if (state.currentView === 'settings') {
+      document.querySelectorAll('#settings-view details[open]').forEach(details => {
+        next.push({ id: details.id || 'reset-section', close: () => { details.open = false; } });
+      });
+    }
     for (const dialog of dialogs.filter(item => item.open)) {
       next.push({ id: dialog.id, close: closers[dialog.id] || (() => dialog.close()) });
       if (dialog.id === 'drink-dialog') {

@@ -1,5 +1,5 @@
-const APP_VERSION = "2.0.5";
-const CACHE_NAME = "funtime-v2-0-5";
+const APP_VERSION = "2.0.6";
+const CACHE_NAME = "funtime-v2-0-6";
 const SHARE_IMPORT_CACHE_NAME = "funtime-share-target-v1";
 const SHARE_IMPORT_REQUEST_PATH = "./__shared-drinks-import__";
 const SHARE_TARGET_MAX_BYTES = 1500000;
@@ -9,6 +9,7 @@ const APP_SHELL = [
   "./index.html",
   "./styles.css",
   "./app.js",
+  "./touch-debug.js",
   "./migration.js",
   "./transition.js",
   "./receiver.js",

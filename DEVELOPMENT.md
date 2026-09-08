@@ -1,12 +1,20 @@
 # FunTime — documentação de desenvolvimento
 
-**Versão da aplicação:** `v2.0.5`\
+**Versão da aplicação:** `v2.0.6`\
 **Versão do modelo persistido:** `DATA_VERSION = 9`\
 **Autor exibido na interface:** `arielkeybob`  
 **Stack:** HTML + CSS + JavaScript puro  
 **Persistência:** `localStorage`  
 **Backend:** não existe  
 **Build step:** não existe
+
+## V2.0.6 — estabilidade do toque e diagnóstico opcional
+
+Relato do usuário: arraste intermitente, mais confiável com ponta do indicador. Não se considera resolvido em aparelho real apenas pelos testes do agente. Toque agora usa Touch Events pelo identifier, separado dos Pointer Events de mouse/caneta. Um pointercancel nativo não encerra um contato de toque que continua vivo; touchcancel real, segunda mão/dedo, fechamento, perda de foco e ocultação continuam cancelando sem gravar. Touchend é a única soltura de toque que aplica o destino. Antes dos 500ms, tolera oscilação até 18px e usa a posição mais recente na ativação. Touchmove não passivo bloqueia oscilação curta e o arraste ativo; movimento maior na espera libera a rolagem. Mouse mantém 10px e captura de ponteiro. Não foi adicionada vibração.
+
+`touch-debug.js` carrega pelo boot antes do app e integra o pré-cache. Configurações → Diagnóstico de toque, seção recolhida, começa desativado; não persiste a ativação. Ativar limpa a sessão anterior; parar conserva o relatório em memória; apagar limpa; recarregar elimina tudo. Limites: 10 minutos/1.500 registros, movimentos amostrados a cada 40ms. Exportação JSON por download, independente de backup/bebidas, sem transmissão automática. Registra etapa, motivo de cancelamento, evento, tipo de ponteiro, dimensões/pressão do contato, distância de oscilação e tempo relativo. Inclui versão, navegador e dimensões da tela; não lê armazenamento, coordenadas absolutas, campos, nomes, emojis, histórico ou segurança. O diagnóstico permanece opcional e pode ser usado para testar com ele desativado/ativado.
+
+Roteiro no aparelho: ativar registro; voltar ao cadastro; repetir toques curtos, pressão com polpa/ponta do dedo, pequenas oscilações e mudança de direção, reordenar e cancelar; retornar às configurações, desativar e Exportar relatório de toque. Exportar antes de fechar/recarregar. O resultado real e o relatório determinarão novos ajustes. App/boot/SW/footers 2.0.6 preparados localmente, cache `funtime-v2-0-6`, dados/aceite inalterados; publicação para validação no aparelho, em continuidade à melhoria autorizada.
 
 ## V2.0.5 — pressão longa e lixeira durante o arraste
 

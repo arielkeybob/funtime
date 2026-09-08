@@ -53,7 +53,7 @@
     <footer class="browser-gate-footer">
       <span>App para estudo · não é controle de segurança</span>
       <a class="policies-link" href="./policies.html">Políticas e informações</a>
-      <span>v2.0.5 · By: arielkeybob</span>
+      <span>v2.0.6 · By: arielkeybob</span>
     </footer>
   </section>
 
@@ -243,6 +243,23 @@
         <input id="backup-restore-file" class="visually-hidden-file" type="file" accept=".json,application/json">
       </section>
 
+      <section class="settings-card">
+        <details id="touch-debug-panel">
+        <summary>Diagnóstico de toque</summary>
+        <p class="settings-description">Ative, volte ao cadastro e repita o gesto que falha. Depois retorne aqui para desativar e exportar o relatório.</p>
+        <label class="settings-toggle-row" for="touch-debug-enabled">
+          <span>Registrar gestos dos ícones</span>
+          <span class="security-switch"><input id="touch-debug-enabled" type="checkbox"><span class="security-switch-track" aria-hidden="true"><span></span></span></span>
+        </label>
+        <p class="settings-description">Somente eventos de toque/mouse e informações do navegador e da tela. Não inclui bebidas, ícones, histórico, PIN ou campos digitados. Fica na memória até fechar ou recarregar. Para automaticamente em 10 minutos ou 1.500 eventos. Reativar inicia um novo registro.</p>
+        <p id="touch-debug-status" class="settings-description" role="status">Desativado</p>
+        <div class="settings-action-stack">
+          <button id="export-touch-debug" type="button" class="settings-secondary-button" disabled>Exportar relatório de toque</button>
+          <button id="clear-touch-debug" type="button" class="settings-secondary-button" disabled>Apagar relatório de toque</button>
+        </div>
+        </details>
+      </section>
+
       <section class="settings-card reset-settings">
         <details>
           <summary>Redefinir e apagar dados</summary>
@@ -261,7 +278,7 @@
     <footer class="app-footer">
       <span class="app-footer-disclaimer">App para estudo · não é controle de segurança</span>
       <a class="policies-link" href="./policies.html">Políticas e informações</a>
-      <span class="app-footer-meta">v2.0.5 · By: arielkeybob</span>
+      <span class="app-footer-meta">v2.0.6 · By: arielkeybob</span>
     </footer>
   </div>
 

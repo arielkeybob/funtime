@@ -90,7 +90,7 @@ test('Voltar percorre telas, diálogos, subetapas e não acumula entradas vazias
     assert.equal(await page.evaluate(() => state.securityConfig.enabled), false);
     assert.equal(await page.locator('#pin-setup-value').inputValue(), '');
     await back(1);
-    await page.locator('#settings-view details summary').click(); await depth(2);
+    await page.locator('#settings-view .reset-settings details summary').click(); await depth(2);
     await page.evaluate(() => { state.securityConfig.enabled = true; state.securityConfig.method = 'pin'; openDataReset('icons'); }); await depth(3);
     await page.locator('#reset-submit').click(); await depth(4);
     await page.evaluate(() => { globalThis.oldResetAuthorization = resetPending; });

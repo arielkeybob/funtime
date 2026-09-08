@@ -1,5 +1,11 @@
 # FunTime — releases v2
 
+## V2.0.6 — estabilidade e diagnóstico de toque
+
+Toque passa a acompanhar Touch Events por contato, com tolerância de 18px na espera, preservando cancelamento real e rolagem. Mouse/caneta mantêm Pointer Events. Diagnóstico opt-in nas Configurações, somente em memória, com exportação de relatório técnico sem dados do catálogo ou histórico. App/boot/SW/footers 2.0.6 e cache `funtime-v2-0-6` preparados. DATA_VERSION 9 e aceite preservados. Publicação em continuidade à melhoria autorizada; validação do usuário no celular pendente.
+
+Validação: sintaxe app.js/sw.js/boot.js/touch-debug.js/navigation.js e diff sem erros. 44 cenários aprovados em audit, icon-reorder-browser, touch-debug, navigation-browser, reset, ui, release e receiver-browser; navegação e gestos repetidos após ajustar a seleção da seção de redefinição no teste para coexistir com diagnóstico. Cobertura adicional: contato largo/pressão variável, oscilação de 12px na espera, pointercancel que não encerra Touch Events, rolagem após movimento pequeno, relatório exportado sem nomes/emojis, desativação após recarga, limites de tempo/memória, atualização e offline. Perfis isolados, sem armazenamento real. Confirmar o comportamento no celular com diagnóstico ligado/desligado; não se afirma que o relato está resolvido sem essa confirmação.
+
 ## V2.0.5 — segurar para organizar e soltar na lixeira para excluir
 
 Implementação e commit/push autorizados após validação. Pressão de 500ms ativa arraste animado; deslize antecipado mantém rolagem. Soltar na grade salva ordem; soltar na lixeira vermelha exclui apenas a opção do catálogo, com Desfazer. Caneta ativa somente × vermelhos; arraste desativado nesse modo. Teclado: Alt + setas/Home/End. Sem menu/alças. App, boot, SW e footers 2.0.5; cache `funtime-v2-0-5`; DATA_VERSION 9, aceite e marcador preservados.
