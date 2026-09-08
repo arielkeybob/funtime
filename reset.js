@@ -211,6 +211,23 @@ resetForm.addEventListener('submit', submitDataReset);
 resetForm.addEventListener('change', () => {
   try { updateResetPreview(); } catch { resetPending = null; resetError('Não foi possível preparar a prévia. Feche e tente novamente.'); }
 });
+function returnToResetPreview() {
+  if (!resetPending) return;
+  // Uma nova identidade invalida qualquer verificação assíncrona em andamento.
+  resetPending = { action: resetPending.action, confirmed: false };
+  resetBusy = false;
+  document.querySelector('#reset-pin').value = '';
+  document.querySelector('#reset-step').textContent = '1 de 2 · Revisar';
+  document.querySelector('#reset-submit').className = 'reset-confirm';
+  document.querySelector('#reset-submit').textContent = 'Confirmar seleção';
+  document.querySelector('#reset-options').hidden = false;
+  document.querySelector('#reset-history-option').hidden = resetPending.action !== 'drinks';
+  document.querySelector('#reset-auth-note').hidden = true;
+  document.querySelector('#reset-pin-field').hidden = true;
+  resetError('');
+  try { updateResetPreview(); } catch { resetPending = null; resetError('Não foi possível preparar a prévia. Feche e tente novamente.'); }
+}
+
 function closeDataReset() {
   resetPending = null;
   document.querySelector('#reset-pin').value = '';
@@ -220,7 +237,7 @@ document.querySelector('#reset-close').addEventListener('click', closeDataReset)
 document.querySelector('#reset-cancel').addEventListener('click', closeDataReset);
 resetDialog.addEventListener('cancel', closeDataReset);
 resetDialog.addEventListener('close', () => { resetPending = null; document.querySelector('#reset-pin').value = ''; });
-document.querySelector('#reset-setup').addEventListener('click', () => { closeDataReset(); openSecurityMethodDialog('enable'); });
+document.querySelector('#reset-setup').addEventListener('click', () => { openSecurityMethodDialog('enable'); });
 
 function updateResetListHint() {
   const list = document.querySelector('#reset-drinks-list');

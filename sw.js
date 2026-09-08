@@ -1,5 +1,5 @@
-const APP_VERSION = "2.0.0";
-const CACHE_NAME = "funtime-v2-0-0";
+const APP_VERSION = "2.0.1";
+const CACHE_NAME = "funtime-v2-0-1";
 const SHARE_IMPORT_CACHE_NAME = "funtime-share-target-v1";
 const SHARE_IMPORT_REQUEST_PATH = "./__shared-drinks-import__";
 const SHARE_TARGET_MAX_BYTES = 1500000;
@@ -16,6 +16,7 @@ const APP_SHELL = [
   "./emoji-data.js",
   "./ui.js",
   "./reset.js",
+  "./navigation.js",
   "./policies.js",
   "./policies.html",
   "./manifest.webmanifest",

@@ -1,12 +1,16 @@
 # FunTime — documentação de desenvolvimento
 
-**Versão da aplicação:** `v2.0.0`\
+**Versão da aplicação:** `v2.0.1` (local, sem publicação)\
 **Versão do modelo persistido:** `DATA_VERSION = 9`\
 **Autor exibido na interface:** `arielkeybob`  
 **Stack:** HTML + CSS + JavaScript puro  
 **Persistência:** `localStorage`  
 **Backend:** não existe  
 **Build step:** não existe
+
+## V2.0.1 — navegação por camadas
+
+Consulte [NAVIGATION.md](NAVIGATION.md) para o mapa completo de telas, regras de cancelamento, integração com History API, testes e limites entre plataformas. Cache `funtime-v2-0-1`; dados e aceite preservados.
 
 ## V2.0.0 — versão estável
 

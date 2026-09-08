@@ -206,7 +206,7 @@ window.addEventListener("appinstalled", () => {
 const DATA_STORAGE_KEY = "funtime-v1-data";
 const LEGACY_DRINKS_STORAGE_KEY = "balada-v1-drinks";
 const DATA_VERSION = 9;
-const APP_VERSION = "2.0.0";
+const APP_VERSION = "2.0.1";
 const DRINK_EXPORT_TYPE = "funtime-drinks";
 const DRINK_EXPORT_FORMAT_VERSION = 1;
 const BACKUP_EXPORT_TYPE = "funtime-backup";
@@ -765,7 +765,10 @@ function closeSettingsView() {
   window.scrollTo(0, 0);
 }
 
+let securitySetupGeneration = 0;
+
 function openSecurityMethodDialog(context = "enable") {
+  securitySetupGeneration++;
   state.securitySetupContext = context;
   securityMethodError.hidden = true;
   securityMethodError.textContent = "";
@@ -774,6 +777,7 @@ function openSecurityMethodDialog(context = "enable") {
 }
 
 function closeSecurityMethodDialog({ cancelEnable = true } = {}) {
+  securitySetupGeneration++;
   if (securityMethodDialog.open) securityMethodDialog.close();
   if (cancelEnable && state.securitySetupContext === "enable" && !state.securityConfig.enabled) {
     securityEnabledInput.checked = false;
@@ -781,6 +785,7 @@ function closeSecurityMethodDialog({ cancelEnable = true } = {}) {
 }
 
 function openPinSetupDialog() {
+  securitySetupGeneration++;
   pinSetupValue.value = "";
   pinSetupConfirm.value = "";
   pinSetupError.hidden = true;
@@ -789,15 +794,19 @@ function openPinSetupDialog() {
 }
 
 function closePinSetupDialog({ cancelEnable = true } = {}) {
+  securitySetupGeneration++;
+  pinSetupValue.value = '';
+  pinSetupConfirm.value = '';
   if (pinSetupDialog.open) pinSetupDialog.close();
   if (cancelEnable && state.securitySetupContext === "enable" && !state.securityConfig.enabled) {
     securityEnabledInput.checked = false;
   }
 }
 
-async function configurePinSecurity(pin) {
+async function configurePinSecurity(pin, isCurrent = () => true) {
   const salt = randomBytes(16);
   const hash = await derivePinHash(pin, salt);
+  if (!isCurrent()) throw new Error('Configuração cancelada.');
   state.securityConfig = {
     ...state.securityConfig,
     enabled: true,
@@ -814,8 +823,9 @@ async function configurePinSecurity(pin) {
   updateSecuritySettingsUI();
 }
 
-async function configureDeviceSecurity() {
+async function configureDeviceSecurity(isCurrent = () => true) {
   const credential = await createDeviceCredential();
+  if (!isCurrent()) throw new Error('Configuração cancelada.');
   state.securityConfig = {
     ...state.securityConfig,
     enabled: true,
@@ -828,6 +838,9 @@ async function configureDeviceSecurity() {
 }
 
 function closeSensitiveDialogs() {
+  securitySetupGeneration++;
+  pinSetupValue.value = '';
+  pinSetupConfirm.value = '';
   document.querySelectorAll("dialog[open]").forEach((dialog) => {
     try { dialog.close(); } catch (error) { /* noop */ }
   });
@@ -989,8 +1002,9 @@ async function handlePinSetupSubmit(event) {
   const submit = pinSetupForm.querySelector('button[type="submit"]');
   submit.disabled = true;
   submit.textContent = "Salvando…";
+  const generation = securitySetupGeneration;
   try {
-    await configurePinSecurity(pin);
+    await configurePinSecurity(pin, () => generation === securitySetupGeneration && pinSetupDialog.open && !state.securityLocked);
     closePinSetupDialog({ cancelEnable: false });
     securityMethodDialog.close();
     showToast("Bloqueio por PIN ativado.");
@@ -1006,8 +1020,9 @@ async function handlePinSetupSubmit(event) {
 async function chooseDeviceSecurity() {
   securityMethodError.hidden = true;
   chooseDeviceAuthButton.disabled = true;
+  const generation = securitySetupGeneration;
   try {
-    await configureDeviceSecurity();
+    await configureDeviceSecurity(() => generation === securitySetupGeneration && securityMethodDialog.open && !state.securityLocked);
     closeSecurityMethodDialog({ cancelEnable: false });
     showToast("Bloqueio pelo aparelho ativado.");
   } catch (error) {
@@ -1019,7 +1034,6 @@ async function chooseDeviceSecurity() {
 }
 
 function choosePinSecurity() {
-  securityMethodDialog.close();
   openPinSetupDialog();
 }
 
@@ -1702,6 +1716,7 @@ function confirmBackupRestore() {
     // Gravação única: se o setItem falhar, o estado atual permanece intacto.
     localStorage.setItem(DATA_STORAGE_KEY, JSON.stringify(pending.data));
     try { sessionStorage.setItem("funtime-restore-success-v1", "1"); } catch { /* Aviso opcional: dados já restaurados. */ }
+    globalThis.FunTimeNavigation?.prepareReload();
     closeBackupRestoreDialog();
     window.location.reload();
   } catch (error) {
@@ -1745,7 +1760,7 @@ function cleanSharedImportUrl() {
   if (!url.searchParams.has("import-shared")) return;
   url.searchParams.delete("import-shared");
   const next = `${url.pathname}${url.search}${url.hash}`;
-  history.replaceState({}, "", next);
+  history.replaceState(history.state, "", next);
 }
 
 async function maybeHandleSharedDrinkImport() {
@@ -2732,7 +2747,6 @@ function openDeleteDrinkDialog(drinkId, { returnToEditorOnCancel = false } = {})
     ? `Existem ${eventCount} registro${eventCount === 1 ? "" : "s"} desta bebida no histórico.`
     : "Esta bebida ainda não possui registros no histórico.";
 
-  if (drinkDialog.open) drinkDialog.close();
   deleteDrinkDialog.showModal();
 }
 
@@ -2742,7 +2756,10 @@ function closeDeleteDrinkDialog({ returnToEditor = state.deleteReturnToEditor } 
   state.deleteReturnToEditor = false;
   deleteDrinkDialog.close();
 
-  if (returnToEditor && drinkId && state.drinks.some((drink) => drink.id === drinkId)) {
+  if (drinkId && !state.drinks.some((drink) => drink.id === drinkId)) {
+    if (drinkDialog.open) closeDrinkDialog();
+    if (drinkMenuDialog.open) closeDrinkMenuDialog();
+  } else if (returnToEditor && drinkId && !drinkDialog.open) {
     openEditDrinkDialog(drinkId);
   }
 }
@@ -2804,19 +2821,16 @@ function closeDrinkMenuDialog() {
 
 function openOtherTimeFromDrinkMenu() {
   const drinkId = state.menuDrinkId;
-  closeDrinkMenuDialog();
   if (drinkId) openLogDialog(drinkId);
 }
 
 function editDrinkFromDrinkMenu() {
   const drinkId = state.menuDrinkId;
-  closeDrinkMenuDialog();
   if (drinkId) openEditDrinkDialog(drinkId);
 }
 
 function deleteDrinkFromDrinkMenu() {
   const drinkId = state.menuDrinkId;
-  closeDrinkMenuDialog();
   if (drinkId) openDeleteDrinkDialog(drinkId);
 }
 
@@ -2870,8 +2884,6 @@ function continueFromIntervalWarning() {
   if (!state.pendingDrinkId) return;
 
   const drinkId = state.pendingDrinkId;
-  intervalWarningDialog.close();
-  state.pendingDrinkId = null;
   openLogDialog(drinkId);
 }
 

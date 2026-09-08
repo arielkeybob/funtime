@@ -79,8 +79,20 @@
     <footer class="app-footer">
       <span class="app-footer-disclaimer">App para estudo · não é controle de segurança</span>
       <a href="./" class="policies-link">Voltar ao FunTime</a>
-      <span class="app-footer-meta">v2.0.0 · By: arielkeybob</span>
+      <span class="app-footer-meta">v2.0.1 · By: arielkeybob</span>
     </footer>
   </main>
+  <script>
+    // Reusar a entrada do app preserva a tela de origem e evita um ciclo de páginas.
+    document.querySelector('.information-back').addEventListener('click', event => {
+      if (!document.referrer || history.length < 2) return;
+      const source = new URL(document.referrer);
+      const home = new URL('./', location.href);
+      if (source.origin === home.origin && [home.pathname, home.pathname + 'index.html'].includes(source.pathname)) {
+        event.preventDefault();
+        history.back();
+      }
+    });
+  </script>
 </body>
 </html>
