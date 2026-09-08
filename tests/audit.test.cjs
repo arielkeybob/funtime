@@ -16,6 +16,23 @@ function context(extra = {}) {
   return ctx;
 }
 const drink = {id:'d1', name:'Água', icon:'💧', intervalMinutes:60, askDoseSize:false};
+test('reordenar catálogo preserva seleção de dados, backup e ordem em falha de gravação', () => {
+  let saved;
+  const state = { drinks: [drink], events: backup().data.events, preferences: { cleanInterface: true, iconCatalog: ['🍺', '💧', '⭐'] } };
+  const c = context({ state, localStorage: { setItem: (key, value) => { saved = JSON.parse(value); } } });
+  vm.runInContext(extract('moveCatalogIcon'), c);
+  assert.equal(c.moveCatalogIcon('🍺', 2), true);
+  assert.deepEqual(Array.from(state.preferences.iconCatalog), ['💧', '⭐', '🍺']);
+  assert.deepEqual(saved.drinks, state.drinks);
+  assert.deepEqual(saved.events, state.events);
+  assert.deepEqual(Array.from(c.validateBackupPayload({ type: 'funtime-backup', formatVersion: 1, data: saved }).preferences.iconCatalog), ['💧', '⭐', '🍺']);
+  for (const index of [-1, 3, 0.5, NaN]) assert.equal(c.moveCatalogIcon('🍺', index), false);
+  assert.equal(c.moveCatalogIcon('❌', 0), false);
+  assert.equal(c.moveCatalogIcon('🍺', 2), false);
+  c.localStorage.setItem = () => { throw new Error('quota'); };
+  assert.throws(() => c.moveCatalogIcon('🍺', 0), /quota/);
+  assert.deepEqual(Array.from(state.preferences.iconCatalog), ['💧', '⭐', '🍺']);
+});
 function backup() { return {type:'intervalo-backup',formatVersion:1,data:{version:8,drinks:[{...drink}],events:[{id:'e1',drinkId:'d1',drinkName:'Água',drinkIcon:'💧',consumedAt:1700000000000,intervalMinutes:60,doseSize:null}],preferences:{cleanInterface:true}}}; }
 
 test('backup válido conserva snapshots; bebida excluída continua restaurável', () => {

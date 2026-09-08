@@ -1,4 +1,6 @@
-# FunTime — V2.0.2
+# FunTime — V2.0.3
+
+V2.0.3: reordenação do catálogo de ícones. No cadastro/edição de uma bebida, toque na caneta e arraste pela alça ⠿ até outro ícone. Pelo teclado, foque a alça e use as setas ou Home/End. A ordem é salva imediatamente, mesmo ao cancelar a bebida, e acompanha o backup. Bebidas e histórico permanecem intactos. Publicação autorizada em 08/09/2026. App, boot e footers 2.0.3; cache funtime-v2-0-3; DATA_VERSION 9 preservado.
 
 V2.0.2: a página de instalação confirma “App já instalado” por evento do navegador ou detecção, sem manter o convite para instalar. Aceitação do prompt continua distinta de conclusão; verificações periódicas e proteção contra respostas atrasadas evitam estado incorreto. App, boot, footers e cache `funtime-v2-0-2` atualizados; DATA_VERSION 9 e aceite preservados. Publicação autorizada em 08/09/2026, com deployment a conferir após o push.
 

@@ -1,5 +1,11 @@
 # FunTime — releases v2
 
+## V2.0.3 — reordenar ícones
+
+Commit e push autorizados em 08/09/2026. Alças de arraste aparecem somente no modo de edição da caneta, junto com a exclusão. Inclui teclado, cancelamento e persistência imediata da ordem no catálogo e backup. App, boot, SW e footers 2.0.3; cache `funtime-v2-0-3`. DATA_VERSION 9, aceite e marcador de descoberta preservados.
+
+Validação da funcionalidade: 36 testes aprovados, incluindo Edge com mouse e toque simulado, teclado, cancelamento, falha de armazenamento, recarga e navegação. Layout conferido em 390×844. Celular real, leitor de tela, catálogo longo nas bordas e atualização da PWA instalada ainda não testados. Deployment deve ser conferido após o push.
+
 ## V2.0.2 — instalação
 
 Publicação autorizada em 08/09/2026. App, boot, SW e footers 2.0.2; cache `funtime-v2-0-2`. Tela confirma instalação por evento ou detecção, remove convite contraditório e descarta respostas atrasadas. Dados, identidade e aceite preservados. O marcador de descoberta existente permanece válido e preservado. A ponte recebe manutenção própria v1.16.1 no repositório Intervalo.

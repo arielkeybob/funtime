@@ -35,7 +35,7 @@ O usuário quer substituir a identidade Intervalo por FunTime, incluindo posteri
 
 ### Reordenar ícones por arrastar e soltar
 
-Permitir reorganizar o catálogo pessoal, distinguindo arraste de rolagem horizontal, seleção e exclusão no celular. Prever alternativa por teclado, feedback visual e persistência da ordem. Adiado para uma evolução própria; adicionar e excluir disponíveis na V1.12.0.
+Implementado na V2.0.3, com publicação autorizada em 08/09/2026 e validação em aparelho ainda pendente: no modo de edição, alças específicas permitem arrastar até outra posição, com rolagem automática nas bordas e destaque do destino. A área do emoji mantém seleção e rolagem. Setas e Home/End oferecem alternativa por teclado; Escape cancela o arraste. A ordem usa o catálogo já persistido e incluído no backup, sem mudar o schema.
 
 
 ### Mesclar bebidas

@@ -1,12 +1,20 @@
 # FunTime — documentação de desenvolvimento
 
-**Versão da aplicação:** `v2.0.2`\
+**Versão da aplicação:** `v2.0.3`\
 **Versão do modelo persistido:** `DATA_VERSION = 9`\
 **Autor exibido na interface:** `arielkeybob`  
 **Stack:** HTML + CSS + JavaScript puro  
 **Persistência:** `localStorage`  
 **Backend:** não existe  
 **Build step:** não existe
+
+## V2.0.3 — reordenar ícones
+
+Implementado em 08/09/2026; commit e push autorizados. No modo da caneta, cada opção do catálogo ganha uma alça de 44px com Pointer Events e captura do ponteiro. Somente a alça usa `touch-action: none`; o emoji mantém seleção e rolagem. O destino recebe contorno, as bordas rolam automaticamente e a gravação acontece ao soltar sobre um ícone do catálogo. Soltar fora, pointercancel, perda da captura ou Escape cancelam sem gravar. Escape durante o arraste é consumido antes da navegação; concluir/fechar/reconstruir o editor encerra o gesto.
+
+Na alça, cima/baixo movem uma posição, esquerda/direita duas (grade em duas linhas), Home/End movem ao início/fim. O foco e a seleção da bebida são preservados. Ícone atual fora do catálogo continua selecionável, sem alça. Catálogo vazio mantém + e caneta. A ordem é uma preferência global salva imediatamente, inclusive ao cancelar o rascunho, usando `preferences.iconCatalog` existente. DATA_VERSION 9, importação, backups e migração cumulativa permanecem compatíveis; falha de armazenamento mantém a ordem anterior e mostra erro.
+
+Validação: `node --check app.js`, `node --check sw.js`; `node --test tests/icon-reorder-browser.test.cjs tests/navigation-browser.test.cjs tests/audit.test.cjs tests/reset.test.cjs tests/ui.test.cjs` — 36 aprovados. Teste integrado no Edge com origem/perfil efêmeros cobre mouse, toque simulado via CDP, cancelamento, setas/Home/End, seleção, falha de gravação e persistência após recarregar. Inspeção visual em 390×844 aprovada. Sem acesso ao armazenamento real. Pendentes: toque em celular real, leitor de tela, rolagem longa nas bordas com 100 ícones e atualização da PWA instalada. App, boot e footers 2.0.3; cache funtime-v2-0-3. DATA_VERSION e aceite preservados.
 
 ## V2.0.2 — instalação; navegação da V2.0.1 preservada
 

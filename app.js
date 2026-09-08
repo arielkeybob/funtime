@@ -264,7 +264,7 @@ document.addEventListener("visibilitychange", () => {
 const DATA_STORAGE_KEY = "funtime-v1-data";
 const LEGACY_DRINKS_STORAGE_KEY = "balada-v1-drinks";
 const DATA_VERSION = 9;
-const APP_VERSION = "2.0.2";
+const APP_VERSION = "2.0.3";
 const DRINK_EXPORT_TYPE = "funtime-drinks";
 const DRINK_EXPORT_FORMAT_VERSION = 1;
 const BACKUP_EXPORT_TYPE = "funtime-backup";
@@ -3262,12 +3262,120 @@ function initializeDurationPickers() {
 
 let removedCatalogIcon = null;
 let editingIconCatalog = false;
+let cancelIconDrag = null;
+
+function moveCatalogIcon(icon, targetIndex) {
+  const catalog = [...state.preferences.iconCatalog];
+  const from = catalog.indexOf(icon);
+  if (from < 0 || !Number.isInteger(targetIndex) || targetIndex < 0 || targetIndex >= catalog.length || from === targetIndex) return false;
+  catalog.splice(from, 1);
+  catalog.splice(targetIndex, 0, icon);
+  persistIconCatalog(catalog);
+  return true;
+}
+
+function commitIconMove(icon, targetIndex) {
+  const selected = iconOptions.querySelector('input:checked')?.value || null;
+  const scroll = iconOptions.scrollLeft;
+  try {
+    if (!moveCatalogIcon(icon, targetIndex)) return;
+    buildIconPicker(selected, true);
+    iconOptions.scrollLeft = scroll;
+    const handle = [...iconOptions.querySelectorAll('.icon-move')].find(button => button.dataset.icon === icon);
+    handle?.focus({ preventScroll: true });
+    handle?.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+    setIconCatalogStatus('Ícone movido para a posição ' + (targetIndex + 1) + '. Ordem salva.');
+  } catch (error) {
+    setIconCatalogStatus('Não foi possível salvar a ordem. A ordem anterior foi mantida.');
+  }
+}
+
+function attachIconMoveHandle(wrapper, icon) {
+  const handle = document.createElement('button');
+  handle.type = 'button';
+  handle.className = 'icon-move';
+  handle.dataset.icon = icon;
+  handle.textContent = '⠿';
+  handle.setAttribute('aria-label', 'Mover ' + icon + ', posição ' + (state.preferences.iconCatalog.indexOf(icon) + 1));
+  handle.setAttribute('aria-describedby', 'icon-reorder-help');
+  handle.addEventListener('keydown', event => {
+    const offsets = { ArrowLeft: -2, ArrowRight: 2, ArrowUp: -1, ArrowDown: 1 };
+    const index = state.preferences.iconCatalog.indexOf(icon);
+    const target = event.key === 'Home' ? 0 : event.key === 'End' ? state.preferences.iconCatalog.length - 1 : index + offsets[event.key];
+    if (!Number.isFinite(target)) return;
+    event.preventDefault();
+    if (!cancelIconDrag) commitIconMove(icon, target);
+  });
+  handle.addEventListener('pointerdown', event => {
+    if (event.button !== 0 || !event.isPrimary || cancelIconDrag) return;
+    event.preventDefault();
+    handle.focus({ preventScroll: true });
+    const pointerId = event.pointerId;
+    let x = event.clientX, y = event.clientY, targetIndex = null, frame;
+    const clearTarget = () => iconOptions.querySelectorAll('.icon-drop-target').forEach(node => node.classList.remove('icon-drop-target'));
+    const update = () => {
+      clearTarget();
+      const bounds = iconOptions.getBoundingClientRect();
+      targetIndex = null;
+      if (x >= bounds.left && x <= bounds.right && y >= bounds.top && y <= bounds.bottom) {
+        if (x < bounds.left + 28) iconOptions.scrollLeft -= 7;
+        if (x > bounds.right - 28) iconOptions.scrollLeft += 7;
+        const target = document.elementFromPoint(x, y)?.closest('[data-catalog-icon]');
+        if (target && iconOptions.contains(target)) {
+          targetIndex = state.preferences.iconCatalog.indexOf(target.dataset.catalogIcon);
+          if (target.dataset.catalogIcon !== icon) target.classList.add('icon-drop-target');
+        }
+      }
+    };
+    const tick = () => {
+      if (!handle.isConnected || !drinkDialog.open || document.hidden) { cancel(); return; }
+      update();
+      frame = requestAnimationFrame(tick);
+    };
+    const move = event => { if (event.pointerId === pointerId) { x = event.clientX; y = event.clientY; } };
+    const finish = () => {
+      cancelAnimationFrame(frame);
+      clearTarget();
+      wrapper.classList.remove('icon-dragging');
+      iconOptions.classList.remove('icon-drag-active');
+      handle.removeEventListener('pointermove', move);
+      handle.removeEventListener('pointerup', drop);
+      handle.removeEventListener('pointercancel', cancel);
+      handle.removeEventListener('lostpointercapture', cancel);
+      window.removeEventListener('keydown', escape, true);
+      cancelIconDrag = null;
+      if (handle.hasPointerCapture(pointerId)) handle.releasePointerCapture(pointerId);
+    };
+    const cancel = () => { finish(); };
+    const drop = event => {
+      if (event.pointerId !== pointerId) return;
+      x = event.clientX; y = event.clientY;
+      update();
+      const destination = targetIndex;
+      finish();
+      if (destination !== null) commitIconMove(icon, destination);
+    };
+    const escape = event => { if (event.key === 'Escape') { event.preventDefault(); event.stopImmediatePropagation(); cancel(); } };
+    handle.setPointerCapture(pointerId);
+    cancelIconDrag = cancel;
+    wrapper.classList.add('icon-dragging');
+    iconOptions.classList.add('icon-drag-active');
+    handle.addEventListener('pointermove', move);
+    handle.addEventListener('pointerup', drop);
+    handle.addEventListener('pointercancel', cancel);
+    handle.addEventListener('lostpointercapture', cancel);
+    window.addEventListener('keydown', escape, true);
+    tick();
+  });
+  wrapper.append(handle);
+}
 
 function setIconCatalogStatus(message) {
   document.querySelector('#icon-catalog-status').textContent = message;
 }
 
 function buildIconPicker(selectedIcon = null, preserveFeedback = false) {
+  cancelIconDrag?.();
   iconOptions.innerHTML = '';
   if (!preserveFeedback) {
     removedCatalogIcon = null;
@@ -3276,6 +3384,8 @@ function buildIconPicker(selectedIcon = null, preserveFeedback = false) {
     document.querySelector('#icon-add-panel').hidden = true;
     setIconCatalogStatus('');
   }
+  iconOptions.classList.toggle('icon-options-editing', editingIconCatalog);
+  document.querySelector('#icon-reorder-help').hidden = !editingIconCatalog;
   const catalog = state.preferences.iconCatalog;
   const selected = typeof selectedIcon === 'string' && selectedIcon.trim() ? selectedIcon.trim() : null;
   const icons = selected && !catalog.includes(selected) ? [selected, ...catalog] : [...catalog];
@@ -3296,6 +3406,8 @@ function buildIconPicker(selectedIcon = null, preserveFeedback = false) {
     label.append(input, visual);
     wrapper.append(label);
     if (catalog.includes(icon)) {
+      wrapper.dataset.catalogIcon = icon;
+      if (editingIconCatalog) attachIconMoveHandle(wrapper, icon);
       const remove = document.createElement('button');
       remove.type = 'button';
       remove.className = 'icon-remove';

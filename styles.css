@@ -3185,6 +3185,15 @@ body {
 .icon-options .icon-edit { grid-row: 2; font-size: 1.5rem; }
 .icon-options .icon-edit[aria-pressed="true"] { border-style: solid; border-color: var(--accent); }
 .icon-options { padding-right: 12px; }
+#drink-dialog .icon-options.icon-options-editing { grid-template-rows: repeat(2, 104px); grid-auto-columns: 64px; }
+#drink-dialog .icon-options-editing .icon-option { width: 64px; height: 104px; }
+#drink-dialog .icon-options-editing .icon-option > label { height: 60px; }
+.icon-option .icon-move { position: absolute; bottom: 0; left: 0; width: 100%; height: 44px; min-height: 44px; padding: 0; border: 1px solid var(--border); border-radius: 8px; background: #26262b; color: #ddd; cursor: grab; touch-action: none; user-select: none; font-size: 1.4rem; }
+.icon-move:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+.icon-dragging { opacity: .55; }
+.icon-drop-target { outline: 2px dashed var(--accent); outline-offset: -2px; border-radius: 12px; }
+.icon-options.icon-drag-active { scroll-snap-type: none; }
+#icon-reorder-help { color: var(--muted); font-size: .78rem; }
 .icon-add-panel { padding: 12px; border: 1px solid var(--border); border-radius: 12px; background: #111115; }
 .emoji-menu-header { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
 .emoji-menu-header label { font-size: .85rem; }
