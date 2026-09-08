@@ -1,6 +1,8 @@
-# FunTime — V2.0.1 (local)
+# FunTime — V2.0.2
 
-Navegação local 2.0.1: Voltar percorre telas, diálogos e subetapas até o Início. Planejamento por tela, comportamento e testes em [NAVIGATION.md](NAVIGATION.md). Ainda sem publicação; a versão estável publicada descrita abaixo é 2.0.0.
+V2.0.2: a página de instalação confirma “App já instalado” por evento do navegador ou detecção, sem manter o convite para instalar. Aceitação do prompt continua distinta de conclusão; verificações periódicas e proteção contra respostas atrasadas evitam estado incorreto. App, boot, footers e cache `funtime-v2-0-2` atualizados; DATA_VERSION 9 e aceite preservados. Publicação autorizada em 08/09/2026, com deployment a conferir após o push.
+
+Navegação 2.0.1 já enviada ao remoto: Voltar percorre telas, diálogos e subetapas até o Início. Planejamento por tela, comportamento e testes em [NAVIGATION.md](NAVIGATION.md). O registro abaixo preserva a estabilização inicial 2.0.0.
 
 FunTime 2.0: novo ícone de abacaxi com relógio, identidade `/funtime/` e cache separado da v1. Pelo navegador, oferece instalação sem ler dados privados; pelo novo ícone, confirma a utilização dos dados existentes ou oferece backup/início sem dados. A transferência exige ponte v1.16 compatível e exclusividade de escrita, preservando bebidas, histórico, proteção e preferências. O repositório principal é [arielkeybob/funtime](https://github.com/arielkeybob/funtime). A ponte v1.16 continua no repositório `intervalo`, commit `7c75410`; não publicar o app v2 sobre `/intervalo/`.
 

@@ -40,6 +40,29 @@ async function acceptTerms(page){
 async function capture(page,name){
   if(process.env.PWA_SCREENSHOT_DIR){fs.mkdirSync(process.env.PWA_SCREENSHOT_DIR,{recursive:true});await page.screenshot({path:path.join(process.env.PWA_SCREENSHOT_DIR,name),fullPage:true});}
 }
+test('página de instalação conclui por evento e mantém orientação ao voltar', {timeout:30000}, async()=>environment(async(browser,origin)=>{
+  const ctx=await browser.newContext({viewport:{width:390,height:844}});
+  const page=await ctx.newPage();
+  await page.addInitScript(()=>Object.defineProperty(navigator,'getInstalledRelatedApps',{value:undefined,configurable:true}));
+  await page.goto(origin+'/funtime/');
+  await page.locator('#browser-gate').waitFor({state:'visible'});
+  await page.evaluate(()=>{
+    const prompt=new Event('beforeinstallprompt');
+    prompt.prompt=async()=>({outcome:'accepted'});
+    window.dispatchEvent(prompt);
+  });
+  await page.locator('#browser-install-button').click();
+  assert.equal(await page.locator('#browser-install-status-title').textContent(),'Instalação iniciada');
+  await page.evaluate(()=>window.dispatchEvent(new Event('appinstalled')));
+  await page.evaluate(()=>window.dispatchEvent(new Event('focus')));
+  assert.equal(await page.locator('#browser-install-status-title').textContent(),'App já instalado');
+  assert.equal(await page.locator('#browser-gate-lead').isVisible(),false);
+  assert.equal(await page.locator('#browser-install-button').isVisible(),false);
+  assert.equal(await page.evaluate(()=>localStorage.getItem('funtime-installation-owner-v1')),null);
+  assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);
+  await capture(page,'funtime-install-complete.png');
+  await ctx.close();
+}));
 test('receptor real aguarda v1, transfere últimos dados, exige PIN e reabre offline', {timeout:90000},async()=>environment(async(browser,origin)=>{
   const ctx=await installedContext(browser);
   const errors=[];ctx.on('page',p=>p.on('pageerror',e=>errors.push(e.message)));
@@ -120,7 +143,7 @@ test('dados existentes sem ponte compatível bloqueiam sem tomar posse; novo usu
   assert.equal(await start.evaluate(()=>JSON.parse(localStorage.getItem('funtime-installation-owner-v1')).generation),2);
   await fresh.close();
 }));
-test('dev.2 atualiza pelo botão para 2.0.1 sem repetir transferência nem alterar dados', {timeout:60000},async()=>environment(async(browser,origin,publish)=>{
+test('dev.2 atualiza pelo botão para 2.0.2 sem repetir transferência nem alterar dados', {timeout:60000},async()=>environment(async(browser,origin,publish)=>{
   const ctx=await installedContext(browser);const page=await ctx.newPage();await page.goto(origin+'/funtime/');
   await page.getByRole('button',{name:'Começar sem dados',exact:true}).click();await acceptTerms(page);
   await page.evaluate(data=>localStorage.setItem('funtime-v1-data',JSON.stringify(data)),data);
@@ -129,10 +152,10 @@ test('dev.2 atualiza pelo botão para 2.0.1 sem repetir transferência nem alter
   const owner=await page.evaluate(()=>localStorage.getItem('funtime-installation-owner-v1'));
   publish();await page.evaluate(async()=>{const registration=await navigator.serviceWorker.getRegistration();await registration.update();});
   await page.locator('#apply-update').waitFor({state:'visible'});await page.locator('#apply-update').click();
-  await page.waitForFunction(()=>typeof APP_VERSION!=='undefined'&&APP_VERSION==='2.0.1'&&!document.body.classList.contains('boot-pending'));
+  await page.waitForFunction(()=>typeof APP_VERSION!=='undefined'&&APP_VERSION==='2.0.2'&&!document.body.classList.contains('boot-pending'));
   assert.equal(await page.evaluate(()=>localStorage.getItem('funtime-installation-owner-v1')),owner);
   assert.equal(await page.evaluate(()=>localStorage.getItem('funtime-v1-data')),JSON.stringify(data));
   assert.equal(await page.locator('#startup-retry').isVisible(),false);
-  await ctx.setOffline(true);await page.reload();await page.waitForFunction(()=>typeof APP_VERSION!=='undefined'&&APP_VERSION==='2.0.1'&&!document.body.classList.contains('boot-pending'));
+  await ctx.setOffline(true);await page.reload();await page.waitForFunction(()=>typeof APP_VERSION!=='undefined'&&APP_VERSION==='2.0.2'&&!document.body.classList.contains('boot-pending'));
   assert.equal(await page.evaluate(()=>state.events[0].drinkName),'Nome histórico');await ctx.close();
 },{startAtDev2:true}));

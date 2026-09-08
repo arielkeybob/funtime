@@ -1,3 +1,11 @@
+# FunTime — releases v2
+
+## V2.0.2 — instalação
+
+Publicação autorizada em 08/09/2026. App, boot, SW e footers 2.0.2; cache `funtime-v2-0-2`. Tela confirma instalação por evento ou detecção, remove convite contraditório e descarta respostas atrasadas. Dados, identidade e aceite preservados. O marcador de descoberta existente permanece válido e preservado. A ponte recebe manutenção própria v1.16.1 no repositório Intervalo.
+
+Validação: sintaxe app.js/sw.js/boot.js, 23 testes Node e cenários integrados do receptor/instalação/atualização no Edge. Instalação real no launcher do celular não executada pelo agente. Confirmar deployment após o push; os registros seguintes documentam a estabilização inicial.
+
 # FunTime 2.0.0
 
 ## Entrega estável

@@ -8,6 +8,32 @@ const IS_STANDALONE_APP = (
 let deferredInstallPrompt = null;
 let browserInstallPending = false;
 let browserInstallVerified = false;
+let browserInstallCompleted = false;
+let browserInstallRevision = 0;
+let browserInstallPollTimer = null;
+
+function stopBrowserInstallPolling() {
+  window.clearTimeout(browserInstallPollTimer);
+  browserInstallPollTimer = null;
+}
+
+function confirmBrowserInstall() {
+  browserInstallRevision++;
+  browserInstallVerified = true;
+  browserInstallPending = false;
+  deferredInstallPrompt = null;
+  stopBrowserInstallPolling();
+  setBrowserInstallUI("installed");
+}
+
+function pollBrowserInstall(remaining = 30) {
+  stopBrowserInstallPolling();
+  if (!browserInstallPending || remaining <= 0) return;
+  browserInstallPollTimer = window.setTimeout(async () => {
+    await refreshBrowserInstallUI();
+    if (browserInstallPending) pollBrowserInstall(remaining - 1);
+  }, 2000);
+}
 
 function getBrowserInstallGuidance() {
   const ua = navigator.userAgent || "";
@@ -44,6 +70,7 @@ function setBrowserInstallUI(mode) {
   const statusText = document.querySelector("#browser-install-status-text");
   const guidance = document.querySelector("#browser-install-guidance");
   const guidanceText = document.querySelector("#browser-install-guidance-text");
+  const lead = document.querySelector("#browser-gate-lead");
 
   if (!button || !status || !statusTitle || !statusText || !guidance || !guidanceText) return;
 
@@ -51,10 +78,16 @@ function setBrowserInstallUI(mode) {
   button.disabled = false;
   status.hidden = true;
   guidance.hidden = true;
+  if (lead) {
+    lead.hidden = mode === "installed" || mode === "pending";
+    lead.textContent = mode === "ready" || mode === "opening"
+      ? "Instale o FunTime e depois abra pelo novo ícone."
+      : "Anote bebidas e acompanhe seus intervalos.";
+  }
 
   if (mode === "ready") {
     button.hidden = false;
-    button.textContent = "Instalar";
+    button.textContent = "Instalar FunTime";
     return;
   }
 
@@ -74,8 +107,8 @@ function setBrowserInstallUI(mode) {
 
   if (mode === "installed") {
     status.hidden = false;
-    statusTitle.textContent = "FunTime detectado";
-    statusText.textContent = "O navegador detectou o app neste aparelho. Abra pelo ícone do FunTime.";
+    statusTitle.textContent = "App já instalado";
+    statusText.textContent = "Procure pelo ícone na lista de aplicativos e abra por lá.";
     return;
   }
 
@@ -90,7 +123,15 @@ async function detectInstalledPwa() {
 
   try {
     const relatedApps = await navigator.getInstalledRelatedApps();
-    return relatedApps.some((app) => app?.platform === "webapp");
+    const manifestUrl = new URL("./manifest.webmanifest", window.location.href).href;
+    const appId = new URL("/funtime/", window.location.href).href;
+    return relatedApps.some((app) => {
+      if (app?.platform !== "webapp" || !app.url) return false;
+      try {
+        return new URL(app.url, manifestUrl).href === manifestUrl &&
+          (!app.id || new URL(app.id, manifestUrl).href === appId);
+      } catch { return false; }
+    });
   } catch (error) {
     console.warn("Não foi possível verificar se a PWA está instalada.", error);
     return null;
@@ -99,13 +140,21 @@ async function detectInstalledPwa() {
 
 async function refreshBrowserInstallUI() {
   if (IS_STANDALONE_APP) return;
+  if (browserInstallCompleted) {
+    setBrowserInstallUI("installed");
+    return;
+  }
 
+  const revision = ++browserInstallRevision;
   const installed = await detectInstalledPwa();
+  if (revision !== browserInstallRevision) return;
 
   if (installed === true) {
-    browserInstallVerified = true;
-    browserInstallPending = false;
-    deferredInstallPrompt = null;
+    confirmBrowserInstall();
+    return;
+  }
+  if (installed === false) browserInstallVerified = false;
+  if (browserInstallVerified) {
     setBrowserInstallUI("installed");
     return;
   }
@@ -131,10 +180,12 @@ async function requestBrowserInstall() {
 
   const promptEvent = deferredInstallPrompt;
   deferredInstallPrompt = null;
+  browserInstallRevision++;
   setBrowserInstallUI("opening");
 
   try {
     const choice = await promptEvent.prompt();
+    if (browserInstallVerified) return;
 
     if (choice?.outcome === "accepted") {
       // Importante: "accepted" confirma a escolha no prompt, não usamos isso
@@ -144,14 +195,14 @@ async function requestBrowserInstall() {
 
       // Em navegadores que suportam a API, tentamos confirmar a instalação.
       // A UI continua usando linguagem neutra enquanto não houver confirmação.
-      window.setTimeout(() => refreshBrowserInstallUI(), 1800);
-      window.setTimeout(() => refreshBrowserInstallUI(), 5000);
+      pollBrowserInstall();
       return;
     }
 
     browserInstallPending = false;
     await refreshBrowserInstallUI();
   } catch (error) {
+    if (browserInstallVerified) return;
     console.warn("Não foi possível abrir o prompt de instalação.", error);
     browserInstallPending = false;
     await refreshBrowserInstallUI();
@@ -178,9 +229,13 @@ function initializeRuntimeMode() {
 }
 
 window.addEventListener("beforeinstallprompt", (event) => {
-  if (IS_STANDALONE_APP || browserInstallVerified) return;
+  if (IS_STANDALONE_APP) return;
 
   event.preventDefault();
+  browserInstallRevision++;
+  browserInstallCompleted = false;
+  browserInstallVerified = false;
+  stopBrowserInstallPolling();
   deferredInstallPrompt = event;
 
   // Se um fluxo anterior não terminou de fato, o navegador pode oferecer a
@@ -192,13 +247,16 @@ window.addEventListener("beforeinstallprompt", (event) => {
 window.addEventListener("appinstalled", () => {
   if (IS_STANDALONE_APP) return;
 
-  // Não exibimos "App instalado" apenas com base neste evento. Em alguns
-  // Androids o launcher ainda pode estar finalizando o processo.
-  browserInstallPending = true;
-  setBrowserInstallUI("pending");
+  // Confirmação do navegador, distinta da simples aceitação do prompt.
+  // A criação visual do ícone pelo launcher pode terminar instantes depois.
+  browserInstallCompleted = true;
+  confirmBrowserInstall();
+});
 
-  window.setTimeout(() => refreshBrowserInstallUI(), 1200);
-  window.setTimeout(() => refreshBrowserInstallUI(), 4000);
+// Atualiza ao retornar das configurações/instalação, sem acessar dados privados.
+window.addEventListener("focus", () => refreshBrowserInstallUI());
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "visible") refreshBrowserInstallUI();
 });
 
 
@@ -206,7 +264,7 @@ window.addEventListener("appinstalled", () => {
 const DATA_STORAGE_KEY = "funtime-v1-data";
 const LEGACY_DRINKS_STORAGE_KEY = "balada-v1-drinks";
 const DATA_VERSION = 9;
-const APP_VERSION = "2.0.1";
+const APP_VERSION = "2.0.2";
 const DRINK_EXPORT_TYPE = "funtime-drinks";
 const DRINK_EXPORT_FORMAT_VERSION = 1;
 const BACKUP_EXPORT_TYPE = "funtime-backup";

@@ -1,0 +1,91 @@
+const { test } = require('node:test');
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const vm = require('node:vm');
+const source = fs.readFileSync('app.js', 'utf8').split('const DATA_STORAGE_KEY')[0];
+function setup(apps) {
+  const nodes = {};
+  const listeners = {};
+  const timers = new Map();
+  let timerId = 0;
+  const navigator = { userAgent: '', getInstalledRelatedApps: async () => apps };
+  const context = vm.createContext({ URL, console, navigator,
+    window: { navigator, location: { href: 'https://example.com/funtime/' },
+      matchMedia: () => ({ matches: false }),
+      setTimeout: fn => { timers.set(++timerId, fn); return timerId; },
+      clearTimeout: id => timers.delete(id),
+      addEventListener: (name, fn) => { listeners[name] = fn; } },
+    document: { querySelector: id => nodes[id] ??= {}, addEventListener() {} }
+  });
+  vm.runInContext(source, context);
+  return { context, nodes, listeners, navigator, timers };
+}
+test('instalação v2 remove convite para instalar e atualiza ao retornar', async () => {
+  const { context, nodes, listeners, navigator } = setup([
+    { platform: 'webapp', url: 'https://example.com/funtime/manifest.webmanifest', id: '/funtime/' }
+  ]);
+  await context.refreshBrowserInstallUI();
+  assert.equal(nodes['#browser-install-status-title'].textContent, 'App já instalado');
+  assert.equal(nodes['#browser-gate-lead'].hidden, true);
+  assert.equal(nodes['#browser-install-button'].hidden, true);
+  navigator.getInstalledRelatedApps = async () => [];
+  await listeners.focus();
+  assert.equal(nodes['#browser-install-guidance'].hidden, false);
+  assert.equal(nodes['#browser-gate-lead'].hidden, false);
+});
+test('appinstalled conclui sem API e não regride quando o prompt resolve depois', async () => {
+  const { context, navigator, nodes, listeners, timers } = setup([]);
+  delete navigator.getInstalledRelatedApps;
+  let resolvePrompt;
+  listeners.beforeinstallprompt({ preventDefault() {}, prompt: () => new Promise(resolve => { resolvePrompt = resolve; }) });
+  const request = context.requestBrowserInstall();
+  listeners.appinstalled();
+  resolvePrompt({ outcome: 'accepted' });
+  await request;
+  await listeners.focus();
+  assert.equal(nodes['#browser-install-status-title'].textContent, 'App já instalado');
+  assert.equal(timers.size, 0);
+});
+test('consulta negativa atrasada não desfaz appinstalled', async () => {
+  const { context, navigator, nodes, listeners } = setup([]);
+  let resolveDetection;
+  navigator.getInstalledRelatedApps = () => new Promise(resolve => { resolveDetection = resolve; });
+  const refresh = context.refreshBrowserInstallUI();
+  listeners.appinstalled();
+  resolveDetection([]);
+  await refresh;
+  navigator.getInstalledRelatedApps = async () => [];
+  await listeners.focus();
+  assert.equal(nodes['#browser-install-status-title'].textContent, 'App já instalado');
+});
+test('verificação periódica encontra instalação depois de cinco segundos e para', async () => {
+  const { context, navigator, nodes, listeners, timers } = setup([]);
+  listeners.beforeinstallprompt({ preventDefault() {}, prompt: async () => ({ outcome: 'accepted' }) });
+  await context.requestBrowserInstall();
+  for (let i = 0; i < 3; i++) {
+    const [id, fn] = timers.entries().next().value;
+    timers.delete(id);
+    await fn();
+  }
+  assert.equal(nodes['#browser-install-status-title'].textContent, 'Instalação iniciada');
+  navigator.getInstalledRelatedApps = async () => [{ platform: 'webapp', url: './manifest.webmanifest' }];
+  const [id, fn] = timers.entries().next().value;
+  timers.delete(id);
+  await fn();
+  assert.equal(nodes['#browser-install-status-title'].textContent, 'App já instalado');
+  assert.equal(timers.size, 0);
+});
+test('v1 instalada não é confundida com FunTime 2', async () => {
+  const { context } = setup([{ platform: 'webapp', url: 'https://example.com/intervalo/manifest.webmanifest', id: '/intervalo/' }]);
+  assert.equal(await context.detectInstalledPwa(), false);
+});
+test('sem API mantém orientação; aceitar prompt não confirma instalação', async () => {
+  const { context, navigator, nodes, listeners } = setup([]);
+  delete navigator.getInstalledRelatedApps;
+  await context.refreshBrowserInstallUI();
+  assert.equal(nodes['#browser-install-guidance'].hidden, false);
+  listeners.beforeinstallprompt({ preventDefault() {}, prompt: async () => ({ outcome: 'accepted' }) });
+  await context.requestBrowserInstall();
+  assert.equal(nodes['#browser-install-status-title'].textContent, 'Instalação iniciada');
+  assert.equal(nodes['#browser-gate-lead'].hidden, true);
+});

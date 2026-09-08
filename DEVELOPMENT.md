@@ -1,6 +1,6 @@
 # FunTime — documentação de desenvolvimento
 
-**Versão da aplicação:** `v2.0.1` (local, sem publicação)\
+**Versão da aplicação:** `v2.0.2`\
 **Versão do modelo persistido:** `DATA_VERSION = 9`\
 **Autor exibido na interface:** `arielkeybob`  
 **Stack:** HTML + CSS + JavaScript puro  
@@ -8,9 +8,19 @@
 **Backend:** não existe  
 **Build step:** não existe
 
-## V2.0.1 — navegação por camadas
+## V2.0.2 — instalação; navegação da V2.0.1 preservada
 
-Consulte [NAVIGATION.md](NAVIGATION.md) para o mapa completo de telas, regras de cancelamento, integração com History API, testes e limites entre plataformas. Cache `funtime-v2-0-1`; dados e aceite preservados.
+Consulte [NAVIGATION.md](NAVIGATION.md) para o mapa completo de telas, regras de cancelamento, integração com History API, testes e limites entre plataformas. Cache atual `funtime-v2-0-2`; dados e aceite preservados. Publicação autorizada em 08/09/2026. A v2.0.1 já estava no remoto; o ajuste de instalação recebe nova versão para distribuição pelo SW.
+
+Página de instalação: o estado confirmado mostra “App já instalado” e orientação para abrir pelo ícone, sem convite para instalar. A detecção confere o manifest da v2 e a identidade quando fornecida, e é atualizada ao retornar à página. Aceitar o prompt continua significando apenas instalação iniciada. Sem API, a página oferece instruções sem afirmar que o app não está instalado. Nenhuma leitura adicional de dados privados.
+
+Investigação da ponte congelada `7c75410`: “Abrir FunTime 2” é um link HTTPS para `/funtime/`, não uma instalação ou abertura garantida da PWA. A identidade nova exige instalação própria. Convite e ajuda da ponte implementados na árvore v1.16.1 descrita abaixo. Permanecem como sugestões para a página v2: ajuda recolhida “Vim da versão anterior”, ajuda “Já instalei” para navegadores sem detecção e instruções específicas para navegadores internos. Abertura por link depende do navegador e das preferências do usuário; não foi adicionado botão com promessa de abertura garantida.
+
+Conclusão de instalação: `appinstalled` confirma o estado na sessão, mesmo sem getInstalledRelatedApps. Aceitar o prompt não basta; enquanto pendente, consulta a detecção a cada dois segundos por até um minuto, além de verificar ao retornar à página. Confirmação cancela o temporizador e invalida respostas anteriores; uma resposta atrasada do prompt ou da detecção não desfaz a conclusão. Um novo beforeinstallprompt permite oferecer instalação novamente. Não recarrega a página nem acessa dados privados para isso.
+
+Validação do ajuste: `node --check app.js`, `node --check sw.js`, `node --test tests/install.test.cjs tests/receiver.test.cjs tests/transition.test.cjs tests/ui.test.cjs` (22 aprovados) e `git diff --check`. Teste integrado da tela no Edge aprovado, com eventos simulados e inspeção visual em 390×844; sem posse criada no navegador. Instalação/abertura real em celular não testada. A consulta ao Pages não pôde ser concluída; diagnóstico baseado no código local e na ponte congelada. Sem commit, push ou alteração de armazenamento real.
+
+A melhoria da ponte foi implementada separadamente em `.worktrees/v1-16`, branch `codex/v1-16-install-ux`, baseada em `7c75410`, como v1.16.1 local com cache próprio atualizado. Inclui convite “Instalar FunTime 2”, ajuda para backup/instalação/transferência e orientação distinta após posse. Essa pasta é ignorada pela árvore v2; suas alterações devem ser revisadas e publicadas separadamente no repositório Intervalo somente quando solicitado. A fixture histórica `7c75410` permanece congelada.
 
 ## V2.0.0 — versão estável
 
