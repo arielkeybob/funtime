@@ -1,12 +1,18 @@
 # FunTime — documentação de desenvolvimento
 
-**Versão da aplicação:** `v2.0.6`\
+**Versão da aplicação:** `v2.0.7`\
 **Versão do modelo persistido:** `DATA_VERSION = 9`\
 **Autor exibido na interface:** `arielkeybob`  
 **Stack:** HTML + CSS + JavaScript puro  
 **Persistência:** `localStorage`  
 **Backend:** não existe  
 **Build step:** não existe
+
+## V2.0.7 — diagnóstico como conteúdo auxiliar
+
+Seção Diagnóstico de toque marcada com `clean-optional`: fica oculta quando Interface limpa está ativa, inclusive no padrão inicial. Desativar Interface limpa revela a ferramenta. Navegação ignora seções expansíveis sem layout visível, evitando uma etapa invisível no Voltar se o diagnóstico estava aberto. A visibilidade não altera o registro em memória nem sua ativação. Versão/cache 2.0.7; DATA_VERSION 9 e aceite preservados.
+
+Usuário confirmou melhora da v2.0.6; relatório enviado registrou 15 inícios e 15 solturas na grade, sem cancelamento de arraste, nessa sessão. Não equivale a validação universal de aparelhos.
 
 ## V2.0.6 — estabilidade do toque e diagnóstico opcional
 

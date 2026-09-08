@@ -1,5 +1,11 @@
 # FunTime — releases v2
 
+## V2.0.7 — ocultar diagnóstico na interface limpa
+
+Solicitados ajuste, commit e push. Diagnóstico usa `clean-optional`; Interface limpa o oculta e desativar a preferência o revela. Voltar ignora seções ocultas. App/boot/SW/footers 2.0.7, cache `funtime-v2-0-7`; DATA_VERSION 9 e aceite preservados. A melhora do toque da v2.0.6 foi confirmada pelo usuário e pelo relatório da sessão, sem generalizar para outros aparelhos.
+
+Validação: sintaxe app.js/sw.js/boot.js/navigation.js, diff sem erros e quatro testes aprovados nas suítes icon-reorder-browser, navigation-browser e touch-debug, incluindo visibilidade conforme preferência, gestos, navegação e exportação. Perfil isolado no Edge; sem alteração do armazenamento real. Esta versão não foi testada em aparelho real nem em atualização da PWA instalada.
+
 ## V2.0.6 — estabilidade e diagnóstico de toque
 
 Toque passa a acompanhar Touch Events por contato, com tolerância de 18px na espera, preservando cancelamento real e rolagem. Mouse/caneta mantêm Pointer Events. Diagnóstico opt-in nas Configurações, somente em memória, com exportação de relatório técnico sem dados do catálogo ou histórico. App/boot/SW/footers 2.0.6 e cache `funtime-v2-0-6` preparados. DATA_VERSION 9 e aceite preservados. Publicação em continuidade à melhoria autorizada; validação do usuário no celular pendente.

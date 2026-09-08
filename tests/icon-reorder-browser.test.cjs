@@ -34,6 +34,9 @@ test('Ícones: arraste, teclado, cancelamento e persistência em perfil isolado'
       saveData(); render();
     });
     await page.evaluate(() => openSettingsView());
+    assert.equal(await page.locator('#touch-debug-panel').isVisible(), false);
+    await page.locator('label[for=clean-interface]').click();
+    assert.equal(await page.locator('#touch-debug-panel').isVisible(), true);
     await page.locator('#touch-debug-panel summary').click();
     assert.equal(await page.locator('#touch-debug-enabled').isChecked(), false);
     assert.equal(await page.locator('#export-touch-debug').isDisabled(), true);

@@ -1,4 +1,6 @@
-# FunTime — V2.0.6
+# FunTime — V2.0.7
+
+V2.0.7: Diagnóstico de toque fica oculto com **Interface limpa** ativada. Desative essa preferência para acessar a ferramenta. Usa a regra existente de conteúdo auxiliar; seções ocultas não criam etapas invisíveis no Voltar. App/boot/footers 2.0.7 e cache `funtime-v2-0-7`; dados e aceite preservados. O usuário confirmou melhora do arraste; relatório da v2.0.6 registrou 15 arrastes iniciados e finalizados na grade, sem cancelamentos durante o arraste.
 
 V2.0.6 em validação: toque separado do mouse, tolerância de 18px durante a pressão longa e acompanhamento pelo identificador do contato até touchend/touchcancel. Configurações → **Diagnóstico de toque** permite registrar e exportar eventos para investigar falhas no aparelho. Começa desligado em cada abertura; registro só em memória, sem bebidas, ícones, histórico ou PIN. App, boot, footers e cache `funtime-v2-0-6` preparados; DATA_VERSION 9 preservado. Validação no aparelho real ainda pendente.
 

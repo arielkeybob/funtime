@@ -36,6 +36,7 @@
     if (state.currentView !== 'home') next.push({ id: state.currentView, close: () => closeHistoryView() });
     if (state.currentView === 'settings') {
       document.querySelectorAll('#settings-view details[open]').forEach(details => {
+        if (!details.getClientRects().length) return;
         next.push({ id: details.id || 'reset-section', close: () => { details.open = false; } });
       });
     }
