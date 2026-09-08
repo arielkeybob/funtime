@@ -1,6 +1,6 @@
 # FunTime — documentação de desenvolvimento
 
-**Versão da aplicação:** `v2.0.0-dev.2`\
+**Versão da aplicação:** `v2.0.0`\
 **Versão do modelo persistido:** `DATA_VERSION = 9`\
 **Autor exibido na interface:** `arielkeybob`  
 **Stack:** HTML + CSS + JavaScript puro  
@@ -8,9 +8,9 @@
 **Backend:** não existe  
 **Build step:** não existe
 
-## Preparação v2.0.0-dev.2
+## V2.0.0 — versão estável
 
-Novo conjunto raster em `icons/*-v2.png`, mestre em `icons/funtime-master-v2.png`. `scripts/export-icons.cjs` usa Sharp apenas para exportar os tamanhos durante manutenção; não é dependência do app nem etapa de build para execução. O manifesto tem id `/funtime/`, com ícone maskable separado. Cache `funtime-v2-0-0-dev-2`; sua limpeza preserva os shells v1 e o fetch não intercepta recursos de `/intervalo/`.
+Novo conjunto raster em `icons/*-v2.png`, mestre em `icons/funtime-master-v2.png`. `scripts/export-icons.cjs` usa Sharp apenas para exportar os tamanhos durante manutenção; não é dependência do app nem etapa de build para execução. O manifesto tem id `/funtime/`, com ícone maskable separado. Cache `funtime-v2-0-0`; sua limpeza remove shells de desenvolvimento v2, preserva os shells v1 e o fetch não intercepta recursos de `/intervalo/`.
 
 `receiver.js` implementa inspeção, validação da ponte ativa, preparação e registro verificado de posse. Boot só permite `/funtime/` ou seu index, oferece instalação em abas comuns sem acessar dados privados e mantém o Web Lock por toda a vida da janela instalada. Sem posse, valida a ponte antes de esperar o lock e novamente sob o lock; estado existente sem ponte falha fechado. A confirmação antecede migração e posse. Sem dados, requer escolha explícita entre backup e início vazio; a restauração usa o fluxo existente com prévia e confirmação. Posse existente exige a presença dos dados, evitando recriação silenciosa depois de perda de armazenamento.
 

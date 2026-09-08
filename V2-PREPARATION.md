@@ -1,5 +1,7 @@
 # Preparação FunTime 2.0
 
+Registro histórico da preparação. O usuário confirmou os testes no celular e a entrega passa a 2.0.0 estável. Estado de publicação e ativação do convite em [RELEASE-V2.md](RELEASE-V2.md). As pendências de testes abaixo registram a situação na entrega da dev.2, antes dessa confirmação.
+
 ## Estado
 
 - Branch de trabalho: `codex/funtime-v2`; base: v1.16.0, commit `7c75410` em main.

@@ -1,10 +1,10 @@
-# FunTime — V2.0.0-dev.2
+# FunTime — V2.0.0
 
-Prévia funcional da v2: novo ícone de abacaxi com relógio, manifesto com identidade `/funtime/` e cache separado da v1. Pelo navegador, oferece instalação sem ler dados privados; pelo novo ícone, confirma a utilização dos dados existentes ou oferece backup/início sem dados. A transferência exige ponte v1.16 compatível e exclusividade de escrita, preservando bebidas, histórico, proteção e preferências. Não publicar esta árvore sobre `/intervalo/`. A ponte v1.16 está preservada no repositório `intervalo`, commit `7c75410`.
+FunTime 2.0: novo ícone de abacaxi com relógio, identidade `/funtime/` e cache separado da v1. Pelo navegador, oferece instalação sem ler dados privados; pelo novo ícone, confirma a utilização dos dados existentes ou oferece backup/início sem dados. A transferência exige ponte v1.16 compatível e exclusividade de escrita, preservando bebidas, histórico, proteção e preferências. O repositório principal é [arielkeybob/funtime](https://github.com/arielkeybob/funtime). A ponte v1.16 continua no repositório `intervalo`, commit `7c75410`; não publicar o app v2 sobre `/intervalo/`.
 
-Teste em [FunTime 2](https://arielkeybob.github.io/funtime/): faça backup na versão anterior, instale pelo novo endereço, feche a janela antiga e abra o novo ícone. Após confirmar a transferência, use a v2: a antiga deixa de editar os dados. Se o sistema separar o armazenamento, escolha “Tenho um backup” e use a restauração com prévia. O convite automático na v1 ainda não está ativado; esta versão continua em testes.
+Abra [FunTime 2](https://arielkeybob.github.io/funtime/): faça backup na versão anterior, instale pelo novo endereço, feche a janela antiga e abra o novo ícone. Após confirmar a transferência, use a v2: a antiga deixa de editar os dados. Se o sistema separar o armazenamento, escolha “Tenho um backup” e use a restauração com prévia. Quem já instalou a dev.2 recebe a versão estável pelo botão Atualizar, sem nova instalação ou transferência.
 
-Estado e próximos passos em [V2-PREPARATION.md](V2-PREPARATION.md). As seções seguintes documentam as entregas anteriores.
+O usuário confirmou os testes no celular e o funcionamento da transição. A divulgação na v1.16 será ativada por `transition.json` somente após conferir o deployment estável. Registro da entrega em [RELEASE-V2.md](RELEASE-V2.md); histórico da preparação em [V2-PREPARATION.md](V2-PREPARATION.md). As seções seguintes documentam as entregas anteriores.
 
 ## V1.16.0 — preparação da transição para v2
 

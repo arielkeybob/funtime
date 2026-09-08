@@ -2,11 +2,13 @@
 const {execFileSync}=require('node:child_process');
 const cache=new Map();
 const bridgeCommit='7c75410';
-function bridgeFile(file){
-  if(!cache.has(file)){
-    try { cache.set(file,execFileSync('git',['-c',`safe.directory=${process.cwd().replaceAll('\\','/')}`,'show',`${bridgeCommit}:${file}`],{stdio:['ignore','pipe','ignore']})); }
-    catch {cache.set(file,null);}
+function versionFile(commit,file){
+  const key=`${commit}:${file}`;
+  if(!cache.has(key)){
+    try { cache.set(key,execFileSync('git',['-c',`safe.directory=${process.cwd().replaceAll('\\','/')}`,'show',key],{stdio:['ignore','pipe','ignore']})); }
+    catch {cache.set(key,null);}
   }
-  return cache.get(file);
+  return cache.get(key);
 }
-module.exports={bridgeFile,bridgeCommit};
+const bridgeFile=file=>versionFile(bridgeCommit,file);
+module.exports={bridgeFile,bridgeCommit,versionFile};

@@ -6,16 +6,17 @@ const http=require('node:http');
 const path=require('node:path');
 const {pbkdf2Sync}=require('node:crypto');
 const {chromium}=require('playwright');
-const {bridgeFile}=require('./bridge-fixture.cjs');
+const {bridgeFile,versionFile}=require('./bridge-fixture.cjs');
 const data={version:9,drinks:[{id:'d',name:'Água',icon:'💧',intervalMinutes:30,askDoseSize:false}],events:[{id:'e',drinkId:'d',drinkName:'Nome histórico',drinkIcon:'🍍',consumedAt:1700000000000,intervalMinutes:90,doseSize:null}],preferences:{cleanInterface:true,countingMode:'normal',iconCatalog:[]}};
-async function environment(run){
+async function environment(run,{startAtDev2=false}={}){
+  let current=!startAtDev2;
   const server=http.createServer((req,res)=>{
     const url=new URL(req.url,'http://localhost');
     const prefix=['/intervalo/','/funtime/'].find(prefix=>url.pathname.startsWith(prefix));
     if(!prefix){res.writeHead(404).end();return;}
     const file=decodeURIComponent(url.pathname.slice(prefix.length))||'index.html';
     if(file.includes('..')){res.writeHead(403).end();return;}
-    let bytes;try{bytes=prefix==='/intervalo/'?bridgeFile(file):fs.readFileSync(path.join(process.cwd(),file));}catch{}
+    let bytes;try{bytes=prefix==='/intervalo/'?bridgeFile(file):current?fs.readFileSync(path.join(process.cwd(),file)):versionFile('7c93bd2',file);}catch{}
     if(!bytes){res.writeHead(404).end();return;}
     const type={'.js':'text/javascript','.html':'text/html','.css':'text/css','.png':'image/png','.webmanifest':'application/manifest+json'}[path.extname(file)]||'text/plain';
     res.writeHead(200,{'Content-Type':type,'Cache-Control':'no-store'}).end(bytes);
@@ -23,7 +24,7 @@ async function environment(run){
   await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
   const origin=`http://127.0.0.1:${server.address().port}`;
   let browser;
-  try{browser=await chromium.launch({headless:true,channel:process.env.PWA_BROWSER_CHANNEL||'msedge'});await run(browser,origin);}
+  try{browser=await chromium.launch({headless:true,channel:process.env.PWA_BROWSER_CHANNEL||'msedge'});await run(browser,origin,()=>{current=true;});}
   finally{if(browser)await browser.close();await new Promise(resolve=>server.close(resolve));}
 }
 async function installedContext(browser){
@@ -119,3 +120,19 @@ test('dados existentes sem ponte compatível bloqueiam sem tomar posse; novo usu
   assert.equal(await start.evaluate(()=>JSON.parse(localStorage.getItem('funtime-installation-owner-v1')).generation),2);
   await fresh.close();
 }));
+test('dev.2 atualiza pelo botão para 2.0.0 sem repetir transferência nem alterar dados', {timeout:60000},async()=>environment(async(browser,origin,publish)=>{
+  const ctx=await installedContext(browser);const page=await ctx.newPage();await page.goto(origin+'/funtime/');
+  await page.getByRole('button',{name:'Começar sem dados',exact:true}).click();await acceptTerms(page);
+  await page.evaluate(data=>localStorage.setItem('funtime-v1-data',JSON.stringify(data)),data);
+  await page.reload();await page.waitForFunction(()=>typeof state!=='undefined'&&state.events.length===1);
+  assert.equal(await page.evaluate(()=>APP_VERSION),'2.0.0-dev.2');
+  const owner=await page.evaluate(()=>localStorage.getItem('funtime-installation-owner-v1'));
+  publish();await page.evaluate(async()=>{const registration=await navigator.serviceWorker.getRegistration();await registration.update();});
+  await page.locator('#apply-update').waitFor({state:'visible'});await page.locator('#apply-update').click();
+  await page.waitForFunction(()=>typeof APP_VERSION!=='undefined'&&APP_VERSION==='2.0.0'&&!document.body.classList.contains('boot-pending'));
+  assert.equal(await page.evaluate(()=>localStorage.getItem('funtime-installation-owner-v1')),owner);
+  assert.equal(await page.evaluate(()=>localStorage.getItem('funtime-v1-data')),JSON.stringify(data));
+  assert.equal(await page.locator('#startup-retry').isVisible(),false);
+  await ctx.setOffline(true);await page.reload();await page.waitForFunction(()=>typeof APP_VERSION!=='undefined'&&APP_VERSION==='2.0.0'&&!document.body.classList.contains('boot-pending'));
+  assert.equal(await page.evaluate(()=>state.events[0].drinkName),'Nome histórico');await ctx.close();
+},{startAtDev2:true}));
