@@ -264,7 +264,7 @@ document.addEventListener("visibilitychange", () => {
 const DATA_STORAGE_KEY = "funtime-v1-data";
 const LEGACY_DRINKS_STORAGE_KEY = "balada-v1-drinks";
 const DATA_VERSION = 9;
-const APP_VERSION = "2.0.3";
+const APP_VERSION = "2.0.4";
 const DRINK_EXPORT_TYPE = "funtime-drinks";
 const DRINK_EXPORT_FORMAT_VERSION = 1;
 const BACKUP_EXPORT_TYPE = "funtime-backup";
@@ -2859,6 +2859,7 @@ function deleteDrinkWithHistory() {
 }
 
 function closeDrinkDialog() {
+  cancelIconDrag?.();
   state.editingDrinkId = null;
   drinkDialog.close();
 }
@@ -3262,7 +3263,28 @@ function initializeDurationPickers() {
 
 let removedCatalogIcon = null;
 let editingIconCatalog = false;
+let iconCatalogMode = null;
+let movedCatalogIcons = null;
 let cancelIconDrag = null;
+
+function closeIconEditMenu() {
+  document.querySelector('#icon-edit-menu').hidden = true;
+  const edit = iconOptions.querySelector('.icon-edit');
+  edit?.setAttribute('aria-expanded', 'false');
+  edit?.focus({ preventScroll: true });
+}
+
+function setIconCatalogMode(mode) {
+  cancelIconDrag?.();
+  iconCatalogMode = mode;
+  editingIconCatalog = mode !== null;
+  document.querySelector('#icon-edit-menu').hidden = true;
+  const scroll = iconOptions.scrollLeft;
+  buildIconPicker(iconOptions.querySelector('input:checked')?.value || null, true);
+  iconOptions.scrollLeft = scroll;
+  iconOptions.querySelector('.icon-edit').focus({ preventScroll: true });
+  setIconCatalogStatus('');
+}
 
 function moveCatalogIcon(icon, targetIndex) {
   const catalog = [...state.preferences.iconCatalog];
@@ -3278,13 +3300,15 @@ function commitIconMove(icon, targetIndex) {
   const selected = iconOptions.querySelector('input:checked')?.value || null;
   const scroll = iconOptions.scrollLeft;
   try {
+    const before = [...state.preferences.iconCatalog];
     if (!moveCatalogIcon(icon, targetIndex)) return;
+    movedCatalogIcons = { before, after: [...state.preferences.iconCatalog] };
     buildIconPicker(selected, true);
     iconOptions.scrollLeft = scroll;
     const handle = [...iconOptions.querySelectorAll('.icon-move')].find(button => button.dataset.icon === icon);
     handle?.focus({ preventScroll: true });
     handle?.scrollIntoView({ block: 'nearest', inline: 'nearest' });
-    setIconCatalogStatus('Ícone movido para a posição ' + (targetIndex + 1) + '. Ordem salva.');
+    setIconCatalogStatus('Ordem salva.');
   } catch (error) {
     setIconCatalogStatus('Não foi possível salvar a ordem. A ordem anterior foi mantida.');
   }
@@ -3297,7 +3321,7 @@ function attachIconMoveHandle(wrapper, icon) {
   handle.dataset.icon = icon;
   handle.textContent = '⠿';
   handle.setAttribute('aria-label', 'Mover ' + icon + ', posição ' + (state.preferences.iconCatalog.indexOf(icon) + 1));
-  handle.setAttribute('aria-describedby', 'icon-reorder-help');
+  handle.setAttribute('aria-describedby', 'icon-reorder-help icon-reorder-keyboard');
   handle.addEventListener('keydown', event => {
     const offsets = { ArrowLeft: -2, ArrowRight: 2, ArrowUp: -1, ArrowDown: 1 };
     const index = state.preferences.iconCatalog.indexOf(icon);
@@ -3311,21 +3335,63 @@ function attachIconMoveHandle(wrapper, icon) {
     event.preventDefault();
     handle.focus({ preventScroll: true });
     const pointerId = event.pointerId;
-    let x = event.clientX, y = event.clientY, targetIndex = null, frame;
-    const clearTarget = () => iconOptions.querySelectorAll('.icon-drop-target').forEach(node => node.classList.remove('icon-drop-target'));
+    const startX = event.clientX, startY = event.clientY;
+    let x = startX, y = startY, targetIndex = null, frame, started = false, previewIndex = -1;
+    const nodes = [...iconOptions.querySelectorAll('[data-catalog-icon]')];
+    nodes.forEach(node => node.getAnimations().forEach(animation => animation.finish()));
+    const sourceIndex = nodes.indexOf(wrapper);
+    const boundsAtStart = iconOptions.getBoundingClientRect();
+    // Posições fixas da grade: os elementos animados não mudam o alvo do gesto.
+    const slots = nodes.map(node => {
+      const rect = node.getBoundingClientRect();
+      return { x: rect.left - boundsAtStart.left + iconOptions.scrollLeft, y: rect.top - boundsAtStart.top, width: rect.width, height: rect.height };
+    });
+    const rect = wrapper.getBoundingClientRect();
+    const ghost = document.createElement('div');
+    ghost.className = 'icon-drag-ghost';
+    ghost.textContent = icon;
+    ghost.setAttribute('aria-hidden', 'true');
+    ghost.style.width = rect.width + 'px';
+    ghost.style.height = rect.height + 'px';
+    const preview = index => {
+      if (previewIndex === index) return;
+      previewIndex = index;
+      const order = [...nodes];
+      order.splice(sourceIndex, 1);
+      order.splice(index, 0, wrapper);
+      order.forEach((node, position) => {
+        const original = slots[nodes.indexOf(node)], destination = slots[position];
+        node.style.transform = `translate(${destination.x - original.x}px, ${destination.y - original.y}px)`;
+      });
+    };
     const update = () => {
-      clearTarget();
+      if (!started && Math.hypot(x - startX, y - startY) < 5) return;
+      if (!started) {
+        started = true;
+        drinkDialog.append(ghost);
+        wrapper.classList.add('icon-dragging');
+        iconOptions.classList.add('icon-drag-active');
+      }
+      ghost.style.left = (x - (startX - rect.left)) + 'px';
+      ghost.style.top = (y - (startY - rect.top)) + 'px';
       const bounds = iconOptions.getBoundingClientRect();
       targetIndex = null;
       if (x >= bounds.left && x <= bounds.right && y >= bounds.top && y <= bounds.bottom) {
         if (x < bounds.left + 28) iconOptions.scrollLeft -= 7;
         if (x > bounds.right - 28) iconOptions.scrollLeft += 7;
-        const target = document.elementFromPoint(x, y)?.closest('[data-catalog-icon]');
-        if (target && iconOptions.contains(target)) {
-          targetIndex = state.preferences.iconCatalog.indexOf(target.dataset.catalogIcon);
-          if (target.dataset.catalogIcon !== icon) target.classList.add('icon-drop-target');
+        let nearest = Infinity;
+        slots.forEach((slot, index) => {
+          const left = bounds.left + slot.x - iconOptions.scrollLeft, top = bounds.top + slot.y;
+          const distance = Math.hypot(x - left - slot.width / 2, y - top - slot.height / 2);
+          if (distance < nearest) { nearest = distance; targetIndex = index; }
+        });
+        // Não aceitar o espaço dos botões +/caneta como uma posição da lista.
+        if (nearest > Math.max(rect.width, rect.height)) targetIndex = null;
+        if (targetIndex !== null) {
+          preview(targetIndex);
         }
       }
+      if (targetIndex === null) preview(sourceIndex);
     };
     const tick = () => {
       if (!handle.isConnected || !drinkDialog.open || document.hidden) { cancel(); return; }
@@ -3335,7 +3401,8 @@ function attachIconMoveHandle(wrapper, icon) {
     const move = event => { if (event.pointerId === pointerId) { x = event.clientX; y = event.clientY; } };
     const finish = () => {
       cancelAnimationFrame(frame);
-      clearTarget();
+      nodes.forEach(node => { node.style.transform = ''; });
+      ghost.remove();
       wrapper.classList.remove('icon-dragging');
       iconOptions.classList.remove('icon-drag-active');
       handle.removeEventListener('pointermove', move);
@@ -3358,8 +3425,6 @@ function attachIconMoveHandle(wrapper, icon) {
     const escape = event => { if (event.key === 'Escape') { event.preventDefault(); event.stopImmediatePropagation(); cancel(); } };
     handle.setPointerCapture(pointerId);
     cancelIconDrag = cancel;
-    wrapper.classList.add('icon-dragging');
-    iconOptions.classList.add('icon-drag-active');
     handle.addEventListener('pointermove', move);
     handle.addEventListener('pointerup', drop);
     handle.addEventListener('pointercancel', cancel);
@@ -3379,13 +3444,19 @@ function buildIconPicker(selectedIcon = null, preserveFeedback = false) {
   iconOptions.innerHTML = '';
   if (!preserveFeedback) {
     removedCatalogIcon = null;
+    movedCatalogIcons = null;
     editingIconCatalog = false;
+    iconCatalogMode = null;
+    document.querySelector('#icon-edit-menu').hidden = true;
     document.querySelector('#undo-icon-removal').hidden = true;
     document.querySelector('#icon-add-panel').hidden = true;
     setIconCatalogStatus('');
   }
-  iconOptions.classList.toggle('icon-options-editing', editingIconCatalog);
-  document.querySelector('#icon-reorder-help').hidden = !editingIconCatalog;
+  iconOptions.classList.toggle('icon-options-reordering', iconCatalogMode === 'reorder');
+  document.querySelector('#icon-reorder-help').hidden = iconCatalogMode !== 'reorder';
+  document.querySelector('#icon-delete-help').hidden = iconCatalogMode !== 'delete';
+  if (movedCatalogIcons && JSON.stringify(movedCatalogIcons.after) !== JSON.stringify(state.preferences.iconCatalog)) movedCatalogIcons = null;
+  document.querySelector('#undo-icon-reorder').hidden = !movedCatalogIcons;
   const catalog = state.preferences.iconCatalog;
   const selected = typeof selectedIcon === 'string' && selectedIcon.trim() ? selectedIcon.trim() : null;
   const icons = selected && !catalog.includes(selected) ? [selected, ...catalog] : [...catalog];
@@ -3407,11 +3478,11 @@ function buildIconPicker(selectedIcon = null, preserveFeedback = false) {
     wrapper.append(label);
     if (catalog.includes(icon)) {
       wrapper.dataset.catalogIcon = icon;
-      if (editingIconCatalog) attachIconMoveHandle(wrapper, icon);
+      if (iconCatalogMode === 'reorder') attachIconMoveHandle(wrapper, icon);
       const remove = document.createElement('button');
       remove.type = 'button';
       remove.className = 'icon-remove';
-      remove.hidden = !editingIconCatalog;
+      remove.hidden = iconCatalogMode !== 'delete';
       remove.textContent = '×';
       remove.setAttribute('aria-label', 'Remover ' + icon + ' do catálogo');
       remove.addEventListener('click', () => {
@@ -3444,6 +3515,8 @@ function buildIconPicker(selectedIcon = null, preserveFeedback = false) {
   add.textContent = '+';
   add.setAttribute('aria-label', 'Adicionar ícone');
   add.addEventListener('click', () => {
+    document.querySelector('#icon-edit-menu').hidden = true;
+    iconOptions.querySelector('.icon-edit').setAttribute('aria-expanded', 'false');
     document.querySelector('#icon-add-panel').hidden = false;
     add.setAttribute('aria-expanded', 'true');
     renderEmojiMenu();
@@ -3456,12 +3529,15 @@ function buildIconPicker(selectedIcon = null, preserveFeedback = false) {
   edit.textContent = editingIconCatalog ? '✓' : '✎';
   edit.setAttribute('aria-label', editingIconCatalog ? 'Concluir edição dos ícones' : 'Editar catálogo de ícones');
   edit.setAttribute('aria-pressed', String(editingIconCatalog));
+  edit.setAttribute('aria-controls', 'icon-edit-menu');
+  edit.setAttribute('aria-expanded', String(!document.querySelector('#icon-edit-menu').hidden));
   edit.addEventListener('click', () => {
-    editingIconCatalog = !editingIconCatalog;
-    const scroll = iconOptions.scrollLeft;
-    buildIconPicker(iconOptions.querySelector('input:checked')?.value || null, true);
-    iconOptions.scrollLeft = scroll;
-    iconOptions.querySelector('.icon-edit').focus();
+    if (editingIconCatalog) { setIconCatalogMode(null); return; }
+    const menu = document.querySelector('#icon-edit-menu');
+    if (!menu.hidden) { closeIconEditMenu(); return; }
+    menu.hidden = false;
+    edit.setAttribute('aria-expanded', 'true');
+    document.querySelector('#choose-icon-reorder').focus({ preventScroll: true });
   });
   iconOptions.append(add, edit);
 }
@@ -4147,6 +4223,27 @@ if (shouldBootstrapInstalledApp) {
 }
 
 // Catálogo é uma preferência global, independente do rascunho da bebida.
+document.querySelector('#choose-icon-reorder').addEventListener('click', () => setIconCatalogMode('reorder'));
+document.querySelector('#choose-icon-delete').addEventListener('click', () => setIconCatalogMode('delete'));
+document.addEventListener('pointerdown', event => {
+  const menu = document.querySelector('#icon-edit-menu');
+  if (!menu.hidden && !menu.contains(event.target) && !event.target.closest('.icon-edit')) {
+    menu.hidden = true;
+    iconOptions.querySelector('.icon-edit')?.setAttribute('aria-expanded', 'false');
+  }
+});
+document.querySelector('#undo-icon-reorder').addEventListener('click', () => {
+  if (!movedCatalogIcons) return;
+  try {
+    persistIconCatalog([...movedCatalogIcons.before]);
+    movedCatalogIcons = null;
+    const scroll = iconOptions.scrollLeft;
+    buildIconPicker(iconOptions.querySelector('input:checked')?.value || null, true);
+    iconOptions.scrollLeft = scroll;
+    iconOptions.querySelector('.icon-edit').focus({ preventScroll: true });
+    setIconCatalogStatus('Ordem anterior restaurada.');
+  } catch (error) { setIconCatalogStatus('Não foi possível desfazer. A ordem atual foi mantida.'); }
+});
 document.querySelector('#emoji-category').addEventListener('change', scrollToEmojiCategory);
 document.querySelector('#emoji-menu').addEventListener('scroll', syncEmojiCategory, { passive: true });
 document.querySelector('#emoji-menu').addEventListener('click', event => {

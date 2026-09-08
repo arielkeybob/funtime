@@ -1,5 +1,13 @@
 # FunTime — releases v2
 
+## V2.0.4 — edição compacta e arraste animado
+
+Commit e push solicitados pelo usuário. A caneta abre Reordenar ícones / Excluir ícones; modos exclusivos com alça ou × no canto, sem aumentar os cards. Arraste com cópia seguindo o ponteiro, vaga e deslocamento animado dos demais ícones. Salva ao soltar e oferece Desfazer; cancelamento e falha preservam a ordem anterior. Menu e modos integrados ao Voltar. App, boot, SW e footers 2.0.4; cache `funtime-v2-0-4`; DATA_VERSION 9, aceite e marcador de descoberta preservados.
+
+Validação visual no Edge em 390×844, com dados fictícios. Testes incluem prévia sem gravação, modos exclusivos, mouse/toque simulado, teclado, cancelamento, falha, Desfazer, persistência, catálogo vazio, ícone fora do catálogo, rolagem com 100 ícones, movimento reduzido e navegação. Validação em celular real e leitor de tela permanece pendente. Conferir deployment após o push.
+
+Verificações finais: sintaxe de app.js, sw.js, boot.js e navigation.js; `git diff --check`. Suítes icon-reorder-browser, navigation-browser, audit, reset, ui, release e receiver-browser: 42 cenários aprovados após atualizar a expectativa antiga 2.0.2 do teste de atualização e repetir esse cenário para 2.0.4. A atualização pelo botão e a reabertura offline preservaram os dados e a posse no perfil isolado.
+
 ## V2.0.3 — reordenar ícones
 
 Commit e push autorizados em 08/09/2026. Alças de arraste aparecem somente no modo de edição da caneta, junto com a exclusão. Inclui teclado, cancelamento e persistência imediata da ordem no catálogo e backup. App, boot, SW e footers 2.0.3; cache `funtime-v2-0-3`. DATA_VERSION 9, aceite e marcador de descoberta preservados.

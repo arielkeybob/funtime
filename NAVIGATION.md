@@ -18,6 +18,7 @@ Implementação local, sem publicação. O app antes alterava `hidden` e abria d
 | Editar / excluir / anotar horário pelo menu | Menu permanece abaixo e reaparece ao fechar |
 | Excluir pelo editor | Editor permanece aberto com o rascunho; exclusão efetiva fecha os pais que perderam a bebida |
 | Edição do catálogo | Conclui o modo de edição; mudanças do catálogo já salvas são preservadas |
+| Menu da caneta (V2.0.4) | Fecha o menu sem sair do cadastro; escolher Reordenar/Excluir substitui o menu na mesma camada |
 | Painel de emojis | Fecha apenas o painel; preserva cadastro e modo de edição |
 | Aviso de intervalo | Tela de origem |
 | Anotar horário após aviso | Aviso de intervalo, que permanece abaixo |

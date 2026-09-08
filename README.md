@@ -1,4 +1,6 @@
-# FunTime — V2.0.3
+# FunTime — V2.0.4
+
+V2.0.4: a caneta abre um pequeno menu com **Reordenar ícones** e **Excluir ícones**. Cards mantêm o tamanho compacto; a alça e o × ocupam o mesmo canto, em modos separados. Durante o arraste, o emoji acompanha o dedo e os outros abrem espaço com animação. A ordem só é salva ao soltar, com Desfazer; teclado e rolagem nas bordas preservados. O ✓ conclui o modo escolhido. App, boot e footers 2.0.4; cache `funtime-v2-0-4`; DATA_VERSION 9 e aceite preservados. Commit e push autorizados; validação em celular real ainda pendente.
 
 V2.0.3: reordenação do catálogo de ícones. No cadastro/edição de uma bebida, toque na caneta e arraste pela alça ⠿ até outro ícone. Pelo teclado, foque a alça e use as setas ou Home/End. A ordem é salva imediatamente, mesmo ao cancelar a bebida, e acompanha o backup. Bebidas e histórico permanecem intactos. Publicação autorizada em 08/09/2026. App, boot e footers 2.0.3; cache funtime-v2-0-3; DATA_VERSION 9 preservado.
 

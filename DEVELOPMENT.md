@@ -1,12 +1,20 @@
 # FunTime — documentação de desenvolvimento
 
-**Versão da aplicação:** `v2.0.3`\
+**Versão da aplicação:** `v2.0.4`\
 **Versão do modelo persistido:** `DATA_VERSION = 9`\
 **Autor exibido na interface:** `arielkeybob`  
 **Stack:** HTML + CSS + JavaScript puro  
 **Persistência:** `localStorage`  
 **Backend:** não existe  
 **Build step:** não existe
+
+## V2.0.4 — menu da caneta e arraste animado
+
+A caneta abre um grupo de dois botões: Reordenar ícones / Excluir ícones. O menu e o modo escolhido ocupam a mesma camada da navegação. Voltar fecha o menu ou conclui o modo sem sair do cadastro; ✓ também conclui. Alça e × são mutuamente exclusivos e usam o canto superior direito, mantendo as dimensões normais dos cards. A alça tem badge de 28px e área de toque ampliada para 44px dentro do card; somente ela impede o gesto de rolagem. Ajuda curta por modo; instruções de teclado acessíveis por aria-describedby, fora do layout.
+
+Após deslocamento mínimo de 5px, o arraste exibe uma cópia visual não interativa sobre o diálogo. As posições originais da grade determinam o destino, independentemente dos elementos em animação. Transformações CSS de 160ms deslocam os demais cards e a vaga, sem reconstruir os inputs nem perder captura do ponteiro. A prévia não altera estado/armazenamento; só a soltura válida persiste o catálogo. Cancelamento, Escape, fechamento e falha de gravação descartam a prévia. Desfazer restaura a última ordem; mudanças no catálogo invalidam essa prévia de desfazer. Preferência de movimento reduzido desativa transições e ampliação da cópia. Dados, backups e migrações permanecem compatíveis.
+
+App, boot, SW e footers 2.0.4; cache `funtime-v2-0-4`. DATA_VERSION 9 e aceite preservados. Validação da interface no Edge em origem/perfil isolados: menu/modos exclusivos e altura compacta, deslocamento visual antes de salvar, mouse, toque simulado/CDP, teclado, cancelamento, falha de gravação, Desfazer, excluir/desfazer exclusão, recarga, catálogo vazio, ícone selecionado fora da lista, 100 ícones com rolagem nas bordas e movimento reduzido. Imagens de menu e arraste conferidas em 390×844. Pendentes: toque, leitor de tela e atualização de instalação em celular real. Armazenamento real preservado. Registro de testes de release em RELEASE-V2.md.
 
 ## V2.0.3 — reordenar ícones
 

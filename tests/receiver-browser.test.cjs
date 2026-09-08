@@ -7,6 +7,7 @@ const path=require('node:path');
 const {pbkdf2Sync}=require('node:crypto');
 const {chromium}=require('playwright');
 const {bridgeFile,versionFile}=require('./bridge-fixture.cjs');
+const currentVersion=fs.readFileSync('app.js','utf8').match(/const APP_VERSION = "([^"]+)"/)[1];
 const data={version:9,drinks:[{id:'d',name:'Água',icon:'💧',intervalMinutes:30,askDoseSize:false}],events:[{id:'e',drinkId:'d',drinkName:'Nome histórico',drinkIcon:'🍍',consumedAt:1700000000000,intervalMinutes:90,doseSize:null}],preferences:{cleanInterface:true,countingMode:'normal',iconCatalog:[]}};
 async function environment(run,{startAtDev2=false}={}){
   let current=!startAtDev2;
@@ -143,7 +144,7 @@ test('dados existentes sem ponte compatível bloqueiam sem tomar posse; novo usu
   assert.equal(await start.evaluate(()=>JSON.parse(localStorage.getItem('funtime-installation-owner-v1')).generation),2);
   await fresh.close();
 }));
-test('dev.2 atualiza pelo botão para 2.0.2 sem repetir transferência nem alterar dados', {timeout:60000},async()=>environment(async(browser,origin,publish)=>{
+test(`dev.2 atualiza pelo botão para ${currentVersion} sem repetir transferência nem alterar dados`, {timeout:60000},async()=>environment(async(browser,origin,publish)=>{
   const ctx=await installedContext(browser);const page=await ctx.newPage();await page.goto(origin+'/funtime/');
   await page.getByRole('button',{name:'Começar sem dados',exact:true}).click();await acceptTerms(page);
   await page.evaluate(data=>localStorage.setItem('funtime-v1-data',JSON.stringify(data)),data);
@@ -152,10 +153,10 @@ test('dev.2 atualiza pelo botão para 2.0.2 sem repetir transferência nem alter
   const owner=await page.evaluate(()=>localStorage.getItem('funtime-installation-owner-v1'));
   publish();await page.evaluate(async()=>{const registration=await navigator.serviceWorker.getRegistration();await registration.update();});
   await page.locator('#apply-update').waitFor({state:'visible'});await page.locator('#apply-update').click();
-  await page.waitForFunction(()=>typeof APP_VERSION!=='undefined'&&APP_VERSION==='2.0.2'&&!document.body.classList.contains('boot-pending'));
+  await page.waitForFunction(version=>typeof APP_VERSION!=='undefined'&&APP_VERSION===version&&!document.body.classList.contains('boot-pending'),currentVersion);
   assert.equal(await page.evaluate(()=>localStorage.getItem('funtime-installation-owner-v1')),owner);
   assert.equal(await page.evaluate(()=>localStorage.getItem('funtime-v1-data')),JSON.stringify(data));
   assert.equal(await page.locator('#startup-retry').isVisible(),false);
-  await ctx.setOffline(true);await page.reload();await page.waitForFunction(()=>typeof APP_VERSION!=='undefined'&&APP_VERSION==='2.0.2'&&!document.body.classList.contains('boot-pending'));
+  await ctx.setOffline(true);await page.reload();await page.waitForFunction(version=>typeof APP_VERSION!=='undefined'&&APP_VERSION===version&&!document.body.classList.contains('boot-pending'),currentVersion);
   assert.equal(await page.evaluate(()=>state.events[0].drinkName),'Nome histórico');await ctx.close();
 },{startAtDev2:true}));
