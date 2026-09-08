@@ -27,3 +27,7 @@ Nome e ícones atuais usam FunTime. Referências balada/intervalo remanescentes 
 3. Confirmar a leitura do marcador pela ponte v1.16 e a manutenção de /intervalo/. O convite aparece quando a v1.16 é aberta com conexão e recebe um marcador válido; não força instalação nem transferência.
 
 O registro de posse é distinto do marcador público. O app v1 só deixa de escrever depois que a v2 valida e assume os dados; a publicação do convite sozinha não desativa a versão anterior.
+
+## Ativação do convite
+
+Deployment estável confirmado no commit `a5409dd`: Pages built, index/boot/SW em 2.0.0 e ponte /intervalo/ ainda em 1.16. Marcador ready preparado após essa confirmação, com publishedAt 1788833191000. O parser da ponte original valida o mesmo arquivo publicado. Não há bump adicional do shell para adicionar esse anúncio remoto.

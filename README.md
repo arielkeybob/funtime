@@ -4,7 +4,7 @@ FunTime 2.0: novo ícone de abacaxi com relógio, identidade `/funtime/` e cache
 
 Abra [FunTime 2](https://arielkeybob.github.io/funtime/): faça backup na versão anterior, instale pelo novo endereço, feche a janela antiga e abra o novo ícone. Após confirmar a transferência, use a v2: a antiga deixa de editar os dados. Se o sistema separar o armazenamento, escolha “Tenho um backup” e use a restauração com prévia. Quem já instalou a dev.2 recebe a versão estável pelo botão Atualizar, sem nova instalação ou transferência.
 
-O usuário confirmou os testes no celular e o funcionamento da transição. A divulgação na v1.16 será ativada por `transition.json` somente após conferir o deployment estável. Registro da entrega em [RELEASE-V2.md](RELEASE-V2.md); histórico da preparação em [V2-PREPARATION.md](V2-PREPARATION.md). As seções seguintes documentam as entregas anteriores.
+O usuário confirmou os testes no celular e o funcionamento da transição. O marcador `transition.json` anuncia a versão estável para a v1.16, após verificação do deployment. Registro da entrega em [RELEASE-V2.md](RELEASE-V2.md); histórico da preparação em [V2-PREPARATION.md](V2-PREPARATION.md). As seções seguintes documentam as entregas anteriores.
 
 ## V1.16.0 — preparação da transição para v2
 
