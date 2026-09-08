@@ -1,5 +1,13 @@
 # FunTime — releases v2
 
+## V2.0.5 — segurar para organizar e soltar na lixeira para excluir
+
+Implementação e commit/push autorizados após validação. Pressão de 500ms ativa arraste animado; deslize antecipado mantém rolagem. Soltar na grade salva ordem; soltar na lixeira vermelha exclui apenas a opção do catálogo, com Desfazer. Caneta ativa somente × vermelhos; arraste desativado nesse modo. Teclado: Alt + setas/Home/End. Sem menu/alças. App, boot, SW e footers 2.0.5; cache `funtime-v2-0-5`; DATA_VERSION 9, aceite e marcador preservados.
+
+Testes com dados fictícios em perfil isolado, sem modificar armazenamento real. Validação em celular real e leitor de tela permanece pendente; conferir deployment após o push.
+
+Validação final: sintaxe app.js/sw.js/boot.js/navigation.js e `git diff --check`; 42 testes aprovados nas suítes audit, icon-reorder-browser, navigation-browser, receiver-browser, release, reset e ui. Edge em 390×844: toque rápido, pressão longa sem movimento, deslize antecipado, prévia sem gravação, mouse e toque/CDP, reordenar, lixeira, cancelamento, Desfazer, falha de gravação, modo de exclusão sem arraste, persistência, rolagem nativa e nas bordas com 100 ícones, catálogo vazio e movimento reduzido. Capturas da lixeira e do modo de exclusão inspecionadas. Atualização para 2.0.5 e reabertura offline aprovadas no perfil isolado.
+
 ## V2.0.4 — edição compacta e arraste animado
 
 Commit e push solicitados pelo usuário. A caneta abre Reordenar ícones / Excluir ícones; modos exclusivos com alça ou × no canto, sem aumentar os cards. Arraste com cópia seguindo o ponteiro, vaga e deslocamento animado dos demais ícones. Salva ao soltar e oferece Desfazer; cancelamento e falha preservam a ordem anterior. Menu e modos integrados ao Voltar. App, boot, SW e footers 2.0.4; cache `funtime-v2-0-4`; DATA_VERSION 9, aceite e marcador de descoberta preservados.

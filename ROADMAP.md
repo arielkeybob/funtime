@@ -35,6 +35,8 @@ O usuário quer substituir a identidade Intervalo por FunTime, incluindo posteri
 
 ### Reordenar ícones por arrastar e soltar
 
+V2.0.5: pressão longa substitui menu/alça, com rolagem nativa antes da ativação. Lixeira vermelha aparece durante o arraste para exclusão por soltura, com Desfazer. A caneta permanece como alternativa explícita de exclusão. Implementação e publicação autorizadas pelo usuário após os testes.
+
 V2.0.4: refinamento solicitado e autorizado para publicação. Caneta abre menu com Reordenar/Excluir, modos separados, cards compactos com alça no canto e prévia animada em tempo real. Soltar grava; Desfazer recupera a ordem anterior. Mouse, toque simulado e catálogo longo verificados; validação em celular real permanece pendente.
 
 Implementado na V2.0.3, com publicação autorizada em 08/09/2026 e validação em aparelho ainda pendente: no modo de edição, alças específicas permitem arrastar até outra posição, com rolagem automática nas bordas e destaque do destino. A área do emoji mantém seleção e rolagem. Setas e Home/End oferecem alternativa por teclado; Escape cancela o arraste. A ordem usa o catálogo já persistido e incluído no backup, sem mudar o schema.

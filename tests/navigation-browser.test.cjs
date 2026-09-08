@@ -58,12 +58,10 @@ test('Voltar percorre telas, diálogos, subetapas e não acumula entradas vazias
     await back(0); assert.equal(await page.evaluate(() => state.pendingDoseEventId), null);
     await page.evaluate(() => openDrinkDialog()); await depth(1);
     await page.locator('.icon-edit').click(); await depth(2);
-    assert.equal(await page.locator('#icon-edit-menu').isVisible(), true);
-    await page.locator('#choose-icon-reorder').click(); await depth(2);
-    assert.equal(await page.evaluate(() => iconCatalogMode), 'reorder');
+    assert.equal(await page.evaluate(() => editingIconCatalog), true);
     await back(1); assert.equal(await page.evaluate(() => editingIconCatalog), false);
     await page.locator('.icon-edit').click(); await depth(2);
-    await back(1); assert.equal(await page.locator('#icon-edit-menu').isVisible(), false);
+    await back(1); assert.equal(await page.evaluate(() => editingIconCatalog), false);
     await back(0);
 
     await page.evaluate(() => { openSettingsView(); openDrinkImportPreview({ fileName: 'teste.txt', drinks: [], source: 'manual' }); }); await depth(2);

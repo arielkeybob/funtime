@@ -1,4 +1,6 @@
-# FunTime — V2.0.4
+# FunTime — V2.0.5
+
+V2.0.5: segure um ícone por meio segundo para reorganizar; solte para salvar. Deslizar antes disso continua rolando a lista. Durante o arraste aparece a área vermelha **Solte aqui para excluir**: só soltar dentro dela remove a opção do catálogo, com Desfazer, preservando bebidas e histórico. A caneta volta a ativar somente os × vermelhos; nesse modo não há arraste. Sem alças ou menu. Pelo teclado, Alt + setas/Home/End reorganiza o ícone focado. App, boot e footers 2.0.5; cache `funtime-v2-0-5`; DATA_VERSION 9 e aceite preservados. Commit/push autorizados após validação.
 
 V2.0.4: a caneta abre um pequeno menu com **Reordenar ícones** e **Excluir ícones**. Cards mantêm o tamanho compacto; a alça e o × ocupam o mesmo canto, em modos separados. Durante o arraste, o emoji acompanha o dedo e os outros abrem espaço com animação. A ordem só é salva ao soltar, com Desfazer; teclado e rolagem nas bordas preservados. O ✓ conclui o modo escolhido. App, boot e footers 2.0.4; cache `funtime-v2-0-4`; DATA_VERSION 9 e aceite preservados. Commit e push autorizados; validação em celular real ainda pendente.
 

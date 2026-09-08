@@ -264,7 +264,7 @@ document.addEventListener("visibilitychange", () => {
 const DATA_STORAGE_KEY = "funtime-v1-data";
 const LEGACY_DRINKS_STORAGE_KEY = "balada-v1-drinks";
 const DATA_VERSION = 9;
-const APP_VERSION = "2.0.4";
+const APP_VERSION = "2.0.5";
 const DRINK_EXPORT_TYPE = "funtime-drinks";
 const DRINK_EXPORT_FORMAT_VERSION = 1;
 const BACKUP_EXPORT_TYPE = "funtime-backup";
@@ -3263,22 +3263,12 @@ function initializeDurationPickers() {
 
 let removedCatalogIcon = null;
 let editingIconCatalog = false;
-let iconCatalogMode = null;
 let movedCatalogIcons = null;
 let cancelIconDrag = null;
 
-function closeIconEditMenu() {
-  document.querySelector('#icon-edit-menu').hidden = true;
-  const edit = iconOptions.querySelector('.icon-edit');
-  edit?.setAttribute('aria-expanded', 'false');
-  edit?.focus({ preventScroll: true });
-}
-
-function setIconCatalogMode(mode) {
+function toggleIconDeletion() {
   cancelIconDrag?.();
-  iconCatalogMode = mode;
-  editingIconCatalog = mode !== null;
-  document.querySelector('#icon-edit-menu').hidden = true;
+  editingIconCatalog = !editingIconCatalog;
   const scroll = iconOptions.scrollLeft;
   buildIconPicker(iconOptions.querySelector('input:checked')?.value || null, true);
   iconOptions.scrollLeft = scroll;
@@ -3305,7 +3295,7 @@ function commitIconMove(icon, targetIndex) {
     movedCatalogIcons = { before, after: [...state.preferences.iconCatalog] };
     buildIconPicker(selected, true);
     iconOptions.scrollLeft = scroll;
-    const handle = [...iconOptions.querySelectorAll('.icon-move')].find(button => button.dataset.icon === icon);
+    const handle = [...iconOptions.querySelectorAll('input')].find(input => input.value === icon);
     handle?.focus({ preventScroll: true });
     handle?.scrollIntoView({ block: 'nearest', inline: 'nearest' });
     setIconCatalogStatus('Ordem salva.');
@@ -3314,15 +3304,26 @@ function commitIconMove(icon, targetIndex) {
   }
 }
 
-function attachIconMoveHandle(wrapper, icon) {
-  const handle = document.createElement('button');
-  handle.type = 'button';
-  handle.className = 'icon-move';
-  handle.dataset.icon = icon;
-  handle.textContent = '⠿';
-  handle.setAttribute('aria-label', 'Mover ' + icon + ', posição ' + (state.preferences.iconCatalog.indexOf(icon) + 1));
-  handle.setAttribute('aria-describedby', 'icon-reorder-help icon-reorder-keyboard');
-  handle.addEventListener('keydown', event => {
+function removeCatalogIcon(icon) {
+  const current = iconOptions.querySelector('input:checked')?.value || null;
+  const index = state.preferences.iconCatalog.indexOf(icon);
+  if (index < 0) return;
+  try {
+    persistIconCatalog(state.preferences.iconCatalog.filter(item => item !== icon));
+    removedCatalogIcon = { icon, index };
+    buildIconPicker(current, true);
+    setIconCatalogStatus('Ícone excluído do catálogo. Bebidas e histórico preservados.');
+    document.querySelector('#undo-icon-removal').hidden = false;
+    document.querySelector('#undo-icon-removal').focus();
+  } catch (error) { setIconCatalogStatus('Não foi possível salvar. O ícone foi mantido.'); }
+}
+
+function attachIconGestures(wrapper, input, icon) {
+  const handle = wrapper.querySelector('label');
+  let suppressClick = false;
+  input.setAttribute('aria-describedby', 'icon-reorder-help icon-reorder-keyboard');
+  input.addEventListener('keydown', event => {
+    if (!event.altKey || editingIconCatalog) return;
     const offsets = { ArrowLeft: -2, ArrowRight: 2, ArrowUp: -1, ArrowDown: 1 };
     const index = state.preferences.iconCatalog.indexOf(icon);
     const target = event.key === 'Home' ? 0 : event.key === 'End' ? state.preferences.iconCatalog.length - 1 : index + offsets[event.key];
@@ -3330,13 +3331,60 @@ function attachIconMoveHandle(wrapper, icon) {
     event.preventDefault();
     if (!cancelIconDrag) commitIconMove(icon, target);
   });
+  handle.addEventListener('contextmenu', event => event.preventDefault());
+  handle.addEventListener('dragstart', event => event.preventDefault());
+  // Registrar antes de touchstart: o navegador precisa saber que o gesto
+  // pode ser consumido depois da pressão longa, antes de iniciar a rolagem.
+  handle.addEventListener('touchmove', event => {
+    if (iconOptions.classList.contains('icon-drag-active') && event.cancelable) event.preventDefault();
+  }, { passive: false });
+  handle.addEventListener('click', event => {
+    if (suppressClick && event.detail !== 0) { event.preventDefault(); event.stopPropagation(); }
+  }, true);
   handle.addEventListener('pointerdown', event => {
-    if (event.button !== 0 || !event.isPrimary || cancelIconDrag) return;
-    event.preventDefault();
-    handle.focus({ preventScroll: true });
+    suppressClick = false;
+    if (editingIconCatalog || event.button !== 0 || !event.isPrimary || cancelIconDrag) return;
+    const cancel = () => {
+      clearTimeout(timer);
+      window.removeEventListener('pointermove', move);
+      window.removeEventListener('pointerup', cancel);
+      window.removeEventListener('pointercancel', cancel);
+      window.removeEventListener('pointerdown', anotherPointer);
+      window.removeEventListener('blur', cancel);
+      window.removeEventListener('keydown', escape, true);
+      document.removeEventListener('scroll', cancel, true);
+      document.removeEventListener('visibilitychange', cancel);
+      cancelIconDrag = null;
+    };
+    const move = next => {
+      if (next.pointerId === event.pointerId && Math.hypot(next.clientX - event.clientX, next.clientY - event.clientY) > 10) cancel();
+    };
+    const anotherPointer = next => { if (next.pointerId !== event.pointerId) cancel(); };
+    const escape = next => { if (next.key === 'Escape') { next.preventDefault(); next.stopImmediatePropagation(); cancel(); } };
+    const timer = setTimeout(() => {
+      cancel();
+      if (!handle.isConnected || !drinkDialog.open || document.hidden || editingIconCatalog) return;
+      suppressClick = true;
+      input.focus({ preventScroll: true });
+      beginIconDrag(wrapper, handle, icon, event);
+    }, 500);
+    cancelIconDrag = cancel;
+    window.addEventListener('pointermove', move);
+    window.addEventListener('pointerup', cancel);
+    window.addEventListener('pointercancel', cancel);
+    window.addEventListener('pointerdown', anotherPointer);
+    window.addEventListener('blur', cancel);
+    window.addEventListener('keydown', escape, true);
+    document.addEventListener('scroll', cancel, true);
+    document.addEventListener('visibilitychange', cancel);
+  });
+}
+
+function beginIconDrag(wrapper, handle, icon, event) {
     const pointerId = event.pointerId;
     const startX = event.clientX, startY = event.clientY;
-    let x = startX, y = startY, targetIndex = null, frame, started = false, previewIndex = -1;
+    let x = startX, y = startY, targetIndex = null, frame, previewIndex = -1, overTrash = false;
+    const trash = document.querySelector('#icon-trash');
     const nodes = [...iconOptions.querySelectorAll('[data-catalog-icon]')];
     nodes.forEach(node => node.getAnimations().forEach(animation => animation.finish()));
     const sourceIndex = nodes.indexOf(wrapper);
@@ -3353,6 +3401,10 @@ function attachIconMoveHandle(wrapper, icon) {
     ghost.setAttribute('aria-hidden', 'true');
     ghost.style.width = rect.width + 'px';
     ghost.style.height = rect.height + 'px';
+    drinkDialog.append(ghost);
+    wrapper.classList.add('icon-dragging');
+    iconOptions.classList.add('icon-drag-active');
+    trash.hidden = false;
     const preview = index => {
       if (previewIndex === index) return;
       previewIndex = index;
@@ -3365,16 +3417,16 @@ function attachIconMoveHandle(wrapper, icon) {
       });
     };
     const update = () => {
-      if (!started && Math.hypot(x - startX, y - startY) < 5) return;
-      if (!started) {
-        started = true;
-        drinkDialog.append(ghost);
-        wrapper.classList.add('icon-dragging');
-        iconOptions.classList.add('icon-drag-active');
-      }
       ghost.style.left = (x - (startX - rect.left)) + 'px';
       ghost.style.top = (y - (startY - rect.top)) + 'px';
       const bounds = iconOptions.getBoundingClientRect();
+      trash.style.left = bounds.left + 'px';
+      trash.style.top = (bounds.bottom + 18) + 'px';
+      trash.style.width = bounds.width + 'px';
+      const trashBounds = trash.getBoundingClientRect();
+      overTrash = x >= trashBounds.left && x <= trashBounds.right && y >= trashBounds.top && y <= trashBounds.bottom;
+      trash.classList.toggle('icon-trash-active', overTrash);
+      ghost.classList.toggle('icon-drag-delete', overTrash);
       targetIndex = null;
       if (x >= bounds.left && x <= bounds.right && y >= bounds.top && y <= bounds.bottom) {
         if (x < bounds.left + 28) iconOptions.scrollLeft -= 7;
@@ -3403,6 +3455,8 @@ function attachIconMoveHandle(wrapper, icon) {
       cancelAnimationFrame(frame);
       nodes.forEach(node => { node.style.transform = ''; });
       ghost.remove();
+      trash.hidden = true;
+      trash.classList.remove('icon-trash-active');
       wrapper.classList.remove('icon-dragging');
       iconOptions.classList.remove('icon-drag-active');
       handle.removeEventListener('pointermove', move);
@@ -3410,6 +3464,11 @@ function attachIconMoveHandle(wrapper, icon) {
       handle.removeEventListener('pointercancel', cancel);
       handle.removeEventListener('lostpointercapture', cancel);
       window.removeEventListener('keydown', escape, true);
+      document.removeEventListener('touchmove', preventTouchScroll, true);
+      document.removeEventListener('visibilitychange', cancel);
+      window.removeEventListener('blur', cancel);
+      window.removeEventListener('resize', cancel);
+      window.removeEventListener('pointerdown', anotherPointer);
       cancelIconDrag = null;
       if (handle.hasPointerCapture(pointerId)) handle.releasePointerCapture(pointerId);
     };
@@ -3419,10 +3478,14 @@ function attachIconMoveHandle(wrapper, icon) {
       x = event.clientX; y = event.clientY;
       update();
       const destination = targetIndex;
+      const shouldDelete = overTrash;
       finish();
-      if (destination !== null) commitIconMove(icon, destination);
+      if (shouldDelete) removeCatalogIcon(icon);
+      else if (destination !== null) commitIconMove(icon, destination);
     };
     const escape = event => { if (event.key === 'Escape') { event.preventDefault(); event.stopImmediatePropagation(); cancel(); } };
+    const preventTouchScroll = event => { if (event.cancelable) event.preventDefault(); };
+    const anotherPointer = event => { if (event.pointerId !== pointerId) cancel(); };
     handle.setPointerCapture(pointerId);
     cancelIconDrag = cancel;
     handle.addEventListener('pointermove', move);
@@ -3430,9 +3493,12 @@ function attachIconMoveHandle(wrapper, icon) {
     handle.addEventListener('pointercancel', cancel);
     handle.addEventListener('lostpointercapture', cancel);
     window.addEventListener('keydown', escape, true);
+    document.addEventListener('touchmove', preventTouchScroll, { capture: true, passive: false });
+    document.addEventListener('visibilitychange', cancel);
+    window.addEventListener('blur', cancel);
+    window.addEventListener('resize', cancel);
+    window.addEventListener('pointerdown', anotherPointer);
     tick();
-  });
-  wrapper.append(handle);
 }
 
 function setIconCatalogStatus(message) {
@@ -3446,15 +3512,13 @@ function buildIconPicker(selectedIcon = null, preserveFeedback = false) {
     removedCatalogIcon = null;
     movedCatalogIcons = null;
     editingIconCatalog = false;
-    iconCatalogMode = null;
-    document.querySelector('#icon-edit-menu').hidden = true;
     document.querySelector('#undo-icon-removal').hidden = true;
     document.querySelector('#icon-add-panel').hidden = true;
     setIconCatalogStatus('');
   }
-  iconOptions.classList.toggle('icon-options-reordering', iconCatalogMode === 'reorder');
-  document.querySelector('#icon-reorder-help').hidden = iconCatalogMode !== 'reorder';
-  document.querySelector('#icon-delete-help').hidden = iconCatalogMode !== 'delete';
+  iconOptions.classList.toggle('icon-options-reordering', !editingIconCatalog);
+  document.querySelector('#icon-reorder-help').hidden = editingIconCatalog;
+  document.querySelector('#icon-delete-help').hidden = !editingIconCatalog;
   if (movedCatalogIcons && JSON.stringify(movedCatalogIcons.after) !== JSON.stringify(state.preferences.iconCatalog)) movedCatalogIcons = null;
   document.querySelector('#undo-icon-reorder').hidden = !movedCatalogIcons;
   const catalog = state.preferences.iconCatalog;
@@ -3478,27 +3542,14 @@ function buildIconPicker(selectedIcon = null, preserveFeedback = false) {
     wrapper.append(label);
     if (catalog.includes(icon)) {
       wrapper.dataset.catalogIcon = icon;
-      if (iconCatalogMode === 'reorder') attachIconMoveHandle(wrapper, icon);
+      attachIconGestures(wrapper, input, icon);
       const remove = document.createElement('button');
       remove.type = 'button';
       remove.className = 'icon-remove';
-      remove.hidden = iconCatalogMode !== 'delete';
+      remove.hidden = !editingIconCatalog;
       remove.textContent = '×';
       remove.setAttribute('aria-label', 'Remover ' + icon + ' do catálogo');
-      remove.addEventListener('click', () => {
-        const current = iconOptions.querySelector('input:checked')?.value || null;
-        const index = state.preferences.iconCatalog.indexOf(icon);
-        try {
-          persistIconCatalog(state.preferences.iconCatalog.filter(item => item !== icon));
-          removedCatalogIcon = { icon, index };
-          buildIconPicker(current, true);
-          setIconCatalogStatus('Ícone removido da lista. Bebidas e histórico preservados.');
-          document.querySelector('#undo-icon-removal').hidden = false;
-          document.querySelector('#undo-icon-removal').focus();
-        } catch (error) {
-          setIconCatalogStatus('Não foi possível salvar. O ícone foi mantido.');
-        }
-      });
+      remove.addEventListener('click', () => removeCatalogIcon(icon));
       wrapper.append(remove);
     } else {
       wrapper.title = 'Ícone atual; fora do catálogo';
@@ -3515,8 +3566,6 @@ function buildIconPicker(selectedIcon = null, preserveFeedback = false) {
   add.textContent = '+';
   add.setAttribute('aria-label', 'Adicionar ícone');
   add.addEventListener('click', () => {
-    document.querySelector('#icon-edit-menu').hidden = true;
-    iconOptions.querySelector('.icon-edit').setAttribute('aria-expanded', 'false');
     document.querySelector('#icon-add-panel').hidden = false;
     add.setAttribute('aria-expanded', 'true');
     renderEmojiMenu();
@@ -3527,18 +3576,9 @@ function buildIconPicker(selectedIcon = null, preserveFeedback = false) {
   edit.className = 'icon-option icon-edit';
   edit.style.gridColumn = String(actionColumn);
   edit.textContent = editingIconCatalog ? '✓' : '✎';
-  edit.setAttribute('aria-label', editingIconCatalog ? 'Concluir edição dos ícones' : 'Editar catálogo de ícones');
+  edit.setAttribute('aria-label', editingIconCatalog ? 'Concluir exclusão de ícones' : 'Excluir ícones do catálogo');
   edit.setAttribute('aria-pressed', String(editingIconCatalog));
-  edit.setAttribute('aria-controls', 'icon-edit-menu');
-  edit.setAttribute('aria-expanded', String(!document.querySelector('#icon-edit-menu').hidden));
-  edit.addEventListener('click', () => {
-    if (editingIconCatalog) { setIconCatalogMode(null); return; }
-    const menu = document.querySelector('#icon-edit-menu');
-    if (!menu.hidden) { closeIconEditMenu(); return; }
-    menu.hidden = false;
-    edit.setAttribute('aria-expanded', 'true');
-    document.querySelector('#choose-icon-reorder').focus({ preventScroll: true });
-  });
+  edit.addEventListener('click', toggleIconDeletion);
   iconOptions.append(add, edit);
 }
 
@@ -4223,15 +4263,6 @@ if (shouldBootstrapInstalledApp) {
 }
 
 // Catálogo é uma preferência global, independente do rascunho da bebida.
-document.querySelector('#choose-icon-reorder').addEventListener('click', () => setIconCatalogMode('reorder'));
-document.querySelector('#choose-icon-delete').addEventListener('click', () => setIconCatalogMode('delete'));
-document.addEventListener('pointerdown', event => {
-  const menu = document.querySelector('#icon-edit-menu');
-  if (!menu.hidden && !menu.contains(event.target) && !event.target.closest('.icon-edit')) {
-    menu.hidden = true;
-    iconOptions.querySelector('.icon-edit')?.setAttribute('aria-expanded', 'false');
-  }
-});
 document.querySelector('#undo-icon-reorder').addEventListener('click', () => {
   if (!movedCatalogIcons) return;
   try {

@@ -1,12 +1,20 @@
 # FunTime — documentação de desenvolvimento
 
-**Versão da aplicação:** `v2.0.4`\
+**Versão da aplicação:** `v2.0.5`\
 **Versão do modelo persistido:** `DATA_VERSION = 9`\
 **Autor exibido na interface:** `arielkeybob`  
 **Stack:** HTML + CSS + JavaScript puro  
 **Persistência:** `localStorage`  
 **Backend:** não existe  
 **Build step:** não existe
+
+## V2.0.5 — pressão longa e lixeira durante o arraste
+
+Toque rápido seleciona; pressão de 500ms sobre o emoji inicia a prévia animada. Movimento acima de 10px antes do prazo, rolagem, soltura, perda de foco ou fechamento cancelam a espera. A captura do ponteiro só começa depois da espera. O listener touchmove não passivo é registrado antes do gesto; a rolagem nativa só é impedida durante o arraste ativo. Context menu/callout e arraste nativo do label são suprimidos. O clique residual da pressão longa não troca a seleção. Alt + setas/Home/End permite reordenar pelo input, sem alterar o uso normal das setas dos radios.
+
+Lixeira vermelha flutua 18px abaixo da grade somente durante o arraste, sem deslocar os cards. Entrar realça o alvo; soltar dentro dele chama a mesma remoção do ×, sem confirmação adicional e com Desfazer. Soltar fora da grade/lixeira, Escape, pointercancel, segundo ponteiro, ocultação, perda de foco, resize e fechamento cancelam sem salvar. Bebidas, ícone selecionado e snapshots são preservados. Falha de persistência mantém o catálogo anterior e mostra erro. A caneta agora ativa somente exclusão, com × em vermelho e arraste desativado; ✓ conclui. Menu e alças retirados; Voltar continua encerrando o modo de exclusão antes do cadastro.
+
+App/boot/SW/footers 2.0.5; cache `funtime-v2-0-5`, sem alteração de DATA_VERSION 9, backup, migração ou aceite. Testes e limitações da entrega em RELEASE-V2.md. Validar toque e leitor de tela no aparelho real; testes do agente usam perfil isolado e dados fictícios.
 
 ## V2.0.4 — menu da caneta e arraste animado
 
