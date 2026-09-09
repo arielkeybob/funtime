@@ -264,7 +264,7 @@ document.addEventListener("visibilitychange", () => {
 const DATA_STORAGE_KEY = "funtime-v1-data";
 const LEGACY_DRINKS_STORAGE_KEY = "balada-v1-drinks";
 const DATA_VERSION = 9;
-const APP_VERSION = "2.0.10";
+const APP_VERSION = "2.0.11";
 const DRINK_EXPORT_TYPE = "funtime-drinks";
 const DRINK_EXPORT_FORMAT_VERSION = 1;
 const BACKUP_EXPORT_TYPE = "funtime-backup";
@@ -1096,12 +1096,13 @@ function choosePinSecurity() {
   openPinSetupDialog();
 }
 
-function disableSecurity() {
-  const confirmed = window.confirm("Desativar o bloqueio do aplicativo?");
+async function disableSecurity() {
+  const confirmed = await showAppConfirmation("Desativar o bloqueio do aplicativo?", { title: "Desativar bloqueio", confirmLabel: "Desativar" });
   if (!confirmed) {
     securityEnabledInput.checked = true;
     return;
   }
+  if (state.securityLocked) return;
   state.securityConfig = getDefaultSecurityConfig();
   saveSecurityConfig();
   clearSecuritySession();
@@ -1591,7 +1592,7 @@ async function prepareDrinkImportFile(file, { source = "file" } = {}) {
     });
   } catch (error) {
     console.warn("Arquivo de bebidas rejeitado.", error);
-    window.alert(error?.message || "Não foi possível importar este arquivo.");
+    showAppNotification(error?.message || "Não foi possível importar este arquivo.", { type: "error", persistent: true });
   }
 }
 
@@ -1759,7 +1760,7 @@ async function prepareBackupRestoreFile(file) {
     backupRestoreDialog.showModal();
   } catch (error) {
     console.warn("Backup rejeitado.", error);
-    window.alert(error?.message || "Não foi possível ler este backup.");
+    showAppNotification(error?.message || "Não foi possível ler este backup.", { type: "error", persistent: true });
   }
 }
 
@@ -2813,6 +2814,10 @@ function openDeleteDrinkDialog(drinkId, { returnToEditorOnCancel = false } = {})
     ? `Existem ${eventCount} registro${eventCount === 1 ? "" : "s"} desta bebida no histórico.`
     : "Esta bebida ainda não possui registros no histórico.";
 
+  document.getElementById('delete-drink-question').textContent = eventCount ? 'O que deseja fazer com o histórico?' : 'Excluir esta bebida?';
+  document.getElementById('delete-drink-history-help').hidden = !eventCount;
+  document.getElementById('delete-drink-keep-history').hidden = !eventCount;
+  document.getElementById('delete-drink-with-history').textContent = eventCount ? 'Excluir bebida e histórico' : 'Excluir bebida';
   deleteDrinkDialog.showModal();
 }
 
@@ -2857,13 +2862,14 @@ function deleteDrinkWithHistory() {
   const drink = state.drinks.find((item) => item.id === drinkId);
   if (!drink) return;
 
+  const hadHistory = state.events.some(item => item.drinkId === drinkId);
   state.drinks = state.drinks.filter((item) => item.id !== drinkId);
   state.events = state.events.filter((event) => event.drinkId !== drinkId);
   state.editingDrinkId = null;
   saveData();
   closeDeleteDrinkDialog();
   refreshDataViews();
-  showToast(`${drink.name} e seus registros foram excluídos.`);
+  showToast(hadHistory ? `${drink.name} e seus registros foram excluídos.` : `${drink.name} foi excluída.`);
 }
 
 function closeDrinkDialog() {
@@ -2926,7 +2932,8 @@ function confirmStopCountdown() {
     return;
   }
   closeStopCountdownDialog();
-  updateDrinkMenuCountdown();
+  closeDrinkMenuDialog();
+  closeHistoryView();
   refreshDataViews();
   showToast('Contagem cancelada. A dose foi removida do histórico.');
 }
@@ -3140,15 +3147,16 @@ function handleEventSubmit(event) {
   showToast("Anotação atualizada. Os intervalos foram recalculados.");
 }
 
-function deleteSelectedEvent() {
+async function deleteSelectedEvent() {
   const selectedEvent = state.events.find((item) => item.id === state.selectedEventId);
   if (!selectedEvent) return;
 
   const drink = getEventDrinkIdentity(selectedEvent);
   const drinkName = drink.name || "esta bebida";
-  const confirmed = window.confirm(`Excluir o registro de ${drinkName} das ${formatClock(selectedEvent.consumedAt)}? Os intervalos serão recalculados.`);
+  const confirmed = await showAppConfirmation(`Excluir o registro de ${drinkName} das ${formatClock(selectedEvent.consumedAt)}? Os intervalos serão recalculados.`, { title: "Excluir registro", confirmLabel: "Excluir registro" });
   if (!confirmed) return;
 
+  if (state.securityLocked || state.selectedEventId !== selectedEvent.id || !state.events.includes(selectedEvent)) return;
   state.events = state.events.filter((item) => item.id !== selectedEvent.id);
   saveData();
   closeEventDialog();

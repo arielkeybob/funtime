@@ -1,4 +1,10 @@
-# FunTime — V2.0.10
+# FunTime — V2.0.11
+
+## V2.0.11 — confirmações e exclusão
+
+Alertas de arquivos inválidos usam notificações persistentes do app; exclusão de registro e desativação do bloqueio usam confirmação interna compartilhada, sem o cabeçalho do domínio GitHub. Bebidas sem histórico oferecem apenas Cancelar/Excluir bebida. Confirmar cancelamento da contagem volta ao Início; desistir mantém o menu. App/boot/footers 2.0.11, cache funtime-v2-0-11; DATA_VERSION 9 e aceite preservados.
+
+Commit e push solicitados. Celular real e atualização da PWA no aparelho permanecem pendentes.
 
 ## V2.0.10 — padrões dos formulários
 

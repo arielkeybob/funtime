@@ -22,6 +22,7 @@ test('Menu de dose, contagem cancelada e editor de horário', { timeout: 90000 }
     await context.addInitScript(() => Object.defineProperty(navigator, 'standalone', { value: true }));
     const page = await context.newPage();
     const errors = [];
+    page.on('dialog', async dialog => { errors.push('Diálogo nativo: ' + dialog.message()); await dialog.dismiss(); });
     page.on('pageerror', e => errors.push(e.message));
     await page.goto(`http://127.0.0.1:${server.address().port}/funtime/`);
     await page.getByRole('button', { name: 'Começar sem dados', exact: true }).click();
@@ -58,6 +59,8 @@ test('Menu de dose, contagem cancelada e editor de horário', { timeout: 90000 }
     assert.equal(await page.locator('#drink-menu-stop').isVisible(), false);
     assert.ok(await page.evaluate(() => getDrinkActivity(state.drinks[0]).remainingMs <= 0));
     assert.deepEqual(await page.evaluate(() => state.events), before.slice(1));
+    assert.equal(await page.locator('dialog[open]').count(), 0);
+    assert.equal(await page.evaluate(() => state.currentView), 'home');
     assert.ok(await page.evaluate(() => getDrinkActivity(state.drinks[1]).remainingMs > 0));
     await page.evaluate(() => { closeDrinkMenuDialog(); openDeleteDrinkDialog('d'); });
     assert.equal(await page.locator('#delete-drink-name').textContent(), '💧 Teste');
@@ -123,7 +126,44 @@ test('Menu de dose, contagem cancelada e editor de horário', { timeout: 90000 }
     assert.equal(await page.locator('#drink-menu-stop').isVisible(), false);
     await page.evaluate(() => { state.events = state.events.filter(event => event.drinkId !== 'd'); updateDrinkMenuCountdown(); });
     assert.equal(await page.locator('#drink-menu-stop').isVisible(), false);
-    await page.evaluate(() => { closeDrinkMenuDialog(); openSettingsView(); });
+    await page.evaluate(() => { closeDrinkMenuDialog(); openDeleteDrinkDialog('d'); });
+    assert.equal(await page.locator('#delete-drink-question').textContent(), 'Excluir esta bebida?');
+    assert.equal(await page.locator('#delete-drink-keep-history').isVisible(), false);
+    assert.equal(await page.locator('#delete-drink-history-help').isVisible(), false);
+    assert.equal(await page.locator('#delete-drink-with-history').textContent(), 'Excluir bebida');
+    await page.screenshot({ path: path.join(require('node:os').tmpdir(), 'funtime-delete-empty.png') });
+    await page.locator('#cancel-delete-drink').click();
+    assert.equal(await page.evaluate(() => state.drinks.some(d => d.id === 'd')), true);
+    await page.evaluate(() => openDeleteDrinkDialog('other'));
+    assert.equal(await page.locator('#delete-drink-keep-history').isVisible(), true);
+    await page.locator('#cancel-delete-drink').click();
+    await page.evaluate(() => openDeleteDrinkDialog('d'));
+    await page.locator('#delete-drink-with-history').click();
+    assert.equal(await page.evaluate(() => state.drinks.some(d => d.id === 'd')), false);
+    await page.evaluate(() => openEventDialog('other-event'));
+    await page.locator('#delete-event').click();
+    assert.equal(await page.locator('#app-confirm-dialog').isVisible(), true);
+    await page.evaluate(() => hideToast());
+    await page.screenshot({ path: path.join(require('node:os').tmpdir(), 'funtime-confirm.png') });
+    await page.keyboard.press('Escape');
+    assert.equal(await page.evaluate(() => state.events.some(e => e.id === 'other-event')), true);
+    await page.locator('#delete-event').click();
+    await page.locator('#app-confirm-accept').click();
+    await page.waitForFunction(() => !state.events.some(e => e.id === 'other-event'));
+    await page.evaluate(() => openSettingsView());
+    await page.evaluate(() => { disableSecurity(); });
+    assert.equal(await page.locator('#app-confirm-title').textContent(), 'Desativar bloqueio');
+    await page.locator('#app-confirm-dialog button[value=cancel]').click();
+    const saved = await page.evaluate(() => JSON.stringify(buildCurrentAppData()));
+    for (const prepare of ['prepareDrinkImportFile', 'prepareBackupRestoreFile']) {
+      await page.evaluate(async name => {
+        await window[name](new File(['invalid'], 'invalido.json', { type: 'application/json' }));
+      }, prepare);
+      assert.equal(await page.locator('#toast').isVisible(), true);
+      assert.equal(await page.locator('#toast-title').textContent(), 'Não foi possível concluir');
+      assert.equal(await page.evaluate(() => JSON.stringify(buildCurrentAppData())), saved);
+      await page.evaluate(() => hideToast());
+    }
     const style = selector => page.locator(selector).evaluate(node => { const s = getComputedStyle(node); return [s.backgroundColor, s.borderRadius, s.minHeight, s.fontSize]; });
     assert.deepEqual(await style('#counting-mode'), await style('#security-relock'));
     assert.deepEqual(errors, []);

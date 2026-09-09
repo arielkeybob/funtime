@@ -1,12 +1,18 @@
 # FunTime — documentação de desenvolvimento
 
+## V2.0.11 — confirmações e exclusão
+
+Alertas de arquivos inválidos usam notificações persistentes do app; exclusão de registro e desativação do bloqueio usam confirmação interna compartilhada, sem o cabeçalho do domínio GitHub. Bebidas sem histórico oferecem apenas Cancelar/Excluir bebida. Confirmar cancelamento da contagem volta ao Início; desistir mantém o menu. App/boot/footers 2.0.11, cache funtime-v2-0-11; DATA_VERSION 9 e aceite preservados.
+
+Commit e push solicitados. Celular real e atualização da PWA no aparelho permanecem pendentes.
+
 ## V2.0.10 — padrões dos formulários
 
 Horário do registro alinhado às roletas compartilhadas, data com dia da semana e hierarquia visual consistente. Formulários de bebida, dose, registro e PIN ocultam a conclusão sem alterações; reverter os campos deixa apenas Cancelar. Auditoria de duplicações registrada no ROADMAP.md. App/boot/footers 2.0.10 e cache funtime-v2-0-10; DATA_VERSION 9 e aceite preservados.
 
 Commit e push solicitados. Validação em navegador com origem e perfil isolados; celular real e atualização da PWA no aparelho permanecem pendentes.
 
-**Versão da aplicação:** `v2.0.10`\
+**Versão da aplicação:** `v2.0.11`\
 **Versão do modelo persistido:** `DATA_VERSION = 9`\
 **Autor exibido na interface:** `arielkeybob`  
 **Stack:** HTML + CSS + JavaScript puro  
@@ -2203,3 +2209,11 @@ App/footer 1.14.3 e cache intervalo-v1-14-3; dados e preferências preservados, 
 Registro usa as mesmas roletas e hierarquia visual do cadastro/anotação. Data exibe dia da semana por extenso, mantendo o seletor nativo. beginFormDraft/updateFormDraft em ui.js comparam campos com a abertura; botões de conclusão ficam ocultos sem mudanças e envio por Enter também é bloqueado nesse estado. Roletas notificam input para integrar o controle compartilhado. Nenhuma alteração de schema ou publicação.
 
 Validação: sintaxe de app.js, sw.js e ui.js; testes audit/ui e teste integrado countdown-menu-browser em origem e perfil efêmeros. Inclui retorno ao valor original, horário pelo teclado, data com dia da semana, edição preservando snapshot e larguras 320/390. Celular real e atualização da PWA não testados.
+
+## Ajustes locais — confirmações e exclusão (09/09/2026)
+
+Auditoria encontrou dois window.alert (falhas de importação de bebidas e leitura de backup) e dois window.confirm (desativar bloqueio e excluir registro). Erros usam showAppNotification persistente; confirmações usam showAppConfirmation em ui.js com o layout comum dos diálogos e cancelamento pelo Voltar/Escape/bloqueio. Não há alert/confirm nativos restantes nos scripts atuais. O prompt de instalação é uma API do navegador e permanece.
+
+Bebida sem eventos oferece apenas Cancelar/Excluir bebida, sem decisões sobre histórico; bebida com eventos mantém as duas opções. Confirmar cancelamento da contagem volta ao Início; desistir mantém o menu e falha de gravação preserva a confirmação.
+
+Validação: node --check app.js/sw.js/ui.js; 27 testes em audit, ui, navigation-browser e countdown-menu-browser, com dados e perfil isolados. Cobertura de exclusão com/sem histórico, confirmações internas, ausência de diálogos nativos, arquivos inválidos sem alteração de dados e retorno ao Início. Celular real e atualização de PWA não testados. Sem publicação nesta etapa.

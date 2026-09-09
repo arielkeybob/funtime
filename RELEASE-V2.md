@@ -1,5 +1,11 @@
 # FunTime — releases v2
 
+## V2.0.11 — confirmações e exclusão
+
+Alertas de arquivos inválidos usam notificações persistentes do app; exclusão de registro e desativação do bloqueio usam confirmação interna compartilhada, sem o cabeçalho do domínio GitHub. Bebidas sem histórico oferecem apenas Cancelar/Excluir bebida. Confirmar cancelamento da contagem volta ao Início; desistir mantém o menu. App/boot/footers 2.0.11, cache funtime-v2-0-11; DATA_VERSION 9 e aceite preservados.
+
+Commit e push solicitados. Celular real e atualização da PWA no aparelho permanecem pendentes.
+
 ## V2.0.10 — padrões dos formulários
 
 Horário do registro alinhado às roletas compartilhadas, data com dia da semana e hierarquia visual consistente. Formulários de bebida, dose, registro e PIN ocultam a conclusão sem alterações; reverter os campos deixa apenas Cancelar. Auditoria de duplicações registrada no ROADMAP.md. App/boot/footers 2.0.10 e cache funtime-v2-0-10; DATA_VERSION 9 e aceite preservados.
@@ -97,3 +103,5 @@ Deployment estável confirmado no commit `a5409dd`: Pages built, index/boot/SW e
 Validação da publicação 2.0.9: sete cenários aprovados em countdown-menu-browser, release e receiver-browser, incluindo atualização para 2.0.9 e reabertura offline. Sintaxe app.js/sw.js/boot.js e diff verificados.
 
 Validação da publicação 2.0.10: 32 testes aprovados em audit, ui, countdown-menu-browser, release e receiver-browser, incluindo atualização para 2.0.10 e reabertura offline. Sintaxe de app.js, sw.js, boot.js e ui.js aprovada.
+
+Validação da publicação 2.0.11: 33 testes aprovados em audit, ui, countdown-menu-browser, navigation-browser, release e receiver-browser, incluindo atualização para 2.0.11 e reabertura offline. Sintaxe app.js/sw.js/boot.js/ui.js aprovada.

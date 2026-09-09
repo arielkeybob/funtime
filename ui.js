@@ -43,3 +43,17 @@ function beginFormDraft(form) {
     if (!updateFormDraft(form)) { event.preventDefault(); event.stopImmediatePropagation(); }
   }, true);
 }
+
+// Fechar pelo Voltar, Escape ou bloqueio equivale a cancelar.
+function showAppConfirmation(message, { title = 'Confirmar', confirmLabel = 'Confirmar' } = {}) {
+  const dialog = document.getElementById('app-confirm-dialog');
+  if (dialog.open) return Promise.resolve(false);
+  document.getElementById('app-confirm-title').textContent = title;
+  document.getElementById('app-confirm-message').textContent = message;
+  document.getElementById('app-confirm-accept').textContent = confirmLabel;
+  dialog.returnValue = '';
+  return new Promise(resolve => {
+    dialog.addEventListener('close', () => resolve(dialog.returnValue === 'confirm'), { once: true });
+    dialog.showModal();
+  });
+}

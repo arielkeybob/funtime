@@ -53,7 +53,7 @@
     <footer class="browser-gate-footer">
       <span>App para estudo · não é controle de segurança</span>
       <a class="policies-link" href="./policies.html">Políticas e informações</a>
-      <span>v2.0.10 · By: arielkeybob</span>
+      <span>v2.0.11 · By: arielkeybob</span>
     </footer>
   </section>
 
@@ -279,7 +279,7 @@
     <footer class="app-footer">
       <span class="app-footer-disclaimer">App para estudo · não é controle de segurança</span>
       <a class="policies-link" href="./policies.html">Políticas e informações</a>
-      <span class="app-footer-meta">v2.0.10 · By: arielkeybob</span>
+      <span class="app-footer-meta">v2.0.11 · By: arielkeybob</span>
     </footer>
   </div>
 
@@ -383,11 +383,11 @@
       </div>
 
       <div class="delete-choice-warning" role="alert">
-        <strong>O que deseja fazer com o histórico?</strong>
+        <strong id="delete-drink-question">O que deseja fazer com o histórico?</strong>
         <span id="delete-drink-summary"></span>
       </div>
 
-      <p class="warning-copy">Manter o histórico remove a bebida da tela principal, mas preserva todos os registros já feitos. Excluir os registros remove os dois permanentemente.</p>
+      <p id="delete-drink-history-help" class="warning-copy">Manter o histórico remove a bebida da tela principal, mas preserva todos os registros já feitos. Excluir os registros remove os dois permanentemente.</p>
 
       <div class="delete-choice-actions">
         <button id="cancel-delete-drink" class="secondary-button" type="button">Cancelar</button>
@@ -457,6 +457,17 @@
       </div>
 
       <p class="drink-menu-hint clean-optional">Dica: toque e segure o card para anotar outra dose mais rápido.</p>
+    </form>
+  </dialog>
+
+  <dialog id="app-confirm-dialog" class="dialog">
+    <form method="dialog">
+      <div class="dialog-header"><h2 id="app-confirm-title">Confirmar</h2></div>
+      <p id="app-confirm-message"></p>
+      <div class="dialog-actions">
+        <button class="secondary-button" value="cancel" type="submit">Cancelar</button>
+        <button id="app-confirm-accept" class="danger-button" value="confirm" type="submit">Confirmar</button>
+      </div>
     </form>
   </dialog>
 
