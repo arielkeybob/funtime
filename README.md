@@ -1,4 +1,6 @@
-# FunTime — V2.0.8
+# FunTime — V2.0.9
+
+V2.0.9: Cancelar contagem atual remove a dose correspondente após confirmação, preservando registros anteriores. Ícone da bebida restaurado na exclusão. App/boot/footers 2.0.9 e cache `funtime-v2-0-9`; DATA_VERSION 9 e aceite preservados.
 
 V2.0.8: ajustes nos seletores e no menu da bebida, com confirmação para desfazer a contagem preservando a dose no histórico. App/boot/footers 2.0.8 e cache `funtime-v2-0-8`; dados e aceite preservados.
 

@@ -1,5 +1,11 @@
 # FunTime — releases v2
 
+## V2.0.9 — cancelar contagem atual
+
+Após confirmação, remove somente a dose da contagem ativa, sem adicionar marcador ao histórico. Registros anteriores preservados; leitura dos marcadores da v2.0.8 mantida por compatibilidade. Ícone da bebida exibido na exclusão e confirmação de cancelamento. App/boot/SW/footers 2.0.9, cache `funtime-v2-0-9`, DATA_VERSION 9 e aceite preservados. Commit e push solicitados.
+
+Validação funcional: 23 testes aprovados em audit, countdown-menu-browser e navigation-browser; sintaxe app.js/sw.js aprovada. Dados fictícios em perfil isolado; celular real não testado.
+
 ## V2.0.8 — contagem e formulários
 
 Menu da bebida separado em Dose e Cadastro. Desfazer contagem atual aparece somente com contador ativo, pede confirmação e encerra apenas o contador: dose, horário e intervalo original permanecem no histórico, com a indicação Contagem desfeita. Confirmações antigas são revalidadas e falha de gravação mantém a contagem. O marcador opcional countingStoppedAt é preservado em backup/restauração; dados antigos continuam válidos, sem migração de schema (DATA_VERSION 9). Horário do registro usa seletores de hora e minuto dentro do formulário, evitando o relógio nativo cortado. Contagem do intervalo usa o mesmo componente visual de Bloquear novamente. Exclusão passa a dizer Excluir bebida e histórico.
@@ -81,3 +87,5 @@ O registro de posse é distinto do marcador público. O app v1 só deixa de escr
 ## Ativação do convite
 
 Deployment estável confirmado no commit `a5409dd`: Pages built, index/boot/SW em 2.0.0 e ponte /intervalo/ ainda em 1.16. Marcador ready preparado após essa confirmação, com publishedAt 1788833191000. O parser da ponte original valida o mesmo arquivo publicado. Não há bump adicional do shell para adicionar esse anúncio remoto.
+
+Validação da publicação 2.0.9: sete cenários aprovados em countdown-menu-browser, release e receiver-browser, incluindo atualização para 2.0.9 e reabertura offline. Sintaxe app.js/sw.js/boot.js e diff verificados.

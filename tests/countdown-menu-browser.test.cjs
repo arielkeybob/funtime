@@ -6,7 +6,7 @@ const http = require('node:http');
 const path = require('node:path');
 const { chromium } = require('playwright');
 
-test('Menu de dose, contagem desfeita e editor de horário', { timeout: 90000 }, async () => {
+test('Menu de dose, contagem cancelada e editor de horário', { timeout: 90000 }, async () => {
   const server = http.createServer((req, res) => {
     const file = new URL(req.url, 'http://localhost').pathname.replace(/^\/funtime\//, '') || 'index.html';
     if (file.includes('..') || file.startsWith('/')) return res.writeHead(404).end();
@@ -56,17 +56,14 @@ test('Menu de dose, contagem desfeita e editor de horário', { timeout: 90000 },
     await page.screenshot({ path: path.join(require('node:os').tmpdir(), 'funtime-stop-confirm.png') });
     await page.locator('#confirm-stop-countdown').click();
     assert.equal(await page.locator('#drink-menu-stop').isVisible(), false);
-    assert.equal(await page.evaluate(() => getDrinkActivity(state.drinks[0]).remainingMs), 0);
-    const stopped = await page.evaluate(() => state.events[0]);
-    assert.equal(typeof stopped.countingStoppedAt, 'number');
-    assert.deepEqual({ ...stopped, countingStoppedAt: undefined }, { ...before[0], countingStoppedAt: undefined });
-    assert.deepEqual(await page.evaluate(() => state.events.slice(1)), before.slice(1));
+    assert.ok(await page.evaluate(() => getDrinkActivity(state.drinks[0]).remainingMs <= 0));
+    assert.deepEqual(await page.evaluate(() => state.events), before.slice(1));
     assert.ok(await page.evaluate(() => getDrinkActivity(state.drinks[1]).remainingMs > 0));
-    await page.evaluate(() => { closeDrinkMenuDialog(); openHistoryView('d'); });
-    assert.equal(await page.getByText('Contagem desfeita', { exact: true }).count(), 1);
-    await page.evaluate(() => updateHistoryElapsedLabels());
-    assert.equal(await page.getByText('Contagem desfeita', { exact: true }).count(), 1);
-    await page.evaluate(() => openEventDialog('e'));
+    await page.evaluate(() => { closeDrinkMenuDialog(); openDeleteDrinkDialog('d'); });
+    assert.equal(await page.locator('#delete-drink-name').textContent(), '💧 Teste');
+    await page.evaluate(() => { closeDeleteDrinkDialog(); openHistoryView('d'); });
+    assert.equal(await page.getByText('Contagem desfeita', { exact: true }).count(), 0);
+    await page.evaluate(() => openEventDialog('older'));
     assert.equal(await page.locator('#event-dialog input[type=time]').count(), 0);
     assert.equal(await page.locator('#event-hour option').count(), 24);
     assert.equal(await page.locator('#event-minute option').count(), 60);
@@ -83,12 +80,12 @@ test('Menu de dose, contagem desfeita e editor de horário', { timeout: 90000 },
     assert.equal(new Date(edited.consumedAt).getHours(), 1);
     assert.equal(new Date(edited.consumedAt).getMinutes(), 23);
     assert.equal(edited.intervalMinutes, before[0].intervalMinutes);
-    assert.equal(edited.countingStoppedAt, stopped.countingStoppedAt);
+    assert.equal(edited.countingStoppedAt, undefined);
     await page.reload();
     await page.waitForFunction(() => typeof state !== 'undefined' && !document.body.classList.contains('boot-pending'));
-    assert.equal(await page.evaluate(() => state.events[0].countingStoppedAt), stopped.countingStoppedAt);
+    assert.equal(await page.evaluate(() => state.events.some(event => event.id === 'e')), false);
     await page.evaluate(() => {
-      state.events.push({ ...state.events[1], id: 'new', consumedAt: Date.now() });
+      state.events.push({ ...state.events[0], id: 'new', consumedAt: Date.now() });
       saveData(); openDrinkMenuDialog('d');
     });
     assert.equal(await page.locator('#drink-menu-stop').isVisible(), true);
@@ -96,7 +93,7 @@ test('Menu de dose, contagem desfeita e editor de horário', { timeout: 90000 },
     // Uma nova dose durante a confirmação invalida o alvo antigo.
     await page.evaluate(() => { state.events.push({ ...state.events.at(-1), id: 'newest', consumedAt: Date.now() + 1 }); });
     await page.locator('#confirm-stop-countdown').click();
-    assert.equal(await page.evaluate(() => state.events.at(-1).countingStoppedAt), undefined);
+    assert.equal(await page.evaluate(() => state.events.at(-1).id), 'newest');
     assert.equal(await page.locator('#stop-countdown-dialog').evaluate(node => node.open), false);
     await page.evaluate(() => {
       state.events = state.events.filter(event => !['new', 'newest'].includes(event.id));

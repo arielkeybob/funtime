@@ -264,7 +264,7 @@ document.addEventListener("visibilitychange", () => {
 const DATA_STORAGE_KEY = "funtime-v1-data";
 const LEGACY_DRINKS_STORAGE_KEY = "balada-v1-drinks";
 const DATA_VERSION = 9;
-const APP_VERSION = "2.0.8";
+const APP_VERSION = "2.0.9";
 const DRINK_EXPORT_TYPE = "funtime-drinks";
 const DRINK_EXPORT_FORMAT_VERSION = 1;
 const BACKUP_EXPORT_TYPE = "funtime-backup";
@@ -2805,7 +2805,7 @@ function openDeleteDrinkDialog(drinkId, { returnToEditorOnCancel = false } = {})
   state.deleteReturnToEditor = returnToEditorOnCancel;
   const eventCount = state.events.filter((event) => event.drinkId === drinkId).length;
 
-  deleteDrinkName.textContent = drink.name;
+  deleteDrinkName.textContent = `${drink.icon} ${drink.name}`;
   deleteDrinkSummary.textContent = eventCount > 0
     ? `Existem ${eventCount} registro${eventCount === 1 ? "" : "s"} desta bebida no histórico.`
     : "Esta bebida ainda não possui registros no histórico.";
@@ -2891,7 +2891,7 @@ function openStopCountdownDialog() {
   const activity = drink && getDrinkActivity(drink);
   if (!activity || activity.remainingMs <= 0) { updateDrinkMenuCountdown(); return; }
   pendingCountdownStop = { drinkId: drink.id, eventId: activity.latestEvent.id, consumedAt: activity.latestEvent.consumedAt, intervalMinutes: activity.latestEvent.intervalMinutes };
-  document.querySelector('#stop-countdown-name').textContent = drink.name;
+  document.querySelector('#stop-countdown-name').textContent = `${drink.icon} ${drink.name}`;
   document.querySelector('#stop-countdown-error').hidden = true;
   document.querySelector('#stop-countdown-dialog').showModal();
 }
@@ -2912,7 +2912,7 @@ function confirmStopCountdown() {
     showToast('A contagem mudou ou já terminou. Abra novamente o menu da bebida.');
     return;
   }
-  const events = state.events.map(event => event.id === latest.id ? { ...event, countingStoppedAt: Date.now() } : event);
+  const events = state.events.filter(event => event.id !== latest.id);
   try {
     localStorage.setItem(DATA_STORAGE_KEY, JSON.stringify({ ...buildCurrentAppData(), events }));
     state.events = events;
@@ -2925,7 +2925,7 @@ function confirmStopCountdown() {
   closeStopCountdownDialog();
   updateDrinkMenuCountdown();
   refreshDataViews();
-  showToast('Contagem desfeita. A dose foi mantida no histórico.');
+  showToast('Contagem cancelada. A dose foi removida do histórico.');
 }
 
 function closeDrinkMenuDialog() {

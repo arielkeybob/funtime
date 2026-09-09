@@ -1,12 +1,18 @@
 # FunTime — documentação de desenvolvimento
 
-**Versão da aplicação:** `v2.0.8`\
+**Versão da aplicação:** `v2.0.9`\
 **Versão do modelo persistido:** `DATA_VERSION = 9`\
 **Autor exibido na interface:** `arielkeybob`  
 **Stack:** HTML + CSS + JavaScript puro  
 **Persistência:** `localStorage`  
 **Backend:** não existe  
 **Build step:** não existe
+
+## V2.0.9 — cancelar a dose atual
+
+Cancelar contagem atual substitui Desfazer contagem atual. Após confirmação, remove somente a dose que iniciou a contagem ativa, sem criar registro ou marcador no histórico. Registros anteriores e de outras bebidas são preservados; o estado da bebida volta a ser calculado pelo último registro restante. Falha de gravação mantém a dose e confirmações obsoletas não removem outra dose. A leitura de countingStoppedAt permanece para compatibilidade com dados e backups da v2.0.8, sem apagar retroativamente registros existentes. Exclusão e confirmação de cancelamento exibem ícone e nome da bebida.
+
+Validação local: node --check app.js/sw.js e 23 testes aprovados em audit, countdown-menu-browser e navigation-browser, com dados fictícios e perfil isolado. Celular real não testado.
 
 ## V2.0.8 — contagem e formulários
 
