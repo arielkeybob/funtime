@@ -264,7 +264,7 @@ document.addEventListener("visibilitychange", () => {
 const DATA_STORAGE_KEY = "funtime-v1-data";
 const LEGACY_DRINKS_STORAGE_KEY = "balada-v1-drinks";
 const DATA_VERSION = 9;
-const APP_VERSION = "2.0.11";
+const APP_VERSION = "2.0.12";
 const DRINK_EXPORT_TYPE = "funtime-drinks";
 const DRINK_EXPORT_FORMAT_VERSION = 1;
 const BACKUP_EXPORT_TYPE = "funtime-backup";
@@ -1984,6 +1984,17 @@ function setClockStatus(element, prefix, timestamp, trailingText = "") {
   }
 }
 
+function setPreviousStatus(element, timestamp, trailingText = "", now = Date.now()) {
+  if (now - timestamp < 24 * 60 * 60 * 1000) {
+    setClockStatus(element, "Anterior:", timestamp, trailingText);
+    return;
+  }
+  const date = new Date(timestamp).toLocaleDateString('pt-BR', {
+    day: '2-digit', month: '2-digit', year: '2-digit',
+  });
+  element.textContent = 'Anterior: ' + date + trailingText;
+}
+
 function formatInterval(totalMinutes) {
   const hours = Math.floor(totalMinutes / 60);
   const minutes = totalMinutes % 60;
@@ -2417,7 +2428,7 @@ function render() {
       );
     } else {
       stateLabel.textContent = "✓ INTERVALO CONCLUÍDO";
-      setClockStatus(status, "Anterior:", activity.latestEvent.consumedAt, getDoseStatusSuffix(activity.latestEvent));
+      setPreviousStatus(status, activity.latestEvent.consumedAt, getDoseStatusSuffix(activity.latestEvent));
       time.textContent = "Anotar nova dose";
       mainButton.setAttribute("aria-label", `Anotar nova dose de ${drink.name} agora com dois toques rápidos. Toque e segure para anotar outra dose.`);
     }

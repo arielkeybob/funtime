@@ -273,3 +273,18 @@ test('falha ao salvar contagem preserva a preferência anterior e dados', () => 
  c.localStorage.setItem=()=>{throw Error('quota');};c.changeCountingMode('countdown');
  assert.equal(state.preferences.countingMode,'normal');assert.equal(c.countingModeInput.value,'normal');
 });
+
+test('Anterior mostra horário antes de 24h e data local curta a partir de 24h', () => {
+  const c = context({ setClockStatus: (element, prefix, timestamp, suffix) => { element.textContent = prefix + ' horário' + suffix; } });
+  vm.runInContext(extract('setPreviousStatus'), c);
+  const timestamp = new Date(2026, 8, 6, 23, 30).getTime();
+  const element = {};
+  c.setPreviousStatus(element, timestamp, ' · Meia', timestamp + 86400000 - 1);
+  assert.equal(element.textContent, 'Anterior: horário · Meia');
+  for (const elapsed of [86400000, 86400001, 3 * 86400000]) {
+    c.setPreviousStatus(element, timestamp, ' · Meia', timestamp + elapsed);
+    assert.equal(element.textContent, 'Anterior: 06/09/26 · Meia');
+  }
+  c.setPreviousStatus(element, timestamp, '', timestamp + 86400000);
+  assert.equal(element.textContent, 'Anterior: 06/09/26');
+});

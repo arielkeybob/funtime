@@ -1,5 +1,9 @@
 # FunTime — releases v2
 
+## V2.0.12 — data do consumo anterior
+
+No card do Início, Anterior mantém o horário antes de 24 horas e passa a exibir a data local em dd/mm/aa a partir de 24 horas completas. Preserva o sufixo de tamanho da dose; o relógio existente atualiza a apresentação sem reabrir o app. App/boot/footers 2.0.12, cache funtime-v2-0-12; DATA_VERSION 9 e aceite preservados. Commit e push solicitados. Celular real não testado.
+
 ## V2.0.11 — confirmações e exclusão
 
 Alertas de arquivos inválidos usam notificações persistentes do app; exclusão de registro e desativação do bloqueio usam confirmação interna compartilhada, sem o cabeçalho do domínio GitHub. Bebidas sem histórico oferecem apenas Cancelar/Excluir bebida. Confirmar cancelamento da contagem volta ao Início; desistir mantém o menu. App/boot/footers 2.0.11, cache funtime-v2-0-11; DATA_VERSION 9 e aceite preservados.
@@ -105,3 +109,5 @@ Validação da publicação 2.0.9: sete cenários aprovados em countdown-menu-br
 Validação da publicação 2.0.10: 32 testes aprovados em audit, ui, countdown-menu-browser, release e receiver-browser, incluindo atualização para 2.0.10 e reabertura offline. Sintaxe de app.js, sw.js, boot.js e ui.js aprovada.
 
 Validação da publicação 2.0.11: 33 testes aprovados em audit, ui, countdown-menu-browser, navigation-browser, release e receiver-browser, incluindo atualização para 2.0.11 e reabertura offline. Sintaxe app.js/sw.js/boot.js/ui.js aprovada.
+
+Validação da publicação 2.0.12: 29 testes aprovados em audit, countdown-menu-browser, release e receiver-browser. Cobertura imediatamente antes/no/depois do limite de 24h, sufixo de dose, atualização para 2.0.12 e reabertura offline. Sintaxe app.js/sw.js/boot.js aprovada.

@@ -1,5 +1,9 @@
 # FunTime — documentação de desenvolvimento
 
+## V2.0.12 — data do consumo anterior
+
+No card do Início, Anterior mantém o horário antes de 24 horas e passa a exibir a data local em dd/mm/aa a partir de 24 horas completas. Preserva o sufixo de tamanho da dose; o relógio existente atualiza a apresentação sem reabrir o app. App/boot/footers 2.0.12, cache funtime-v2-0-12; DATA_VERSION 9 e aceite preservados. Commit e push solicitados. Celular real não testado.
+
 ## V2.0.11 — confirmações e exclusão
 
 Alertas de arquivos inválidos usam notificações persistentes do app; exclusão de registro e desativação do bloqueio usam confirmação interna compartilhada, sem o cabeçalho do domínio GitHub. Bebidas sem histórico oferecem apenas Cancelar/Excluir bebida. Confirmar cancelamento da contagem volta ao Início; desistir mantém o menu. App/boot/footers 2.0.11, cache funtime-v2-0-11; DATA_VERSION 9 e aceite preservados.
@@ -12,7 +16,7 @@ Horário do registro alinhado às roletas compartilhadas, data com dia da semana
 
 Commit e push solicitados. Validação em navegador com origem e perfil isolados; celular real e atualização da PWA no aparelho permanecem pendentes.
 
-**Versão da aplicação:** `v2.0.11`\
+**Versão da aplicação:** `v2.0.12`\
 **Versão do modelo persistido:** `DATA_VERSION = 9`\
 **Autor exibido na interface:** `arielkeybob`  
 **Stack:** HTML + CSS + JavaScript puro  

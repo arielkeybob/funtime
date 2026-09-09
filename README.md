@@ -1,4 +1,8 @@
-# FunTime — V2.0.11
+# FunTime — V2.0.12
+
+## V2.0.12 — data do consumo anterior
+
+No card do Início, Anterior mantém o horário antes de 24 horas e passa a exibir a data local em dd/mm/aa a partir de 24 horas completas. Preserva o sufixo de tamanho da dose; o relógio existente atualiza a apresentação sem reabrir o app. App/boot/footers 2.0.12, cache funtime-v2-0-12; DATA_VERSION 9 e aceite preservados. Commit e push solicitados. Celular real não testado.
 
 ## V2.0.11 — confirmações e exclusão
 
