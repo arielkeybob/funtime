@@ -16,6 +16,20 @@ function context(extra = {}) {
   return ctx;
 }
 const drink = {id:'d1', name:'Água', icon:'💧', intervalMinutes:60, askDoseSize:false};
+test('backup preserva contagem encerrada e rejeita marca inválida sem mudar snapshots', () => {
+  const c = context(), b = backup();
+  b.data.events[0].countingStoppedAt = 1700000001000;
+  const result = c.validateBackupPayload(b);
+  assert.equal(result.events[0].countingStoppedAt, 1700000001000);
+  assert.equal(result.events[0].consumedAt, b.data.events[0].consumedAt);
+  assert.equal(result.events[0].intervalMinutes, b.data.events[0].intervalMinutes);
+  for (const bad of [null, '1700000001000', Infinity, 1e30]) {
+    b.data.events[0].countingStoppedAt = bad;
+    assert.throws(() => c.validateBackupPayload(b));
+  }
+  delete b.data.events[0].countingStoppedAt;
+  assert.equal(Object.hasOwn(c.validateBackupPayload(b).events[0], 'countingStoppedAt'), false);
+});
 test('reordenar catálogo preserva seleção de dados, backup e ordem em falha de gravação', () => {
   let saved;
   const state = { drinks: [drink], events: backup().data.events, preferences: { cleanInterface: true, iconCatalog: ['🍺', '💧', '⭐'] } };

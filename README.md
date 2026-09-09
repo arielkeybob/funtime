@@ -1,4 +1,6 @@
-# FunTime — V2.0.7
+# FunTime — V2.0.8
+
+V2.0.8: ajustes nos seletores e no menu da bebida, com confirmação para desfazer a contagem preservando a dose no histórico. App/boot/footers 2.0.8 e cache `funtime-v2-0-8`; dados e aceite preservados.
 
 V2.0.7: Diagnóstico de toque fica oculto com **Interface limpa** ativada. Desative essa preferência para acessar a ferramenta. Usa a regra existente de conteúdo auxiliar; seções ocultas não criam etapas invisíveis no Voltar. App/boot/footers 2.0.7 e cache `funtime-v2-0-7`; dados e aceite preservados. O usuário confirmou melhora do arraste; relatório da v2.0.6 registrou 15 arrastes iniciados e finalizados na grade, sem cancelamentos durante o arraste.
 

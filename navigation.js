@@ -20,6 +20,7 @@
     'drink-dialog': () => closeDrinkDialog(),
     'delete-drink-dialog': () => closeDeleteDrinkDialog(),
     'drink-menu-dialog': () => closeDrinkMenuDialog(),
+    'stop-countdown-dialog': () => closeStopCountdownDialog(),
     'interval-warning-dialog': () => closeIntervalWarningDialog(),
     'log-dialog': () => closeLogDialog(),
     'dose-size-dialog': () => closeDoseSizeDialog(),

@@ -53,7 +53,7 @@
     <footer class="browser-gate-footer">
       <span>App para estudo · não é controle de segurança</span>
       <a class="policies-link" href="./policies.html">Políticas e informações</a>
-      <span>v2.0.7 · By: arielkeybob</span>
+      <span>v2.0.8 · By: arielkeybob</span>
     </footer>
   </section>
 
@@ -144,11 +144,12 @@
           </div>
         </div>
 
-        <label for="counting-mode">Contagem do intervalo</label>
+        <label class="settings-field" for="counting-mode"><span>Contagem do intervalo</span>
         <select id="counting-mode">
           <option value="countdown">Contagem regressiva</option>
           <option value="normal">Contagem normal</option>
         </select>
+        </label>
         <label class="settings-toggle-row" for="clean-interface">
           <div class="settings-toggle-copy">
             <strong>Interface limpa e compacta</strong>
@@ -278,7 +279,7 @@
     <footer class="app-footer">
       <span class="app-footer-disclaimer">App para estudo · não é controle de segurança</span>
       <a class="policies-link" href="./policies.html">Políticas e informações</a>
-      <span class="app-footer-meta">v2.0.7 · By: arielkeybob</span>
+      <span class="app-footer-meta">v2.0.8 · By: arielkeybob</span>
     </footer>
   </div>
 
@@ -391,7 +392,7 @@
       <div class="delete-choice-actions">
         <button id="cancel-delete-drink" class="secondary-button" type="button">Cancelar</button>
         <button id="delete-drink-keep-history" class="delete-keep-button" type="button">Excluir bebida mas manter histórico</button>
-        <button id="delete-drink-with-history" class="danger-button" type="button">Excluir bebida e registros</button>
+        <button id="delete-drink-with-history" class="danger-button" type="button">Excluir bebida e histórico</button>
       </div>
     </form>
   </dialog>
@@ -435,10 +436,16 @@
       </div>
 
       <div class="drink-menu-actions">
+        <h3 class="drink-menu-section-title">Dose</h3>
         <button id="drink-menu-other-time" class="drink-menu-action" type="button">
           <span class="drink-menu-action-icon" aria-hidden="true">◷</span>
           <span>Anotar dose</span>
         </button>
+        <button id="drink-menu-stop" class="drink-menu-action" type="button" hidden>
+          <span class="drink-menu-action-icon" aria-hidden="true">↶</span>
+          <span>Desfazer contagem atual</span>
+        </button>
+        <h3 class="drink-menu-section-title drink-menu-section-divider">Cadastro</h3>
         <button id="drink-menu-edit" class="drink-menu-action" type="button">
           <span class="drink-menu-action-icon" aria-hidden="true">✎</span>
           <span>Editar bebida</span>
@@ -450,6 +457,19 @@
       </div>
 
       <p class="drink-menu-hint clean-optional">Dica: toque e segure o card para anotar outra dose mais rápido.</p>
+    </form>
+  </dialog>
+
+  <dialog id="stop-countdown-dialog" class="dialog">
+    <form method="dialog">
+      <div class="dialog-header"><div><p class="eyebrow">Desfazer contagem atual</p><h2 id="stop-countdown-name">Bebida</h2></div></div>
+      <p>Tem certeza que deseja parar a contagem atual?</p>
+      <p>A dose continuará no histórico, com a indicação de que a contagem foi desfeita. O horário e o intervalo configurado serão preservados.</p>
+      <p id="stop-countdown-error" class="form-error" role="alert" hidden></p>
+      <div class="dialog-actions">
+        <button id="cancel-stop-countdown" type="button" class="secondary-button">Cancelar</button>
+        <button id="confirm-stop-countdown" type="button" class="primary-button">Sim, desfazer contagem</button>
+      </div>
     </form>
   </dialog>
 
@@ -569,10 +589,14 @@
           <span>Data</span>
           <input id="event-date" name="eventDate" type="date" required>
         </label>
-        <label class="field">
-          <span>Horário</span>
-          <input id="event-time" name="eventTime" type="time" step="60" required>
-        </label>
+        <fieldset class="field event-time-field">
+          <legend>Horário</legend>
+          <div class="event-time-selects">
+            <label class="settings-field"><span>Hora</span><select id="event-hour" aria-label="Hora do registro" required></select></label>
+            <label class="settings-field"><span>Minuto</span><select id="event-minute" aria-label="Minuto do registro" required></select></label>
+          </div>
+          <input id="event-time" name="eventTime" type="hidden">
+        </fieldset>
       </div>
 
       <fieldset id="event-dose-field" class="field event-dose-field" hidden>

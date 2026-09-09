@@ -1,5 +1,13 @@
 # FunTime — releases v2
 
+## V2.0.8 — contagem e formulários
+
+Menu da bebida separado em Dose e Cadastro. Desfazer contagem atual aparece somente com contador ativo, pede confirmação e encerra apenas o contador: dose, horário e intervalo original permanecem no histórico, com a indicação Contagem desfeita. Confirmações antigas são revalidadas e falha de gravação mantém a contagem. O marcador opcional countingStoppedAt é preservado em backup/restauração; dados antigos continuam válidos, sem migração de schema (DATA_VERSION 9). Horário do registro usa seletores de hora e minuto dentro do formulário, evitando o relógio nativo cortado. Contagem do intervalo usa o mesmo componente visual de Bloquear novamente. Exclusão passa a dizer Excluir bebida e histórico.
+
+App/boot/SW/footers 2.0.8, cache `funtime-v2-0-8`; aceite preservado. Commit e push solicitados pelo usuário. Layout inspecionado no Edge em viewport móvel e campos verificados em larguras de 320 e 390px; celular real e atualização da PWA instalada no aparelho não testados.
+
+Validação: 46 testes aprovados em audit, countdown-menu-browser, icon-reorder-browser, navigation-browser, receiver-browser, release, reset, touch-debug e ui; sintaxe de app.js/sw.js/boot.js/navigation.js e diff sem erros. Inclui confirmação cancelada/obsoleta, falha de gravação, persistência e backup do encerramento, novo consumo, edição de horário, atualização para 2.0.8 e reabertura offline em perfis isolados, sem alterar armazenamento real.
+
 ## V2.0.7 — ocultar diagnóstico na interface limpa
 
 Solicitados ajuste, commit e push. Diagnóstico usa `clean-optional`; Interface limpa o oculta e desativar a preferência o revela. Voltar ignora seções ocultas. App/boot/SW/footers 2.0.7, cache `funtime-v2-0-7`; DATA_VERSION 9 e aceite preservados. A melhora do toque da v2.0.6 foi confirmada pelo usuário e pelo relatório da sessão, sem generalizar para outros aparelhos.

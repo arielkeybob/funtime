@@ -264,7 +264,7 @@ document.addEventListener("visibilitychange", () => {
 const DATA_STORAGE_KEY = "funtime-v1-data";
 const LEGACY_DRINKS_STORAGE_KEY = "balada-v1-drinks";
 const DATA_VERSION = 9;
-const APP_VERSION = "2.0.7";
+const APP_VERSION = "2.0.8";
 const DRINK_EXPORT_TYPE = "funtime-drinks";
 const DRINK_EXPORT_FORMAT_VERSION = 1;
 const BACKUP_EXPORT_TYPE = "funtime-backup";
@@ -1200,6 +1200,7 @@ function normalizeData(data) {
         consumedAt: Number(event.consumedAt),
         intervalMinutes: normalizeIntervalMinutes(event.intervalMinutes),
         doseSize: normalizeDoseSize(event.doseSize),
+        ...(typeof event.countingStoppedAt === 'number' && Number.isFinite(event.countingStoppedAt) ? { countingStoppedAt: event.countingStoppedAt } : {}),
       };
     });
 
@@ -1701,6 +1702,7 @@ function validateBackupPayload(payload) {
   }
   const eventIds = new Set();
   for (const event of data.events) {
+    if (event && event.countingStoppedAt !== undefined && (typeof event.countingStoppedAt !== 'number' || !Number.isFinite(event.countingStoppedAt) || !Number.isFinite(new Date(event.countingStoppedAt).getTime()))) invalid();
     if (!event || Array.isArray(event) || !validText(event.id, 200) || eventIds.has(event.id) ||
         !validText(event.drinkId, 200) || typeof event.consumedAt !== "number" ||
         !Number.isFinite(event.consumedAt) || !Number.isFinite(new Date(event.consumedAt).getTime()) ||
@@ -1945,6 +1947,7 @@ function updateHistoryElapsedLabels() {
   const now = Date.now();
 
   document.querySelectorAll(".history-event-elapsed[data-consumed-at]").forEach((element) => {
+    if (element.dataset.countingStopped === 'true') return;
     const timestamp = Number(element.dataset.consumedAt);
     const intervalMinutes = Number(element.dataset.intervalMinutes);
     if (!Number.isFinite(timestamp)) return;
@@ -2137,7 +2140,7 @@ function getDrinkActivity(drink) {
   }
 
   const availableAt = latestEvent.consumedAt + latestEvent.intervalMinutes * 60 * 1000;
-  const remainingMs = availableAt - Date.now();
+  const remainingMs = Number.isFinite(latestEvent.countingStoppedAt) ? 0 : availableAt - Date.now();
   const violationClusterCount = getCurrentViolationClusterCount(events);
 
   let activityState = "completed";
@@ -2522,14 +2525,16 @@ function renderHistory() {
       body.appendChild(heading);
 
       const elapsed = document.createElement("span");
-      const intervalCompleted = Date.now() - event.consumedAt >= event.intervalMinutes * 60 * 1000;
+      const countingStopped = Number.isFinite(event.countingStoppedAt);
+      const intervalCompleted = countingStopped || Date.now() - event.consumedAt >= event.intervalMinutes * 60 * 1000;
       elapsed.className = `history-event-elapsed ${intervalCompleted ? "is-after-interval" : "is-within-interval"}`;
       elapsed.dataset.consumedAt = String(event.consumedAt);
       elapsed.dataset.intervalMinutes = String(event.intervalMinutes);
-      elapsed.textContent = formatHistoryCounter(event.consumedAt, event.intervalMinutes);
+      elapsed.dataset.countingStopped = String(countingStopped);
+      elapsed.textContent = countingStopped ? 'Contagem desfeita' : formatHistoryCounter(event.consumedAt, event.intervalMinutes);
       elapsed.setAttribute(
         "aria-label",
-        intervalCompleted
+        countingStopped ? 'Contagem encerrada manualmente. Dose mantida no histórico.' : intervalCompleted
           ? `${elapsed.textContent}. O intervalo configurado já terminou.`
           : `${elapsed.textContent}. O intervalo configurado ainda está em andamento.`
       );
@@ -2870,7 +2875,57 @@ function openDrinkMenuDialog(drinkId) {
 
   state.menuDrinkId = drinkId;
   drinkMenuName.textContent = `${drink.icon} ${drink.name}`;
+  updateDrinkMenuCountdown();
   drinkMenuDialog.showModal();
+}
+
+let pendingCountdownStop = null;
+
+function updateDrinkMenuCountdown() {
+  const drink = state.drinks.find(item => item.id === state.menuDrinkId);
+  document.querySelector('#drink-menu-stop').hidden = !drink || getDrinkActivity(drink).remainingMs <= 0;
+}
+
+function openStopCountdownDialog() {
+  const drink = state.drinks.find(item => item.id === state.menuDrinkId);
+  const activity = drink && getDrinkActivity(drink);
+  if (!activity || activity.remainingMs <= 0) { updateDrinkMenuCountdown(); return; }
+  pendingCountdownStop = { drinkId: drink.id, eventId: activity.latestEvent.id, consumedAt: activity.latestEvent.consumedAt, intervalMinutes: activity.latestEvent.intervalMinutes };
+  document.querySelector('#stop-countdown-name').textContent = drink.name;
+  document.querySelector('#stop-countdown-error').hidden = true;
+  document.querySelector('#stop-countdown-dialog').showModal();
+}
+
+function closeStopCountdownDialog() {
+  pendingCountdownStop = null;
+  document.querySelector('#stop-countdown-dialog').close();
+}
+
+function confirmStopCountdown() {
+  if (!document.querySelector('#stop-countdown-dialog').open || state.securityLocked) { pendingCountdownStop = null; return; }
+  const target = pendingCountdownStop;
+  const drink = state.drinks.find(item => item.id === target?.drinkId);
+  const activity = drink && getDrinkActivity(drink);
+  const latest = activity?.latestEvent;
+  if (!target || !latest || activity.remainingMs <= 0 || latest.id !== target.eventId || latest.consumedAt !== target.consumedAt || latest.intervalMinutes !== target.intervalMinutes) {
+    closeStopCountdownDialog(); updateDrinkMenuCountdown();
+    showToast('A contagem mudou ou já terminou. Abra novamente o menu da bebida.');
+    return;
+  }
+  const events = state.events.map(event => event.id === latest.id ? { ...event, countingStoppedAt: Date.now() } : event);
+  try {
+    localStorage.setItem(DATA_STORAGE_KEY, JSON.stringify({ ...buildCurrentAppData(), events }));
+    state.events = events;
+  } catch (error) {
+    const message = document.querySelector('#stop-countdown-error');
+    message.textContent = 'Não foi possível salvar. A contagem foi mantida. Tente novamente.';
+    message.hidden = false;
+    return;
+  }
+  closeStopCountdownDialog();
+  updateDrinkMenuCountdown();
+  refreshDataViews();
+  showToast('Contagem desfeita. A dose foi mantida no histórico.');
 }
 
 function closeDrinkMenuDialog() {
@@ -2996,6 +3051,17 @@ function openEventDialog(eventId) {
   eventDeletedNote.hidden = !drink.isDeleted;
   eventDateInput.value = toLocalDateInputValue(event.consumedAt);
   eventTimeInput.value = toLocalTimeInputValue(event.consumedAt);
+  const [hour, minute] = eventTimeInput.value.split(':');
+  for (const [id, count, value] of [['event-hour', 24, hour], ['event-minute', 60, minute]]) {
+    const select = document.getElementById(id);
+    if (!select.options.length) {
+      for (let i = 0; i < count; i++) {
+        const label = String(i).padStart(2, '0');
+        select.add(new Option(label, label));
+      }
+    }
+    select.value = value;
+  }
   eventInterval.textContent = formatInterval(event.intervalMinutes);
   eventFormError.hidden = true;
 
@@ -3030,9 +3096,9 @@ function handleEventSubmit(event) {
   }
 
   const dateValue = eventDateInput.value;
-  const timeValue = eventTimeInput.value;
+  const timeValue = document.getElementById('event-hour').value + ':' + document.getElementById('event-minute').value;
 
-  if (!dateValue || !timeValue) {
+  if (!dateValue || !/^\d{2}:\d{2}$/.test(timeValue)) {
     showEventFormError("Informe a data e o horário do registro.");
     return;
   }
@@ -4016,6 +4082,7 @@ function startClock() {
       updateHistoryElapsedLabels();
     }
     updateIntervalWarningDialog();
+    if (drinkMenuDialog.open) updateDrinkMenuCountdown();
   }, 1000);
 }
 
@@ -4114,6 +4181,9 @@ document.querySelector("#confirm-interval-warning").addEventListener("click", co
 
 document.querySelector("#close-drink-menu-dialog").addEventListener("click", closeDrinkMenuDialog);
 document.querySelector("#drink-menu-other-time").addEventListener("click", openOtherTimeFromDrinkMenu);
+document.querySelector('#drink-menu-stop').addEventListener('click', openStopCountdownDialog);
+document.querySelector('#cancel-stop-countdown').addEventListener('click', closeStopCountdownDialog);
+document.querySelector('#confirm-stop-countdown').addEventListener('click', confirmStopCountdown);
 document.querySelector("#drink-menu-edit").addEventListener("click", editDrinkFromDrinkMenu);
 document.querySelector("#drink-menu-delete").addEventListener("click", deleteDrinkFromDrinkMenu);
 

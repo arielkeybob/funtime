@@ -1,12 +1,18 @@
 # FunTime — documentação de desenvolvimento
 
-**Versão da aplicação:** `v2.0.7`\
+**Versão da aplicação:** `v2.0.8`\
 **Versão do modelo persistido:** `DATA_VERSION = 9`\
 **Autor exibido na interface:** `arielkeybob`  
 **Stack:** HTML + CSS + JavaScript puro  
 **Persistência:** `localStorage`  
 **Backend:** não existe  
 **Build step:** não existe
+
+## V2.0.8 — contagem e formulários
+
+Menu da bebida separado em Dose e Cadastro. Desfazer contagem atual aparece somente com contador ativo, pede confirmação e encerra apenas o contador: dose, horário e intervalo original permanecem no histórico, com a indicação Contagem desfeita. Confirmações antigas são revalidadas e falha de gravação mantém a contagem. O marcador opcional countingStoppedAt é preservado em backup/restauração; dados antigos continuam válidos, sem migração de schema (DATA_VERSION 9). Horário do registro usa seletores de hora e minuto dentro do formulário, evitando o relógio nativo cortado. Contagem do intervalo usa o mesmo componente visual de Bloquear novamente. Exclusão passa a dizer Excluir bebida e histórico.
+
+Teste integrado: `tests/countdown-menu-browser.test.cjs`, com perfil isolado e dados fictícios; verificar também no celular os seletores e o menu.
 
 ## V2.0.7 — diagnóstico como conteúdo auxiliar
 
