@@ -134,3 +134,9 @@ Recurso separado da transferência de bebidas.
 - restauração sempre substitui o estado restaurável;
 - arquivo é validado integralmente antes da gravação;
 - erro de validação/gravação mantém os dados atuais.
+
+## Padronização de formulários — auditoria de 09/09/2026
+
+O editor de registros usava selects próprios para horário; foi alinhado às roletas createWheelPicker/setWheelPickerValue e às classes interval-fieldset/duration-field. ui.js passa a centralizar o rascunho e a visibilidade da conclusão em cadastro/edição de bebida, anotação, edição de registro e criação de PIN. Reverter os campos oculta a conclusão novamente. Ações imediatas, autenticação, aceite, prévias de importação/restauração e confirmações destrutivas não são rascunhos e preservam suas ações explícitas. Preferências são salvas imediatamente.
+
+Correção futura identificada no código: o HTML das roletas ainda se repete em index.html; extrair um template/fábrica compartilhado com rótulos e limites configuráveis. styles.css acumula regras específicas de #drink-dialog e #log-dialog, além do layout comum app-dialog; consolidar medidas em classes/tokens e auditar todas as larguras antes de remover overrides. A abertura e limpeza de formulários ainda são específicas em app.js; expandir o contrato de rascunho em ui.js quando esses fluxos forem unificados. Catálogo de ícones persiste imediatamente, independente de Cancelar, e deve continuar separado do rascunho da bebida.

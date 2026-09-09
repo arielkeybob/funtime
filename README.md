@@ -1,4 +1,10 @@
-# FunTime — V2.0.9
+# FunTime — V2.0.10
+
+## V2.0.10 — padrões dos formulários
+
+Horário do registro alinhado às roletas compartilhadas, data com dia da semana e hierarquia visual consistente. Formulários de bebida, dose, registro e PIN ocultam a conclusão sem alterações; reverter os campos deixa apenas Cancelar. Auditoria de duplicações registrada no ROADMAP.md. App/boot/footers 2.0.10 e cache funtime-v2-0-10; DATA_VERSION 9 e aceite preservados.
+
+Commit e push solicitados. Validação em navegador com origem e perfil isolados; celular real e atualização da PWA no aparelho permanecem pendentes.
 
 V2.0.9: Cancelar contagem atual remove a dose correspondente após confirmação, preservando registros anteriores. Ícone da bebida restaurado na exclusão. App/boot/footers 2.0.9 e cache `funtime-v2-0-9`; DATA_VERSION 9 e aceite preservados.
 

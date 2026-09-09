@@ -53,7 +53,7 @@
     <footer class="browser-gate-footer">
       <span>App para estudo · não é controle de segurança</span>
       <a class="policies-link" href="./policies.html">Políticas e informações</a>
-      <span>v2.0.9 · By: arielkeybob</span>
+      <span>v2.0.10 · By: arielkeybob</span>
     </footer>
   </section>
 
@@ -279,7 +279,7 @@
     <footer class="app-footer">
       <span class="app-footer-disclaimer">App para estudo · não é controle de segurança</span>
       <a class="policies-link" href="./policies.html">Políticas e informações</a>
-      <span class="app-footer-meta">v2.0.9 · By: arielkeybob</span>
+      <span class="app-footer-meta">v2.0.10 · By: arielkeybob</span>
     </footer>
   </div>
 
@@ -587,13 +587,31 @@
       <div class="event-datetime-grid">
         <label class="field">
           <span>Data</span>
-          <input id="event-date" name="eventDate" type="date" required>
+          <span class="date-picker-display"><span id="event-date-label"></span><input id="event-date" name="eventDate" type="date" required aria-label="Data do registro"></span>
         </label>
-        <fieldset class="field event-time-field">
-          <legend>Horário</legend>
-          <div class="event-time-selects">
-            <label class="settings-field"><span>Hora</span><select id="event-hour" aria-label="Hora do registro" required></select></label>
-            <label class="settings-field"><span>Minuto</span><select id="event-minute" aria-label="Minuto do registro" required></select></label>
+        <fieldset class="field interval-fieldset">
+          <legend class="interval-fieldset-title">Horário</legend>
+          <div class="duration-inputs wheel-duration-inputs">
+            <div class="duration-field">
+              <span>Hora</span>
+              <div class="wheel-picker-shell">
+                <div id="event-hour-wheel" class="wheel-picker" role="spinbutton" tabindex="0" aria-label="Hora" aria-valuemin="0" aria-valuemax="23" aria-valuenow="0">
+                  <div class="wheel-picker-track" aria-hidden="true"></div>
+                </div>
+                <div class="wheel-picker-selection" aria-hidden="true"></div>
+              </div>
+              <input id="event-hour" name="eventHour" type="hidden" value="0">
+            </div>
+            <div class="duration-field">
+              <span>Minuto</span>
+              <div class="wheel-picker-shell">
+                <div id="event-minute-wheel" class="wheel-picker" role="spinbutton" tabindex="0" aria-label="Minuto" aria-valuemin="0" aria-valuemax="59" aria-valuenow="0">
+                  <div class="wheel-picker-track" aria-hidden="true"></div>
+                </div>
+                <div class="wheel-picker-selection" aria-hidden="true"></div>
+              </div>
+              <input id="event-minute" name="eventMinute" type="hidden" value="0">
+            </div>
           </div>
           <input id="event-time" name="eventTime" type="hidden">
         </fieldset>

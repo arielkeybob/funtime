@@ -1,5 +1,11 @@
 # FunTime — releases v2
 
+## V2.0.10 — padrões dos formulários
+
+Horário do registro alinhado às roletas compartilhadas, data com dia da semana e hierarquia visual consistente. Formulários de bebida, dose, registro e PIN ocultam a conclusão sem alterações; reverter os campos deixa apenas Cancelar. Auditoria de duplicações registrada no ROADMAP.md. App/boot/footers 2.0.10 e cache funtime-v2-0-10; DATA_VERSION 9 e aceite preservados.
+
+Commit e push solicitados. Validação em navegador com origem e perfil isolados; celular real e atualização da PWA no aparelho permanecem pendentes.
+
 ## V2.0.9 — cancelar contagem atual
 
 Após confirmação, remove somente a dose da contagem ativa, sem adicionar marcador ao histórico. Registros anteriores preservados; leitura dos marcadores da v2.0.8 mantida por compatibilidade. Ícone da bebida exibido na exclusão e confirmação de cancelamento. App/boot/SW/footers 2.0.9, cache `funtime-v2-0-9`, DATA_VERSION 9 e aceite preservados. Commit e push solicitados.
@@ -89,3 +95,5 @@ O registro de posse é distinto do marcador público. O app v1 só deixa de escr
 Deployment estável confirmado no commit `a5409dd`: Pages built, index/boot/SW em 2.0.0 e ponte /intervalo/ ainda em 1.16. Marcador ready preparado após essa confirmação, com publishedAt 1788833191000. O parser da ponte original valida o mesmo arquivo publicado. Não há bump adicional do shell para adicionar esse anúncio remoto.
 
 Validação da publicação 2.0.9: sete cenários aprovados em countdown-menu-browser, release e receiver-browser, incluindo atualização para 2.0.9 e reabertura offline. Sintaxe app.js/sw.js/boot.js e diff verificados.
+
+Validação da publicação 2.0.10: 32 testes aprovados em audit, ui, countdown-menu-browser, release e receiver-browser, incluindo atualização para 2.0.10 e reabertura offline. Sintaxe de app.js, sw.js, boot.js e ui.js aprovada.

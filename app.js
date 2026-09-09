@@ -264,7 +264,7 @@ document.addEventListener("visibilitychange", () => {
 const DATA_STORAGE_KEY = "funtime-v1-data";
 const LEGACY_DRINKS_STORAGE_KEY = "balada-v1-drinks";
 const DATA_VERSION = 9;
-const APP_VERSION = "2.0.9";
+const APP_VERSION = "2.0.10";
 const DRINK_EXPORT_TYPE = "funtime-drinks";
 const DRINK_EXPORT_FORMAT_VERSION = 1;
 const BACKUP_EXPORT_TYPE = "funtime-backup";
@@ -847,6 +847,7 @@ function openPinSetupDialog() {
   pinSetupValue.value = "";
   pinSetupConfirm.value = "";
   pinSetupError.hidden = true;
+  beginFormDraft(pinSetupForm);
   pinSetupDialog.showModal();
   setTimeout(() => pinSetupValue.focus(), 50);
 }
@@ -2761,6 +2762,7 @@ function openDrinkDialog() {
   // Novo cadastro começa neutro: o usuário escolhe conscientemente o ícone.
   buildIconPicker(null);
 
+  beginFormDraft(drinkForm);
   drinkDialog.showModal();
   requestAnimationFrame(() => {
     setDurationPicker(1, 0);
@@ -2790,6 +2792,7 @@ function openEditDrinkDialog(drinkId) {
   buildIconPicker(drink.icon);
 
   clearDrinkValidation();
+  beginFormDraft(drinkForm);
   drinkDialog.showModal();
   requestAnimationFrame(() => {
     setDurationPicker(Math.floor(drink.intervalMinutes / 60), drink.intervalMinutes % 60);
@@ -3022,6 +3025,7 @@ function openLogDialog(drinkId) {
     activeIntervalWarning.hidden = true;
   }
 
+  beginFormDraft(logForm);
   logDialog.showModal();
 }
 
@@ -3040,6 +3044,14 @@ function registerMinutesAgo(minutesAgo) {
   registerDrinkAt(id, timestamp, { doseSize });
 }
 
+function updateEventDateLabel() {
+  const date = new Date(eventDateInput.value + 'T12:00:00');
+  const label = document.getElementById('event-date-label');
+  if (!Number.isFinite(date.getTime())) { label.textContent = 'Selecionar data'; return; }
+  const weekday = date.toLocaleDateString('pt-BR', { weekday: 'long' });
+  label.textContent = date.toLocaleDateString('pt-BR') + ' (' + weekday[0].toUpperCase() + weekday.slice(1) + ')';
+}
+
 function openEventDialog(eventId) {
   const event = state.events.find((item) => item.id === eventId);
   if (!event) return;
@@ -3052,15 +3064,12 @@ function openEventDialog(eventId) {
   eventDateInput.value = toLocalDateInputValue(event.consumedAt);
   eventTimeInput.value = toLocalTimeInputValue(event.consumedAt);
   const [hour, minute] = eventTimeInput.value.split(':');
-  for (const [id, count, value] of [['event-hour', 24, hour], ['event-minute', 60, minute]]) {
-    const select = document.getElementById(id);
-    if (!select.options.length) {
-      for (let i = 0; i < count; i++) {
-        const label = String(i).padStart(2, '0');
-        select.add(new Option(label, label));
-      }
-    }
-    select.value = value;
+  updateEventDateLabel();
+  for (const [id, value] of [['event-hour', hour], ['event-minute', minute]]) {
+    const wheel = document.getElementById(id + '-wheel');
+    const input = document.getElementById(id);
+    if (!wheel._wheelState) createWheelPicker(wheel, input, id === 'event-hour' ? 23 : 59);
+    setWheelPickerValue(wheel, Number(value));
   }
   eventInterval.textContent = formatInterval(event.intervalMinutes);
   eventFormError.hidden = true;
@@ -3079,6 +3088,9 @@ function openEventDialog(eventId) {
   }
 
   eventDialog.showModal();
+  setWheelPickerValue(document.getElementById('event-hour-wheel'), Number(hour));
+  setWheelPickerValue(document.getElementById('event-minute-wheel'), Number(minute));
+  beginFormDraft(eventForm);
 }
 
 function closeEventDialog() {
@@ -3096,7 +3108,7 @@ function handleEventSubmit(event) {
   }
 
   const dateValue = eventDateInput.value;
-  const timeValue = document.getElementById('event-hour').value + ':' + document.getElementById('event-minute').value;
+  const timeValue = document.getElementById('event-hour').value.padStart(2, '0') + ':' + document.getElementById('event-minute').value.padStart(2, '0');
 
   if (!dateValue || !/^\d{2}:\d{2}$/.test(timeValue)) {
     showEventFormError("Informe a data e o horário do registro.");
@@ -3183,6 +3195,7 @@ function createWheelPicker(element, input, maxValue) {
 
     const value = Number(item.dataset.value);
     input.value = String(value);
+    input.dispatchEvent(new Event("input", { bubbles: true }));
     element.setAttribute("aria-valuenow", String(value));
     element.setAttribute("aria-valuetext", String(value).padStart(2, "0"));
 
@@ -3257,6 +3270,7 @@ function setWheelPickerValue(element, rawValue, behavior = "auto") {
   const targetIndex = WHEEL_MIDDLE_REPEAT * wheelState.valueCount + value;
 
   wheelState.input.value = String(value);
+  wheelState.input.dispatchEvent(new Event("input", { bubbles: true }));
   element.setAttribute("aria-valuenow", String(value));
   element.setAttribute("aria-valuetext", String(value).padStart(2, "0"));
   element.scrollTo({ top: targetIndex * WHEEL_ITEM_HEIGHT, behavior });
@@ -4199,6 +4213,8 @@ document.querySelector("#close-event-dialog").addEventListener("click", closeEve
 document.querySelector("#cancel-event-dialog").addEventListener("click", closeEventDialog);
 document.querySelector("#delete-event").addEventListener("click", deleteSelectedEvent);
 eventForm.addEventListener("submit", handleEventSubmit);
+eventDateInput.addEventListener("input", updateEventDateLabel);
+eventDateInput.addEventListener("change", updateEventDateLabel);
 
 document.querySelectorAll(".quick-time-button").forEach((button) => {
   button.addEventListener("click", () => {

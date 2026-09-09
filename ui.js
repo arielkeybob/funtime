@@ -17,3 +17,29 @@ function initializeAppDialogs() {
   });
 }
 initializeAppDialogs();
+
+// Contrato compartilhado dos formulários com rascunho.
+const formDrafts = new WeakMap();
+function readFormDraft(form) {
+  return JSON.stringify([...form.querySelectorAll('input, textarea, select')]
+    .filter(input => (input.name || input.id) && input.id !== 'event-time' && input.id !== 'emoji-category')
+    .filter(input => !['radio', 'checkbox'].includes(input.type) || input.checked)
+    .map(input => [input.name || input.id, input.value]));
+}
+function updateFormDraft(form) {
+  if (!formDrafts.has(form)) return;
+  const changed = readFormDraft(form) !== formDrafts.get(form);
+  form.querySelectorAll('button[type="submit"]').forEach(button => { button.hidden = !changed; });
+  form.querySelector('.app-dialog-actions')?.classList.toggle('has-only-cancel', !changed);
+  return changed;
+}
+function beginFormDraft(form) {
+  formDrafts.set(form, readFormDraft(form));
+  updateFormDraft(form);
+  if (form.dataset.draftTracked) return;
+  form.dataset.draftTracked = 'true';
+  ['input', 'change'].forEach(type => form.addEventListener(type, () => updateFormDraft(form)));
+  form.addEventListener('submit', event => {
+    if (!updateFormDraft(form)) { event.preventDefault(); event.stopImmediatePropagation(); }
+  }, true);
+}

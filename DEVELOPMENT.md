@@ -1,6 +1,12 @@
 # FunTime — documentação de desenvolvimento
 
-**Versão da aplicação:** `v2.0.9`\
+## V2.0.10 — padrões dos formulários
+
+Horário do registro alinhado às roletas compartilhadas, data com dia da semana e hierarquia visual consistente. Formulários de bebida, dose, registro e PIN ocultam a conclusão sem alterações; reverter os campos deixa apenas Cancelar. Auditoria de duplicações registrada no ROADMAP.md. App/boot/footers 2.0.10 e cache funtime-v2-0-10; DATA_VERSION 9 e aceite preservados.
+
+Commit e push solicitados. Validação em navegador com origem e perfil isolados; celular real e atualização da PWA no aparelho permanecem pendentes.
+
+**Versão da aplicação:** `v2.0.10`\
 **Versão do modelo persistido:** `DATA_VERSION = 9`\
 **Autor exibido na interface:** `arielkeybob`  
 **Stack:** HTML + CSS + JavaScript puro  
@@ -2191,3 +2197,9 @@ Validação: node --check app.js e sw.js; node --test tests/audit.test.cjs tests
 Na contagem normal, o início mostra Contando: HH:MM:SS. Na regressiva, mostra Falta: -HH:MM:SS; o sinal é apenas visual e não altera cálculos. No histórico em modo normal, intervalos ativos mostram Falta HH:MM, arredondando o tempo restante para cima até o próximo minuto (menos de um minuto aparece como 00:01). Ao concluir, volta ao tempo atrás. Exemplo: 90 minutos aparecem como Falta 01:30.
 
 App/footer 1.14.3 e cache intervalo-v1-14-3; dados e preferências preservados, DATA_VERSION 9. Validação: node --check app.js e sw.js; node --test tests/audit.test.cjs tests/reset.test.cjs tests/ui.test.cjs (32 testes), incluindo limites de hora, último minuto e conclusão. Não realizados testes visuais/manuais no celular e atualização da PWA instalada.
+
+## Ajuste local — formulários e edição de registro (09/09/2026)
+
+Registro usa as mesmas roletas e hierarquia visual do cadastro/anotação. Data exibe dia da semana por extenso, mantendo o seletor nativo. beginFormDraft/updateFormDraft em ui.js comparam campos com a abertura; botões de conclusão ficam ocultos sem mudanças e envio por Enter também é bloqueado nesse estado. Roletas notificam input para integrar o controle compartilhado. Nenhuma alteração de schema ou publicação.
+
+Validação: sintaxe de app.js, sw.js e ui.js; testes audit/ui e teste integrado countdown-menu-browser em origem e perfil efêmeros. Inclui retorno ao valor original, horário pelo teclado, data com dia da semana, edição preservando snapshot e larguras 320/390. Celular real e atualização da PWA não testados.
