@@ -3305,3 +3305,29 @@ body {
 
 .field > .date-picker-display { color: var(--text); font-size: 1rem; font-weight: 400; }
 .app-dialog-actions.has-only-cancel { grid-template-columns: 1fr; }
+
+
+
+/* Navegação principal e eventos: mesmos tokens, campos e diálogos do app. */
+.standalone-mode .app-shell { padding-bottom: calc(88px + env(safe-area-inset-bottom)); }
+.bottom-nav { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: min(100%, 760px); z-index: 30; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 4px; padding: 8px 8px max(8px, env(safe-area-inset-bottom)); border: 1px solid var(--border); border-bottom: 0; border-radius: 20px 20px 0 0; background: #151518; box-shadow: 0 -8px 24px rgb(0 0 0 / .2); }
+.bottom-nav button { min-width: 0; min-height: 56px; border: 0; border-radius: 12px; padding: 6px 2px; color: var(--muted); background: transparent; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px; font: inherit; font-size: .7rem; font-weight: 650; }
+.bottom-nav button[aria-current="page"] { background: #2b2b31; color: #fff; }
+.bottom-nav svg { width: 23px; height: 23px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.occasion-context { display: block; width: 100%; margin: 0 0 18px; padding: 13px 15px; border: 1px solid var(--border); border-radius: 14px; background: var(--surface); color: var(--muted); text-align: left; font: inherit; font-size: .82rem; overflow-wrap: anywhere; }
+.occasion-card { padding: 22px; margin-bottom: 16px; border: 1px solid var(--border); border-radius: 20px; background: var(--surface); }
+.occasion-card.is-active { border-color: #727080; }
+.occasion-card h2 { margin: 8px 0 12px; font-size: 1.3rem; overflow-wrap: anywhere; }
+.occasion-period, .occasion-count, .occasion-empty p { color: var(--muted); font-size: .88rem; line-height: 1.6; }
+.occasion-empty { padding: 30px 22px; }
+.occasion-symbol { display: block; color: #d3c5f7; font-size: 3rem; }
+.occasion-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 20px; }
+.occasion-actions button { min-height: 44px; font-size: .8rem; padding: 10px; }
+.occasion-actions .primary-button, .occasion-actions .delete-event-button { grid-column: 1 / -1; }
+.occasion-history > h2 { font-size: 1rem; margin: 26px 0 16px; }
+#history-occasion-filter, #record-occasion, .field input[type="datetime-local"] { width: 100%; min-width: 0; min-height: 48px; padding: 10px 12px; border: 1px solid var(--border); border-radius: 12px; background: #09090b; color: var(--text); font: inherit; }
+#history-view > .field { margin-bottom: 16px; }
+
+.date-time-editor { border: 1px solid var(--border); border-radius: 12px; background: #09090b; }
+.date-time-editor > summary { padding: 15px; cursor: pointer; font-size: .9rem; }
+.date-time-editor-body { padding: 0 14px 14px; display: grid; gap: 16px; }

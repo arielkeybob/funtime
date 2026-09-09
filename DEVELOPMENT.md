@@ -17,7 +17,7 @@ Horário do registro alinhado às roletas compartilhadas, data com dia da semana
 Commit e push solicitados. Validação em navegador com origem e perfil isolados; celular real e atualização da PWA no aparelho permanecem pendentes.
 
 **Versão da aplicação:** `v2.0.12`\
-**Versão do modelo persistido:** `DATA_VERSION = 9`\
+**Versão do modelo persistido em desenvolvimento:** `DATA_VERSION = 10` (publicado: 9)\
 **Autor exibido na interface:** `arielkeybob`  
 **Stack:** HTML + CSS + JavaScript puro  
 **Persistência:** `localStorage`  
@@ -2221,3 +2221,33 @@ Auditoria encontrou dois window.alert (falhas de importação de bebidas e leitu
 Bebida sem eventos oferece apenas Cancelar/Excluir bebida, sem decisões sobre histórico; bebida com eventos mantém as duas opções. Confirmar cancelamento da contagem volta ao Início; desistir mantém o menu e falha de gravação preserva a confirmação.
 
 Validação: node --check app.js/sw.js/ui.js; 27 testes em audit, ui, navigation-browser e countdown-menu-browser, com dados e perfil isolados. Cobertura de exclusão com/sem histórico, confirmações internas, ausência de diálogos nativos, arquivos inválidos sem alteração de dados e retorno ao Início. Celular real e atualização de PWA não testados. Sem publicação nesta etapa.
+
+## Prévia local no PC e teste dos cards neutros
+
+Execute no PowerShell, dentro de C:\xampp\htdocs\balada:
+
+```powershell
+node scripts/dev-server.cjs
+```
+
+Abra http://127.0.0.1:4173/funtime/ no navegador comum. Na primeira abertura, escolha Começar sem dados e aceite as políticas. Cadastre bebidas de teste ou restaure uma cópia de backup pela prévia/confirmacão normal. Os dados pertencem somente a essa origem e persistem entre recargas; não são os dados do GitHub Pages nem os de localhost/balada. Não é necessário instalar a PWA. Para encerrar um servidor iniciado no terminal, use Ctrl+C. Se a porta estiver ocupada, reutilize a prévia existente ou defina FUNTIME_DEV_PORT antes de executar; outra porta possui outro armazenamento.
+
+O servidor escuta apenas em 127.0.0.1 e só serve arquivos públicos do shell. Injeta a detecção de app instalado apenas no HTML servido e mantém o boot real, migração assíncrona, lock, aceite e bloqueio. O SW servido mantém o protocolo, mas deixa GET ir para a rede para F5 refletir os arquivos locais, sem precisar incrementar versão a cada edição. Não usar esta prévia para validar funcionamento offline ou atualização de cache: esses cenários continuam nos testes com o SW original. Nenhum bypass foi acrescentado ao HTML/boot/app publicados; não há backend de produção.
+
+Os experimentos de neutralização automática/manual foram substituídos pelo desenvolvimento de eventos, descrito abaixo.
+
+Validação local: node --check app.js/sw.js/scripts/dev-server.cjs; 24 testes aprovados em audit, countdown-menu-browser e dev-preview-browser. Prévia testada no Edge em aba comum, com dados fictícios e perfil isolado, persistência após recarga e bloqueio de arquivos fora do shell. Imagem mobile 390×844 inspecionada. Celular real não testado. Versão/cache permanecem 2.0.12 até a aprovação; sem commit ou push.
+
+## Desenvolvimento local — eventos e navegação inferior
+
+Implementação solicitada após rejeitar os experimentos de neutralização. A prévia agora oferece eventos opcionais, com nome, início, encerramento, edição, reabertura e exclusão do agrupamento mantendo doses. Um evento aberto por vez; períodos não se sobrepõem (a fronteira pode coincidir, com vínculo explícito para doses nessa fronteira). A Home mostra o contexto atual; cards sem registro no evento são neutros, exceto contagens/alertas anteriores ainda ativos. Doses do evento usam a apresentação usual enquanto ele está aberto. Sem evento, doses avulsas continuam possíveis; contagens ativas permanecem e cards concluídos ficam neutros. Retirado o botão experimental de neutralização.
+
+Menu fixo com SVGs locais: Home, Histórico, Evento e Configurações. Políticas e disclaimer mantidos, com espaço para não ficarem cobertos. Seleção acessível via aria-current; diálogos seguem o componente rolável existente. Datas do evento usam editor recolhível com as mesmas roletas de hora/minuto; nome obrigatório nesta primeira implementação. Não há encerramento automático: evento antigo mostra aviso nos detalhes após 12h sem registro. Encerrar propõe agora; horário pode ser corrigido por Editar. Reabrir exige ausência de conflito com outros eventos.
+
+occasions.js valida as entidades e vínculos; occasions-ui.js centraliza interface/transições. events continua significando doses e recebe occasionId opcional. occasions contém id, name, startedAt e endedAt (null quando aberto). DATA_VERSION 10; normalização de dados antigos cria lista vazia e vínculo null sem inventar agrupamentos. Fuso de exibição é o do aparelho nesta etapa; armazenamento de fuso próprio permanece pendente. Backup exportado usa formato 2 e inclui ocasiões; leitura dos backups formato 1 preservada. Versões publicadas anteriores rejeitam o novo backup/schema, evitando descartar vínculos. Importação de bebidas preserva ocasiões. Reset de histórico preserva eventos vazios, informado na prévia; apagar tudo remove ambos. Migração cumulativa, posse e lock preservados.
+
+Registros novos entram no evento aberto quando o timestamp pertence ao período. Retroativos fora dele ficam sem evento, com edição individual disponível no Histórico. Alterar horário/vínculo exige compatibilidade do período; segundos originais são preservados quando os campos de data/hora não mudam. Iniciar/encerrar/mover agrupamento não filtra os cálculos globais de intervalos. Gravações de eventos, vínculos e novas doses acontecem antes de atualizar memória; falhas mantêm o estado anterior.
+
+Esta é uma versão de avaliação local, sem commit/push. Versão visível e cache de release ainda 2.0.12; precisam de nova versão antes de publicação. Dados experimentais ficam na origem de prévia; backups do schema 10 não devem ser usados na versão publicada 2.0.12. Não houve leitura ou limpeza de dados do GitHub Pages. Planejamento e pendências em EVENTOS-PLANEJAMENTO.md.
+
+Validação desta etapa: 59 testes aprovados (audit, occasions, occasions-browser, dev-preview-browser, countdown-menu-browser, navigation-browser, migration, reset, ui, receiver-browser e release). Cobertura de início/fim/reabertura, evento seguinte no mesmo minuto, edição, exclusão sem apagar doses, filtro, nomes no histórico, preservação de contagens anteriores, backup novo/legado, falha de gravação no início e recarga do schema 10. Sintaxe dos scripts alterados e git diff --check aprovados. Imagens em 390×844 da Home, evento ativo e editor conferidas; celular real e fuso diferente não testados. Testes do receptor usam SW original; prévia usa rede direta. Não foi feito commit/push.

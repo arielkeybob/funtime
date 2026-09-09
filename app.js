@@ -263,12 +263,12 @@ document.addEventListener("visibilitychange", () => {
 
 const DATA_STORAGE_KEY = "funtime-v1-data";
 const LEGACY_DRINKS_STORAGE_KEY = "balada-v1-drinks";
-const DATA_VERSION = 9;
+const DATA_VERSION = 10;
 const APP_VERSION = "2.0.12";
 const DRINK_EXPORT_TYPE = "funtime-drinks";
 const DRINK_EXPORT_FORMAT_VERSION = 1;
 const BACKUP_EXPORT_TYPE = "funtime-backup";
-const BACKUP_EXPORT_FORMAT_VERSION = 1;
+const BACKUP_EXPORT_FORMAT_VERSION = 2;
 const DRINK_FILE_MAX_BYTES = 1500000;
 const BACKUP_FILE_MAX_BYTES = 20000000;
 const SHARE_IMPORT_CACHE_NAME = "funtime-share-target-v1";
@@ -308,6 +308,8 @@ const initialData = IS_STANDALONE_APP ? loadAppData() : normalizeData({ drinks: 
 const state = {
   drinks: initialData.drinks,
   events: initialData.events,
+  occasions: initialData.occasions || [],
+  historyOccasionId: "all",
   preferences: initialData.preferences,
   timerId: null,
   selectedDrinkId: null,
@@ -807,6 +809,12 @@ function setCurrentView(view) {
   historyView.hidden = view !== "history";
   settingsHeader.hidden = view !== "settings";
   settingsView.hidden = view !== "settings";
+  document.getElementById("occasion-header").hidden = view !== "occasion";
+  document.getElementById("occasion-view").hidden = view !== "occasion";
+  document.querySelectorAll("[data-nav-view]").forEach(button => {
+    if (button.dataset.navView === view) button.setAttribute("aria-current", "page");
+    else button.removeAttribute("aria-current");
+  });
 }
 
 function openSettingsView() {
@@ -1200,16 +1208,20 @@ function normalizeData(data) {
         drinkName: snapshotName,
         drinkIcon: snapshotIcon,
         consumedAt: Number(event.consumedAt),
+        occasionId: event.occasionId ?? null,
         intervalMinutes: normalizeIntervalMinutes(event.intervalMinutes),
         doseSize: normalizeDoseSize(event.doseSize),
         ...(typeof event.countingStoppedAt === 'number' && Number.isFinite(event.countingStoppedAt) ? { countingStoppedAt: event.countingStoppedAt } : {}),
       };
     });
 
+  const occasions = FunTimeOccasions.normalize({ ...data, events });
+
   return {
     version: DATA_VERSION,
     drinks,
     events,
+    occasions,
     preferences: {
       cleanInterface: data.preferences?.cleanInterface !== false,
       countingMode: data.preferences?.countingMode === "normal" ? "normal" : "countdown",
@@ -1315,6 +1327,7 @@ function saveData() {
     version: DATA_VERSION,
     drinks: state.drinks,
     events: state.events,
+    occasions: state.occasions || [],
     preferences: state.preferences,
   };
 
@@ -1327,6 +1340,7 @@ function buildCurrentAppData() {
     version: DATA_VERSION,
     drinks: state.drinks,
     events: state.events,
+    occasions: state.occasions || [],
     preferences: state.preferences,
   };
 }
@@ -1638,6 +1652,7 @@ function persistDrinkList(nextDrinks) {
     version: DATA_VERSION,
     drinks: nextDrinks,
     events: state.events,
+    occasions: state.occasions || [],
     preferences: state.preferences,
   };
 
@@ -1687,7 +1702,7 @@ function validateBackupPayload(payload) {
     throw new Error("Este não é um backup do FunTime.");
   }
 
-  if (payload.formatVersion !== BACKUP_EXPORT_FORMAT_VERSION) {
+  if (![1, BACKUP_EXPORT_FORMAT_VERSION].includes(payload.formatVersion)) {
     throw new Error("Esta versão do backup não é compatível com o aplicativo.");
   }
 
@@ -1753,6 +1768,7 @@ async function prepareBackupRestoreFile(file) {
       `${data.events.length} registro${data.events.length === 1 ? "" : "s"}`,
     ];
     if (created) pieces.push(`criado em ${created}`);
+    if (data.occasions?.length) pieces.push(`${data.occasions.length} eventos`);
     backupRestoreFileSummary.textContent = pieces.join(" · ");
 
     backupRestoreError.hidden = true;
@@ -1984,15 +2000,15 @@ function setClockStatus(element, prefix, timestamp, trailingText = "") {
   }
 }
 
-function setPreviousStatus(element, timestamp, trailingText = "", now = Date.now()) {
+function setPreviousStatus(element, timestamp, trailingText = "", now = Date.now(), prefix = "Anterior:") {
   if (now - timestamp < 24 * 60 * 60 * 1000) {
-    setClockStatus(element, "Anterior:", timestamp, trailingText);
+    setClockStatus(element, prefix, timestamp, trailingText);
     return;
   }
   const date = new Date(timestamp).toLocaleDateString('pt-BR', {
     day: '2-digit', month: '2-digit', year: '2-digit',
   });
-  element.textContent = 'Anterior: ' + date + trailingText;
+  element.textContent = prefix + ' ' + date + trailingText;
 }
 
 function formatInterval(totalMinutes) {
@@ -2377,6 +2393,7 @@ function attachDrinkInteractions(mainButton, drink) {
 }
 
 function render() {
+  globalThis.refreshOccasionContext?.();
   drinkList.innerHTML = "";
   emptyState.hidden = state.drinks.length > 0;
   homeAddZone.hidden = state.drinks.length === 0;
@@ -2398,10 +2415,12 @@ function render() {
     name.textContent = drink.name;
 
     const activity = getDrinkActivity(drink);
-    card.classList.add(activity.state);
+    const occasion = FunTimeOccasions.active(state.occasions);
+    const neutral = activity.state === "completed" && (!occasion || activity.latestEvent.occasionId !== occasion.id);
+    card.classList.add(neutral ? "neutral" : activity.state);
 
     if (activity.state === "new") {
-      stateLabel.textContent = "SEM REGISTRO";
+      stateLabel.textContent = occasion ? "SEM REGISTRO NESTE EVENTO" : "SEM REGISTRO";
       status.textContent = `Intervalo: ${formatInterval(drink.intervalMinutes).replaceAll(" ", "\u00a0")}`;
       time.textContent = "Anotar primeira dose";
       mainButton.setAttribute("aria-label", `Anotar ${drink.name} agora com dois toques rápidos. Toque e segure para anotar outra dose.`);
@@ -2427,12 +2446,16 @@ function render() {
         `${drink.name}: atenção. ${activity.violationClusterCount} anotações em sequência antes do intervalo terminar. ${formatTime(activity.remainingMs)} restantes. Toque duas vezes para abrir as opções ou toque e segure para anotar outra dose.`
       );
     } else {
-      stateLabel.textContent = "✓ INTERVALO CONCLUÍDO";
-      setPreviousStatus(status, activity.latestEvent.consumedAt, getDoseStatusSuffix(activity.latestEvent));
-      time.textContent = "Anotar nova dose";
-      mainButton.setAttribute("aria-label", `Anotar nova dose de ${drink.name} agora com dois toques rápidos. Toque e segure para anotar outra dose.`);
+      stateLabel.hidden = neutral && !occasion;
+      stateLabel.textContent = neutral ? "SEM REGISTRO NESTE EVENTO" : "✓ INTERVALO CONCLUÍDO";
+      setPreviousStatus(status, activity.latestEvent.consumedAt, getDoseStatusSuffix(activity.latestEvent), Date.now(), neutral ? "Último registro:" : "Anterior:");
+      time.textContent = neutral ? "Anotar dose" : "Anotar nova dose";
+      mainButton.setAttribute("aria-label", 'Anotar dose de ' + drink.name + ' agora com dois toques rápidos. Toque e segure para anotar outra dose.');
     }
 
+    if (occasion && activity.remainingMs > 0 && activity.latestEvent.occasionId !== occasion.id) {
+      status.append(document.createTextNode(" · Registro anterior ao evento"));
+    }
     attachDrinkInteractions(mainButton, drink);
 
     historyButton.setAttribute("aria-label", `Ver histórico de ${drink.name}`);
@@ -2454,6 +2477,7 @@ function renderHistory() {
 
   const entries = state.events
     .filter((event) => !state.historyDrinkId || event.drinkId === state.historyDrinkId)
+    .filter(event => state.historyOccasionId === "all" || !state.historyOccasionId || (state.historyOccasionId === "none" ? !event.occasionId : event.occasionId === state.historyOccasionId))
     .map((event) => ({ event, drink: getEventDrinkIdentity(event) }))
     .sort((a, b) => b.event.consumedAt - a.event.consumedAt || b.event.id.localeCompare(a.event.id));
 
@@ -2536,6 +2560,10 @@ function renderHistory() {
 
       heading.append(icon, identity, mobileTime, chevron);
       body.appendChild(heading);
+      const occasion = state.occasions.find(item => item.id === event.occasionId);
+      if (occasion) {
+        const label = document.createElement("span"); label.className = "history-event-detail"; label.textContent = occasion.name; body.append(label);
+      }
 
       const elapsed = document.createElement("span");
       const countingStopped = Number.isFinite(event.countingStoppedAt);
@@ -2585,9 +2613,12 @@ function renderHistory() {
 function refreshDataViews() {
   render();
   if (state.currentView === "history") renderHistory();
+  globalThis.refreshOccasionContext?.();
 }
 
 function openHistoryView(drinkId = null) {
+  state.historyOccasionId = "all";
+  globalThis.refreshOccasionFilters?.();
   const drink = drinkId ? state.drinks.find((item) => item.id === drinkId) : null;
   state.historyDrinkId = drink?.id || null;
   state.currentView = "history";
@@ -2613,7 +2644,7 @@ function closeHistoryView() {
   window.scrollTo(0, 0);
 }
 
-function registerDrinkAt(id, timestamp, { doseSize = null } = {}) {
+function registerDrinkAt(id, timestamp, { doseSize = null, onSaved = null } = {}) {
   const drink = state.drinks.find((item) => item.id === id);
   if (!drink) return;
 
@@ -2629,13 +2660,21 @@ function registerDrinkAt(id, timestamp, { doseSize = null } = {}) {
     drinkName: drink.name,
     drinkIcon: drink.icon,
     consumedAt: timestamp,
+    occasionId: (() => { const current = FunTimeOccasions.active(state.occasions); return current && FunTimeOccasions.contains(current, timestamp) ? current.id : null; })(),
     intervalMinutes: drink.intervalMinutes,
     doseSize: drink.askDoseSize ? (normalizeDoseSize(doseSize) || "full") : null,
   };
 
-  state.events.push(event);
-  saveData();
+  const events = [...state.events, event];
+  try {
+    localStorage.setItem(DATA_STORAGE_KEY, JSON.stringify({ ...buildCurrentAppData(), events }));
+    state.events = events;
+  } catch {
+    showAppNotification('Não foi possível salvar a dose. Tente novamente.', { type: 'error' }); return;
+  }
+  onSaved?.();
   refreshDataViews();
+  if (!event.occasionId && FunTimeOccasions.active(state.occasions)) showToast("Registro fora do período atual: salvo sem evento. Você pode associá-lo pelo Histórico.");
 
   const reorder = state.currentView === "home"
     ? animateDrinkReorder(previousPositions, drink.id)
@@ -3058,8 +3097,12 @@ function registerMinutesAgo(minutesAgo) {
   const timestamp = Date.now() - minutesAgo * 60 * 1000;
   const id = state.selectedDrinkId;
   const doseSize = document.querySelector('input[name="logDoseSize"]:checked')?.value || "full";
-  closeLogDialog();
-  registerDrinkAt(id, timestamp, { doseSize });
+  registerDrinkAt(id, timestamp, { doseSize, onSaved: () => {
+    closeLogDialog();
+    closeIntervalWarningDialog();
+    closeDrinkMenuDialog();
+    closeHistoryView();
+  } });
 }
 
 function updateEventDateLabel() {
@@ -3108,6 +3151,7 @@ function openEventDialog(eventId) {
   eventDialog.showModal();
   setWheelPickerValue(document.getElementById('event-hour-wheel'), Number(hour));
   setWheelPickerValue(document.getElementById('event-minute-wheel'), Number(minute));
+  globalThis.populateRecordOccasions?.(event);
   beginFormDraft(eventForm);
 }
 
@@ -3133,7 +3177,8 @@ function handleEventSubmit(event) {
     return;
   }
 
-  const timestamp = new Date(`${dateValue}T${timeValue}:00`).getTime();
+  const timestamp = dateValue === toLocalDateInputValue(selectedEvent.consumedAt) && timeValue === toLocalTimeInputValue(selectedEvent.consumedAt)
+    ? selectedEvent.consumedAt : new Date(`${dateValue}T${timeValue}:00`).getTime();
 
   if (!Number.isFinite(timestamp)) {
     showEventFormError("A data ou o horário informado é inválido.");
@@ -3145,14 +3190,23 @@ function handleEventSubmit(event) {
     return;
   }
 
-  selectedEvent.consumedAt = timestamp;
+  const occasionId = document.getElementById("record-occasion").value || null;
+  const occasion = state.occasions.find(item => item.id === occasionId);
+  if (occasionId && (!occasion || !FunTimeOccasions.contains(occasion, timestamp))) {
+    showEventFormError("O horário está fora deste evento. Escolha outro evento ou Sem evento."); return;
+  }
+  const updatedEvent = { ...selectedEvent, occasionId, consumedAt: timestamp };
 
   if (!eventDoseField.hidden) {
     const selectedDose = eventForm.querySelector('input[name="eventDoseSize"]:checked')?.value;
-    selectedEvent.doseSize = normalizeDoseSize(selectedDose) || selectedEvent.doseSize || "full";
+    updatedEvent.doseSize = normalizeDoseSize(selectedDose) || selectedEvent.doseSize || "full";
   }
 
-  saveData();
+  try {
+    const events = state.events.map(item => item.id === updatedEvent.id ? updatedEvent : item);
+    localStorage.setItem(DATA_STORAGE_KEY, JSON.stringify({ ...buildCurrentAppData(), events }));
+    state.events = events;
+  } catch { showEventFormError("Não foi possível salvar. A anotação anterior foi mantida."); return; }
   closeEventDialog();
   refreshDataViews();
   showToast("Anotação atualizada. Os intervalos foram recalculados.");

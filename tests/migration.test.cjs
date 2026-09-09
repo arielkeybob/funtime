@@ -40,7 +40,7 @@ test('instalação limpa e dados legados geram estado completo estável',async()
   const d=JSON.parse(raw);assert.equal(d.events.length,1);assert.equal(d.events[0].consumedAt,1700000000000);assert.equal(d.events[0].drinkId,'d');
 });
 test('dados inválidos, segurança inválida e destinos conflitantes falham antes de apagar origem',async()=>{
-  for(const extra of [{'balada-v1-data':'{'},{'balada-v1-data':JSON.stringify({...data,version:10})},{'intervalo-security-v1':JSON.stringify({enabled:true,method:'pin'})},{'funtime-v1-data':JSON.stringify({...data,events:[]})},{'funtime-v1-data':'null'}]){
+  for(const extra of [{'balada-v1-data':'{'},{'balada-v1-data':JSON.stringify({...data,version:11})},{'intervalo-security-v1':JSON.stringify({enabled:true,method:'pin'})},{'funtime-v1-data':JSON.stringify({...data,events:[]})},{'funtime-v1-data':'null'}]){
     const seed={...original(),...extra},s=store(seed);await assert.rejects(()=>api().migrate(s));assert.deepEqual(Object.fromEntries(s.map),seed);
   }
 });

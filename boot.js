@@ -114,7 +114,7 @@
     });
   }
   async function loadApp() {
-    for (const src of ["./policies.js", "./ui.js", "./emoji-data.js", "./touch-debug.js", "./app.js", "./reset.js", "./navigation.js"]) await loadScript(src);
+    for (const src of ["./occasions.js", "./policies.js", "./ui.js", "./emoji-data.js", "./touch-debug.js", "./app.js", "./reset.js", "./occasions-ui.js", "./navigation.js"]) await loadScript(src);
     if (failed) return;
     booted = true;
     screen.hidden = true;

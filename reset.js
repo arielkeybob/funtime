@@ -22,6 +22,7 @@ function applyDataReset(data, plan) {
   const drinkIds = new Set(plan.drinkIds), eventIds = new Set(plan.eventIds);
   return {
     ...data,
+    occasions: plan.action === "all" ? [] : (data.occasions || []),
     drinks: data.drinks.filter(drink => !drinkIds.has(drink.id)),
     events: data.events.filter(event => !eventIds.has(event.id)),
     preferences: plan.action === 'all' ? { cleanInterface: true, iconCatalog: [...PICKER_ICONS] } :
@@ -53,8 +54,8 @@ function updateResetPreview() {
   let message;
   if (plan.action === 'icons') message = `O catálogo pessoal será substituído pelos ${PICKER_ICONS.length} ícones padrão desta versão. Os ícones das bebidas e do histórico serão preservados.`;
   if (plan.action === 'drinks') message = `${plan.drinkIds.length} bebida(s) e ${plan.eventIds.length} registro(s) serão apagados.\n${options.withHistory ? 'O histórico das bebidas selecionadas será apagado.' : 'O histórico será preservado com os nomes e ícones registrados.'}`;
-  if (plan.action === 'history') message = `${plan.eventIds.length} registro(s) serão apagados. Bebidas e preferências serão preservadas. Os contadores serão recalculados.\n${options.period === 'all' ? 'Todo o histórico, de qualquer data.' : 'De ' + new Date(plan.from).toLocaleString('pt-BR') + ' até ' + new Date(plan.until).toLocaleString('pt-BR') + '.'}`;
-  if (plan.action === 'all') message = `${plan.drinkIds.length} bebida(s), ${plan.eventIds.length} registro(s), personalizações, preferências e proteção local serão apagados.\nO app continuará instalado. O aceite atual das políticas será preservado. Backups baixados, outros aparelhos e credenciais mantidas pelo sistema operacional não serão apagados.`;
+  if (plan.action === 'history') message = `${plan.eventIds.length} registro(s) serão apagados. Bebidas, eventos e preferências serão preservados; eventos podem ficar sem registros. Os contadores serão recalculados.\n${options.period === 'all' ? 'Todo o histórico, de qualquer data.' : 'De ' + new Date(plan.from).toLocaleString('pt-BR') + ' até ' + new Date(plan.until).toLocaleString('pt-BR') + '.'}`;
+  if (plan.action === 'all') message = `${plan.drinkIds.length} bebida(s), ${plan.eventIds.length} registro(s), eventos, personalizações, preferências e proteção local serão apagados.\nO app continuará instalado. O aceite atual das políticas será preservado. Backups baixados, outros aparelhos e credenciais mantidas pelo sistema operacional não serão apagados.`;
   document.querySelector('#reset-preview').textContent = message + '\nEsta ação não pode ser desfeita.';
   document.querySelector('#reset-submit').disabled = (plan.action === 'drinks' && !plan.drinkIds.length) || (plan.action === 'history' && !plan.eventIds.length);
 }
@@ -104,7 +105,7 @@ async function executeDataReset(pending) {
   // Uma gravação para o estado restaurável, antes de alterar memória ou interface.
   localStorage.setItem(DATA_STORAGE_KEY, JSON.stringify(next));
   pending.applied = true;
-  state.drinks = next.drinks; state.events = next.events; state.preferences = next.preferences;
+  state.drinks = next.drinks; state.events = next.events; state.occasions = next.occasions || []; state.preferences = next.preferences;
   state.undo = null; hideToast();
   state.pendingBackupRestore = null; state.pendingDrinkImport = null;
   applyInterfacePreferences(); refreshDataViews(); updateDataSettingsUI();

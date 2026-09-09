@@ -57,3 +57,53 @@ function showAppConfirmation(message, { title = 'Confirmar', confirmLabel = 'Con
     dialog.showModal();
   });
 }
+// Editor compacto de data/horário usando as roletas e classes comuns.
+function initializeDateTimeEditor(input) {
+  if (input._dateTimeEditor) { input._dateTimeEditor.refresh(); return; }
+  const label = input.parentElement;
+  const details = document.createElement('details'); details.className = 'date-time-editor'; details.id = label.id; details.hidden = label.hidden;
+  const summary = document.createElement('summary');
+  const title = label.querySelector('span').textContent;
+  const body = document.createElement('div'); body.className = 'date-time-editor-body';
+  const dateLabel = document.createElement('label'); dateLabel.className = 'field';
+  const dateTitle = document.createElement('span'); dateTitle.textContent = 'Data';
+  const date = document.createElement('input'); date.type = 'date'; date.setAttribute('aria-label', 'Data de ' + title.toLowerCase());
+  dateLabel.append(dateTitle, date); body.append(dateLabel);
+  const fieldset = document.createElement('fieldset'); fieldset.className = 'field interval-fieldset';
+  const legend = document.createElement('legend'); legend.className = 'interval-fieldset-title'; legend.textContent = 'Horário';
+  const row = document.createElement('div'); row.className = 'duration-inputs wheel-duration-inputs';
+  const pickers = [];
+  for (const [text, max] of [['Hora', 23], ['Minuto', 59]]) {
+    const field = document.createElement('div'); field.className = 'duration-field';
+    const caption = document.createElement('span'); caption.textContent = text;
+    const shell = document.createElement('div'); shell.className = 'wheel-picker-shell';
+    const wheel = document.createElement('div'); wheel.className = 'wheel-picker'; wheel.tabIndex = 0; wheel.setAttribute('role', 'spinbutton'); wheel.setAttribute('aria-label', text + ' de ' + title.toLowerCase()); wheel.setAttribute('aria-valuemin', '0'); wheel.setAttribute('aria-valuemax', String(max));
+    const track = document.createElement('div'); track.className = 'wheel-picker-track'; track.setAttribute('aria-hidden', 'true');
+    const selection = document.createElement('div'); selection.className = 'wheel-picker-selection'; selection.setAttribute('aria-hidden', 'true');
+    const value = document.createElement('input'); value.type = 'hidden';
+    wheel.append(track); shell.append(wheel, selection); field.append(caption, shell, value); row.append(field);
+    pickers.push({ wheel, value, max });
+  }
+  fieldset.append(legend, row); body.append(fieldset); input.type = 'hidden';
+  label.replaceWith(details); details.append(summary, input, body);
+  const updateSummary = () => {
+    const parsed = new Date(input.value);
+    summary.textContent = title + ': ' + (Number.isFinite(parsed.getTime()) ? parsed.toLocaleString('pt-BR', { weekday: 'short', day: '2-digit', month: '2-digit', year: '2-digit', hour: '2-digit', minute: '2-digit' }) : 'Selecionar');
+  };
+  let refreshing = false;
+  const refresh = () => {
+    refreshing = true;
+    const [day, time = '00:00'] = input.value.split('T'); date.value = day || '';
+    const values = time.split(':');
+    pickers.forEach((picker, i) => { picker.value.value = String(Number(values[i]) || 0); if (details.open) { if (!picker.wheel._wheelState) createWheelPicker(picker.wheel, picker.value, picker.max); setWheelPickerValue(picker.wheel, Number(values[i])); } });
+    updateSummary(); refreshing = false;
+  };
+  const changed = () => {
+    if (refreshing) return;
+    input.value = date.value ? date.value + 'T' + pickers.map(picker => picker.value.value.padStart(2, '0')).join(':') : '';
+    updateSummary(); input.dispatchEvent(new Event('input', { bubbles: true }));
+  };
+  date.addEventListener('input', changed); pickers.forEach(picker => picker.value.addEventListener('input', changed));
+  details.addEventListener('toggle', () => { if (details.open) refresh(); });
+  input._dateTimeEditor = { refresh, collapse() { details.open = false; } }; refresh();
+}

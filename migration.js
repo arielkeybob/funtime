@@ -24,7 +24,7 @@ globalThis.FunTimeMigration = (() => {
     const value = parse(raw);
     if (!object(value)) fail();
     if (key === "funtime-v1-data") {
-      if ((value.version !== undefined && (!Number.isInteger(value.version) || value.version < 1 || value.version > 9)) ||
+      if ((value.version !== undefined && (!Number.isInteger(value.version) || value.version < 1 || value.version > 10)) ||
           !Array.isArray(value.drinks) || !Array.isArray(value.events)) fail();
       const ids = new Set(), events = new Set();
       for (const drink of value.drinks) {

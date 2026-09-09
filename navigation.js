@@ -57,6 +57,7 @@
       const view = restoreView;
       restoreView = null;
       if (view === 'settings') openSettingsView();
+      else if (view === 'occasion') openOccasionView();
       else if (view === 'history') openHistoryView(previous.filter);
     }
     layers = readLayers();
