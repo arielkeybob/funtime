@@ -1,4 +1,8 @@
-# FunTime — V2.1.5
+# FunTime — V2.1.6
+
+## V2.1.6 — acesso direto ao evento ativo
+
+O card de evento em andamento na Home abre diretamente os detalhes desse evento. Sem evento ativo, o mesmo card continua levando à lista de eventos. Fechar os detalhes retorna à Home. App, boot, rodapés e cache alinhados a 2.1.6; DATA_VERSION 11 preservado. Commit e push solicitados.
 
 ## V2.1.5 — pulsos festivos no evento ativo
 

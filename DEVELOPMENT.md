@@ -1,5 +1,9 @@
 # FunTime — documentação de desenvolvimento
 
+## V2.1.6 — acesso direto ao evento ativo
+
+O card de evento em andamento na Home abre diretamente os detalhes desse evento. Sem evento ativo, o mesmo card continua levando à lista de eventos. Fechar os detalhes retorna à Home. App, boot, rodapés e cache alinhados a 2.1.6; DATA_VERSION 11 preservado. Teste integrado occasions-browser aprovado; celular real e atualização da PWA não testados. Commit e push solicitados.
+
 ## V2.1.5 — pulsos festivos no evento ativo
 
 O brilho do card de evento ativo percorre vermelho, azul, roxo e amarelo em um ciclo de 6s, com três pulsos suaves e mais próximos. Tamanho do card e preferência de movimento reduzido preservados. App, boot, rodapés e cache alinhados a 2.1.5; DATA_VERSION 11 mantido. Commit e push solicitados após aprovação da prévia pelo usuário.

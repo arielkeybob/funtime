@@ -46,6 +46,12 @@ function reconcileOccasions() {
   } finally { reconcilingOccasions = false; }
 }
 function openOccasionView() { if (!state.preferences.eventsEnabled) return; reconcileOccasions(); setCurrentView('occasion'); renderOccasions(); window.scrollTo(0, 0); }
+function openHomeOccasion() {
+  if (!state.preferences.eventsEnabled || !reconcileOccasions()) return;
+  const active = FunTimeOccasions.active(state.occasions);
+  if (active) openOccasionDetails(active.id);
+  else openOccasionView();
+}
 function closeOccasionEditor() { editingOccasionId = null; occasionOriginal = null; occasionDialog.close(); }
 function closeOccasionDetails() { detailOccasionId = null; occasionDetailDialog.close(); }
 function editorVisibility() {
@@ -263,7 +269,7 @@ function populateRecordOccasions(record) {
 $occasion('occasion-close').addEventListener('click', closeOccasionEditor); $occasion('occasion-cancel').addEventListener('click', closeOccasionEditor);
 $occasion('occasion-detail-close').addEventListener('click', closeOccasionDetails); $occasion('occasion-detail-back').addEventListener('click', closeOccasionDetails);
 $occasion('occasion-new').addEventListener('click', () => openOccasionEditor());
-$occasion('home-occasion').addEventListener('click', openOccasionView); $occasion('nav-occasion').addEventListener('click', openOccasionView); $occasion('nav-home').addEventListener('click', closeHistoryView);
+$occasion('home-occasion').addEventListener('click', openHomeOccasion); $occasion('nav-occasion').addEventListener('click', openOccasionView); $occasion('nav-home').addEventListener('click', closeHistoryView);
 $occasion('history-occasion-filter').addEventListener('change', event => { state.historyOccasionId = event.target.value; renderHistory(); });
 for (const [id, tab] of [['agenda-upcoming','upcoming'],['agenda-past','past']]) $occasion(id).addEventListener('click', () => { agendaTab = tab; agendaLimit = 20; renderOccasions(); });
 for (const id of ['agenda-search','agenda-month']) $occasion(id).addEventListener('input', () => { agendaLimit = 20; renderOccasions(); });

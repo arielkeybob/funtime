@@ -62,6 +62,11 @@ test('agenda compacta, evento, edição, agendamento automático, aviso e persis
   await page.emulateMedia({reducedMotion:'reduce'});
   assert.equal(await page.locator('#home-occasion').evaluate(el=>getComputedStyle(el).animationName),'none');
   await page.emulateMedia({reducedMotion:'no-preference'});
+  await page.locator('#home-occasion').click();
+  assert.equal(await page.locator('#occasion-detail-dialog').isVisible(),true);
+  assert.equal(await page.locator('#occasion-detail-content h2').textContent(),'Aniversário do João');
+  assert.equal(await page.evaluate(()=>state.currentView),'home');
+  await page.locator('#occasion-detail-close').click();
   await page.evaluate(()=>{state.drinks=[{id:'d', name:'Água', icon:'💧', intervalMinutes:60, askDoseSize:false}]; registerDrinkAt('d', Date.now());});
   const id=await page.evaluate(()=>state.occasions[0].id);
   assert.equal(await page.evaluate(()=>state.events[0].occasionId),id);
