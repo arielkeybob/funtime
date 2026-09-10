@@ -1,8 +1,12 @@
-# FunTime — V2.1.8
+# FunTime — V2.1.9
 
-## V2.1.8 — fundo temporário com Shorts
+## V2.1.9 — vídeo integrado ao fundo
 
-Dois toques no aviso da Home seguidos de uma pressão no terceiro exibem por 20 segundos um entre doze Shorts incorporados do YouTube, sem áudio e sem repetição imediata. O player ocupa sozinho a tela; falha de carregamento devolve a interface. O mesmo aviso também aceita os oito toques do BPM e não seleciona texto. Política 1.0.2 declara a conexão externa e exige novo aceite. App, boot, rodapés e cache alinhados a 2.1.8; DATA_VERSION 11 preservado. Commit e push solicitados para teste no celular.
+O vídeo temporário passa a ser um fundo real: fica atrás da interface com opacidade sobre preto, não captura toques e mantém o app utilizável. Cards, estados de intervalo e navegação recebem vidro translúcido durante os 20 segundos. App, boot, rodapés e cache alinhados a 2.1.9; política 1.0.2 e DATA_VERSION 11 preservados.
+
+## V2.1.8 — primeiro teste do fundo com Shorts
+
+Dois toques no aviso da Home seguidos de uma pressão no terceiro exibem por 20 segundos um entre doze Shorts incorporados do YouTube, sem áudio e sem repetição imediata. Nesta versão inicial, o player ocupava a tela acima do app. O mesmo aviso também passou a aceitar os oito toques do BPM e deixou de selecionar texto. Política 1.0.2 declara a conexão externa e exige novo aceite.
 
 ## V2.1.7 — easter egg de BPM
 

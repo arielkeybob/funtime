@@ -264,7 +264,7 @@ document.addEventListener("visibilitychange", () => {
 const DATA_STORAGE_KEY = "funtime-v1-data";
 const LEGACY_DRINKS_STORAGE_KEY = "balada-v1-drinks";
 const DATA_VERSION = 11;
-const APP_VERSION = "2.1.8";
+const APP_VERSION = "2.1.9";
 const DRINK_EXPORT_TYPE = "funtime-drinks";
 const DRINK_EXPORT_FORMAT_VERSION = 1;
 const BACKUP_EXPORT_TYPE = "funtime-backup";
@@ -4573,11 +4573,11 @@ document.querySelector('#undo-icon-removal').addEventListener('click', () => {
     if (!videoLayer) return;
     const layer = videoLayer;
     videoLayer = null;
-    document.body.classList.remove('youtube-easter-egg-active');
-    appShell.removeAttribute('inert');
-    appShell.removeAttribute('aria-hidden');
     layer.classList.remove('is-visible');
-    setTimeout(() => layer.remove(), 650);
+    setTimeout(() => {
+      layer.remove();
+      document.body.classList.remove('youtube-easter-egg-active');
+    }, 650);
   };
   const startBackgroundVideo = () => {
     if (videoLayer || !available()) return;
@@ -4588,6 +4588,7 @@ document.querySelector('#undo-icon-removal').addEventListener('click', () => {
     clearBalloon();
     const layer = document.createElement('div');
     layer.className = 'youtube-easter-egg';
+    layer.setAttribute('aria-hidden', 'true');
     const iframe = document.createElement('iframe');
     iframe.title = 'Efeito visual temporário reproduzido pelo YouTube';
     iframe.allow = 'autoplay; encrypted-media; picture-in-picture';
@@ -4597,8 +4598,6 @@ document.querySelector('#undo-icon-removal').addEventListener('click', () => {
     videoLayer = layer;
     document.body.append(layer);
     document.body.classList.add('youtube-easter-egg-active');
-    appShell.setAttribute('inert', '');
-    appShell.setAttribute('aria-hidden', 'true');
     requestAnimationFrame(() => layer.classList.add('is-visible'));
     iframe.addEventListener('load', () => {
       clearTimeout(videoLoadTimer);

@@ -1,12 +1,16 @@
 # FunTime — documentação de desenvolvimento
 
-## V2.1.8 — fundo temporário com Shorts
+## V2.1.9 — vídeo integrado ao fundo
 
-Dois toques no aviso da Home seguidos de uma pressão de 900ms no terceiro toque abrem, sem áudio, um entre doze Shorts incorporados do YouTube. O player ocupa sozinho a viewport durante 20s, sem controles ou elementos do FunTime sobrepostos, e a escolha evita repetir imediatamente o último vídeo. Falha de carregamento devolve a interface em até 10s. Oito toques no mesmo aviso também acionam o BPM; seleção de texto e menu de contexto ficam desativados somente nesse card. Rolagem, arraste, outros dedos, diálogos e bloqueio cancelam a sequência.
+Dois toques no aviso da Home seguidos de uma pressão de 900ms no terceiro toque abrem, sem áudio, um entre doze Shorts incorporados do YouTube. O player fica fixo atrás da interface por 20s, preenchendo a viewport com opacidade de 52%; cards e navegação recebem fundo translúcido, desfoque e contraste, permanecendo utilizáveis. A escolha evita repetir imediatamente o último vídeo. Falha de carregamento devolve a interface em até 10s. Oito toques no mesmo aviso também acionam o BPM; seleção de texto e menu de contexto ficam desativados somente nesse card. Rolagem, arraste, outros dedos, diálogos e bloqueio cancelam a sequência.
 
-O carregamento ocorre apenas após o gesto e usa youtube-nocookie.com; policies.html declara a conexão externa e TERMS_VERSION 1.0.2 exige novo aceite. Dados do app não são enviados pelo código ao player. App, boot, rodapés e cache alinhados a 2.1.8; DATA_VERSION 11 preservado. Commit e push solicitados para teste no celular.
+O carregamento ocorre apenas após o gesto e usa youtube-nocookie.com; policies.html declara a conexão externa e TERMS_VERSION 1.0.2 exige novo aceite. Dados do app não são enviados pelo código ao player. App, boot, rodapés e cache alinhados a 2.1.9; DATA_VERSION 11 preservado. Correção solicitada após o teste da 2.1.8 e autorizada para publicação pelo pedido anterior de commit e push.
 
-Validação: sintaxe de app.js, sw.js e policies.js; 25 testes aprovados em audit e tap-bpm-browser. Cobertura de BPM no aviso, texto não selecionável, gesto com pressão, player mudo e sem controles, retorno automático, ausência de repetição imediata, movimento reduzido e armazenamento preservado. Os doze links responderam ao oEmbed do YouTube em 10/09/2026. Reprodução e autoplay reais no celular, vídeo removido/bloqueado futuramente e atualização da PWA instalada não testados.
+Validação: sintaxe de app.js, sw.js e policies.js; 26 testes aprovados em audit, release e tap-bpm-browser antes do primeiro envio. Cobertura de BPM no aviso, texto não selecionável, gesto com pressão, player mudo e sem controles, retorno automático, ausência de repetição imediata, movimento reduzido e armazenamento preservado. O ajuste para background acrescenta verificação de interface visível e operável, player sem captura de ponteiro e superfícies translúcidas. Os doze links responderam ao oEmbed do YouTube em 10/09/2026. Reprodução e autoplay reais no celular, vídeo removido/bloqueado futuramente e atualização da PWA instalada não testados.
+
+## V2.1.8 — primeiro teste do fundo com Shorts
+
+O primeiro envio usava o mesmo gesto e lista, mas colocava o player acima de toda a interface durante 20s. Isso impedia o uso do app e não correspondia ao efeito de background solicitado; corrigido na 2.1.9.
 
 ## V2.1.7 — easter egg de BPM
 
