@@ -1,4 +1,8 @@
-# FunTime — V2.1.10
+# FunTime — V2.1.11
+
+## V2.1.11 — disparo rápido e entrada suave
+
+Segurar o aviso por 2 segundos ativa o fundo. Após o iframe carregar, o app aguarda 1,2s e revela o vídeo em um fade de 2s a partir do preto, reduzindo a exposição do carregamento inicial. O modo playlist foi removido para evitar setas de navegação; áudio mudo, player sem controles e duração visível de 20s preservados. App, boot, rodapés e cache alinhados a 2.1.11; política 1.0.2 e DATA_VERSION 11 mantidos.
 
 ## V2.1.10 — pressão longa e nova seleção de fundos
 

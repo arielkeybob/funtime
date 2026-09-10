@@ -93,7 +93,7 @@ test('vídeo: segurar o aviso abre um player temporário ao fundo', { timeout: 6
     const trigger = () => page.evaluate(() => {
       if (!window.originalTapTestTimeout) {
         window.originalTapTestTimeout = window.setTimeout;
-        window.setTimeout = (callback, delay, ...args) => window.originalTapTestTimeout(callback, delay === 6000 ? 300 : delay === 20000 ? 1500 : delay, ...args);
+        window.setTimeout = (callback, delay, ...args) => window.originalTapTestTimeout(callback, delay === 2000 ? 300 : delay === 1200 ? 100 : delay === 20000 ? 1500 : delay, ...args);
       }
       window.videoTapTestTime = (window.videoTapTestTime || 50000) + 3000;
       const target = document.querySelector('.notice');
@@ -113,6 +113,7 @@ test('vídeo: segurar o aviso abre um player temporário ao fundo', { timeout: 6
     assert.match(firstSrc, /autoplay=1/);
     assert.match(firstSrc, /mute=1/);
     assert.match(firstSrc, /controls=0/);
+    assert.doesNotMatch(firstSrc, /playlist=|loop=1/);
     assert.equal(await page.locator('#app-shell').getAttribute('inert'), null);
     assert.equal(await page.locator('#app-shell').evaluate(el => getComputedStyle(el).visibility), 'visible');
     assert.equal(await page.locator('.youtube-easter-egg').evaluate(el => getComputedStyle(el).pointerEvents), 'none');

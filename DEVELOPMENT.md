@@ -1,5 +1,9 @@
 # FunTime — documentação de desenvolvimento
 
+## V2.1.11 — disparo rápido e entrada suave
+
+Pressionar o aviso por 2s ativa o fundo. O iframe permanece invisível durante o carregamento inicial; 1,2s após o evento load, entra com transição de opacidade de 2s e então permanece por 20s antes do fade de saída. Parâmetros loop e playlist removidos para evitar controles anterior/próximo; controls=0, mute=1, playsinline e bloqueio de teclado preservados. Vídeos do YouTube continuam externos ao Service Worker e não têm disponibilidade offline garantida. App, boot, rodapés e cache alinhados a 2.1.11; política 1.0.2 e DATA_VERSION 11 preservados.
+
 ## V2.1.10 — pressão longa e nova seleção de fundos
 
 Pressionar continuamente o card de aviso da Home por 6s ativa o fundo; soltar ou mover mais de 12px antes disso cancela. Toques curtos continuam alimentando o BPM, sem espera ou conflito. A lista passa a Q6SzupOIkrs, Kjc3Q3Z1a-M, RtDRL2DMujw, 0Tq9yS-OBSE, O2kjyld_fX8 e DdkAqgDWzvk, todos respondendo ao oEmbed do YouTube em 10/09/2026. Fundo integrado, opacidade, vidro, duração e privacidade da 2.1.9 preservados. App, boot, rodapés e cache alinhados a 2.1.10; política 1.0.2 e DATA_VERSION 11 mantidos.

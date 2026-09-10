@@ -264,7 +264,7 @@ document.addEventListener("visibilitychange", () => {
 const DATA_STORAGE_KEY = "funtime-v1-data";
 const LEGACY_DRINKS_STORAGE_KEY = "balada-v1-drinks";
 const DATA_VERSION = 11;
-const APP_VERSION = "2.1.10";
+const APP_VERSION = "2.1.11";
 const DRINK_EXPORT_TYPE = "funtime-drinks";
 const DRINK_EXPORT_FORMAT_VERSION = 1;
 const BACKUP_EXPORT_TYPE = "funtime-backup";
@@ -4548,6 +4548,7 @@ document.querySelector('#undo-icon-removal').addEventListener('click', () => {
   let videoLayer = null;
   let videoTimer;
   let videoLoadTimer;
+  let videoRevealTimer;
   let lastVideoId = null;
   const available = () => !document.hidden && !homeView.hidden &&
     !document.body.matches('.app-locked, .security-booting, .boot-pending, .terms-pending, .browser-mode, .youtube-easter-egg-active') &&
@@ -4569,6 +4570,7 @@ document.querySelector('#undo-icon-removal').addEventListener('click', () => {
   const endBackgroundVideo = () => {
     clearTimeout(videoTimer);
     clearTimeout(videoLoadTimer);
+    clearTimeout(videoRevealTimer);
     if (!videoLayer) return;
     const layer = videoLayer;
     videoLayer = null;
@@ -4576,7 +4578,7 @@ document.querySelector('#undo-icon-removal').addEventListener('click', () => {
     setTimeout(() => {
       layer.remove();
       document.body.classList.remove('youtube-easter-egg-active');
-    }, 650);
+    }, 2000);
   };
   const startBackgroundVideo = () => {
     if (videoLayer || !available()) return;
@@ -4592,15 +4594,19 @@ document.querySelector('#undo-icon-removal').addEventListener('click', () => {
     iframe.title = 'Efeito visual temporário reproduzido pelo YouTube';
     iframe.allow = 'autoplay; encrypted-media; picture-in-picture';
     iframe.referrerPolicy = 'strict-origin-when-cross-origin';
-    iframe.src = `https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&mute=1&controls=0&disablekb=1&fs=0&playsinline=1&rel=0&loop=1&playlist=${videoId}`;
+    iframe.src = `https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&mute=1&controls=0&disablekb=1&fs=0&playsinline=1&rel=0`;
     layer.append(iframe);
     videoLayer = layer;
     document.body.append(layer);
     document.body.classList.add('youtube-easter-egg-active');
-    requestAnimationFrame(() => layer.classList.add('is-visible'));
     iframe.addEventListener('load', () => {
       clearTimeout(videoLoadTimer);
-      videoTimer = setTimeout(endBackgroundVideo, 20000);
+      // Dá tempo para o player sair do estado inicial antes do fade de entrada.
+      videoRevealTimer = setTimeout(() => {
+        if (videoLayer !== layer) return;
+        layer.classList.add('is-visible');
+        videoTimer = setTimeout(endBackgroundVideo, 20000);
+      }, 1200);
     }, { once: true });
     // Se o player nem carregar, o app volta sozinho em vez de permanecer preto.
     videoLoadTimer = setTimeout(endBackgroundVideo, 10000);
@@ -4617,7 +4623,7 @@ document.querySelector('#undo-icon-removal').addEventListener('click', () => {
       const pointerId = event.pointerId;
       holdTimer = setTimeout(() => {
         if (contact?.id === pointerId) startBackgroundVideo();
-      }, 6000);
+      }, 2000);
     }
   }, { passive: true });
   document.addEventListener('pointermove', event => {
