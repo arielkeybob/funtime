@@ -58,6 +58,7 @@ test('agenda compacta, evento, edição, agendamento automático, aviso e persis
   assert.match(await page.locator('#home-occasion').textContent(),/^🎉 /);
   const activeHeight=await page.locator('#home-occasion').evaluate(el=>el.getBoundingClientRect().height);
   assert.equal(await page.locator('#home-occasion').evaluate(el=>{el.classList.remove('is-active');const height=el.getBoundingClientRect().height;refreshOccasionContext();return height;}),activeHeight);
+  assert.equal(await page.locator('#home-occasion').evaluate(el=>getComputedStyle(el).animationDuration),'6s');
   await page.emulateMedia({reducedMotion:'reduce'});
   assert.equal(await page.locator('#home-occasion').evaluate(el=>getComputedStyle(el).animationName),'none');
   await page.emulateMedia({reducedMotion:'no-preference'});

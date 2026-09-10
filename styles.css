@@ -3319,13 +3319,19 @@ body {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  box-shadow: -3px -2px 12px -4px #ef476f4c, 3px 2px 12px -4px #568cff51, 0 3px 10px -4px #b16cff44, 2px -2px 11px -4px #f3ce6230;
-  animation: occasion-glow 17s ease-in-out infinite;
+  box-shadow: -4px -2px 14px -4px #ef476f60, 4px 2px 14px -4px #568cff66, 0 4px 13px -4px #b16cff58, 3px -3px 12px -4px #f3ce6248;
+  animation: occasion-glow 6s ease-in-out infinite;
 }
 @keyframes occasion-glow {
-  27% { box-shadow: 3px -2px 13px -4px #ef476f41, -2px 3px 11px -4px #568cff4c, -3px -1px 12px -4px #b16cff51, 3px 2px 12px -4px #f3ce622a; }
-  61% { box-shadow: 2px 3px 11px -4px #ef476f4c, -3px -2px 13px -4px #568cff41, 3px -2px 12px -4px #b16cff4c, -2px 3px 11px -4px #f3ce6236; }
-  83% { box-shadow: -3px 2px 12px -4px #ef476f41, 2px -3px 12px -4px #568cff51, 2px 3px 11px -4px #b16cff44, -3px -2px 12px -4px #f3ce622d; }
+  12% { box-shadow: 4px -3px 14px -4px #ef476f58, -3px 4px 13px -4px #568cff62, -4px -1px 14px -4px #b16cff68, 4px 3px 13px -4px #f3ce624c; }
+  19% { box-shadow: 5px -3px 17px -3px #ef476f72, -3px 5px 15px -3px #568cff78, -5px -1px 16px -3px #b16cff76, 4px 4px 16px -3px #f3ce6268; }
+  26% { box-shadow: 4px -3px 14px -4px #ef476f50, -3px 4px 13px -4px #568cff5c, -4px -1px 14px -4px #b16cff60, 4px 3px 13px -4px #f3ce6246; }
+  40% { box-shadow: 3px 4px 14px -4px #ef476f62, -4px -3px 15px -4px #568cff54, 4px -3px 14px -4px #b16cff62, -3px 4px 14px -4px #f3ce6258; }
+  48% { box-shadow: 4px 5px 16px -3px #ef476f78, -5px -3px 17px -3px #568cff6c, 5px -4px 16px -3px #b16cff78, -4px 5px 16px -3px #f3ce6270; }
+  56% { box-shadow: 3px 4px 14px -4px #ef476f58, -4px -3px 14px -4px #568cff50, 4px -3px 14px -4px #b16cff5c, -3px 4px 13px -4px #f3ce624c; }
+  70% { box-shadow: -4px 3px 15px -4px #ef476f5c, 3px -4px 15px -4px #568cff68, 4px 4px 14px -4px #b16cff54, -4px -3px 14px -4px #f3ce625c; }
+  78% { box-shadow: -5px 4px 17px -3px #ef476f76, 4px -5px 16px -3px #568cff74, 5px 5px 16px -3px #b16cff70, -5px -4px 17px -3px #f3ce6274; }
+  86% { box-shadow: -4px 3px 14px -4px #ef476f54, 3px -4px 14px -4px #568cff5c, 4px 4px 13px -4px #b16cff50, -4px -3px 14px -4px #f3ce624c; }
 }
 @media (prefers-reduced-motion: reduce) {
   .occasion-context.is-active { animation: none; }

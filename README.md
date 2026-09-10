@@ -1,4 +1,8 @@
-# FunTime — V2.1.4
+# FunTime — V2.1.5
+
+## V2.1.5 — pulsos festivos no evento ativo
+
+O brilho do card de evento ativo percorre vermelho, azul, roxo e amarelo em um ciclo de 6s, com três pulsos suaves e mais próximos. Tamanho do card e preferência de movimento reduzido preservados. App, boot, rodapés e cache alinhados a 2.1.5; DATA_VERSION 11 mantido. Commit e push solicitados após aprovação da prévia pelo usuário.
 
 ## V2.1.4 — brilho suave com amarelo
 
