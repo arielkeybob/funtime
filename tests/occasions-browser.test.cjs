@@ -34,9 +34,33 @@ test('agenda compacta, evento, edição, agendamento automático, aviso e persis
   await page.waitForFunction(()=>!document.getElementById('occasion-dialog').open);
   assert.equal(await page.evaluate(()=>state.events[0].occasionId===state.occasions[0].id),true);
   assert.equal(await page.evaluate(()=>state.occasions[0].endedAt!==null),true);
+  await page.evaluate(()=>{
+    const next=FunTimeOccasions.configure(buildCurrentAppData(),false);
+    state.historyOccasionId='none'; commitOccasions(next.occasions,next.events,next.preferences); openHistoryView();
+  });
+  assert.equal(await page.locator('#history-occasion-filter').isVisible(),false);
+  assert.equal(await page.locator('.history-event').count(),1);
+  assert.equal(await page.locator('.history-event-detail').count(),0);
+  assert.match(await page.locator('.history-event-mobile-time').textContent(),/^em \d{2}\/\d{2}\/\d{2}$/);
+  await page.locator('.history-event').click();
+  assert.equal(await page.locator('#record-occasion').isVisible(),false);
+  await page.keyboard.press('Escape');
+  await page.evaluate(()=>{
+    const next=FunTimeOccasions.configure(buildCurrentAppData(),true);
+    commitOccasions(next.occasions,next.events,next.preferences); renderHistory();
+  });
+  assert.equal(await page.locator('#history-occasion-filter').isVisible(),true);
+  assert.equal(await page.locator('.history-event-detail').textContent(),'Evento passado');
   await page.evaluate(()=>{state.drinks=[];commitOccasions([],[]);});
   await page.locator('#nav-occasion').click(); await page.locator('#occasion-new').click(); await page.locator('#occasion-name').fill('Aniversário do João');
   await page.locator('#occasion-submit').click(); await page.waitForFunction(()=>state.currentView==='home');
+  assert.equal(await page.locator('#home-occasion').evaluate(el=>el.classList.contains('is-active')),true);
+  assert.match(await page.locator('#home-occasion').textContent(),/^🎉 /);
+  const activeHeight=await page.locator('#home-occasion').evaluate(el=>el.getBoundingClientRect().height);
+  assert.equal(await page.locator('#home-occasion').evaluate(el=>{el.classList.remove('is-active');const height=el.getBoundingClientRect().height;refreshOccasionContext();return height;}),activeHeight);
+  await page.emulateMedia({reducedMotion:'reduce'});
+  assert.equal(await page.locator('#home-occasion').evaluate(el=>getComputedStyle(el).animationName),'none');
+  await page.emulateMedia({reducedMotion:'no-preference'});
   await page.evaluate(()=>{state.drinks=[{id:'d', name:'Água', icon:'💧', intervalMinutes:60, askDoseSize:false}]; registerDrinkAt('d', Date.now());});
   const id=await page.evaluate(()=>state.occasions[0].id);
   assert.equal(await page.evaluate(()=>state.events[0].occasionId),id);

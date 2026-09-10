@@ -1,5 +1,10 @@
 # FunTime — releases v2
 
+## V2.1.3 — histórico e destaque de evento
+
+Eventos desativados ocultam filtro, nomes e campo no editor do histórico, preservando vínculos. Registros mostram data após 24h completas, com atualização automática. Card ativo mantém tamanho compacto, ganha 🎉 e brilho colorido suave, estático com movimento reduzido. App, boot, rodapés e cache alinhados a 2.1.3; DATA_VERSION 11 preservado. Sintaxe e 24 testes aprovados antes do release; celular real e aparência da animação no aparelho não testados. Commit e push solicitados.
+
+
 ## V2.1.2 — eventos opcionais
 
 Usar eventos desmarcado por padrão. Desativação preserva histórico e contagens, encerra o evento atual e suspende agendamentos; reativação não inicia automaticamente os vencidos. Sem eventos, cards concluídos ficam neutros após 24h. App, boot, rodapés e cache alinhados a 2.1.2; DATA_VERSION 11 preservado. Commit e push solicitados. Celular real não testado.

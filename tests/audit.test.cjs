@@ -288,3 +288,18 @@ test('Anterior mostra horário antes de 24h e data local curta a partir de 24h',
   c.setPreviousStatus(element, timestamp, '', timestamp + 86400000);
   assert.equal(element.textContent, 'Anterior: 06/09/26');
 });
+
+test('histórico troca horário por data no limite de 24h durante a atualização', () => {
+  const timestamp = new Date(2026, 8, 6, 23, 30).getTime();
+  const element = { dataset: {} };
+  const c = context({
+    setClockStatus: (el, prefix) => { el.textContent = prefix + ' horário'; },
+    document: { querySelectorAll: selector => selector === '[data-history-timestamp]' ? [element] : [] },
+  });
+  for (const name of ['setPreviousStatus', 'setHistoryClockLabel', 'updateHistoryElapsedLabels']) vm.runInContext(extract(name), c);
+  c.setHistoryClockLabel(element, timestamp, timestamp + 86400000 - 1);
+  assert.equal(element.textContent, 'às horário');
+  vm.runInContext(`Date.now = () => ${timestamp + 86400000}`, c);
+  c.updateHistoryElapsedLabels();
+  assert.equal(element.textContent, 'em 06/09/26');
+});

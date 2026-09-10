@@ -264,7 +264,7 @@ document.addEventListener("visibilitychange", () => {
 const DATA_STORAGE_KEY = "funtime-v1-data";
 const LEGACY_DRINKS_STORAGE_KEY = "balada-v1-drinks";
 const DATA_VERSION = 11;
-const APP_VERSION = "2.1.2";
+const APP_VERSION = "2.1.3";
 const DRINK_EXPORT_TYPE = "funtime-drinks";
 const DRINK_EXPORT_FORMAT_VERSION = 1;
 const BACKUP_EXPORT_TYPE = "funtime-backup";
@@ -1953,18 +1953,16 @@ function formatHistoryElapsed(timestamp, now = Date.now()) {
   return `${days} ${days === 1 ? "dia" : "dias"} atrás`;
 }
 
-function setHistoryClockLabel(element, timestamp) {
-  element.replaceChildren();
-  element.append(document.createTextNode(`às ${formatClock(timestamp)}`));
-
-  const unit = document.createElement("span");
-  unit.className = "time-unit";
-  unit.textContent = "h";
-  element.append(unit);
+function setHistoryClockLabel(element, timestamp, now = Date.now()) {
+  element.dataset.historyTimestamp = String(timestamp);
+  setPreviousStatus(element, timestamp, "", now, now - timestamp < 86400000 ? "às" : "em");
 }
 
 function updateHistoryElapsedLabels() {
   const now = Date.now();
+  document.querySelectorAll("[data-history-timestamp]").forEach(element => {
+    setHistoryClockLabel(element, Number(element.dataset.historyTimestamp), now);
+  });
 
   document.querySelectorAll(".history-event-elapsed[data-consumed-at]").forEach((element) => {
     if (element.dataset.countingStopped === 'true') return;
@@ -2479,7 +2477,7 @@ function renderHistory() {
 
   const entries = state.events
     .filter((event) => !state.historyDrinkId || event.drinkId === state.historyDrinkId)
-    .filter(event => state.historyOccasionId === "all" || !state.historyOccasionId || (state.historyOccasionId === "none" ? !event.occasionId : event.occasionId === state.historyOccasionId))
+    .filter(event => !state.preferences.eventsEnabled || state.historyOccasionId === "all" || !state.historyOccasionId || (state.historyOccasionId === "none" ? !event.occasionId : event.occasionId === state.historyOccasionId))
     .map((event) => ({ event, drink: getEventDrinkIdentity(event) }))
     .sort((a, b) => b.event.consumedAt - a.event.consumedAt || b.event.id.localeCompare(a.event.id));
 
@@ -2563,7 +2561,7 @@ function renderHistory() {
       heading.append(icon, identity, mobileTime, chevron);
       body.appendChild(heading);
       const occasion = state.occasions.find(item => item.id === event.occasionId);
-      if (occasion) {
+      if (state.preferences.eventsEnabled && occasion) {
         const label = document.createElement("span"); label.className = "history-event-detail"; label.textContent = occasion.name; body.append(label);
       }
 
@@ -3193,10 +3191,10 @@ function handleEventSubmit(event) {
     return;
   }
 
-  const occasionId = document.getElementById("record-occasion").value || null;
+  const occasionId = state.preferences.eventsEnabled ? document.getElementById("record-occasion").value || null : selectedEvent.occasionId || null;
   const occasion = state.occasions.find(item => item.id === occasionId);
   if (occasionId && (!occasion || !FunTimeOccasions.contains(occasion, timestamp))) {
-    showEventFormError("O horário está fora deste evento. Escolha outro evento ou Sem evento."); return;
+    showEventFormError(state.preferences.eventsEnabled ? "O horário está fora deste evento. Escolha outro evento ou Sem evento." : "O horário está fora do período original deste registro."); return;
   }
   const updatedEvent = { ...selectedEvent, occasionId, consumedAt: timestamp };
 

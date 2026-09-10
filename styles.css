@@ -3315,6 +3315,21 @@ body {
 .bottom-nav button[aria-current="page"] { background: #2b2b31; color: #fff; }
 .bottom-nav svg { width: 23px; height: 23px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
 .occasion-context { display: block; width: 100%; margin: 0 0 18px; padding: 13px 15px; border: 1px solid var(--border); border-radius: 14px; background: var(--surface); color: var(--muted); text-align: left; font: inherit; font-size: .82rem; overflow-wrap: anywhere; }
+.occasion-context.is-active {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  box-shadow: -3px -2px 12px -4px #ef476f40, 3px 2px 12px -4px #568cff45, 0 3px 10px -4px #b16cff38;
+  animation: occasion-glow 17s ease-in-out infinite;
+}
+@keyframes occasion-glow {
+  27% { box-shadow: 3px -2px 13px -4px #ef476f35, -2px 3px 11px -4px #568cff40, -3px -1px 12px -4px #b16cff45; }
+  61% { box-shadow: 2px 3px 11px -4px #ef476f40, -3px -2px 13px -4px #568cff35, 3px -2px 12px -4px #b16cff40; }
+  83% { box-shadow: -3px 2px 12px -4px #ef476f35, 2px -3px 12px -4px #568cff45, 2px 3px 11px -4px #b16cff38; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .occasion-context.is-active { animation: none; }
+}
 .occasion-card { padding: 22px; margin-bottom: 16px; border: 1px solid var(--border); border-radius: 20px; background: var(--surface); }
 .occasion-card.is-active { border-color: #727080; }
 .occasion-card h2 { margin: 8px 0 12px; font-size: 1.3rem; overflow-wrap: anywhere; }

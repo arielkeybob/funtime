@@ -230,9 +230,10 @@ function refreshOccasionContext() {
   $occasion('nav-occasion').hidden = !enabled;
   document.querySelector('.bottom-nav').style.gridTemplateColumns = `repeat(${enabled ? 4 : 3}, minmax(0, 1fr))`;
   $occasion('home-occasion').hidden = !enabled;
+  $occasion('home-occasion').classList.toggle('is-active', enabled && !!FunTimeOccasions.active(state.occasions));
   if (!enabled) return;
   const active = FunTimeOccasions.active(state.occasions), button = $occasion('home-occasion');
-  const text = active ? active.name + ' · Em andamento ›' : 'Sem evento em andamento · Eventos ›'; if (button.textContent !== text) button.textContent = text;
+  const text = active ? '🎉 ' + active.name + ' · Em andamento ›' : 'Sem evento em andamento · Eventos ›'; if (button.textContent !== text) button.textContent = text;
   if (state.currentView === 'occasion') renderOccasions();
 }
 function refreshOccasionReminder() {
@@ -248,13 +249,14 @@ function refreshOccasionReminder() {
   box.append(text, occasionButton('Iniciar agora', () => changeOccasion(upcoming.id, 'start'), 'primary-button'), occasionButton('Agora não', () => { try { sessionStorage.setItem('funtime-agenda-dismissed', key); } catch {} box.dataset.dismissed = key; box.hidden = true; }));
 }
 function refreshOccasionFilters() {
-  $occasion('history-occasion-filter').parentElement.hidden = !state.preferences.eventsEnabled && !state.occasions.some(item => item.startedAt !== null);
+  $occasion('history-occasion-filter').parentElement.hidden = !state.preferences.eventsEnabled;
+  if (!state.preferences.eventsEnabled) state.historyOccasionId = 'all';
   const select = $occasion('history-occasion-filter'); select.replaceChildren(new Option('Todos os eventos', 'all'), new Option('Sem evento', 'none'));
   for (const item of [...state.occasions].filter(item => item.startedAt !== null).sort((a,b) => b.startedAt-a.startedAt)) select.add(new Option(item.name + ' · ' + toLocalDateInputValue(item.startedAt), item.id));
   if (!['all','none', ...state.occasions.map(item => item.id)].includes(state.historyOccasionId)) state.historyOccasionId = 'all'; select.value = state.historyOccasionId || 'all';
 }
 function populateRecordOccasions(record) {
-  $occasion('record-occasion').parentElement.hidden = !state.preferences.eventsEnabled && !record.occasionId;
+  $occasion('record-occasion').parentElement.hidden = !state.preferences.eventsEnabled;
   const select = $occasion('record-occasion'); select.replaceChildren(new Option('Sem evento', ''));
   for (const item of state.occasions.filter(item => item.startedAt !== null)) select.add(new Option(item.name + ' · ' + toLocalDateInputValue(item.startedAt), item.id)); select.value = record.occasionId || '';
 }
