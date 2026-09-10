@@ -1,5 +1,10 @@
 # FunTime — releases v2
 
+## V2.1.1 — cadastro de eventos passados
+
+Cadastro retroativo com aviso e inclusão de registros sem evento no período. Abas Anteriores / Próximos; Iniciar agora usa o instante da confirmação e oculta a data. App, boot, rodapés e cache alinhados a 2.1.1; DATA_VERSION 11 preservado. Commit e push solicitados. Celular real não testado.
+
+
 ## V2.1.0 — eventos e navegação inferior
 
 O usuário criou e enviou o commit 3bcfff7, com eventos e menu inferior, mas os identificadores internos ainda eram 2.0.12. Correção nesta versão: app, boot, rodapés e cache funtime-v2-1-0 alinhados a 2.1.0; a agenda evolui o schema para DATA_VERSION 11; backup formato 2 mantido. Sem reescrever o commit anterior. Agenda compacta, agendamento e automações incluídos na versão 2.1.0; commit e push autorizados em 09/09/2026. Estado e validações em DEVELOPMENT.md.

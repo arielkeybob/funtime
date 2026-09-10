@@ -1,4 +1,9 @@
-# FunTime — V2.1.0
+# FunTime — V2.1.1
+
+## V2.1.1 — cadastro de eventos passados
+
+Cadastro retroativo com aviso e inclusão de registros sem evento no período. Abas Anteriores / Próximos; Iniciar agora usa o instante da confirmação e oculta a data. App, boot, rodapés e cache alinhados a 2.1.1; DATA_VERSION 11 preservado. Commit e push solicitados. Celular real não testado.
+
 
 ## V2.1.0 — eventos e navegação inferior
 

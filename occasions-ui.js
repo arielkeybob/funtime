@@ -43,10 +43,14 @@ function closeOccasionDetails() { detailOccasionId = null; occasionDetailDialog.
 function editorVisibility() {
   const current = state.occasions.find(item => item.id === editingOccasionId);
   const planned = current ? current.startedAt === null : $occasion('occasion-mode').value === 'scheduled';
-  $occasion('occasion-auto-field').hidden = !planned;
+  const past = planned && new Date($occasion('occasion-start').value).getTime() < Date.now();
+  $occasion('occasion-start').parentElement.hidden = !current && !planned;
+  $occasion('occasion-past-notice').hidden = !past;
+  $occasion('occasion-end-toggle').querySelector('.setting-toggle-copy').textContent = past ? 'Informar data de término' : 'Encerrar automaticamente em uma data';
+  $occasion('occasion-auto-field').hidden = !planned || past;
   $occasion('occasion-end-toggle').hidden = current?.endedAt != null;
   $occasion('occasion-end-field').hidden = !(current?.endedAt != null || $occasion('occasion-has-end').checked);
-  $occasion('occasion-submit').textContent = current ? 'Salvar alterações' : planned ? 'Agendar evento' : 'Iniciar evento';
+  $occasion('occasion-submit').textContent = current ? 'Salvar alterações' : past ? 'Cadastrar evento' : planned ? 'Agendar evento' : 'Iniciar evento';
 }
 function openOccasionEditor(id = null) {
   const current = id ? state.occasions.find(item => item.id === id) : null;
@@ -78,32 +82,42 @@ $occasion('occasion-mode').addEventListener('change', () => {
   editorVisibility(); updateFormDraft(occasionForm);
 });
 $occasion('occasion-has-end').addEventListener('change', editorVisibility);
+$occasion('occasion-start').addEventListener('input', editorVisibility);
 occasionForm.addEventListener('submit', event => {
   event.preventDefault(); if (state.securityLocked || !occasionDialog.open) return;
   const current = state.occasions.find(item => item.id === editingOccasionId);
   if (editingOccasionId && JSON.stringify(current) !== occasionOriginal) { occasionError('O evento mudou. Feche e abra novamente.'); return; }
-  const planned = current ? current.startedAt === null : $occasion('occasion-mode').value === 'scheduled';
+  let planned = current ? current.startedAt === null : $occasion('occasion-mode').value === 'scheduled';
   const name = $occasion('occasion-name').value.trim();
   const initialStart = current?.startedAt ?? current?.scheduledStartAt ?? occasionSuggestedStart;
   const readDate = (id, original) => original != null && $occasion(id).value === occasionInput(original) ? original : new Date($occasion(id).value).getTime();
-  const start = readDate('occasion-start', initialStart);
+  const start = !current && !planned ? Date.now() : readDate('occasion-start', initialStart);
+  const retrospective = planned && start < Date.now() && (!current || start !== current.scheduledStartAt);
+  if (retrospective) planned = false;
   const end = current?.endedAt != null || $occasion('occasion-has-end').checked ? readDate('occasion-end', current?.endedAt ?? current?.scheduledEndAt) : null;
-  if (!name || !Number.isFinite(start) || (planned ? (!current || start !== current.scheduledStartAt) && start <= Date.now() : start > Date.now()) || (end !== null && (!Number.isFinite(end) || end <= start)) || (current?.endedAt != null && end > Date.now())) {
-    occasionError('Confira nome e datas. Agendamentos novos precisam de início futuro; o fim deve ser posterior ao início.'); return;
+  if (!name || !Number.isFinite(start) || (!planned && start > Date.now()) || (end !== null && (!Number.isFinite(end) || end <= start)) || (current?.endedAt != null && end > Date.now())) {
+    occasionError('Confira nome e datas. O fim deve ser posterior ao início.'); return;
   }
   const item = { ...current, id: current?.id || createId(), name, startedAt: planned ? null : start, endedAt: current?.endedAt != null ? end : null,
     scheduledStartAt: planned ? start : (current?.scheduledStartAt ?? null), scheduledEndAt: current?.endedAt != null ? (current.scheduledEndAt ?? null) : end,
     autoStart: planned && $occasion('occasion-auto').checked, timeZone: start === initialStart && current?.timeZone ? current.timeZone : Intl.DateTimeFormat().resolvedOptions().timeZone };
   if (planned && start !== current?.scheduledStartAt) { item.closedAt = null; item.endReason = null; }
-  if (!planned && !current && FunTimeOccasions.active(state.occasions)) { occasionError('Encerre o evento em andamento ou escolha Agendar.'); return; }
+  if (retrospective) {
+    item.closedAt = end != null && end <= Date.now() ? Date.now() : null;
+    item.endedAt = item.closedAt != null ? end : null;
+    item.endReason = item.closedAt != null ? 'manual' : null;
+    item.scheduledStartAt = null;
+    if (item.endedAt != null) item.scheduledEndAt = null;
+  }
+  if (!planned && !current && item.endedAt === null && FunTimeOccasions.active(state.occasions)) { occasionError('Já existe um evento em andamento. Informe o término do evento passado ou encerre o atual.'); return; }
   try {
     const periodChanged = current && !planned && (current.startedAt !== item.startedAt || current.endedAt !== item.endedAt);
-    const records = periodChanged ? FunTimeOccasions.includeUnassigned(state.events, item) : state.events;
+    const records = !planned && (!current || retrospective || periodChanged) ? FunTimeOccasions.includeUnassigned(state.events, item) : state.events;
     const included = records.filter((record, i) => record !== state.events[i]).length;
     commitOccasions(current ? state.occasions.map(old => old.id === item.id ? item : old) : [...state.occasions, item], records);
     closeOccasionEditor(); if (occasionDetailDialog.open) closeOccasionDetails();
-    if (!planned && !current) closeHistoryView(); else { agendaTab = planned ? 'upcoming' : 'past'; openOccasionView(); }
-    showToast((current ? 'Evento atualizado.' : planned ? 'Evento agendado.' : 'Evento iniciado.') + (included ? ' ' + included + ' registro(s) incluído(s).' : ''));
+    if (!planned && !current && !retrospective) closeHistoryView(); else { agendaTab = planned ? 'upcoming' : 'past'; openOccasionView(); }
+    showToast((current ? 'Evento atualizado.' : retrospective ? 'Evento cadastrado.' : planned ? 'Evento agendado.' : 'Evento iniciado.') + (included ? ' ' + included + ' registro(s) incluído(s).' : ''));
   } catch { occasionError('Não foi possível salvar. Verifique períodos conflitantes, registros fora do período ou tente novamente.'); }
 });
 async function changeOccasion(id, action) {

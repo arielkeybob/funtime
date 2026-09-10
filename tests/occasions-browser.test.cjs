@@ -9,6 +9,27 @@ test('agenda compacta, evento, edição, agendamento automático, aviso e persis
   await page.getByRole('button',{name:'Começar sem dados',exact:true}).click();
   for(const box of await page.locator('#terms-form input[type=checkbox]').all()) await box.check();
   await page.locator('#terms-continue').click(); await page.waitForFunction(()=>!document.body.classList.contains('boot-pending'));
+  await page.locator('#nav-occasion').click();
+  assert.deepEqual(await page.locator('.agenda-tabs button').allTextContents(), ['Anteriores', 'Próximos']);
+  await page.locator('#occasion-new').click();
+  assert.equal(await page.locator('#occasion-start').evaluate(el=>el.parentElement.hidden),true);
+  await page.locator('#occasion-mode').selectOption('scheduled');
+  await page.locator('#occasion-name').fill('Evento passado');
+  await page.evaluate(()=>{
+    const start=Date.now()-7*86400000;
+    state.drinks=[{id:'old',name:'Água',icon:'💧',intervalMinutes:60,askDoseSize:false}];
+    registerDrinkAt('old',start+3600000);
+    document.getElementById('occasion-start').value=occasionInput(start);
+    document.getElementById('occasion-start').dispatchEvent(new Event('input',{bubbles:true}));
+    document.getElementById('occasion-end').value=occasionInput(start+7200000);
+  });
+  assert.equal(await page.locator('#occasion-past-notice').isVisible(),true);
+  await page.locator('#occasion-has-end').check();
+  await page.locator('#occasion-submit').click();
+  await page.waitForFunction(()=>!document.getElementById('occasion-dialog').open);
+  assert.equal(await page.evaluate(()=>state.events[0].occasionId===state.occasions[0].id),true);
+  assert.equal(await page.evaluate(()=>state.occasions[0].endedAt!==null),true);
+  await page.evaluate(()=>{state.drinks=[];commitOccasions([],[]);});
   await page.locator('#nav-occasion').click(); await page.locator('#occasion-new').click(); await page.locator('#occasion-name').fill('Aniversário do João');
   await page.locator('#occasion-submit').click(); await page.waitForFunction(()=>state.currentView==='home');
   await page.evaluate(()=>{state.drinks=[{id:'d', name:'Água', icon:'💧', intervalMinutes:60, askDoseSize:false}]; registerDrinkAt('d', Date.now());});

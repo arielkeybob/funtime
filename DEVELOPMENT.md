@@ -1,5 +1,10 @@
 # FunTime — documentação de desenvolvimento
 
+## V2.1.1 — cadastro de eventos passados
+
+Cadastro retroativo com aviso e inclusão de registros sem evento no período. Abas Anteriores / Próximos; Iniciar agora usa o instante da confirmação e oculta a data. App, boot, rodapés e cache alinhados a 2.1.1; DATA_VERSION 11 preservado. Commit e push solicitados. Celular real não testado.
+
+
 ## V2.1.0 — eventos e navegação inferior
 
 O usuário criou e enviou o commit 3bcfff7, com eventos e menu inferior, mas os identificadores internos ainda eram 2.0.12. Correção local: app, boot, rodapés e cache funtime-v2-1-0 alinhados a 2.1.0; A agenda evolui o schema para DATA_VERSION 11; backup formato 2 mantido. Sem reescrever o commit anterior. Agenda compacta, agendamento e automações implementados localmente para avaliação; estado atual em DEVELOPMENT.md.
@@ -2275,3 +2280,6 @@ Sem fim programado, após 48h de início: aguardar término de todas as contagen
 DATA_VERSION 11 (migração cumulativa de dados 9/10), formato de backup 2 preservado. startedAt null identifica agendamento; scheduledStartAt, scheduledEndAt, autoStart, closedAt, endReason e timeZone são campos validados. Campos legados permanecem; nenhuma agenda é inventada na migração. Horários exibidos no fuso atual, com nota nos detalhes quando diferente do fuso gravado; instantes não mudam ao viajar. Backup/restauração incluem agenda. Página de instalação continua sem dados privados. Sem commit/push nesta etapa; app/boot/cache local alinhados a 2.1.0 conforme pedido anterior.
 
 Validação da agenda: 64 testes aprovados em audit, agenda, occasions, occasions-browser, navigation-browser, countdown-menu-browser, dev-preview-browser, reset, migration, receiver-browser, release e ui. Teste integrado repetido após acabamento dos controles: passou. Inclui 100 itens/paginação/busca, retorno dos detalhes, menu em 320 e 1024px, agendamento manual/automático, encerramento e relógio simulado, aviso dispensado após reload, falha de persistência automática e recuperação, backup e dados legados. Imagens do cadastro e lista 390×844 conferidas. Sintaxe e diff verificados. Celular real, mudança de fuso em aparelho e execução com app fechado não testados; app fechado é reconciliado ao retornar, sem promessa de execução em segundo plano.
+
+## Cadastro retroativo de eventos
+Escolher data aceita início passado com aviso. Com término passado, salva encerrado; sem término, segue as regras do evento em andamento e recuperação após 48h. Inclui registros sem evento no período, preservando vínculos existentes e rejeitando sobreposição. Iniciar agora oculta o editor de início e usa o instante de confirmação. Abas ordenadas Anteriores / Próximos. Schema 11 preservado. Sete testes de agenda, ocasiões e navegador aprovados, incluindo cadastro retroativo e associação. Sintaxe app.js, sw.js e occasions-ui.js verificada; celular real não testado.

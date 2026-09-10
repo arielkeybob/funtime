@@ -53,7 +53,7 @@
     <footer class="browser-gate-footer">
       <span>App para estudo · não é controle de segurança</span>
       <a class="policies-link" href="./policies.html">Políticas e informações</a>
-      <span>v2.1.0 · By: arielkeybob</span>
+      <span>v2.1.1 · By: arielkeybob</span>
     </footer>
   </section>
 
@@ -280,7 +280,7 @@
     <main id="occasion-view" hidden>
       <section id="occasion-current" class="occasion-current"></section>
       <section class="occasion-history">
-        <div class="agenda-tabs" role="group" aria-label="Lista de eventos"><button id="agenda-upcoming" type="button" aria-pressed="true">Próximos</button><button id="agenda-past" type="button" aria-pressed="false">Anteriores</button></div>
+        <div class="agenda-tabs" role="group" aria-label="Lista de eventos"><button id="agenda-past" type="button" aria-pressed="false">Anteriores</button><button id="agenda-upcoming" type="button" aria-pressed="true">Próximos</button></div>
         <details class="agenda-filters"><summary>Buscar e filtrar</summary><label class="field"><span>Nome</span><input id="agenda-search" type="search" placeholder="Buscar evento"></label><label class="field"><span>Mês</span><input id="agenda-month" type="month"></label></details>
         <div id="occasion-list"></div><button id="agenda-more" class="secondary-button" type="button" hidden>Mostrar mais</button>
       </section>
@@ -294,7 +294,7 @@
     <footer class="app-footer">
       <span class="app-footer-disclaimer">App para estudo · não é controle de segurança</span>
       <a class="policies-link" href="./policies.html">Políticas e informações</a>
-      <span class="app-footer-meta">v2.1.0 · By: arielkeybob</span>
+      <span class="app-footer-meta">v2.1.1 · By: arielkeybob</span>
     </footer>
   </div>
 
@@ -303,9 +303,9 @@
   <dialog id="occasion-dialog" class="dialog">
     <form id="occasion-form" novalidate>
       <div class="dialog-header"><h2 id="occasion-form-title">Iniciar evento</h2><button id="occasion-close" class="icon-button secondary" type="button" aria-label="Fechar">×</button></div>
-      <label id="occasion-mode-field" class="field"><span>Quando começar?</span><select id="occasion-mode" name="occasionMode"><option value="now">Iniciar agora</option><option value="scheduled">Agendar</option></select></label>
+      <label id="occasion-mode-field" class="field"><span>Quando começar?</span><select id="occasion-mode" name="occasionMode"><option value="now">Iniciar agora</option><option value="scheduled">Escolher data</option></select></label>
       <label class="field"><span>Nome do evento</span><input id="occasion-name" name="occasionName" type="text" maxlength="80" placeholder="Aniversário do João" required></label>
-      <label class="field"><span>Início</span><input id="occasion-start" name="occasionStart" type="datetime-local" required></label>
+      <p id="occasion-past-notice" class="settings-description" role="status" hidden>Esta data já passou. Os registros sem evento nesse período serão incluídos automaticamente. Informe o término se o evento já acabou; sem término, ele ficará em andamento e seguirá a regra de encerramento após 48 horas.</p><label class="field"><span>Início</span><input id="occasion-start" name="occasionStart" type="datetime-local" required></label>
       <label id="occasion-auto-field" class="setting-toggle"><span class="setting-toggle-copy">Iniciar automaticamente</span><span class="setting-toggle-control"><input id="occasion-auto" name="occasionAuto" type="checkbox"><span class="setting-toggle-track" aria-hidden="true"><span></span></span></span></label>
       <label id="occasion-end-toggle" class="setting-toggle"><span class="setting-toggle-copy">Encerrar automaticamente em uma data</span><span class="setting-toggle-control"><input id="occasion-has-end" name="occasionHasEnd" type="checkbox"><span class="setting-toggle-track" aria-hidden="true"><span></span></span></span></label>
       <label id="occasion-end-field" class="field" hidden><span>Encerramento</span><input id="occasion-end" name="occasionEnd" type="datetime-local"></label>
