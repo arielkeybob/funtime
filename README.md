@@ -1,4 +1,8 @@
-# FunTime — V2.1.6
+# FunTime — V2.1.7
+
+## V2.1.7 — easter egg de BPM
+
+Oito toques ritmados no espaço livre do Início exibem o BPM em verde translúcido, subindo e desaparecendo. Controles e gestos de rolagem não contam; movimento reduzido usa esmaecimento. App, boot, rodapés e cache alinhados a 2.1.7; DATA_VERSION 11 preservado. Commit e push solicitados para teste no celular.
 
 ## V2.1.6 — acesso direto ao evento ativo
 

@@ -264,7 +264,7 @@ document.addEventListener("visibilitychange", () => {
 const DATA_STORAGE_KEY = "funtime-v1-data";
 const LEGACY_DRINKS_STORAGE_KEY = "balada-v1-drinks";
 const DATA_VERSION = 11;
-const APP_VERSION = "2.1.6";
+const APP_VERSION = "2.1.7";
 const DRINK_EXPORT_TYPE = "funtime-drinks";
 const DRINK_EXPORT_FORMAT_VERSION = 1;
 const BACKUP_EXPORT_TYPE = "funtime-backup";
@@ -4533,6 +4533,69 @@ document.querySelector('#undo-icon-removal').addEventListener('click', () => {
     restored?.focus();
   } catch (error) { setIconCatalogStatus('Não foi possível restaurar o ícone. Tente novamente.'); }
 });
+
+// Easter egg local: nenhum dado persistido ou gesto nativo é alterado.
+(() => {
+  let taps = [];
+  let contact = null;
+  let balloon = null;
+  let cleanupTimer;
+  const available = () => !document.hidden && !homeView.hidden &&
+    !document.body.matches('.app-locked, .security-booting, .boot-pending, .terms-pending, .browser-mode') &&
+    !document.querySelector('dialog[open]') && toast.hidden && updateToast.hidden;
+  const emptyTarget = target => target instanceof Element &&
+    target.matches('body, #app-shell, #home-view, #drink-list, #home-add-zone, #empty-state, #home-header');
+  const reset = () => { taps = []; contact = null; };
+  const clearBalloon = () => {
+    clearTimeout(cleanupTimer);
+    balloon?.remove();
+    balloon = null;
+  };
+  const cancel = () => { reset(); clearBalloon(); };
+
+  document.addEventListener('pointerdown', event => {
+    if (contact || !event.isPrimary || event.button !== 0 || !available() || !emptyTarget(event.target)) {
+      reset();
+      return;
+    }
+    contact = { id: event.pointerId, x: event.clientX, y: event.clientY, time: event.timeStamp, target: event.target };
+  }, { passive: true });
+  document.addEventListener('pointermove', event => {
+    if (contact?.id === event.pointerId && Math.hypot(event.clientX - contact.x, event.clientY - contact.y) > 12) reset();
+  }, { passive: true });
+  document.addEventListener('pointercancel', reset, { passive: true });
+  document.addEventListener('pointerup', event => {
+    const tap = contact;
+    contact = null;
+    if (!tap || tap.id !== event.pointerId || !available() || event.target !== tap.target ||
+        event.timeStamp - tap.time > 350 || Math.hypot(event.clientX - tap.x, event.clientY - tap.y) > 12) {
+      reset();
+      return;
+    }
+    // 30–300 BPM; pausas ou toques muito próximos iniciam outra sequência.
+    const gap = tap.time - taps.at(-1);
+    if (taps.length && (gap < 200 || gap > 2000)) taps = [];
+    taps.push(tap.time);
+    if (taps.length < 8) return;
+    const bpm = Math.round(60000 * 7 / (taps[7] - taps[0]));
+    reset();
+    clearBalloon();
+    balloon = document.createElement('div');
+    balloon.className = 'tap-bpm-balloon';
+    balloon.setAttribute('aria-hidden', 'true');
+    balloon.textContent = `${bpm} BPM`;
+    document.body.append(balloon);
+    cleanupTimer = setTimeout(clearBalloon, 2200);
+  }, { passive: true });
+  document.addEventListener('scroll', cancel, { passive: true, capture: true });
+  document.addEventListener('visibilitychange', cancel);
+  window.addEventListener('blur', cancel);
+  // Mudanças de tela, bloqueio e avisos encerram também uma sequência parcial.
+  const observer = new MutationObserver(() => { if (!available()) cancel(); });
+  observer.observe(document.body, { attributes: true, attributeFilter: ['class'] });
+  [homeView, toast, updateToast, ...document.querySelectorAll('dialog')].forEach(element =>
+    observer.observe(element, { attributes: true, attributeFilter: ['hidden', 'open'] }));
+})();
 
 document.querySelector('#toast-dismiss').addEventListener('click', () => {
   const onDismiss = state.notificationOnDismiss;

@@ -1,5 +1,11 @@
 # FunTime — documentação de desenvolvimento
 
+## V2.1.7 — easter egg de BPM
+
+Oito toques no fundo livre do Início exibem o BPM dos sete intervalos em texto verde translúcido que sobe e desaparece em 2,2s. Faixa de 30–300 BPM; pausa acima de 2s reinicia a sequência. Cards, textos e controles não contam. Rolagem, pressão longa, múltiplos dedos, mudança de tela, diálogos, avisos e bloqueio interrompem a captura. Movimento reduzido usa apenas esmaecimento. Sem persistência ou alteração de schema. App, boot, rodapés e cache alinhados a 2.1.7; DATA_VERSION 11 preservado. Commit e push autorizados para teste no celular.
+
+Validação: sintaxe de app.js e sw.js; teste tap-bpm-browser aprovado no Edge com perfil isolado, cobrindo cálculo, pausa, sete toques insuficientes, descarte de gestos, diálogos, limpeza do efeito, movimento reduzido e armazenamento preservado. O teste dev-preview-browser falha na expectativa de card neutro (linha 29), também reproduzida com app.js de HEAD anterior à mudança. Toque físico, aparência no celular e atualização da PWA não testados.
+
 ## V2.1.6 — acesso direto ao evento ativo
 
 O card de evento em andamento na Home abre diretamente os detalhes desse evento. Sem evento ativo, o mesmo card continua levando à lista de eventos. Fechar os detalhes retorna à Home. App, boot, rodapés e cache alinhados a 2.1.6; DATA_VERSION 11 preservado. Teste integrado occasions-browser aprovado; celular real e atualização da PWA não testados. Commit e push solicitados.
