@@ -79,10 +79,9 @@ test('vídeo: segurar o aviso abre um player temporário ao fundo', { timeout: 6
   const browser = await chromium.launch({ channel: 'msedge', headless: true });
   try {
     const page = await browser.newPage({ viewport: { width: 390, height: 844 } });
-    const requests = [];
-    await page.route('https://www.youtube-nocookie.com/**', route => {
-      requests.push(route.request().url());
-      return route.fulfill({ contentType: 'text/html', body: '<!doctype html><title>Player de teste</title>' });
+    await page.addInitScript(() => {
+      window.testVibrations = [];
+      Object.defineProperty(navigator, 'vibrate', { value: duration => { window.testVibrations.push(duration); return true; } });
     });
     await page.goto(`http://127.0.0.1:${server.address().port}/funtime/`);
     await page.getByRole('button', { name: 'Começar sem dados', exact: true }).click();
@@ -94,6 +93,8 @@ test('vídeo: segurar o aviso abre um player temporário ao fundo', { timeout: 6
       if (!window.originalTapTestTimeout) {
         window.originalTapTestTimeout = window.setTimeout;
         window.setTimeout = (callback, delay, ...args) => window.originalTapTestTimeout(callback, delay === 2000 ? 300 : delay === 1200 ? 100 : delay === 20000 ? 1500 : delay, ...args);
+        window.backgroundTestRandom = .34;
+        Math.random = () => window.backgroundTestRandom;
       }
       window.videoTapTestTime = (window.videoTapTestTime || 50000) + 3000;
       const target = document.querySelector('.notice');
@@ -108,12 +109,14 @@ test('vídeo: segurar o aviso abre um player temporário ao fundo', { timeout: 6
     await page.waitForTimeout(100);
     assert.equal(await page.locator('.youtube-easter-egg').count(), 0);
     await page.waitForSelector('.youtube-easter-egg.is-visible');
-    const firstSrc = await page.locator('.youtube-easter-egg iframe').getAttribute('src');
-    assert.match(firstSrc, /^https:\/\/www\.youtube-nocookie\.com\/embed\/[\w-]{11}\?/);
-    assert.match(firstSrc, /autoplay=1/);
-    assert.match(firstSrc, /mute=1/);
-    assert.match(firstSrc, /controls=0/);
-    assert.doesNotMatch(firstSrc, /playlist=|loop=1/);
+    const firstSource = await page.locator('.youtube-easter-egg').getAttribute('data-source');
+    assert.match(firstSource, /^\.\/bg\/[\w.-]+\.mp4$/);
+    assert.deepEqual(await page.locator('.youtube-easter-egg video').evaluate(video => ({
+      autoplay: video.autoplay, muted: video.muted, loop: video.loop,
+      playsInline: video.playsInline, controls: video.controls, src: video.src
+    })), { autoplay: true, muted: true, loop: true, playsInline: true, controls: false, src: await page.locator('.youtube-easter-egg video').getAttribute('src') });
+    assert.match(await page.locator('.youtube-easter-egg video').getAttribute('src'), /^blob:/);
+    assert.deepEqual(await page.evaluate(() => window.testVibrations), [1200]);
     assert.equal(await page.locator('#app-shell').getAttribute('inert'), null);
     assert.equal(await page.locator('#app-shell').evaluate(el => getComputedStyle(el).visibility), 'visible');
     assert.equal(await page.locator('.youtube-easter-egg').evaluate(el => getComputedStyle(el).pointerEvents), 'none');
@@ -123,12 +126,14 @@ test('vídeo: segurar o aviso abre um player temporário ao fundo', { timeout: 6
     assert.equal(await page.locator('#drink-dialog').getAttribute('open'), '');
     assert.equal(await page.locator('.youtube-easter-egg').count(), 1);
     await page.locator('#cancel-dialog').click();
-    assert.equal(requests.length, 1);
+    assert.equal(await page.evaluate(async source => Boolean(await (await caches.open('funtime-bg-v1')).match(new URL(source, location.href).href)), firstSource), true);
     await page.waitForSelector('.youtube-easter-egg', { state: 'detached', timeout: 8000 });
+    await page.evaluate(() => { window.backgroundTestRandom = 0; });
     await trigger();
     await page.waitForSelector('.youtube-easter-egg.is-visible');
-    const secondSrc = await page.locator('.youtube-easter-egg iframe').getAttribute('src');
-    assert.notEqual(secondSrc.match(/embed\/([^?]+)/)[1], firstSrc.match(/embed\/([^?]+)/)[1]);
+    const secondSource = await page.locator('.youtube-easter-egg').getAttribute('data-source');
+    assert.notEqual(secondSource, firstSource);
+    assert.deepEqual(await page.evaluate(() => window.testVibrations), [1200, 1200]);
     await page.waitForSelector('.youtube-easter-egg', { state: 'detached', timeout: 8000 });
     assert.equal(await page.evaluate(() => JSON.stringify(localStorage)), before);
   } finally {

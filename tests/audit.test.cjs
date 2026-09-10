@@ -134,6 +134,8 @@ test('shell offline inclui as políticas e todos os arquivos existem', () => {
   const sw=fs.readFileSync('sw.js','utf8');
   const shell=JSON.parse(sw.match(/const APP_SHELL = (\[[\s\S]*?\]);/)[1]);
   assert.ok(shell.includes('./policies.html')); assert.ok(shell.includes('./policies.js'));
+  assert.equal(shell.some(path=>path.startsWith('./bg/')),false);
+  assert.match(sw,/BACKGROUND_CACHE_NAME = "funtime-bg-v1"/);
   for(const path of shell) assert.ok(fs.existsSync(path));
 });
 

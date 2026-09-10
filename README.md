@@ -1,4 +1,8 @@
-# FunTime — V2.1.11
+# FunTime — V2.1.12
+
+## V2.1.12 — fundos locais sob demanda e vibração
+
+O efeito passa a sortear sete MP4s locais da pasta bg, somando cerca de 56 MiB, sem incluí-los no download de instalação. Cada vídeo é baixado integralmente no primeiro sorteio e guardado em funtime-bg-v1, cache separado preservado entre atualizações do shell; limites do navegador ainda podem removê-lo. Uma constante mantém a implementação do YouTube disponível, porém desativada. Ao completar a pressão de 2s, aparelhos compatíveis vibram por 1,2s. App, boot, rodapés e cache alinhados a 2.1.12; política 1.0.2 e DATA_VERSION 11 preservados.
 
 ## V2.1.11 — disparo rápido e entrada suave
 

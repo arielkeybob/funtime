@@ -1,5 +1,11 @@
 # FunTime — documentação de desenvolvimento
 
+## V2.1.12 — fundos locais sob demanda e vibração
+
+BACKGROUND_VIDEO_SOURCE seleciona local por padrão e preserva o ramo youtube para reversão simples. Sete MP4s em bg (58.779.908 bytes) ficam fora de APP_SHELL: a instalação termina sem baixá-los. No primeiro sorteio de cada arquivo, fetch baixa a resposta completa, grava em funtime-bg-v1 e reproduz por blob URL; usos seguintes leem esse cache, inclusive offline enquanto o navegador não o remover. O Service Worker separa os fundos do cache versionado e não guarda respostas Range parciais. Não há pré-download automático nem consumo dos 56 MiB sem o gesto do usuário.
+
+Ao disparar, navigator.vibrate(1200) fornece retorno tátil onde houver suporte; ausência, bloqueio ou truncamento pelo navegador não interrompem o vídeo. O elemento local usa autoplay, muted, loop, playsInline, controls=false, object-fit cover e o mesmo fade/vidro da 2.1.11. App, boot, rodapés e cache alinhados a 2.1.12; política 1.0.2 e DATA_VERSION 11 preservados.
+
 ## V2.1.11 — disparo rápido e entrada suave
 
 Pressionar o aviso por 2s ativa o fundo. O iframe permanece invisível durante o carregamento inicial; 1,2s após o evento load, entra com transição de opacidade de 2s e então permanece por 20s antes do fade de saída. Parâmetros loop e playlist removidos para evitar controles anterior/próximo; controls=0, mute=1, playsinline e bloqueio de teclado preservados. Vídeos do YouTube continuam externos ao Service Worker e não têm disponibilidade offline garantida. App, boot, rodapés e cache alinhados a 2.1.11; política 1.0.2 e DATA_VERSION 11 preservados.

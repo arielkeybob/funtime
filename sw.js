@@ -1,5 +1,6 @@
-const APP_VERSION = "2.1.11";
-const CACHE_NAME = "funtime-v2-1-11";
+const APP_VERSION = "2.1.12";
+const CACHE_NAME = "funtime-v2-1-12";
+const BACKGROUND_CACHE_NAME = "funtime-bg-v1";
 const SHARE_IMPORT_CACHE_NAME = "funtime-share-target-v1";
 const SHARE_IMPORT_REQUEST_PATH = "./__shared-drinks-import__";
 const SHARE_TARGET_MAX_BYTES = 1500000;
@@ -156,6 +157,22 @@ self.addEventListener("fetch", (event) => {
   if (url.origin !== self.location.origin) return;
   // Não guardar recursos da ponte nem devolver o shell v2 fora do próprio escopo.
   if (!url.pathname.startsWith(new URL(self.registration.scope).pathname)) return;
+
+  const backgroundPath = new URL("./bg/", self.registration.scope).pathname;
+  if (url.pathname.startsWith(backgroundPath)) {
+    event.respondWith(
+      caches.open(BACKGROUND_CACHE_NAME).then(async (cache) => {
+        const cached = await cache.match(url.href);
+        if (cached) return cached;
+        // Requisições parciais do elemento video não devem contaminar o cache.
+        if (request.headers.has("range")) return fetch(request);
+        const response = await fetch(request);
+        if (response.ok && response.status === 200) await cache.put(url.href, response.clone());
+        return response;
+      })
+    );
+    return;
+  }
 
   event.respondWith(
     caches.open(CACHE_NAME).then(async (cache) => {

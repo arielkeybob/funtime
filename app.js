@@ -264,7 +264,7 @@ document.addEventListener("visibilitychange", () => {
 const DATA_STORAGE_KEY = "funtime-v1-data";
 const LEGACY_DRINKS_STORAGE_KEY = "balada-v1-drinks";
 const DATA_VERSION = 11;
-const APP_VERSION = "2.1.11";
+const APP_VERSION = "2.1.12";
 const DRINK_EXPORT_TYPE = "funtime-drinks";
 const DRINK_EXPORT_FORMAT_VERSION = 1;
 const BACKUP_EXPORT_TYPE = "funtime-backup";
@@ -4536,7 +4536,13 @@ document.querySelector('#undo-icon-removal').addEventListener('click', () => {
 
 // Easter eggs locais: nenhum dado persistido ou gesto nativo é alterado.
 (() => {
-  const backgroundVideoIds = [
+  const BACKGROUND_VIDEO_SOURCE = 'local';
+  const BACKGROUND_VIDEO_CACHE_NAME = 'funtime-bg-v1';
+  const localBackgroundVideos = [
+    './bg/Bg1.mp4', './bg/Bg2.mp4', './bg/Bg3.mp4', './bg/Bg4.mp4',
+    './bg/Bg5.mp4', './bg/Bg6.mp4', './bg/Bg8-1.mp4'
+  ];
+  const youtubeBackgroundVideoIds = [
     'Q6SzupOIkrs', 'Kjc3Q3Z1a-M', 'RtDRL2DMujw',
     '0Tq9yS-OBSE', 'O2kjyld_fX8', 'DdkAqgDWzvk'
   ];
@@ -4549,7 +4555,8 @@ document.querySelector('#undo-icon-removal').addEventListener('click', () => {
   let videoTimer;
   let videoLoadTimer;
   let videoRevealTimer;
-  let lastVideoId = null;
+  let activeObjectUrl = null;
+  let lastBackgroundChoice = null;
   const available = () => !document.hidden && !homeView.hidden &&
     !document.body.matches('.app-locked, .security-booting, .boot-pending, .terms-pending, .browser-mode, .youtube-easter-egg-active') &&
     !document.querySelector('dialog[open]') && toast.hidden && updateToast.hidden;
@@ -4573,43 +4580,89 @@ document.querySelector('#undo-icon-removal').addEventListener('click', () => {
     clearTimeout(videoRevealTimer);
     if (!videoLayer) return;
     const layer = videoLayer;
+    const objectUrl = activeObjectUrl;
     videoLayer = null;
+    activeObjectUrl = null;
     layer.classList.remove('is-visible');
     setTimeout(() => {
       layer.remove();
+      if (objectUrl) URL.revokeObjectURL(objectUrl);
       document.body.classList.remove('youtube-easter-egg-active');
     }, 2000);
   };
-  const startBackgroundVideo = () => {
-    if (videoLayer || !available()) return;
-    const choices = backgroundVideoIds.filter(id => id !== lastVideoId);
-    const videoId = choices[Math.floor(Math.random() * choices.length)];
-    lastVideoId = videoId;
-    reset();
-    clearBalloon();
-    const layer = document.createElement('div');
-    layer.className = 'youtube-easter-egg';
-    layer.setAttribute('aria-hidden', 'true');
+  const revealBackgroundMedia = (layer, delay = 0) => {
+    clearTimeout(videoLoadTimer);
+    videoRevealTimer = setTimeout(() => {
+      if (videoLayer !== layer) return;
+      layer.classList.add('is-visible');
+      videoTimer = setTimeout(endBackgroundVideo, 20000);
+    }, delay);
+  };
+  const loadLocalBackgroundVideo = async (layer, source) => {
+    const video = document.createElement('video');
+    video.autoplay = true;
+    video.muted = true;
+    video.loop = true;
+    video.playsInline = true;
+    video.preload = 'auto';
+    video.controls = false;
+    video.disablePictureInPicture = true;
+    layer.append(video);
+    try {
+      const sourceUrl = new URL(source, location.href).href;
+      const cache = globalThis.caches ? await caches.open(BACKGROUND_VIDEO_CACHE_NAME) : null;
+      let response = cache ? await cache.match(sourceUrl) : null;
+      if (!response) {
+        response = await fetch(sourceUrl);
+        if (!response.ok) throw new Error(`Falha ao carregar fundo: ${response.status}`);
+        if (cache) await cache.put(sourceUrl, response.clone());
+      }
+      const blob = await response.blob();
+      if (videoLayer !== layer) return;
+      activeObjectUrl = URL.createObjectURL(blob);
+      video.addEventListener('canplay', () => {
+        if (videoLayer !== layer) return;
+        video.play().catch(() => {});
+        revealBackgroundMedia(layer);
+      }, { once: true });
+      video.addEventListener('error', endBackgroundVideo, { once: true });
+      video.src = activeObjectUrl;
+    } catch (error) {
+      console.warn('Não foi possível carregar o vídeo de fundo local.', error);
+      endBackgroundVideo();
+    }
+  };
+  const loadYouTubeBackgroundVideo = (layer, videoId) => {
     const iframe = document.createElement('iframe');
     iframe.title = 'Efeito visual temporário reproduzido pelo YouTube';
     iframe.allow = 'autoplay; encrypted-media; picture-in-picture';
     iframe.referrerPolicy = 'strict-origin-when-cross-origin';
     iframe.src = `https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&mute=1&controls=0&disablekb=1&fs=0&playsinline=1&rel=0`;
     layer.append(iframe);
+    iframe.addEventListener('load', () => revealBackgroundMedia(layer, 1200), { once: true });
+  };
+  const startBackgroundVideo = () => {
+    if (videoLayer || !available()) return;
+    const sources = BACKGROUND_VIDEO_SOURCE === 'local' ? localBackgroundVideos : youtubeBackgroundVideoIds;
+    const choices = sources.filter(source => source !== lastBackgroundChoice);
+    const source = choices[Math.floor(Math.random() * choices.length)];
+    lastBackgroundChoice = source;
+    reset();
+    clearBalloon();
+    const layer = document.createElement('div');
+    layer.className = 'youtube-easter-egg';
+    layer.setAttribute('aria-hidden', 'true');
+    layer.dataset.source = source;
     videoLayer = layer;
     document.body.append(layer);
     document.body.classList.add('youtube-easter-egg-active');
-    iframe.addEventListener('load', () => {
-      clearTimeout(videoLoadTimer);
-      // Dá tempo para o player sair do estado inicial antes do fade de entrada.
-      videoRevealTimer = setTimeout(() => {
-        if (videoLayer !== layer) return;
-        layer.classList.add('is-visible');
-        videoTimer = setTimeout(endBackgroundVideo, 20000);
-      }, 1200);
-    }, { once: true });
+    try {
+      navigator.vibrate?.(1200);
+    } catch (error) {}
+    if (BACKGROUND_VIDEO_SOURCE === 'local') loadLocalBackgroundVideo(layer, source);
+    else loadYouTubeBackgroundVideo(layer, source);
     // Se o player nem carregar, o app volta sozinho em vez de permanecer preto.
-    videoLoadTimer = setTimeout(endBackgroundVideo, 10000);
+    videoLoadTimer = setTimeout(endBackgroundVideo, BACKGROUND_VIDEO_SOURCE === 'local' ? 30000 : 10000);
   };
 
   document.addEventListener('pointerdown', event => {
