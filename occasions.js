@@ -76,6 +76,7 @@
     return { occasions: items, events: records, changes };
   }
   function reconcile(data, now = Date.now()) {
+    if (data.preferences?.eventsEnabled === false) return { occasions: normalize(data), events: data.events, changes: [] };
     let next = { occasions: data.occasions, events: data.events }; const changes = [];
     for (let i = 0; i <= (data.occasions || []).length; i++) {
       next = reconcileStep(next, now); changes.push(...next.changes);
@@ -83,7 +84,19 @@
     }
     return { occasions: next.occasions, events: next.events, changes };
   }
-  const api = { normalize, contains, includeUnassigned, active, pending, reconcile };
+  function configure(data, enabled, now = Date.now()) {
+    const occasions = normalize(data).map(item => {
+      if (!enabled && item.startedAt !== null && item.endedAt === null) {
+        const end = (data.events || []).filter(record => record.occasionId === item.id).reduce((last, record) => Math.max(last, record.consumedAt), Math.max(now, item.startedAt));
+        return { ...item, endedAt: end, closedAt: now, endReason: 'manual' };
+      }
+      // Agendamentos vencidos durante a suspensão exigem início manual.
+      if (enabled && pending(item) && item.scheduledStartAt <= now) return { ...item, autoStart: false };
+      return item;
+    });
+    return { ...data, occasions, preferences: { ...data.preferences, eventsEnabled: enabled } };
+  }
+  const api = { normalize, contains, includeUnassigned, active, pending, reconcile, configure };
   root.FunTimeOccasions = api;
   if (typeof module !== 'undefined') module.exports = api;
 })(globalThis);

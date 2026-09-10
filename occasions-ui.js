@@ -9,10 +9,10 @@ const $occasion = id => document.getElementById(id);
 function occasionDate(timestamp) { return timestamp == null ? '—' : new Date(timestamp).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', year: '2-digit', hour: '2-digit', minute: '2-digit' }); }
 function occasionInput(timestamp) { return toLocalDateInputValue(timestamp) + 'T' + toLocalTimeInputValue(timestamp); }
 function occasionError(message) { const node = $occasion('occasion-form-error'); node.textContent = message; node.hidden = !message; }
-function commitOccasions(occasions, events = state.events) {
+function commitOccasions(occasions, events = state.events, preferences = state.preferences) {
   const normalized = FunTimeOccasions.normalize({ occasions, events });
-  localStorage.setItem(DATA_STORAGE_KEY, JSON.stringify({ ...buildCurrentAppData(), occasions: normalized, events }));
-  state.occasions = normalized; state.events = events;
+  localStorage.setItem(DATA_STORAGE_KEY, JSON.stringify({ ...buildCurrentAppData(), occasions: normalized, events, preferences }));
+  state.occasions = normalized; state.events = events; state.preferences = preferences;
   refreshOccasionFilters(); refreshDataViews();
 }
 function reconcileOccasions() {
@@ -20,6 +20,14 @@ function reconcileOccasions() {
   if (Date.now() < occasionRetryAt) return false;
   reconcilingOccasions = true;
   try {
+    if (!state.preferences.eventsEnabled) {
+      if (FunTimeOccasions.active(state.occasions)) {
+        const next = FunTimeOccasions.configure(buildCurrentAppData(), false);
+        commitOccasions(next.occasions, next.events, next.preferences);
+        showToast('Eventos desativados. O evento em andamento foi encerrado; histórico e contagens preservados.');
+      }
+      refreshOccasionContext(); refreshOccasionReminder(); return true;
+    }
     const next = FunTimeOccasions.reconcile(buildCurrentAppData());
     if (next.changes.length) {
       commitOccasions(next.occasions, next.events);
@@ -37,7 +45,7 @@ function reconcileOccasions() {
     showAppNotification('Não foi possível atualizar a agenda. Tente novamente em instantes; os dados foram preservados.', { type: 'error' }); return false;
   } finally { reconcilingOccasions = false; }
 }
-function openOccasionView() { reconcileOccasions(); setCurrentView('occasion'); renderOccasions(); window.scrollTo(0, 0); }
+function openOccasionView() { if (!state.preferences.eventsEnabled) return; reconcileOccasions(); setCurrentView('occasion'); renderOccasions(); window.scrollTo(0, 0); }
 function closeOccasionEditor() { editingOccasionId = null; occasionOriginal = null; occasionDialog.close(); }
 function closeOccasionDetails() { detailOccasionId = null; occasionDetailDialog.close(); }
 function editorVisibility() {
@@ -53,6 +61,7 @@ function editorVisibility() {
   $occasion('occasion-submit').textContent = current ? 'Salvar alterações' : past ? 'Cadastrar evento' : planned ? 'Agendar evento' : 'Iniciar evento';
 }
 function openOccasionEditor(id = null) {
+  if (!state.preferences.eventsEnabled) return;
   const current = id ? state.occasions.find(item => item.id === id) : null;
   editingOccasionId = id; occasionOriginal = current ? JSON.stringify(current) : null;
   occasionSuggestedStart = Date.now();
@@ -84,7 +93,7 @@ $occasion('occasion-mode').addEventListener('change', () => {
 $occasion('occasion-has-end').addEventListener('change', editorVisibility);
 $occasion('occasion-start').addEventListener('input', editorVisibility);
 occasionForm.addEventListener('submit', event => {
-  event.preventDefault(); if (state.securityLocked || !occasionDialog.open) return;
+  event.preventDefault(); if (state.securityLocked || !occasionDialog.open || !state.preferences.eventsEnabled) return;
   const current = state.occasions.find(item => item.id === editingOccasionId);
   if (editingOccasionId && JSON.stringify(current) !== occasionOriginal) { occasionError('O evento mudou. Feche e abra novamente.'); return; }
   let planned = current ? current.startedAt === null : $occasion('occasion-mode').value === 'scheduled';
@@ -121,6 +130,7 @@ occasionForm.addEventListener('submit', event => {
   } catch { occasionError('Não foi possível salvar. Verifique períodos conflitantes, registros fora do período ou tente novamente.'); }
 });
 async function changeOccasion(id, action) {
+  if (!state.preferences.eventsEnabled) return;
   const item = state.occasions.find(occasion => occasion.id === id); if (!item) return;
   const snapshot = JSON.stringify(item);
   const options = {
@@ -215,12 +225,19 @@ function renderOccasions() {
   $occasion('agenda-more').hidden = items.length <= agendaLimit;
 }
 function refreshOccasionContext() {
+  const enabled = state.preferences.eventsEnabled === true;
+  $occasion('events-enabled').checked = enabled;
+  $occasion('nav-occasion').hidden = !enabled;
+  document.querySelector('.bottom-nav').style.gridTemplateColumns = `repeat(${enabled ? 4 : 3}, minmax(0, 1fr))`;
+  $occasion('home-occasion').hidden = !enabled;
+  if (!enabled) return;
   const active = FunTimeOccasions.active(state.occasions), button = $occasion('home-occasion');
   const text = active ? active.name + ' · Em andamento ›' : 'Sem evento em andamento · Eventos ›'; if (button.textContent !== text) button.textContent = text;
   if (state.currentView === 'occasion') renderOccasions();
 }
 function refreshOccasionReminder() {
   const box = $occasion('occasion-reminder');
+  if (!state.preferences.eventsEnabled) { box.hidden = true; return; }
   const upcoming = [...state.occasions].filter(item => FunTimeOccasions.pending(item) && !item.autoStart && Math.abs(item.scheduledStartAt - Date.now()) <= 3600000).sort((a,b) => a.scheduledStartAt - b.scheduledStartAt)[0];
   const key = upcoming ? upcoming.id + ':' + upcoming.scheduledStartAt : '';
   let dismissed = false; try { dismissed = sessionStorage.getItem('funtime-agenda-dismissed') === key; } catch { dismissed = box.dataset.dismissed === key; }
@@ -231,11 +248,13 @@ function refreshOccasionReminder() {
   box.append(text, occasionButton('Iniciar agora', () => changeOccasion(upcoming.id, 'start'), 'primary-button'), occasionButton('Agora não', () => { try { sessionStorage.setItem('funtime-agenda-dismissed', key); } catch {} box.dataset.dismissed = key; box.hidden = true; }));
 }
 function refreshOccasionFilters() {
+  $occasion('history-occasion-filter').parentElement.hidden = !state.preferences.eventsEnabled && !state.occasions.some(item => item.startedAt !== null);
   const select = $occasion('history-occasion-filter'); select.replaceChildren(new Option('Todos os eventos', 'all'), new Option('Sem evento', 'none'));
   for (const item of [...state.occasions].filter(item => item.startedAt !== null).sort((a,b) => b.startedAt-a.startedAt)) select.add(new Option(item.name + ' · ' + toLocalDateInputValue(item.startedAt), item.id));
   if (!['all','none', ...state.occasions.map(item => item.id)].includes(state.historyOccasionId)) state.historyOccasionId = 'all'; select.value = state.historyOccasionId || 'all';
 }
 function populateRecordOccasions(record) {
+  $occasion('record-occasion').parentElement.hidden = !state.preferences.eventsEnabled && !record.occasionId;
   const select = $occasion('record-occasion'); select.replaceChildren(new Option('Sem evento', ''));
   for (const item of state.occasions.filter(item => item.startedAt !== null)) select.add(new Option(item.name + ' · ' + toLocalDateInputValue(item.startedAt), item.id)); select.value = record.occasionId || '';
 }
@@ -249,4 +268,20 @@ for (const id of ['agenda-search','agenda-month']) $occasion(id).addEventListene
 $occasion('agenda-more').addEventListener('click', () => { agendaLimit += 20; renderOccasions(); });
 document.addEventListener('visibilitychange', () => { if (!document.hidden) reconcileOccasions(); });
 window.addEventListener('focus', reconcileOccasions);
+$occasion('events-enabled').addEventListener('change', async event => {
+  const input = event.target, enabled = input.checked;
+  input.checked = state.preferences.eventsEnabled === true;
+  input.disabled = true;
+  try {
+    if (state.securityLocked) return;
+    const current = FunTimeOccasions.active(state.occasions);
+    if (!enabled && current && !await showAppConfirmation('“' + current.name + '” será encerrado agora. As contagens continuam e os agendamentos ficam suspensos.', { title: 'Desativar eventos?', confirmLabel: 'Encerrar e desativar' })) return;
+    if (state.securityLocked) return;
+    const next = FunTimeOccasions.configure(buildCurrentAppData(), enabled);
+    commitOccasions(next.occasions, next.events, next.preferences);
+    refreshOccasionContext(); refreshOccasionReminder();
+    showToast(enabled ? 'Eventos ativados. Agendamentos vencidos aguardam início manual.' : 'Eventos desativados. Histórico e contagens preservados.');
+  } catch { showAppNotification('Não foi possível salvar a preferência. Os dados foram preservados.', { type: 'error' }); }
+  finally { input.disabled = false; input.checked = state.preferences.eventsEnabled === true; }
+});
 refreshOccasionContext(); refreshOccasionFilters(); setCurrentView(state.currentView); reconcileOccasions();

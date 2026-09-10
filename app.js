@@ -264,7 +264,7 @@ document.addEventListener("visibilitychange", () => {
 const DATA_STORAGE_KEY = "funtime-v1-data";
 const LEGACY_DRINKS_STORAGE_KEY = "balada-v1-drinks";
 const DATA_VERSION = 11;
-const APP_VERSION = "2.1.1";
+const APP_VERSION = "2.1.2";
 const DRINK_EXPORT_TYPE = "funtime-drinks";
 const DRINK_EXPORT_FORMAT_VERSION = 1;
 const BACKUP_EXPORT_TYPE = "funtime-backup";
@@ -1223,6 +1223,7 @@ function normalizeData(data) {
     events,
     occasions,
     preferences: {
+      eventsEnabled: data.preferences?.eventsEnabled === true,
       cleanInterface: data.preferences?.cleanInterface !== false,
       countingMode: data.preferences?.countingMode === "normal" ? "normal" : "countdown",
       iconCatalog: normalizeIconCatalog(data.preferences?.iconCatalog),
@@ -1735,6 +1736,7 @@ function validateBackupPayload(payload) {
       typeof data.preferences.cleanInterface !== "boolean"))) invalid();
   if (data.preferences?.countingMode !== undefined && !["countdown", "normal"].includes(data.preferences.countingMode)) invalid();
   // Reconstrói apenas campos conhecidos; não mescla propriedades do arquivo.
+  if (data.preferences?.eventsEnabled !== undefined && typeof data.preferences.eventsEnabled !== "boolean") invalid();
   const catalog = data.preferences?.iconCatalog;
   if (catalog !== undefined && (!Array.isArray(catalog) || catalog.length > 100 ||
       catalog.some(icon => !validText(icon, 64)) || new Set(catalog.map(icon => icon.trim())).size !== catalog.length)) invalid();
@@ -2415,8 +2417,8 @@ function render() {
     name.textContent = drink.name;
 
     const activity = getDrinkActivity(drink);
-    const occasion = FunTimeOccasions.active(state.occasions);
-    const neutral = activity.state === "completed" && (!occasion || activity.latestEvent.occasionId !== occasion.id);
+    const occasion = state.preferences.eventsEnabled ? FunTimeOccasions.active(state.occasions) : null;
+    const neutral = activity.state === "completed" && (state.preferences.eventsEnabled ? (!occasion || activity.latestEvent.occasionId !== occasion.id) : Date.now() - activity.latestEvent.consumedAt >= 86400000);
     card.classList.add(neutral ? "neutral" : activity.state);
 
     if (activity.state === "new") {
@@ -2661,7 +2663,7 @@ function registerDrinkAt(id, timestamp, { doseSize = null, onSaved = null } = {}
     drinkName: drink.name,
     drinkIcon: drink.icon,
     consumedAt: timestamp,
-    occasionId: (() => { const current = FunTimeOccasions.active(state.occasions); return current && FunTimeOccasions.contains(current, timestamp) ? current.id : null; })(),
+    occasionId: (() => { const current = state.preferences.eventsEnabled ? FunTimeOccasions.active(state.occasions) : null; return current && FunTimeOccasions.contains(current, timestamp) ? current.id : null; })(),
     intervalMinutes: drink.intervalMinutes,
     doseSize: drink.askDoseSize ? (normalizeDoseSize(doseSize) || "full") : null,
   };
@@ -2675,7 +2677,7 @@ function registerDrinkAt(id, timestamp, { doseSize = null, onSaved = null } = {}
   }
   onSaved?.();
   refreshDataViews();
-  if (!event.occasionId && FunTimeOccasions.active(state.occasions)) showToast("Registro fora do período atual: salvo sem evento. Você pode associá-lo pelo Histórico.");
+  if (state.preferences.eventsEnabled && !event.occasionId && FunTimeOccasions.active(state.occasions)) showToast("Registro fora do período atual: salvo sem evento. Você pode associá-lo pelo Histórico.");
 
   const reorder = state.currentView === "home"
     ? animateDrinkReorder(previousPositions, drink.id)

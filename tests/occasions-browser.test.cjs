@@ -9,6 +9,11 @@ test('agenda compacta, evento, edição, agendamento automático, aviso e persis
   await page.getByRole('button',{name:'Começar sem dados',exact:true}).click();
   for(const box of await page.locator('#terms-form input[type=checkbox]').all()) await box.check();
   await page.locator('#terms-continue').click(); await page.waitForFunction(()=>!document.body.classList.contains('boot-pending'));
+  assert.equal(await page.locator('#nav-occasion').isVisible(),false);
+  await page.locator('#open-settings').click();
+  assert.equal(await page.locator('#events-enabled').isChecked(),false);
+  await page.locator('label[for=events-enabled]').click();
+  assert.equal(await page.locator('#nav-occasion').isVisible(),true);
   await page.locator('#nav-occasion').click();
   assert.deepEqual(await page.locator('.agenda-tabs button').allTextContents(), ['Anteriores', 'Próximos']);
   await page.locator('#occasion-new').click();
@@ -81,6 +86,14 @@ test('agenda compacta, evento, edição, agendamento automático, aviso e persis
   assert.equal(await page.evaluate(()=>state.occasions[0].endedAt),null);
   await page.evaluate(()=>{Storage.prototype.setItem=realSetItem;occasionRetryAt=0;reconcileOccasions();});
   assert.equal(await page.evaluate(()=>state.occasions[0].endReason),'empty48h');
+  await page.locator('#open-settings').click();
+  await page.locator('label[for=events-enabled]').click();
+  assert.equal(await page.locator('#nav-occasion').isVisible(),false);
+  await page.reload();
+  await page.waitForFunction(()=>typeof state!=='undefined'&&!document.body.classList.contains('boot-pending'));
+  assert.equal(await page.evaluate(()=>state.preferences.eventsEnabled),false);
+  assert.equal(await page.locator('#nav-occasion').isVisible(),false);
+  await page.evaluate(()=>{const payload={type:BACKUP_EXPORT_TYPE,formatVersion:2,data:buildCurrentAppData()};if(validateBackupPayload(payload).preferences.eventsEnabled!==false)throw Error('preferência perdida');});
   assert.deepEqual(errors,[]);
  } finally { await browser.close(); await new Promise(resolve=>server.close(resolve)); }
 });

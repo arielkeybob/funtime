@@ -1,5 +1,10 @@
 # FunTime — documentação de desenvolvimento
 
+## V2.1.2 — eventos opcionais
+
+Usar eventos desmarcado por padrão. Desativação preserva histórico e contagens, encerra o evento atual e suspende agendamentos; reativação não inicia automaticamente os vencidos. Sem eventos, cards concluídos ficam neutros após 24h. App, boot, rodapés e cache alinhados a 2.1.2; DATA_VERSION 11 preservado. Commit e push solicitados. Celular real não testado.
+
+
 ## V2.1.1 — cadastro de eventos passados
 
 Cadastro retroativo com aviso e inclusão de registros sem evento no período. Abas Anteriores / Próximos; Iniciar agora usa o instante da confirmação e oculta a data. App, boot, rodapés e cache alinhados a 2.1.1; DATA_VERSION 11 preservado. Commit e push solicitados. Celular real não testado.
@@ -2283,3 +2288,6 @@ Validação da agenda: 64 testes aprovados em audit, agenda, occasions, occasion
 
 ## Cadastro retroativo de eventos
 Escolher data aceita início passado com aviso. Com término passado, salva encerrado; sem término, segue as regras do evento em andamento e recuperação após 48h. Inclui registros sem evento no período, preservando vínculos existentes e rejeitando sobreposição. Iniciar agora oculta o editor de início e usa o instante de confirmação. Abas ordenadas Anteriores / Próximos. Schema 11 preservado. Sete testes de agenda, ocasiões e navegador aprovados, incluindo cadastro retroativo e associação. Sintaxe app.js, sw.js e occasions-ui.js verificada; celular real não testado.
+
+## Eventos opcionais (implementação local)
+Usar eventos fica desmarcado por padrão, inclusive em dados antigos sem preferência explícita. eventsEnabled é preservado no backup completo e validado como booleano; schema 11 mantido. Desativação encerra evento ativo e salva a preferência na mesma gravação, mantendo snapshots e contagens. Na primeira abertura de dados legados com evento ativo, o encerramento é aplicado com aviso. Agendamentos ficam suspensos; reativação converte início automático vencido em manual e mantém os futuros. Novas doses não recebem evento quando desativado; vínculos históricos são preservados. Navegação usa três itens, sem contexto/lembrete na Home. Cards concluídos sem eventos ficam neutros após 24h. Celular real não testado.

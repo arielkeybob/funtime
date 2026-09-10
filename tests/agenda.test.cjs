@@ -2,6 +2,17 @@ const { test } = require('node:test'); const assert = require('node:assert/stric
 const model = require('../occasions.js'); const hour = 3600000;
 const active = { id: 'a', name: 'Festa', startedAt: 0, endedAt: null };
 const planned = { id: 'b', name: 'Próxima', startedAt: null, endedAt: null, scheduledStartAt: 50 * hour, autoStart: true };
+test('desativar preserva doses e suspende agenda; reativar não inicia agendamento vencido', () => {
+  const events = [{ id:'dose', occasionId:'a', consumedAt:hour, intervalMinutes:180 }];
+  const off = model.configure({occasions:[active,planned],events,preferences:{eventsEnabled:true}},false,2*hour);
+  assert.equal(off.occasions[0].endedAt,2*hour);
+  assert.equal(off.events,events);
+  assert.deepEqual(model.reconcile(off,60*hour).changes,[]);
+  const on = model.configure(off,true,60*hour);
+  assert.equal(on.occasions[1].autoStart,false);
+  assert.equal(model.reconcile(on,60*hour).occasions[1].startedAt,null);
+  assert.equal(model.configure(off,true,40*hour).occasions[1].autoStart,true);
+});
 test('48h usa maior término dos snapshots, não apenas última dose, e é idempotente', () => {
   const data = { occasions: [active], events: [{ id: '1', occasionId: 'a', consumedAt: 17 * hour, intervalMinutes: 180 }, { id: '2', occasionId: 'a', consumedAt: 18 * hour, intervalMinutes: 60 }] };
   assert.equal(model.reconcile(data, 48 * hour - 1).changes.length, 0);
