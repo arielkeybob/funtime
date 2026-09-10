@@ -264,7 +264,7 @@ document.addEventListener("visibilitychange", () => {
 const DATA_STORAGE_KEY = "funtime-v1-data";
 const LEGACY_DRINKS_STORAGE_KEY = "balada-v1-drinks";
 const DATA_VERSION = 11;
-const APP_VERSION = "2.1.9";
+const APP_VERSION = "2.1.10";
 const DRINK_EXPORT_TYPE = "funtime-drinks";
 const DRINK_EXPORT_FORMAT_VERSION = 1;
 const BACKUP_EXPORT_TYPE = "funtime-backup";
@@ -4537,9 +4537,8 @@ document.querySelector('#undo-icon-removal').addEventListener('click', () => {
 // Easter eggs locais: nenhum dado persistido ou gesto nativo é alterado.
 (() => {
   const backgroundVideoIds = [
-    'AEgkCIiJMyo', 'l45aNqS_tgI', 'yVjz0BIwaeA', 'DdkAqgDWzvk',
-    'Q6SzupOIkrs', 'Kjc3Q3Z1a-M', 'q_NnLCu6HAY', 'DRThtg_j3Dk',
-    'O2kjyld_fX8', 'JoK7DLPtCgs', 'KAOCQ8co4VI', 'Jmnzev284H4'
+    'Q6SzupOIkrs', 'Kjc3Q3Z1a-M', 'RtDRL2DMujw',
+    '0Tq9yS-OBSE', 'O2kjyld_fX8', 'DdkAqgDWzvk'
   ];
   let taps = [];
   let contact = null;
@@ -4614,12 +4613,11 @@ document.querySelector('#undo-icon-removal').addEventListener('click', () => {
     }
     const notice = Boolean(event.target.closest('.notice'));
     contact = { id: event.pointerId, x: event.clientX, y: event.clientY, time: event.timeStamp, target: event.target, notice };
-    const gap = event.timeStamp - (taps.at(-1)?.time ?? 0);
-    if (notice && taps.length === 2 && taps.every(tap => tap.notice) && gap >= 200 && gap <= 900) {
+    if (notice) {
       const pointerId = event.pointerId;
       holdTimer = setTimeout(() => {
         if (contact?.id === pointerId) startBackgroundVideo();
-      }, 900);
+      }, 6000);
     }
   }, { passive: true });
   document.addEventListener('pointermove', event => {

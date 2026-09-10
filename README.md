@@ -1,4 +1,8 @@
-# FunTime — V2.1.9
+# FunTime — V2.1.10
+
+## V2.1.10 — pressão longa e nova seleção de fundos
+
+Segurar o aviso da Home por 6 segundos substitui a sequência de dois toques e pressão no terceiro. O sorteio passa a usar seis Shorts revisados, preservando fundo integrado, áudio mudo, duração de 20 segundos, vidro e uso normal do app. App, boot, rodapés e cache alinhados a 2.1.10; política 1.0.2 e DATA_VERSION 11 preservados.
 
 ## V2.1.9 — vídeo integrado ao fundo
 

@@ -1,5 +1,9 @@
 # FunTime — documentação de desenvolvimento
 
+## V2.1.10 — pressão longa e nova seleção de fundos
+
+Pressionar continuamente o card de aviso da Home por 6s ativa o fundo; soltar ou mover mais de 12px antes disso cancela. Toques curtos continuam alimentando o BPM, sem espera ou conflito. A lista passa a Q6SzupOIkrs, Kjc3Q3Z1a-M, RtDRL2DMujw, 0Tq9yS-OBSE, O2kjyld_fX8 e DdkAqgDWzvk, todos respondendo ao oEmbed do YouTube em 10/09/2026. Fundo integrado, opacidade, vidro, duração e privacidade da 2.1.9 preservados. App, boot, rodapés e cache alinhados a 2.1.10; política 1.0.2 e DATA_VERSION 11 mantidos.
+
 ## V2.1.9 — vídeo integrado ao fundo
 
 Dois toques no aviso da Home seguidos de uma pressão de 900ms no terceiro toque abrem, sem áudio, um entre doze Shorts incorporados do YouTube. O player fica fixo atrás da interface por 20s, preenchendo a viewport com opacidade de 52%; cards e navegação recebem fundo translúcido, desfoque e contraste, permanecendo utilizáveis. A escolha evita repetir imediatamente o último vídeo. Falha de carregamento devolve a interface em até 10s. Oito toques no mesmo aviso também acionam o BPM; seleção de texto e menu de contexto ficam desativados somente nesse card. Rolagem, arraste, outros dedos, diálogos e bloqueio cancelam a sequência.

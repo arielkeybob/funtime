@@ -73,7 +73,7 @@ test('BPM: oito toques, interrupções, isolamento e movimento reduzido', { time
   }
 });
 
-test('vídeo: dois toques e segurar o terceiro abre um player temporário isolado', { timeout: 60000 }, async () => {
+test('vídeo: segurar o aviso abre um player temporário ao fundo', { timeout: 60000 }, async () => {
   const server = createDevServer();
   await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
   const browser = await chromium.launch({ channel: 'msedge', headless: true });
@@ -93,7 +93,7 @@ test('vídeo: dois toques e segurar o terceiro abre um player temporário isolad
     const trigger = () => page.evaluate(() => {
       if (!window.originalTapTestTimeout) {
         window.originalTapTestTimeout = window.setTimeout;
-        window.setTimeout = (callback, delay, ...args) => window.originalTapTestTimeout(callback, delay === 20000 ? 1500 : delay, ...args);
+        window.setTimeout = (callback, delay, ...args) => window.originalTapTestTimeout(callback, delay === 6000 ? 300 : delay === 20000 ? 1500 : delay, ...args);
       }
       window.videoTapTestTime = (window.videoTapTestTime || 50000) + 3000;
       const target = document.querySelector('.notice');
@@ -102,14 +102,11 @@ test('vídeo: dois toques e segurar o terceiro abre um player temporário isolad
         Object.defineProperty(event, 'timeStamp', { value: time });
         target.dispatchEvent(event);
       };
-      for (let i = 0; i < 2; i++) {
-        const time = window.videoTapTestTime + i * 300;
-        send('pointerdown', time);
-        send('pointerup', time + 50);
-      }
-      send('pointerdown', window.videoTapTestTime + 600);
+      send('pointerdown', window.videoTapTestTime);
     });
     await trigger();
+    await page.waitForTimeout(100);
+    assert.equal(await page.locator('.youtube-easter-egg').count(), 0);
     await page.waitForSelector('.youtube-easter-egg.is-visible');
     const firstSrc = await page.locator('.youtube-easter-egg iframe').getAttribute('src');
     assert.match(firstSrc, /^https:\/\/www\.youtube-nocookie\.com\/embed\/[\w-]{11}\?/);
@@ -126,12 +123,12 @@ test('vídeo: dois toques e segurar o terceiro abre um player temporário isolad
     assert.equal(await page.locator('.youtube-easter-egg').count(), 1);
     await page.locator('#cancel-dialog').click();
     assert.equal(requests.length, 1);
-    await page.waitForSelector('.youtube-easter-egg', { state: 'detached', timeout: 4000 });
+    await page.waitForSelector('.youtube-easter-egg', { state: 'detached', timeout: 8000 });
     await trigger();
     await page.waitForSelector('.youtube-easter-egg.is-visible');
     const secondSrc = await page.locator('.youtube-easter-egg iframe').getAttribute('src');
     assert.notEqual(secondSrc.match(/embed\/([^?]+)/)[1], firstSrc.match(/embed\/([^?]+)/)[1]);
-    await page.waitForSelector('.youtube-easter-egg', { state: 'detached', timeout: 4000 });
+    await page.waitForSelector('.youtube-easter-egg', { state: 'detached', timeout: 8000 });
     assert.equal(await page.evaluate(() => JSON.stringify(localStorage)), before);
   } finally {
     await browser.close();
