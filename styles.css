@@ -3331,3 +3331,20 @@ body {
 .date-time-editor { border: 1px solid var(--border); border-radius: 12px; background: #09090b; }
 .date-time-editor > summary { padding: 15px; cursor: pointer; font-size: .9rem; }
 .date-time-editor-body { padding: 0 14px 14px; display: grid; gap: 16px; }
+.agenda-tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; padding: 4px; border: 1px solid var(--border); border-radius: 14px; margin: 20px 0 12px; }
+.agenda-tabs button { border: 0; background: transparent; color: var(--muted); padding: 12px; border-radius: 10px; font: inherit; font-size: .85rem; }
+.agenda-tabs button[aria-pressed="true"] { background: #303036; color: white; }
+.agenda-row { display: grid; gap: 6px; width: 100%; border: 1px solid var(--border); border-radius: 14px; background: var(--surface); color: var(--text); text-align: left; padding: 15px; margin: 8px 0; font: inherit; }
+.agenda-row strong { overflow-wrap: anywhere; }
+.agenda-row span, .agenda-row small { color: var(--muted); font-size: .78rem; line-height: 1.5; }
+.agenda-month-heading { font-size: .85rem; text-transform: capitalize; color: var(--muted); margin: 24px 0 10px; }
+.agenda-empty { color: var(--muted); padding: 24px 4px; line-height: 1.6; }
+.agenda-filters > summary, .agenda-options > summary { cursor: pointer; padding: 12px 0; color: var(--muted); }
+.agenda-options { margin-top: 24px; } .agenda-options button { display: block; width: 100%; margin: 10px 0; min-height: 44px; }
+#occasion-detail-content h2 { overflow-wrap: anywhere; }
+#occasion-header { align-items: center; justify-content: space-between; }
+#occasion-header .primary-button { padding: 10px 15px; font-size: .85rem; min-height: 44px; }
+#occasion-mode, .agenda-filters input { width: 100%; min-height: 48px; border: 1px solid var(--border); border-radius: 12px; padding: 12px; color: var(--text); background: var(--surface); font: inherit; }
+.occasion-reminder { border: 1px solid #777088; background: var(--surface); border-radius: 14px; padding: 16px; margin-bottom: 16px; }
+.occasion-reminder p { margin: 0 0 14px; line-height: 1.5; }
+.occasion-reminder button { padding: 10px 14px; margin-right: 8px; font-size: .8rem; }

@@ -10,7 +10,7 @@ function extract(name) {
 }
 function context(extra = {}) {
   const ctx = vm.createContext({ console, Blob, File, crypto: require('node:crypto').webcrypto, FunTimeOccasions: require("../occasions.js"), ...extra });
-  vm.runInContext(`const DATA_VERSION=10, PICKER_ICONS=["🍺","💧"], DEFAULT_ICON='🍺', DRINK_EXPORT_TYPE='funtime-drinks', DRINK_EXPORT_FORMAT_VERSION=1, BACKUP_EXPORT_TYPE='funtime-backup', BACKUP_EXPORT_FORMAT_VERSION=2, DATA_STORAGE_KEY='funtime-v1-data';`, ctx);
+  vm.runInContext(`const DATA_VERSION=11, PICKER_ICONS=["🍺","💧"], DEFAULT_ICON='🍺', DRINK_EXPORT_TYPE='funtime-drinks', DRINK_EXPORT_FORMAT_VERSION=1, BACKUP_EXPORT_TYPE='funtime-backup', BACKUP_EXPORT_FORMAT_VERSION=2, DATA_STORAGE_KEY='funtime-v1-data';`, ctx);
   for (const name of ['normalizeIconCatalog', 'persistIconCatalog', 'createId', 'normalizeIcon', 'normalizeIntervalMinutes', 'normalizeDoseSize', 'normalizeData', 'normalizeImportedDrink', 'validateDrinkExportPayload', 'validateBackupPayload', 'confirmBackupRestore', 'buildCurrentAppData', 'persistDrinkList']) vm.runInContext(extract(name), ctx);
   vm.runInContext('async ' + extract('readJsonFile'), ctx);
   return ctx;
@@ -69,7 +69,7 @@ test('FunTime lê arquivos das duas marcas e distingue bebidas de backup', () =>
 });
 test('backup rejeita schema futuro, datas inválidas, duplicatas e tipos incorretos', () => {
   const c=context();
-  for (const mutate of [b=>b.data.version=11,b=>b.data.events[0].consumedAt=1e30,b=>b.data.events[0].consumedAt='123',b=>b.data.events.push({...b.data.events[0]}),b=>b.data.drinks.push({...drink}),b=>b.data.events[0].doseSize='quarter',b=>b.data.preferences.cleanInterface='false',b=>b.data.drinks[0].askDoseSize='false',b=>b.data.events[0].intervalMinutes=null]) {
+  for (const mutate of [b=>b.data.version=12,b=>b.data.events[0].consumedAt=1e30,b=>b.data.events[0].consumedAt='123',b=>b.data.events.push({...b.data.events[0]}),b=>b.data.drinks.push({...drink}),b=>b.data.events[0].doseSize='quarter',b=>b.data.preferences.cleanInterface='false',b=>b.data.drinks[0].askDoseSize='false',b=>b.data.events[0].intervalMinutes=null]) {
     const b=backup(); mutate(b); assert.throws(()=>c.validateBackupPayload(b));
   }
 });

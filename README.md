@@ -1,4 +1,10 @@
-# FunTime — V2.0.12
+# FunTime — V2.1.0
+
+## V2.1.0 — eventos e navegação inferior
+
+O usuário criou e enviou o commit 3bcfff7, com eventos e menu inferior, mas os identificadores internos ainda eram 2.0.12. Correção nesta versão: app, boot, rodapés e cache funtime-v2-1-0 alinhados a 2.1.0; a agenda evolui o schema para DATA_VERSION 11; backup formato 2 mantido. Sem reescrever o commit anterior. Agenda compacta, agendamento e automações incluídos na versão 2.1.0; commit e push autorizados em 09/09/2026. Estado e validações em DEVELOPMENT.md.
+
+Incluídos no commit do usuário: concluir Anotar consumo volta à Home após gravação bem-sucedida; editar o período de um evento inclui registros sem evento dentro dele, preservando vínculos existentes e snapshots.
 
 ## V2.0.12 — data do consumo anterior
 

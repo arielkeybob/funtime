@@ -263,8 +263,8 @@ document.addEventListener("visibilitychange", () => {
 
 const DATA_STORAGE_KEY = "funtime-v1-data";
 const LEGACY_DRINKS_STORAGE_KEY = "balada-v1-drinks";
-const DATA_VERSION = 10;
-const APP_VERSION = "2.0.12";
+const DATA_VERSION = 11;
+const APP_VERSION = "2.1.0";
 const DRINK_EXPORT_TYPE = "funtime-drinks";
 const DRINK_EXPORT_FORMAT_VERSION = 1;
 const BACKUP_EXPORT_TYPE = "funtime-backup";
@@ -2645,6 +2645,7 @@ function closeHistoryView() {
 }
 
 function registerDrinkAt(id, timestamp, { doseSize = null, onSaved = null } = {}) {
+  if (globalThis.reconcileOccasions && !reconcileOccasions()) return;
   const drink = state.drinks.find((item) => item.id === id);
   if (!drink) return;
 
@@ -4163,6 +4164,7 @@ function applyPendingAppUpdate() {
 function startClock() {
   clearInterval(state.timerId);
   state.timerId = setInterval(() => {
+    globalThis.reconcileOccasions?.();
     if (state.currentView === "home" && Date.now() >= state.reorderAnimationUntil) {
       render();
     } else if (state.currentView === "history") {

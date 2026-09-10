@@ -1,5 +1,11 @@
 # FunTime — documentação de desenvolvimento
 
+## V2.1.0 — eventos e navegação inferior
+
+O usuário criou e enviou o commit 3bcfff7, com eventos e menu inferior, mas os identificadores internos ainda eram 2.0.12. Correção local: app, boot, rodapés e cache funtime-v2-1-0 alinhados a 2.1.0; A agenda evolui o schema para DATA_VERSION 11; backup formato 2 mantido. Sem reescrever o commit anterior. Agenda compacta, agendamento e automações implementados localmente para avaliação; estado atual em DEVELOPMENT.md.
+
+Incluídos no commit do usuário: concluir Anotar consumo volta à Home após gravação bem-sucedida; editar o período de um evento inclui registros sem evento dentro dele, preservando vínculos existentes e snapshots.
+
 ## V2.0.12 — data do consumo anterior
 
 No card do Início, Anterior mantém o horário antes de 24 horas e passa a exibir a data local em dd/mm/aa a partir de 24 horas completas. Preserva o sufixo de tamanho da dose; o relógio existente atualiza a apresentação sem reabrir o app. App/boot/footers 2.0.12, cache funtime-v2-0-12; DATA_VERSION 9 e aceite preservados. Commit e push solicitados. Celular real não testado.
@@ -16,8 +22,8 @@ Horário do registro alinhado às roletas compartilhadas, data com dia da semana
 
 Commit e push solicitados. Validação em navegador com origem e perfil isolados; celular real e atualização da PWA no aparelho permanecem pendentes.
 
-**Versão da aplicação:** `v2.0.12`\
-**Versão do modelo persistido em desenvolvimento:** `DATA_VERSION = 10` (publicado: 9)\
+**Versão da aplicação:** `v2.1.0`\
+**Versão do modelo persistido em desenvolvimento:** `DATA_VERSION = 11` (base publicada do recurso: 10)\
 **Autor exibido na interface:** `arielkeybob`  
 **Stack:** HTML + CSS + JavaScript puro  
 **Persistência:** `localStorage`  
@@ -2251,3 +2257,21 @@ Registros novos entram no evento aberto quando o timestamp pertence ao período.
 Esta é uma versão de avaliação local, sem commit/push. Versão visível e cache de release ainda 2.0.12; precisam de nova versão antes de publicação. Dados experimentais ficam na origem de prévia; backups do schema 10 não devem ser usados na versão publicada 2.0.12. Não houve leitura ou limpeza de dados do GitHub Pages. Planejamento e pendências em EVENTOS-PLANEJAMENTO.md.
 
 Validação desta etapa: 59 testes aprovados (audit, occasions, occasions-browser, dev-preview-browser, countdown-menu-browser, navigation-browser, migration, reset, ui, receiver-browser e release). Cobertura de início/fim/reabertura, evento seguinte no mesmo minuto, edição, exclusão sem apagar doses, filtro, nomes no histórico, preservação de contagens anteriores, backup novo/legado, falha de gravação no início e recarga do schema 10. Sintaxe dos scripts alterados e git diff --check aprovados. Imagens em 390×844 da Home, evento ativo e editor conferidas; celular real e fuso diferente não testados. Testes do receptor usam SW original; prévia usa rede direta. Não foi feito commit/push.
+
+Revisão de agenda e automações para 2.1.x: EVENTOS-AGENDA-UX.md. A tela compacta e as regras automáticas ainda são propostas. Alinhamento local de versão para 2.1.0 validado em 10 testes; permanece pendente de commit/push.
+
+## Implementação local — agenda e automações (linha 2.1.x)
+
+Implementada após autorização do usuário: lista por mês, abas Próximos/Anteriores, busca, filtro mensal, paginação de 20 itens e detalhes em diálogo. O evento ativo ocupa uma única linha destacada. Editar/reabrir/excluir ficam em Mais opções; cancelar agendamento é distinto de excluir agrupamento. Navegação fixa e políticas preservadas. A lista mantém filtro e quantidade carregada ao fechar detalhes.
+
+Novo evento permite Iniciar agora ou Agendar, início automático opcional e encerramento programado opcional. Horários planejados são separados do início efetivo; manual inicia no instante da confirmação. Dois agendamentos podem se sobrepor, com aviso nos detalhes, mas apenas um pode ficar ativo. Conflito impede início automático até revisão. Evento cujo início e fim passaram sem ativação fica Expirado. Reagendar exige alterar o início para uma data futura.
+
+Home oferece aviso dentro de uma janela de 1h antes/1h depois do início manual, sem outro evento ativo. Agora não dispensa o aviso daquele agendamento/horário na sessão do navegador. Nenhum push, permissão de notificação ou serviço externo foi acrescentado.
+
+FunTimeOccasions.reconcile é puro e baseado em timestamps. Executado no app desbloqueado, no relógio da página, ao retornar e antes de registrar dose; não existe execução garantida com app fechado. Transições são validadas e gravadas uma vez, antes da memória, sob o lock existente. Erro preserva dados e impede nova dose até conseguir reconciliar, com tentativa posterior e mensagem de erro.
+
+Sem fim programado, após 48h de início: aguardar término de todas as contagens vinculadas; encerrar no maior término calculado com snapshots (respeitando countingStoppedAt legado). Sem doses: fim administrativo no marco de 48h, motivo empty48h. Com fim programado, respeitar esse horário, sem remover nem encerrar contadores. endedAt, closedAt e endReason distinguem horário inferido de processamento. Reabertura remove programação anterior de fim; eventos longos devem ter fim programado para não entrar na recuperação por 48h.
+
+DATA_VERSION 11 (migração cumulativa de dados 9/10), formato de backup 2 preservado. startedAt null identifica agendamento; scheduledStartAt, scheduledEndAt, autoStart, closedAt, endReason e timeZone são campos validados. Campos legados permanecem; nenhuma agenda é inventada na migração. Horários exibidos no fuso atual, com nota nos detalhes quando diferente do fuso gravado; instantes não mudam ao viajar. Backup/restauração incluem agenda. Página de instalação continua sem dados privados. Sem commit/push nesta etapa; app/boot/cache local alinhados a 2.1.0 conforme pedido anterior.
+
+Validação da agenda: 64 testes aprovados em audit, agenda, occasions, occasions-browser, navigation-browser, countdown-menu-browser, dev-preview-browser, reset, migration, receiver-browser, release e ui. Teste integrado repetido após acabamento dos controles: passou. Inclui 100 itens/paginação/busca, retorno dos detalhes, menu em 320 e 1024px, agendamento manual/automático, encerramento e relógio simulado, aviso dispensado após reload, falha de persistência automática e recuperação, backup e dados legados. Imagens do cadastro e lista 390×844 conferidas. Sintaxe e diff verificados. Celular real, mudança de fuso em aparelho e execução com app fechado não testados; app fechado é reconciliado ao retornar, sem promessa de execução em segundo plano.

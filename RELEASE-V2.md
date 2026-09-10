@@ -1,5 +1,11 @@
 # FunTime — releases v2
 
+## V2.1.0 — eventos e navegação inferior
+
+O usuário criou e enviou o commit 3bcfff7, com eventos e menu inferior, mas os identificadores internos ainda eram 2.0.12. Correção nesta versão: app, boot, rodapés e cache funtime-v2-1-0 alinhados a 2.1.0; a agenda evolui o schema para DATA_VERSION 11; backup formato 2 mantido. Sem reescrever o commit anterior. Agenda compacta, agendamento e automações incluídos na versão 2.1.0; commit e push autorizados em 09/09/2026. Estado e validações em DEVELOPMENT.md.
+
+Incluídos no commit do usuário: concluir Anotar consumo volta à Home após gravação bem-sucedida; editar o período de um evento inclui registros sem evento dentro dele, preservando vínculos existentes e snapshots.
+
 ## V2.0.12 — data do consumo anterior
 
 No card do Início, Anterior mantém o horário antes de 24 horas e passa a exibir a data local em dd/mm/aa a partir de 24 horas completas. Preserva o sufixo de tamanho da dose; o relógio existente atualiza a apresentação sem reabrir o app. App/boot/footers 2.0.12, cache funtime-v2-0-12; DATA_VERSION 9 e aceite preservados. Commit e push solicitados. Celular real não testado.
@@ -111,3 +117,5 @@ Validação da publicação 2.0.10: 32 testes aprovados em audit, ui, countdown-
 Validação da publicação 2.0.11: 33 testes aprovados em audit, ui, countdown-menu-browser, navigation-browser, release e receiver-browser, incluindo atualização para 2.0.11 e reabertura offline. Sintaxe app.js/sw.js/boot.js/ui.js aprovada.
 
 Validação da publicação 2.0.12: 29 testes aprovados em audit, countdown-menu-browser, release e receiver-browser. Cobertura imediatamente antes/no/depois do limite de 24h, sufixo de dose, atualização para 2.0.12 e reabertura offline. Sintaxe app.js/sw.js/boot.js aprovada.
+
+Validação local do alinhamento 2.1.0: 10 testes aprovados em navigation-browser, occasions-browser, occasions, release e receiver-browser, incluindo atualização para 2.1.0 e os reparos de retorno à Home e inclusão por período. Sintaxe app.js/sw.js/boot.js e diff verificados. Uma execução anterior do teste de navegação falhou na entrada simulada do PIN; a nova execução passou sem alteração no fluxo de PIN. Identificação 2.1.0 ainda não enviada por este agente.

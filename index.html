@@ -53,7 +53,7 @@
     <footer class="browser-gate-footer">
       <span>App para estudo · não é controle de segurança</span>
       <a class="policies-link" href="./policies.html">Políticas e informações</a>
-      <span>v2.0.12 · By: arielkeybob</span>
+      <span>v2.1.0 · By: arielkeybob</span>
     </footer>
   </section>
 
@@ -97,6 +97,7 @@
     </header>
 
     <main id="home-view">
+      <div id="occasion-reminder" class="occasion-reminder" hidden></div>
       <button id="home-occasion" class="occasion-context" type="button"></button>
       <section id="empty-state" class="empty-state" hidden>
         <button id="empty-add-icon" class="empty-icon empty-add-icon" type="button" aria-label="Adicionar bebida">＋</button>
@@ -275,10 +276,14 @@
 
     </main>
 
-    <header id="occasion-header" class="app-header" hidden><div><p class="eyebrow">Suas ocasiões</p><h1>Evento</h1></div></header>
+    <header id="occasion-header" class="app-header" hidden><div><p class="eyebrow">Suas ocasiões</p><h1>Eventos</h1></div><button id="occasion-new" class="primary-button" type="button">+ Novo</button></header>
     <main id="occasion-view" hidden>
       <section id="occasion-current" class="occasion-current"></section>
-      <section class="occasion-history"><h2>Eventos anteriores</h2><div id="occasion-list"></div></section>
+      <section class="occasion-history">
+        <div class="agenda-tabs" role="group" aria-label="Lista de eventos"><button id="agenda-upcoming" type="button" aria-pressed="true">Próximos</button><button id="agenda-past" type="button" aria-pressed="false">Anteriores</button></div>
+        <details class="agenda-filters"><summary>Buscar e filtrar</summary><label class="field"><span>Nome</span><input id="agenda-search" type="search" placeholder="Buscar evento"></label><label class="field"><span>Mês</span><input id="agenda-month" type="month"></label></details>
+        <div id="occasion-list"></div><button id="agenda-more" class="secondary-button" type="button" hidden>Mostrar mais</button>
+      </section>
     </main>
     <nav class="bottom-nav" aria-label="Navegação principal">
       <button id="nav-home" data-nav-view="home" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1Z"/></svg><span>Home</span></button>
@@ -289,15 +294,20 @@
     <footer class="app-footer">
       <span class="app-footer-disclaimer">App para estudo · não é controle de segurança</span>
       <a class="policies-link" href="./policies.html">Políticas e informações</a>
-      <span class="app-footer-meta">v2.0.12 · By: arielkeybob</span>
+      <span class="app-footer-meta">v2.1.0 · By: arielkeybob</span>
     </footer>
   </div>
+
+  <dialog id="occasion-detail-dialog" class="dialog"><form method="dialog"><div class="dialog-header"><h2>Evento</h2><button id="occasion-detail-close" class="icon-button secondary" type="button" aria-label="Fechar detalhes">×</button></div><div id="occasion-detail-content"></div><div class="dialog-actions"><button id="occasion-detail-back" class="secondary-button" type="button">Voltar</button></div></form></dialog>
 
   <dialog id="occasion-dialog" class="dialog">
     <form id="occasion-form" novalidate>
       <div class="dialog-header"><h2 id="occasion-form-title">Iniciar evento</h2><button id="occasion-close" class="icon-button secondary" type="button" aria-label="Fechar">×</button></div>
+      <label id="occasion-mode-field" class="field"><span>Quando começar?</span><select id="occasion-mode" name="occasionMode"><option value="now">Iniciar agora</option><option value="scheduled">Agendar</option></select></label>
       <label class="field"><span>Nome do evento</span><input id="occasion-name" name="occasionName" type="text" maxlength="80" placeholder="Aniversário do João" required></label>
       <label class="field"><span>Início</span><input id="occasion-start" name="occasionStart" type="datetime-local" required></label>
+      <label id="occasion-auto-field" class="setting-toggle"><span class="setting-toggle-copy">Iniciar automaticamente</span><span class="setting-toggle-control"><input id="occasion-auto" name="occasionAuto" type="checkbox"><span class="setting-toggle-track" aria-hidden="true"><span></span></span></span></label>
+      <label id="occasion-end-toggle" class="setting-toggle"><span class="setting-toggle-copy">Encerrar automaticamente em uma data</span><span class="setting-toggle-control"><input id="occasion-has-end" name="occasionHasEnd" type="checkbox"><span class="setting-toggle-track" aria-hidden="true"><span></span></span></span></label>
       <label id="occasion-end-field" class="field" hidden><span>Encerramento</span><input id="occasion-end" name="occasionEnd" type="datetime-local"></label>
       <p class="settings-description">Os registros anteriores são preservados. Iniciar ou encerrar um evento não reinicia contagens.</p>
       <p id="occasion-form-error" class="form-error" role="alert" hidden></p>

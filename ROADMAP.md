@@ -144,3 +144,7 @@ Correção futura identificada no código: o HTML das roletas ainda se repete em
 ## Em estudo — eventos e contexto dos cards
 
 Desenvolvimento local autorizado após avaliar e rejeitar a neutralização manual. Eventos e menu inferior em avaliação; sem publicação. Planejamento original: [Eventos no FunTime](EVENTOS-PLANEJAMENTO.md). Compara neutralização dos cards, dia civil, agrupamento automático e eventos explícitos; recomenda provisoriamente eventos opcionais. Inclui estados, início/encerramento/esquecimento, edição, histórico, dados, migração e critérios de validação. Abrir/encerrar um evento nunca reinicia intervalos entre doses. Decisões ainda pendentes de avaliação do usuário.
+
+### Agenda, automações e lista compacta de eventos
+
+Proposta em [EVENTOS-AGENDA-UX.md](EVENTOS-AGENDA-UX.md): lista mensal compacta e detalhes separados, agendamentos manuais/automáticos, aviso na Home e recuperação após 48h. Implementado localmente para avaliação: agenda compacta, início manual/automático, fim programado e recuperação após 48h. Commit e push da versão 2.1.0 autorizados em 09/09/2026.
