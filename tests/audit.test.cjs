@@ -126,7 +126,7 @@ test('aceite requer três confirmações, persiste localmente e falha fechada', 
   checks[2].checked=true; handlers.change(); assert.equal(elements['#terms-continue'].disabled,false);
   fail=true; handlers.submit({preventDefault(){}}); assert.equal(elements['#terms-error'].hidden,false); assert.equal(resolved,false);
   fail=false; handlers.submit({preventDefault(){}}); await pending;
-  assert.equal(c.hasCurrentTermsAcceptance(),true); assert.equal(JSON.parse(value).termsVersion,'1.0.1');
+  assert.equal(c.hasCurrentTermsAcceptance(),true); assert.equal(JSON.parse(value).termsVersion,'1.0.2');
   value=JSON.stringify({...JSON.parse(value),termsVersion:'0.9'}); assert.equal(c.hasCurrentTermsAcceptance(),false);
   value='{'; assert.equal(c.hasCurrentTermsAcceptance(),false);
 });

@@ -1,4 +1,8 @@
-# FunTime — V2.1.7
+# FunTime — V2.1.8
+
+## V2.1.8 — fundo temporário com Shorts
+
+Dois toques no aviso da Home seguidos de uma pressão no terceiro exibem por 20 segundos um entre doze Shorts incorporados do YouTube, sem áudio e sem repetição imediata. O player ocupa sozinho a tela; falha de carregamento devolve a interface. O mesmo aviso também aceita os oito toques do BPM e não seleciona texto. Política 1.0.2 declara a conexão externa e exige novo aceite. App, boot, rodapés e cache alinhados a 2.1.8; DATA_VERSION 11 preservado. Commit e push solicitados para teste no celular.
 
 ## V2.1.7 — easter egg de BPM
 

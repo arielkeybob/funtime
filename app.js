@@ -264,7 +264,7 @@ document.addEventListener("visibilitychange", () => {
 const DATA_STORAGE_KEY = "funtime-v1-data";
 const LEGACY_DRINKS_STORAGE_KEY = "balada-v1-drinks";
 const DATA_VERSION = 11;
-const APP_VERSION = "2.1.7";
+const APP_VERSION = "2.1.8";
 const DRINK_EXPORT_TYPE = "funtime-drinks";
 const DRINK_EXPORT_FORMAT_VERSION = 1;
 const BACKUP_EXPORT_TYPE = "funtime-backup";
@@ -4534,31 +4534,94 @@ document.querySelector('#undo-icon-removal').addEventListener('click', () => {
   } catch (error) { setIconCatalogStatus('Não foi possível restaurar o ícone. Tente novamente.'); }
 });
 
-// Easter egg local: nenhum dado persistido ou gesto nativo é alterado.
+// Easter eggs locais: nenhum dado persistido ou gesto nativo é alterado.
 (() => {
+  const backgroundVideoIds = [
+    'AEgkCIiJMyo', 'l45aNqS_tgI', 'yVjz0BIwaeA', 'DdkAqgDWzvk',
+    'Q6SzupOIkrs', 'Kjc3Q3Z1a-M', 'q_NnLCu6HAY', 'DRThtg_j3Dk',
+    'O2kjyld_fX8', 'JoK7DLPtCgs', 'KAOCQ8co4VI', 'Jmnzev284H4'
+  ];
   let taps = [];
   let contact = null;
   let balloon = null;
   let cleanupTimer;
+  let holdTimer;
+  let videoLayer = null;
+  let videoTimer;
+  let videoLoadTimer;
+  let lastVideoId = null;
   const available = () => !document.hidden && !homeView.hidden &&
-    !document.body.matches('.app-locked, .security-booting, .boot-pending, .terms-pending, .browser-mode') &&
+    !document.body.matches('.app-locked, .security-booting, .boot-pending, .terms-pending, .browser-mode, .youtube-easter-egg-active') &&
     !document.querySelector('dialog[open]') && toast.hidden && updateToast.hidden;
   const emptyTarget = target => target instanceof Element &&
-    target.matches('body, #app-shell, #home-view, #drink-list, #home-add-zone, #empty-state, #home-header');
-  const reset = () => { taps = []; contact = null; };
+    target.matches('body, #app-shell, #home-view, #drink-list, #home-add-zone, #empty-state, #home-header, .notice');
+  const reset = () => {
+    clearTimeout(holdTimer);
+    holdTimer = null;
+    taps = [];
+    contact = null;
+  };
   const clearBalloon = () => {
     clearTimeout(cleanupTimer);
     balloon?.remove();
     balloon = null;
   };
   const cancel = () => { reset(); clearBalloon(); };
+  const endBackgroundVideo = () => {
+    clearTimeout(videoTimer);
+    clearTimeout(videoLoadTimer);
+    if (!videoLayer) return;
+    const layer = videoLayer;
+    videoLayer = null;
+    document.body.classList.remove('youtube-easter-egg-active');
+    appShell.removeAttribute('inert');
+    appShell.removeAttribute('aria-hidden');
+    layer.classList.remove('is-visible');
+    setTimeout(() => layer.remove(), 650);
+  };
+  const startBackgroundVideo = () => {
+    if (videoLayer || !available()) return;
+    const choices = backgroundVideoIds.filter(id => id !== lastVideoId);
+    const videoId = choices[Math.floor(Math.random() * choices.length)];
+    lastVideoId = videoId;
+    reset();
+    clearBalloon();
+    const layer = document.createElement('div');
+    layer.className = 'youtube-easter-egg';
+    const iframe = document.createElement('iframe');
+    iframe.title = 'Efeito visual temporário reproduzido pelo YouTube';
+    iframe.allow = 'autoplay; encrypted-media; picture-in-picture';
+    iframe.referrerPolicy = 'strict-origin-when-cross-origin';
+    iframe.src = `https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&mute=1&controls=0&disablekb=1&fs=0&playsinline=1&rel=0&loop=1&playlist=${videoId}`;
+    layer.append(iframe);
+    videoLayer = layer;
+    document.body.append(layer);
+    document.body.classList.add('youtube-easter-egg-active');
+    appShell.setAttribute('inert', '');
+    appShell.setAttribute('aria-hidden', 'true');
+    requestAnimationFrame(() => layer.classList.add('is-visible'));
+    iframe.addEventListener('load', () => {
+      clearTimeout(videoLoadTimer);
+      videoTimer = setTimeout(endBackgroundVideo, 20000);
+    }, { once: true });
+    // Se o player nem carregar, o app volta sozinho em vez de permanecer preto.
+    videoLoadTimer = setTimeout(endBackgroundVideo, 10000);
+  };
 
   document.addEventListener('pointerdown', event => {
     if (contact || !event.isPrimary || event.button !== 0 || !available() || !emptyTarget(event.target)) {
       reset();
       return;
     }
-    contact = { id: event.pointerId, x: event.clientX, y: event.clientY, time: event.timeStamp, target: event.target };
+    const notice = Boolean(event.target.closest('.notice'));
+    contact = { id: event.pointerId, x: event.clientX, y: event.clientY, time: event.timeStamp, target: event.target, notice };
+    const gap = event.timeStamp - (taps.at(-1)?.time ?? 0);
+    if (notice && taps.length === 2 && taps.every(tap => tap.notice) && gap >= 200 && gap <= 900) {
+      const pointerId = event.pointerId;
+      holdTimer = setTimeout(() => {
+        if (contact?.id === pointerId) startBackgroundVideo();
+      }, 900);
+    }
   }, { passive: true });
   document.addEventListener('pointermove', event => {
     if (contact?.id === event.pointerId && Math.hypot(event.clientX - contact.x, event.clientY - contact.y) > 12) reset();
@@ -4567,17 +4630,19 @@ document.querySelector('#undo-icon-removal').addEventListener('click', () => {
   document.addEventListener('pointerup', event => {
     const tap = contact;
     contact = null;
+    clearTimeout(holdTimer);
+    holdTimer = null;
     if (!tap || tap.id !== event.pointerId || !available() || event.target !== tap.target ||
         event.timeStamp - tap.time > 350 || Math.hypot(event.clientX - tap.x, event.clientY - tap.y) > 12) {
       reset();
       return;
     }
     // 30–300 BPM; pausas ou toques muito próximos iniciam outra sequência.
-    const gap = tap.time - taps.at(-1);
+    const gap = tap.time - (taps.at(-1)?.time ?? 0);
     if (taps.length && (gap < 200 || gap > 2000)) taps = [];
-    taps.push(tap.time);
+    taps.push({ time: tap.time, notice: tap.notice });
     if (taps.length < 8) return;
-    const bpm = Math.round(60000 * 7 / (taps[7] - taps[0]));
+    const bpm = Math.round(60000 * 7 / (taps[7].time - taps[0].time));
     reset();
     clearBalloon();
     balloon = document.createElement('div');
@@ -4589,6 +4654,9 @@ document.querySelector('#undo-icon-removal').addEventListener('click', () => {
   }, { passive: true });
   document.addEventListener('scroll', cancel, { passive: true, capture: true });
   document.addEventListener('visibilitychange', cancel);
+  document.addEventListener('contextmenu', event => {
+    if (event.target instanceof Element && event.target.closest('.notice')) event.preventDefault();
+  });
   window.addEventListener('blur', cancel);
   // Mudanças de tela, bloqueio e avisos encerram também uma sequência parcial.
   const observer = new MutationObserver(() => { if (!available()) cancel(); });
