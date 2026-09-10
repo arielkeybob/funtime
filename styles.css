@@ -3319,13 +3319,13 @@ body {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  box-shadow: -3px -2px 12px -4px #ef476f40, 3px 2px 12px -4px #568cff45, 0 3px 10px -4px #b16cff38;
+  box-shadow: -3px -2px 12px -4px #ef476f4c, 3px 2px 12px -4px #568cff51, 0 3px 10px -4px #b16cff44, 2px -2px 11px -4px #f3ce6230;
   animation: occasion-glow 17s ease-in-out infinite;
 }
 @keyframes occasion-glow {
-  27% { box-shadow: 3px -2px 13px -4px #ef476f35, -2px 3px 11px -4px #568cff40, -3px -1px 12px -4px #b16cff45; }
-  61% { box-shadow: 2px 3px 11px -4px #ef476f40, -3px -2px 13px -4px #568cff35, 3px -2px 12px -4px #b16cff40; }
-  83% { box-shadow: -3px 2px 12px -4px #ef476f35, 2px -3px 12px -4px #568cff45, 2px 3px 11px -4px #b16cff38; }
+  27% { box-shadow: 3px -2px 13px -4px #ef476f41, -2px 3px 11px -4px #568cff4c, -3px -1px 12px -4px #b16cff51, 3px 2px 12px -4px #f3ce622a; }
+  61% { box-shadow: 2px 3px 11px -4px #ef476f4c, -3px -2px 13px -4px #568cff41, 3px -2px 12px -4px #b16cff4c, -2px 3px 11px -4px #f3ce6236; }
+  83% { box-shadow: -3px 2px 12px -4px #ef476f41, 2px -3px 12px -4px #568cff51, 2px 3px 11px -4px #b16cff44, -3px -2px 12px -4px #f3ce622d; }
 }
 @media (prefers-reduced-motion: reduce) {
   .occasion-context.is-active { animation: none; }
