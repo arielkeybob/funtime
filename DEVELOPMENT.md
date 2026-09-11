@@ -2380,3 +2380,11 @@ Escolher data aceita início passado com aviso. Com término passado, salva ence
 
 ## Eventos opcionais (implementação local)
 Usar eventos fica desmarcado por padrão, inclusive em dados antigos sem preferência explícita. eventsEnabled é preservado no backup completo e validado como booleano; schema 11 mantido. Desativação encerra evento ativo e salva a preferência na mesma gravação, mantendo snapshots e contagens. Na primeira abertura de dados legados com evento ativo, o encerramento é aplicado com aviso. Agendamentos ficam suspensos; reativação converte início automático vencido em manual e mantém os futuros. Novas doses não recebem evento quando desativado; vínculos históricos são preservados. Navegação usa três itens, sem contexto/lembrete na Home. Cards concluídos sem eventos ficam neutros após 24h. Celular real não testado.
+
+## V2.1.18 — senha na página de instalação
+
+A página pública pede um código de acesso antes de mostrar o botão ou as orientações de instalação. A senha inicial está em `BROWSER_INSTALL_PASSWORD`, no início de app.js. A comparação é exata, diferencia maiúsculas e libera automaticamente ao digitar/colar o valor completo. O campo usa caracteres ocultos e é limpo após liberar; o desbloqueio vive apenas na memória da página. A PWA em modo instalado e a confirmação de instalação detectada dispensam o campo.
+
+É apenas uma barreira visual: código e manifest continuam públicos, e a instalação pelo menu do navegador não é bloqueada. Nenhum dado privado ou armazenamento é acessado pelo desbloqueio. App, boot, rodapés e cache alinhados a 2.1.18; DATA_VERSION 11 e política 1.0.2 preservados.
+
+Validação local: sintaxe de app.js/sw.js, diff e 24 testes de install/receiver/transition/ui aprovados. Cobertura de senha parcial/incorreta/correta, prompt antes/depois da liberação, orientação sem prompt, recarga simulada e instalação detectada. Aparência em navegador, instalação real e celular não testados. Commit e push solicitados.

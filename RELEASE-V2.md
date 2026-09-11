@@ -1,5 +1,9 @@
 # FunTime — releases v2
 
+## V2.1.18 — código de acesso para instalar
+
+Página comercial libera botão/orientações automaticamente após a senha, apenas na memória da página. PWA instalada e dados preservados. Barreira visual, sem proteção de backend. App, boot, rodapés e cache 2.1.18; DATA_VERSION 11 e política 1.0.2 mantidos. Sintaxe e testes de instalação/transição aprovados; aparência em navegador, celular e instalação real não testados. Commit e push autorizados para funtime/main.
+
 ## V2.1.6 — acesso direto ao evento ativo
 
 O card de evento em andamento na Home abre diretamente os detalhes desse evento. Sem evento ativo, o mesmo card continua levando à lista de eventos. Fechar os detalhes retorna à Home. App, boot, rodapés e cache alinhados a 2.1.6; DATA_VERSION 11 preservado. Teste integrado occasions-browser aprovado; celular real e atualização da PWA não testados. Commit e push solicitados.

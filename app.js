@@ -11,6 +11,18 @@ let browserInstallVerified = false;
 let browserInstallCompleted = false;
 let browserInstallRevision = 0;
 let browserInstallPollTimer = null;
+// Barreira visual para visitantes casuais, não autenticação.
+const BROWSER_INSTALL_PASSWORD = "SenhadoFunTime";
+let browserInstallUnlocked = false;
+
+async function unlockBrowserInstall(event) {
+  if (browserInstallUnlocked || event.target.value !== BROWSER_INSTALL_PASSWORD) return;
+  browserInstallUnlocked = true;
+  event.target.value = "";
+  await refreshBrowserInstallUI();
+  const button = document.querySelector("#browser-install-button");
+  if (button && !button.hidden) button.focus();
+}
 
 function stopBrowserInstallPolling() {
   window.clearTimeout(browserInstallPollTimer);
@@ -71,6 +83,7 @@ function setBrowserInstallUI(mode) {
   const guidance = document.querySelector("#browser-install-guidance");
   const guidanceText = document.querySelector("#browser-install-guidance-text");
   const lead = document.querySelector("#browser-gate-lead");
+  const access = document.querySelector("#browser-install-access");
 
   if (!button || !status || !statusTitle || !statusText || !guidance || !guidanceText) return;
 
@@ -78,12 +91,16 @@ function setBrowserInstallUI(mode) {
   button.disabled = false;
   status.hidden = true;
   guidance.hidden = true;
+  const locked = !browserInstallUnlocked && mode !== "installed" && mode !== "pending";
+  if (access) access.hidden = !locked;
   if (lead) {
     lead.hidden = mode === "installed" || mode === "pending";
-    lead.textContent = mode === "ready" || mode === "opening"
+    lead.textContent = !locked && (mode === "ready" || mode === "opening")
       ? "Instale o FunTime e depois abra pelo novo ícone."
       : "Anote bebidas e acompanhe seus intervalos.";
   }
+
+  if (locked) return;
 
   if (mode === "ready") {
     button.hidden = false;
@@ -173,6 +190,7 @@ async function refreshBrowserInstallUI() {
 }
 
 async function requestBrowserInstall() {
+  if (!browserInstallUnlocked) return;
   if (!deferredInstallPrompt) {
     await refreshBrowserInstallUI();
     return;
@@ -224,6 +242,7 @@ function initializeRuntimeMode() {
   if (browserGate) browserGate.hidden = false;
 
   document.querySelector("#browser-install-button")?.addEventListener("click", requestBrowserInstall);
+  document.querySelector("#browser-install-password")?.addEventListener("input", unlockBrowserInstall);
   refreshBrowserInstallUI();
   return false;
 }
@@ -264,7 +283,7 @@ document.addEventListener("visibilitychange", () => {
 const DATA_STORAGE_KEY = "funtime-v1-data";
 const LEGACY_DRINKS_STORAGE_KEY = "balada-v1-drinks";
 const DATA_VERSION = 11;
-const APP_VERSION = "2.1.17";
+const APP_VERSION = "2.1.18";
 const DRINK_EXPORT_TYPE = "funtime-drinks";
 const DRINK_EXPORT_FORMAT_VERSION = 1;
 const BACKUP_EXPORT_TYPE = "funtime-backup";

@@ -3,7 +3,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const vm = require('node:vm');
 const source = fs.readFileSync('app.js', 'utf8').split('const DATA_STORAGE_KEY')[0];
-function setup(apps) {
+function setup(apps, unlocked = true) {
   const nodes = {};
   const listeners = {};
   const timers = new Map();
@@ -18,6 +18,7 @@ function setup(apps) {
     document: { querySelector: id => nodes[id] ??= {}, addEventListener() {} }
   });
   vm.runInContext(source, context);
+  if (unlocked) vm.runInContext('browserInstallUnlocked = true', context);
   return { context, nodes, listeners, navigator, timers };
 }
 test('instalação v2 remove convite para instalar e atualiza ao retornar', async () => {
@@ -32,6 +33,42 @@ test('instalação v2 remove convite para instalar e atualiza ao retornar', asyn
   await listeners.focus();
   assert.equal(nodes['#browser-install-guidance'].hidden, false);
   assert.equal(nodes['#browser-gate-lead'].hidden, false);
+});
+
+test('visitante só libera instalação ao completar a senha exata', async () => {
+  const { context, nodes, listeners } = setup([], false);
+  let prompted = 0;
+  await context.refreshBrowserInstallUI();
+  assert.equal(nodes['#browser-install-access'].hidden, false);
+  assert.equal(nodes['#browser-install-guidance'].hidden, true);
+  listeners.beforeinstallprompt({ preventDefault() {}, prompt: async () => { prompted++; return { outcome: 'dismissed' }; } });
+  assert.equal(nodes['#browser-install-button'].hidden, true);
+  await context.requestBrowserInstall();
+  assert.equal(prompted, 0);
+  for (const value of ['SenhadoFunTim', 'senhadofuntime', 'incorreta']) {
+    await context.unlockBrowserInstall({ target: { value } });
+    assert.equal(nodes['#browser-install-button'].hidden, true);
+  }
+  nodes['#browser-install-button'].focus = () => {};
+  const input = { value: 'SenhadoFunTime' };
+  await context.unlockBrowserInstall({ target: input });
+  assert.equal(input.value, '');
+  assert.equal(nodes['#browser-install-access'].hidden, true);
+  assert.equal(nodes['#browser-install-button'].hidden, false);
+  await context.requestBrowserInstall();
+  assert.equal(prompted, 1);
+});
+
+test('senha libera orientação sem prompt e instalação detectada dispensa senha', async () => {
+  const { context, nodes, listeners } = setup([], false);
+  await context.unlockBrowserInstall({ target: { value: 'SenhadoFunTime' } });
+  assert.equal(nodes['#browser-install-guidance'].hidden, false);
+  const fresh = setup([], false);
+  await fresh.context.refreshBrowserInstallUI();
+  assert.equal(fresh.nodes['#browser-install-access'].hidden, false);
+  fresh.listeners.appinstalled();
+  assert.equal(fresh.nodes['#browser-install-access'].hidden, true);
+  assert.equal(fresh.nodes['#browser-install-status-title'].textContent, 'App já instalado');
 });
 test('appinstalled conclui sem API e não regride quando o prompt resolve depois', async () => {
   const { context, navigator, nodes, listeners, timers } = setup([]);

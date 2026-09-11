@@ -2904,6 +2904,42 @@ body {
   font-size: 1rem;
 }
 
+.browser-install-access {
+  display: grid;
+  gap: 10px;
+  text-align: left;
+}
+
+.browser-install-access label {
+  color: var(--text);
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.browser-install-access input {
+  width: 100%;
+  min-height: 56px;
+  padding: 16px 18px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-size: 16px;
+}
+
+.browser-install-access input:focus-visible {
+  outline: 2px solid var(--text);
+  outline-offset: 3px;
+}
+
+.browser-install-access small {
+  color: var(--muted);
+  font-size: 0.78rem;
+  line-height: 1.5;
+  text-align: center;
+}
+
 .browser-install-button:disabled {
   cursor: default;
   opacity: 0.72;

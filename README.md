@@ -1,4 +1,10 @@
-# FunTime — V2.1.17
+# FunTime — V2.1.18
+
+## V2.1.18 — código de acesso para instalar
+
+A página comercial mantém a marca e pede uma senha antes de exibir o botão ou as orientações de instalação. A liberação é automática e dura até recarregar a página. O app instalado continua funcionando normalmente. É uma barreira visual local, sem autenticação de backend.
+
+App, boot, rodapés e cache alinhados a 2.1.18; DATA_VERSION 11 e política 1.0.2 preservados. Commit e push solicitados. Validações e limitações em DEVELOPMENT.md.
 
 ## V2.1.17 — abertura fixa do ciclo de frases
 
