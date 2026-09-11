@@ -1,5 +1,11 @@
 # FunTime — documentação de desenvolvimento
 
+## V2.1.14 — mundo invertido
+
+Na Home, FunTime substitui Uso pessoal mantendo o tamanho da fonte. Segurar por 1,5s o cabeçalho (textos ou espaço livre até o início do conteúdo) ativa TimeFun / Final por 20s. Fundo CSS local com névoa azul/vermelha, partículas e sombras de raízes; funciona offline, sem mídia adicional. Controles, estados dos intervalos e avisos continuam visíveis. Soltar antes do prazo, mover mais de 12px, rolar ou usar outro dedo cancela a pressão. Os efeitos de vídeo e BPM não se sobrepõem ao mundo invertido. Escape, ocultação da página e bloqueio encerram o efeito; movimento reduzido desativa as animações. Nenhum dado ou preferência é gravado.
+
+Validação: node --check app.js e sw.js; testes upside-down-browser e tap-bpm-browser aprovados no Edge headless, com origem e armazenamento isolados. Cobertura de textos/espaço vazio, prazo de ativação, cancelamento, restauração, controles operáveis, movimento reduzido e preservação do armazenamento. Captura em 390×844 inspecionada. Celular real e atualização da PWA não testados. Commit e push solicitados. App, boot, rodapés e cache alinhados a 2.1.14; DATA_VERSION 11 e política 1.0.2 preservados.
+
 ## V2.1.13 — streaming imediato com cache posterior
 
 Quando um MP4 ainda não está em `funtime-bg-v1`, o elemento `video` recebe diretamente a URL hospedada e pode começar por respostas Range, sem aguardar o arquivo completo. Para não concorrer com esse streaming, o fetch integral começa ao terminar o efeito e povoa o cache em segundo plano; o Service Worker evita duplicar a gravação quando já a concluiu. Em cache hit, o app usa uma blob URL local e mantém o funcionamento offline sujeito à política de armazenamento do navegador. A entrada local não tem transição; a saída ainda esmaece por 2s. O gesto do aviso dispara após 1,5s. App, boot, rodapés e cache alinhados a 2.1.13; política 1.0.2 e DATA_VERSION 11 preservados.

@@ -1,4 +1,10 @@
-# FunTime — V2.1.13
+# FunTime — V2.1.14
+
+## V2.1.14 — mundo invertido
+
+Na Home, FunTime substitui Uso pessoal mantendo o tamanho da fonte. Segurar por 1,5s o cabeçalho (textos ou espaço livre até o início do conteúdo) ativa TimeFun / Final por 20s. Fundo CSS local com névoa azul/vermelha, partículas e sombras de raízes; funciona offline, sem mídia adicional. Controles, estados dos intervalos e avisos continuam visíveis. Soltar antes do prazo, mover mais de 12px, rolar ou usar outro dedo cancela a pressão. Os efeitos de vídeo e BPM não se sobrepõem ao mundo invertido. Escape, ocultação da página e bloqueio encerram o efeito; movimento reduzido desativa as animações. Nenhum dado ou preferência é gravado.
+
+Validação: node --check app.js e sw.js; testes upside-down-browser e tap-bpm-browser aprovados no Edge headless, com origem e armazenamento isolados. Cobertura de textos/espaço vazio, prazo de ativação, cancelamento, restauração, controles operáveis, movimento reduzido e preservação do armazenamento. Captura em 390×844 inspecionada. Celular real e atualização da PWA não testados. Commit e push solicitados. App, boot, rodapés e cache alinhados a 2.1.14; DATA_VERSION 11 e política 1.0.2 preservados.
 
 ## V2.1.13 — início rápido dos fundos locais
 

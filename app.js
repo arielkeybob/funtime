@@ -264,7 +264,7 @@ document.addEventListener("visibilitychange", () => {
 const DATA_STORAGE_KEY = "funtime-v1-data";
 const LEGACY_DRINKS_STORAGE_KEY = "balada-v1-drinks";
 const DATA_VERSION = 11;
-const APP_VERSION = "2.1.13";
+const APP_VERSION = "2.1.14";
 const DRINK_EXPORT_TYPE = "funtime-drinks";
 const DRINK_EXPORT_FORMAT_VERSION = 1;
 const BACKUP_EXPORT_TYPE = "funtime-backup";
@@ -4557,8 +4557,50 @@ document.querySelector('#undo-icon-removal').addEventListener('click', () => {
   let videoRevealTimer;
   let activeObjectUrl = null;
   let lastBackgroundChoice = null;
+  let upsideLayer = null;
+  let upsideTimer;
+  const headerBrand = homeHeader.querySelector('.home-header-eyebrow');
+  const headerTitle = homeHeader.querySelector('h1');
+  const endUpsideDown = () => {
+    clearTimeout(upsideTimer);
+    upsideLayer?.remove();
+    upsideLayer = null;
+    document.body.classList.remove('upside-down-active');
+    headerBrand.textContent = 'FunTime';
+    headerTitle.textContent = 'Início';
+  };
+  const startUpsideDown = () => {
+    if (!available()) return;
+    reset();
+    clearBalloon();
+    upsideLayer = document.createElement('div');
+    upsideLayer.className = 'upside-down-world';
+    upsideLayer.setAttribute('aria-hidden', 'true');
+    for (let i = 0; i < 24; i++) {
+      const spore = document.createElement('i');
+      spore.style.setProperty('--x', `${(i * 43) % 100}%`);
+      spore.style.setProperty('--y', `${(i * 29) % 100}%`);
+      spore.style.setProperty('--delay', `${-i * .73}s`);
+      upsideLayer.append(spore);
+    }
+    document.body.append(upsideLayer);
+    headerBrand.textContent = 'TimeFun';
+    headerTitle.textContent = 'Final';
+    document.body.classList.add('upside-down-active');
+    upsideTimer = setTimeout(endUpsideDown, 20000);
+  };
+  // Inclui margens vazias do topo, sem capturar cards ou controles.
+  const headerTarget = event => {
+    if (!(event.target instanceof Element) || event.target.closest('button, a, input, select, textarea, dialog')) return false;
+    if (homeHeader.contains(event.target)) return true;
+    if (!event.target.matches('body, #app-shell, #home-view')) return false;
+    const header = homeHeader.getBoundingClientRect();
+    const view = homeView.getBoundingClientRect();
+    return event.clientY >= 0 && event.clientY < view.top &&
+      event.clientX >= header.left && event.clientX <= header.right;
+  };
   const available = () => !document.hidden && !homeView.hidden &&
-    !document.body.matches('.app-locked, .security-booting, .boot-pending, .terms-pending, .browser-mode, .youtube-easter-egg-active') &&
+    !document.body.matches('.app-locked, .security-booting, .boot-pending, .terms-pending, .browser-mode, .youtube-easter-egg-active, .upside-down-active') &&
     !document.querySelector('dialog[open]') && toast.hidden && updateToast.hidden;
   const emptyTarget = target => target instanceof Element &&
     target.matches('body, #app-shell, #home-view, #drink-list, #home-add-zone, #empty-state, #home-header, .notice');
@@ -4685,16 +4727,17 @@ document.querySelector('#undo-icon-removal').addEventListener('click', () => {
   };
 
   document.addEventListener('pointerdown', event => {
-    if (contact || !event.isPrimary || event.button !== 0 || !available() || !emptyTarget(event.target)) {
+    const header = headerTarget(event);
+    if (contact || !event.isPrimary || event.button !== 0 || !available() || (!header && !emptyTarget(event.target))) {
       reset();
       return;
     }
     const notice = Boolean(event.target.closest('.notice'));
-    contact = { id: event.pointerId, x: event.clientX, y: event.clientY, time: event.timeStamp, target: event.target, notice };
-    if (notice) {
+    contact = { id: event.pointerId, x: event.clientX, y: event.clientY, time: event.timeStamp, target: event.target, notice, header };
+    if (notice || header) {
       const pointerId = event.pointerId;
       holdTimer = setTimeout(() => {
-        if (contact?.id === pointerId) startBackgroundVideo();
+        if (contact?.id === pointerId) header ? startUpsideDown() : startBackgroundVideo();
       }, 1500);
     }
   }, { passive: true });
@@ -4707,7 +4750,7 @@ document.querySelector('#undo-icon-removal').addEventListener('click', () => {
     contact = null;
     clearTimeout(holdTimer);
     holdTimer = null;
-    if (!tap || tap.id !== event.pointerId || !available() || event.target !== tap.target ||
+    if (!tap || tap.header || tap.id !== event.pointerId || !available() || event.target !== tap.target ||
         event.timeStamp - tap.time > 350 || Math.hypot(event.clientX - tap.x, event.clientY - tap.y) > 12) {
       reset();
       return;
@@ -4729,12 +4772,18 @@ document.querySelector('#undo-icon-removal').addEventListener('click', () => {
   }, { passive: true });
   document.addEventListener('scroll', cancel, { passive: true, capture: true });
   document.addEventListener('visibilitychange', cancel);
+  document.addEventListener('visibilitychange', () => { if (document.hidden) endUpsideDown(); });
+  window.addEventListener('pagehide', endUpsideDown);
+  document.addEventListener('keydown', event => { if (event.key === 'Escape') endUpsideDown(); });
   document.addEventListener('contextmenu', event => {
-    if (event.target instanceof Element && event.target.closest('.notice')) event.preventDefault();
+    if (headerTarget(event) || (event.target instanceof Element && event.target.closest('.notice'))) event.preventDefault();
   });
   window.addEventListener('blur', cancel);
   // Mudanças de tela, bloqueio e avisos encerram também uma sequência parcial.
-  const observer = new MutationObserver(() => { if (!available()) cancel(); });
+  const observer = new MutationObserver(() => {
+    if (!available()) cancel();
+    if (upsideLayer && document.body.matches('.app-locked, .security-booting, .boot-pending, .terms-pending')) endUpsideDown();
+  });
   observer.observe(document.body, { attributes: true, attributeFilter: ['class'] });
   [homeView, toast, updateToast, ...document.querySelectorAll('dialog')].forEach(element =>
     observer.observe(element, { attributes: true, attributeFilter: ['hidden', 'open'] }));
