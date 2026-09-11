@@ -56,11 +56,37 @@ test('Mundo invertido: gesto, cancelamento, duração, isolamento e movimento re
       assert.equal(await page.locator('.home-header-eyebrow').textContent(), 'FunTime');
       assert.equal(await page.locator('#home-header h1').textContent(), 'Início');
     }
+    for (const mode of ['countdown', 'normal']) {
+      await page.evaluate(mode => {
+        state.preferences.countingMode = mode;
+        state.drinks = [{ id: 'test-water', name: 'Água', icon: '💧', intervalMinutes: 60, askDoseSize: false }];
+        state.events = [{ id: 'test-event', drinkId: 'test-water', drinkName: 'Água', drinkIcon: '💧', consumedAt: Date.now() - 600000, intervalMinutes: 60 }];
+        refreshDataViews();
+      }, mode);
+      const dataBefore = await page.evaluate(() => JSON.stringify(buildCurrentAppData()));
+      await send('pointerdown');
+      await page.clock.runFor(1500);
+      await send('pointerup');
+      assert.equal(await page.evaluate(() => effectiveCountingMode()), mode === 'normal' ? 'countdown' : 'normal');
+      assert.match(await page.locator('#drink-list').innerText(), mode === 'normal' ? /Falta: -/ : /Contando:/);
+      assert.equal(await page.locator('.upside-marquee span').count(), 1);
+      assert.ok(await page.locator('.upside-marquee span').textContent());
+      assert.equal(await page.locator('.upside-marquee span').evaluate(el => getComputedStyle(el).animationName), 'upside-marquee-travel');
+      await page.locator('#open-history').click();
+      assert.match(await page.locator('#history-list').innerText(), mode === 'normal' ? /atrás/ : /Falta 00:50/);
+      await page.clock.runFor(20000);
+      assert.equal(await page.locator('.upside-marquee').count(), 0);
+      assert.match(await page.locator('#history-list').innerText(), mode === 'normal' ? /Falta 00:50/ : /atrás/);
+      assert.equal(await page.evaluate(() => JSON.stringify(buildCurrentAppData())), dataBefore);
+      await page.locator('#close-history').click();
+      assert.match(await page.locator('#drink-list').innerText(), mode === 'normal' ? /Contando:/ : /Falta: -/);
+    }
     await page.emulateMedia({ reducedMotion: 'reduce' });
     await send('pointerdown');
     await page.clock.runFor(1500);
     await send('pointerup');
     assert.equal(await page.locator('.upside-down-world i').first().evaluate(el => getComputedStyle(el).animationName), 'none');
+    assert.equal(await page.locator('.upside-marquee span').evaluate(el => getComputedStyle(el).animationName), 'none');
     await page.screenshot({ path: require('node:path').join(require('node:os').tmpdir(), 'funtime-upside-down.png') });
     await page.keyboard.press('Escape');
     assert.equal(await active(), 0);

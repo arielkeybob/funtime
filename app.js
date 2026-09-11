@@ -264,7 +264,7 @@ document.addEventListener("visibilitychange", () => {
 const DATA_STORAGE_KEY = "funtime-v1-data";
 const LEGACY_DRINKS_STORAGE_KEY = "balada-v1-drinks";
 const DATA_VERSION = 11;
-const APP_VERSION = "2.1.14";
+const APP_VERSION = "2.1.15";
 const DRINK_EXPORT_TYPE = "funtime-drinks";
 const DRINK_EXPORT_FORMAT_VERSION = 1;
 const BACKUP_EXPORT_TYPE = "funtime-backup";
@@ -1899,8 +1899,13 @@ function formatTime(ms) {
     .join(":");
 }
 
+function effectiveCountingMode() {
+  const normal = state.preferences.countingMode === "normal";
+  return (state.upsideDownActive ? !normal : normal) ? "normal" : "countdown";
+}
+
 function formatActivityCounter(activity) {
-  if (state.preferences.countingMode !== "normal") return `Falta: -${formatTime(activity.remainingMs)}`;
+  if (effectiveCountingMode() !== "normal") return `Falta: -${formatTime(activity.remainingMs)}`;
   const intervalMs = activity.latestEvent.intervalMinutes * 60000;
   const elapsedMs = Math.max(0, Math.min(intervalMs, intervalMs - activity.remainingMs));
   return `Contando: ${formatTime(Math.floor(elapsedMs / 1000) * 1000)}`;
@@ -1908,7 +1913,7 @@ function formatActivityCounter(activity) {
 
 function formatHistoryCounter(timestamp, intervalMinutes, now = Date.now()) {
   const remainingMs = Number(timestamp) + Number(intervalMinutes) * 60000 - now;
-  if (state.preferences.countingMode === "normal" && remainingMs > 0) {
+  if (effectiveCountingMode() === "normal" && remainingMs > 0) {
     const minutes = Math.ceil(remainingMs / 60000);
     return `Falta ${String(Math.floor(minutes / 60)).padStart(2, "0")}:${String(minutes % 60).padStart(2, "0")}`;
   }
@@ -4559,15 +4564,29 @@ document.querySelector('#undo-icon-removal').addEventListener('click', () => {
   let lastBackgroundChoice = null;
   let upsideLayer = null;
   let upsideTimer;
+  let upsideMarquee = null;
+  const upsidePhrases = [
+    'Não adianta tentar ficar de cabeça pra baixo.',
+    'Cuidado com o Demodog',
+    'Você foi invertido',
+    'Tente falar seu nome ao contrário',
+    'Bem-vindo ao mundo invertido',
+    'E se tocar essa música ao contrário?'
+  ];
   const headerBrand = homeHeader.querySelector('.home-header-eyebrow');
   const headerTitle = homeHeader.querySelector('h1');
   const endUpsideDown = () => {
+    const wasActive = state.upsideDownActive;
+    state.upsideDownActive = false;
     clearTimeout(upsideTimer);
+    upsideMarquee?.remove();
+    upsideMarquee = null;
     upsideLayer?.remove();
     upsideLayer = null;
     document.body.classList.remove('upside-down-active');
     headerBrand.textContent = 'FunTime';
     headerTitle.textContent = 'Início';
+    if (wasActive) refreshDataViews();
   };
   const startUpsideDown = () => {
     if (!available()) return;
@@ -4586,7 +4605,15 @@ document.querySelector('#undo-icon-removal').addEventListener('click', () => {
     document.body.append(upsideLayer);
     headerBrand.textContent = 'TimeFun';
     headerTitle.textContent = 'Final';
+    upsideMarquee = document.createElement('div');
+    upsideMarquee.className = 'upside-marquee';
+    const phrase = document.createElement('span');
+    phrase.textContent = upsidePhrases[Math.floor(Math.random() * upsidePhrases.length)];
+    upsideMarquee.append(phrase);
+    homeHeader.append(upsideMarquee);
+    state.upsideDownActive = true;
     document.body.classList.add('upside-down-active');
+    refreshDataViews();
     upsideTimer = setTimeout(endUpsideDown, 20000);
   };
   // Inclui margens vazias do topo, sem capturar cards ou controles.

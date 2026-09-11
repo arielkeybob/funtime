@@ -1,4 +1,12 @@
-# FunTime — V2.1.14
+# FunTime — V2.1.15
+
+## V2.1.15 — contagens e frases no mundo invertido
+
+Durante os 20s do efeito, a apresentação usa o modo oposto à preferência salva: regressiva vira normal e normal vira regressiva. Home e Histórico compartilham a resolução do modo temporário, inclusive na atualização do relógio e ao navegar. Encerrar o efeito restaura imediatamente a apresentação; nenhum timestamp, snapshot ou preferência é alterado. O seletor nas configurações continua mostrando a preferência salva. Se ela for alterada durante o efeito, a apresentação acompanha o inverso da nova escolha e usa essa escolha ao terminar.
+
+Cada ativação sorteia uma das seis frases solicitadas, em texto de 11px abaixo de Final. A frase entra pela direita e sai à esquerda ao longo de 20s, com bordas esmaecidas; ocupa a margem existente sem deslocar cards. Movimento reduzido exibe a frase estática. O texto é removido junto com o efeito.
+
+Validação: sintaxe app.js/sw.js, diff e 24 testes em audit/upside-down-browser aprovados. Navegador Edge com dados isolados: ambos os modos, Home, Histórico durante e após o efeito, preservação do conteúdo exportável/armazenamento, gesto e movimento reduzido. Captura 390×844 conferida. Celular real e atualização da PWA não testados. Commit e push solicitados. App, boot, rodapés e cache alinhados a 2.1.15; DATA_VERSION 11 e política 1.0.2 preservados.
 
 ## V2.1.14 — mundo invertido
 

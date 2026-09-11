@@ -3521,3 +3521,33 @@ body {
 @media (prefers-reduced-motion: reduce) {
   .upside-down-world::before, .upside-down-world i { animation: none; }
 }
+
+/* Faixa ocupa a margem existente abaixo do título, sem deslocar os cards. */
+.home-header { position: relative; }
+.upside-marquee {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  width: 100%;
+  height: 19px;
+  overflow: hidden;
+  pointer-events: none;
+  color: #e9b9c5;
+  font-size: 11px;
+  line-height: 18px;
+  font-weight: 400;
+  text-shadow: 0 0 6px #d7325066;
+  mask-image: linear-gradient(90deg, transparent, #000 5%, #000 95%, transparent);
+}
+.upside-marquee span {
+  display: block;
+  width: max-content;
+  padding-left: 100%;
+  white-space: nowrap;
+  animation: upside-marquee-travel 20s linear forwards;
+}
+@keyframes upside-marquee-travel { to { transform: translateX(-100%); } }
+@media (prefers-reduced-motion: reduce) {
+  .upside-marquee { height: auto; mask-image: none; }
+  .upside-marquee span { width: 100%; padding-left: 0; white-space: normal; animation: none; font-size: 10px; }
+}
