@@ -264,7 +264,7 @@ document.addEventListener("visibilitychange", () => {
 const DATA_STORAGE_KEY = "funtime-v1-data";
 const LEGACY_DRINKS_STORAGE_KEY = "balada-v1-drinks";
 const DATA_VERSION = 11;
-const APP_VERSION = "2.1.16";
+const APP_VERSION = "2.1.17";
 const DRINK_EXPORT_TYPE = "funtime-drinks";
 const DRINK_EXPORT_FORMAT_VERSION = 1;
 const BACKUP_EXPORT_TYPE = "funtime-backup";
@@ -4585,27 +4585,25 @@ document.querySelector('#undo-icon-removal').addEventListener('click', () => {
     'Porque você não vai dançar e me deixa em paz?',
     '!'
   ];
+  const UPSIDE_CYCLE_OPENING_PHRASE = 'Você está sóbrio ou tudo ficou invertido?';
   const UPSIDE_RAPID_GAP_MS = 45000;
   let upsidePhraseBag = [];
-  let lastStandardPhrase = null;
   let lastUpsideStartedAt = null;
   let rapidUpsideCount = 0;
   const shuffledUpsidePhrases = () => {
-    const phrases = [...upsidePhrases];
+    const hasOpeningPhrase = upsidePhrases.includes(UPSIDE_CYCLE_OPENING_PHRASE);
+    const phrases = upsidePhrases.filter(phrase => phrase !== UPSIDE_CYCLE_OPENING_PHRASE);
     for (let index = phrases.length - 1; index > 0; index--) {
       const swapIndex = Math.floor(Math.random() * (index + 1));
       [phrases[index], phrases[swapIndex]] = [phrases[swapIndex], phrases[index]];
     }
-    if (phrases.length > 1 && phrases.at(-1) === lastStandardPhrase) {
-      [phrases[0], phrases[phrases.length - 1]] = [phrases.at(-1), phrases[0]];
-    }
+    // A fila é consumida com pop(), então a abertura fica no fim do array.
+    if (hasOpeningPhrase) phrases.push(UPSIDE_CYCLE_OPENING_PHRASE);
     return phrases;
   };
   const nextStandardUpsidePhrase = () => {
     if (!upsidePhraseBag.length) upsidePhraseBag = shuffledUpsidePhrases();
-    const phrase = upsidePhraseBag.pop();
-    lastStandardPhrase = phrase;
-    return phrase;
+    return upsidePhraseBag.pop();
   };
   const nextUpsidePhrase = now => {
     rapidUpsideCount = lastUpsideStartedAt !== null && now - lastUpsideStartedAt <= UPSIDE_RAPID_GAP_MS

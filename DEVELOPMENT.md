@@ -1,5 +1,11 @@
 # FunTime — documentação de desenvolvimento
 
+## V2.1.17 — abertura fixa do ciclo de frases
+
+`UPSIDE_CYCLE_OPENING_PHRASE` identifica a abertura. Ao criar o baralho, o algoritmo separa essa frase, embaralha dinamicamente todas as demais e coloca a abertura na posição consumida primeiro por `pop()`. Se a frase for removida da lista principal futuramente, o baralho continua funcionando apenas com as frases disponíveis. As respostas rápidas não consomem nem recriam o baralho.
+
+Validação: `node --check app.js`, `node --check sw.js`, `git diff --check` e 25 testes em audit/upside-down-browser, incluindo abertura do primeiro ciclo, 11 frases únicas, interrupção especial e abertura do ciclo seguinte. Celular real e atualização da PWA não testados. Commit e push solicitados. App, boot, rodapés e cache alinhados a 2.1.17; DATA_VERSION 11 e política 1.0.2 preservados.
+
 ## V2.1.16 — baralho de frases e respostas à insistência
 
 As 11 frases do mundo invertido usam Fisher–Yates para formar um baralho em memória. Cada chamada remove uma frase; somente ao esvaziar o baralho ocorre novo embaralhamento. Se a próxima frase do novo ciclo coincidir com a última exibida, ela troca de posição, eliminando repetição na fronteira. O código depende de `upsidePhrases.length`, permitindo ampliar a lista sem alterar o algoritmo.

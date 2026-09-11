@@ -1,4 +1,10 @@
-# FunTime — V2.1.16
+# FunTime — V2.1.17
+
+## V2.1.17 — abertura fixa do ciclo de frases
+
+Cada novo ciclo padrão do mundo invertido começa com “Você está sóbrio ou tudo ficou invertido?”. As outras frases continuam embaralhadas, sem repetição até o ciclo terminar. As respostas à sequência rápida apenas interrompem o baralho e não alteram qual será a próxima frase padrão.
+
+Validação: sintaxe de app.js/sw.js, diff e 25 testes em audit/upside-down-browser aprovados, incluindo a abertura fixa no primeiro ciclo e no ciclo seguinte. Celular real e atualização da PWA não testados. Commit e push solicitados. App, boot, rodapés e cache alinhados a 2.1.17; DATA_VERSION 11 e política 1.0.2 preservados.
 
 ## V2.1.16 — baralho de frases e respostas à insistência
 

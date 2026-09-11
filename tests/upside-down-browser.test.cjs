@@ -126,6 +126,7 @@ test('Mundo invertido: ciclo sem repetição e respostas à sequência rápida',
     };
     const shown = [];
     for (let index = 0; index < 16; index++) shown.push(await trigger());
+    assert.equal(shown[0], 'Você está sóbrio ou tudo ficou invertido?');
     assert.equal(new Set(shown.slice(0, 9)).size, 9);
     assert.deepEqual(shown.slice(9, 14), [
       'Parece que você gostou de ficar fazendo isso.',
@@ -137,7 +138,7 @@ test('Mundo invertido: ciclo sem repetição e respostas à sequência rápida',
     assert.equal(new Set([...shown.slice(0, 9), ...shown.slice(14, 16)]).size, 11);
     await page.clock.runFor(45001);
     const afterPause = await trigger();
-    assert.notEqual(afterPause, shown[15]);
+    assert.equal(afterPause, 'Você está sóbrio ou tudo ficou invertido?');
   } finally {
     await browser.close();
     await new Promise(resolve => server.close(resolve));
