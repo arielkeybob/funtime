@@ -264,7 +264,7 @@ document.addEventListener("visibilitychange", () => {
 const DATA_STORAGE_KEY = "funtime-v1-data";
 const LEGACY_DRINKS_STORAGE_KEY = "balada-v1-drinks";
 const DATA_VERSION = 11;
-const APP_VERSION = "2.1.12";
+const APP_VERSION = "2.1.13";
 const DRINK_EXPORT_TYPE = "funtime-drinks";
 const DRINK_EXPORT_FORMAT_VERSION = 1;
 const BACKUP_EXPORT_TYPE = "funtime-backup";
@@ -4574,6 +4574,18 @@ document.querySelector('#undo-icon-removal').addEventListener('click', () => {
     balloon = null;
   };
   const cancel = () => { reset(); clearBalloon(); };
+  const cacheLocalBackgroundVideo = async sourceUrl => {
+    if (!globalThis.caches) return;
+    try {
+      const cache = await caches.open(BACKGROUND_VIDEO_CACHE_NAME);
+      if (await cache.match(sourceUrl)) return;
+      const response = await fetch(sourceUrl, { cache: 'force-cache' });
+      if (!response.ok || response.status !== 200 || await cache.match(sourceUrl)) return;
+      await cache.put(sourceUrl, response);
+    } catch (error) {
+      console.warn('Não foi possível guardar o vídeo de fundo para uso offline.', error);
+    }
+  };
   const endBackgroundVideo = () => {
     clearTimeout(videoTimer);
     clearTimeout(videoLoadTimer);
@@ -4581,9 +4593,12 @@ document.querySelector('#undo-icon-removal').addEventListener('click', () => {
     if (!videoLayer) return;
     const layer = videoLayer;
     const objectUrl = activeObjectUrl;
+    const cacheUrl = layer.dataset.cacheUrl;
     videoLayer = null;
     activeObjectUrl = null;
+    layer.classList.add('is-ending');
     layer.classList.remove('is-visible');
+    if (cacheUrl) cacheLocalBackgroundVideo(cacheUrl);
     setTimeout(() => {
       layer.remove();
       if (objectUrl) URL.revokeObjectURL(objectUrl);
@@ -4611,22 +4626,26 @@ document.querySelector('#undo-icon-removal').addEventListener('click', () => {
     try {
       const sourceUrl = new URL(source, location.href).href;
       const cache = globalThis.caches ? await caches.open(BACKGROUND_VIDEO_CACHE_NAME) : null;
-      let response = cache ? await cache.match(sourceUrl) : null;
-      if (!response) {
-        response = await fetch(sourceUrl);
-        if (!response.ok) throw new Error(`Falha ao carregar fundo: ${response.status}`);
-        if (cache) await cache.put(sourceUrl, response.clone());
-      }
-      const blob = await response.blob();
-      if (videoLayer !== layer) return;
-      activeObjectUrl = URL.createObjectURL(blob);
+      const cachedResponse = cache ? await cache.match(sourceUrl) : null;
       video.addEventListener('canplay', () => {
         if (videoLayer !== layer) return;
         video.play().catch(() => {});
         revealBackgroundMedia(layer);
+        // Evita disputar a conexão com o streaming; a cópia integral começa ao fim do efeito.
+        if (!cachedResponse && cache) layer.dataset.cacheUrl = sourceUrl;
       }, { once: true });
       video.addEventListener('error', endBackgroundVideo, { once: true });
-      video.src = activeObjectUrl;
+      if (cachedResponse) {
+        activeObjectUrl = URL.createObjectURL(await cachedResponse.blob());
+        if (videoLayer !== layer) {
+          URL.revokeObjectURL(activeObjectUrl);
+          activeObjectUrl = null;
+          return;
+        }
+        video.src = activeObjectUrl;
+      } else {
+        video.src = sourceUrl;
+      }
     } catch (error) {
       console.warn('Não foi possível carregar o vídeo de fundo local.', error);
       endBackgroundVideo();
@@ -4650,7 +4669,7 @@ document.querySelector('#undo-icon-removal').addEventListener('click', () => {
     reset();
     clearBalloon();
     const layer = document.createElement('div');
-    layer.className = 'youtube-easter-egg';
+    layer.className = `youtube-easter-egg ${BACKGROUND_VIDEO_SOURCE === 'local' ? 'local-background' : 'youtube-background'}`;
     layer.setAttribute('aria-hidden', 'true');
     layer.dataset.source = source;
     videoLayer = layer;
@@ -4676,7 +4695,7 @@ document.querySelector('#undo-icon-removal').addEventListener('click', () => {
       const pointerId = event.pointerId;
       holdTimer = setTimeout(() => {
         if (contact?.id === pointerId) startBackgroundVideo();
-      }, 2000);
+      }, 1500);
     }
   }, { passive: true });
   document.addEventListener('pointermove', event => {

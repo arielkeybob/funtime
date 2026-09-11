@@ -1,5 +1,9 @@
 # FunTime — documentação de desenvolvimento
 
+## V2.1.13 — streaming imediato com cache posterior
+
+Quando um MP4 ainda não está em `funtime-bg-v1`, o elemento `video` recebe diretamente a URL hospedada e pode começar por respostas Range, sem aguardar o arquivo completo. Para não concorrer com esse streaming, o fetch integral começa ao terminar o efeito e povoa o cache em segundo plano; o Service Worker evita duplicar a gravação quando já a concluiu. Em cache hit, o app usa uma blob URL local e mantém o funcionamento offline sujeito à política de armazenamento do navegador. A entrada local não tem transição; a saída ainda esmaece por 2s. O gesto do aviso dispara após 1,5s. App, boot, rodapés e cache alinhados a 2.1.13; política 1.0.2 e DATA_VERSION 11 preservados.
+
 ## V2.1.12 — fundos locais sob demanda e vibração
 
 BACKGROUND_VIDEO_SOURCE seleciona local por padrão e preserva o ramo youtube para reversão simples. Sete MP4s em bg (58.779.908 bytes) ficam fora de APP_SHELL: a instalação termina sem baixá-los. No primeiro sorteio de cada arquivo, fetch baixa a resposta completa, grava em funtime-bg-v1 e reproduz por blob URL; usos seguintes leem esse cache, inclusive offline enquanto o navegador não o remover. O Service Worker separa os fundos do cache versionado e não guarda respostas Range parciais. Não há pré-download automático nem consumo dos 56 MiB sem o gesto do usuário.

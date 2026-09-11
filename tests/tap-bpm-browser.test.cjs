@@ -92,7 +92,7 @@ test('vídeo: segurar o aviso abre um player temporário ao fundo', { timeout: 6
     const trigger = () => page.evaluate(() => {
       if (!window.originalTapTestTimeout) {
         window.originalTapTestTimeout = window.setTimeout;
-        window.setTimeout = (callback, delay, ...args) => window.originalTapTestTimeout(callback, delay === 2000 ? 300 : delay === 1200 ? 100 : delay === 20000 ? 1500 : delay, ...args);
+        window.setTimeout = (callback, delay, ...args) => window.originalTapTestTimeout(callback, delay === 1500 ? 300 : delay === 1200 ? 100 : delay === 20000 ? 1500 : delay === 2000 ? 300 : delay, ...args);
         window.backgroundTestRandom = .34;
         Math.random = () => window.backgroundTestRandom;
       }
@@ -115,7 +115,8 @@ test('vídeo: segurar o aviso abre um player temporário ao fundo', { timeout: 6
       autoplay: video.autoplay, muted: video.muted, loop: video.loop,
       playsInline: video.playsInline, controls: video.controls, src: video.src
     })), { autoplay: true, muted: true, loop: true, playsInline: true, controls: false, src: await page.locator('.youtube-easter-egg video').getAttribute('src') });
-    assert.match(await page.locator('.youtube-easter-egg video').getAttribute('src'), /^blob:/);
+    assert.match(await page.locator('.youtube-easter-egg video').getAttribute('src'), /\/bg\/[\w.-]+\.mp4$/);
+    assert.equal(await page.locator('.youtube-easter-egg').evaluate(el => getComputedStyle(el).transitionDuration), '0s');
     assert.deepEqual(await page.evaluate(() => window.testVibrations), [1200]);
     assert.equal(await page.locator('#app-shell').getAttribute('inert'), null);
     assert.equal(await page.locator('#app-shell').evaluate(el => getComputedStyle(el).visibility), 'visible');
@@ -126,8 +127,8 @@ test('vídeo: segurar o aviso abre um player temporário ao fundo', { timeout: 6
     assert.equal(await page.locator('#drink-dialog').getAttribute('open'), '');
     assert.equal(await page.locator('.youtube-easter-egg').count(), 1);
     await page.locator('#cancel-dialog').click();
-    assert.equal(await page.evaluate(async source => Boolean(await (await caches.open('funtime-bg-v1')).match(new URL(source, location.href).href)), firstSource), true);
     await page.waitForSelector('.youtube-easter-egg', { state: 'detached', timeout: 8000 });
+    await page.waitForFunction(async source => Boolean(await (await caches.open('funtime-bg-v1')).match(new URL(source, location.href).href)), firstSource);
     await page.evaluate(() => { window.backgroundTestRandom = 0; });
     await trigger();
     await page.waitForSelector('.youtube-easter-egg.is-visible');

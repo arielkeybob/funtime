@@ -1,4 +1,8 @@
-# FunTime — V2.1.12
+# FunTime — V2.1.13
+
+## V2.1.13 — início rápido dos fundos locais
+
+No primeiro sorteio, o MP4 começa por streaming sem esperar o download completo. Para não disputar a conexão com a reprodução, uma cópia integral começa a ser preparada no cache `funtime-bg-v1` ao fim do efeito; ela atende os próximos usos e o modo offline enquanto o navegador a conservar. Fundos já armazenados são reproduzidos diretamente do cache. A transição de entrada de 2s foi removida dos vídeos locais, a saída suave foi preservada e a pressão necessária caiu de 2s para 1,5s. App, boot, rodapés e cache alinhados a 2.1.13; política 1.0.2 e DATA_VERSION 11 preservados.
 
 ## V2.1.12 — fundos locais sob demanda e vibração
 
