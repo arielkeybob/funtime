@@ -1,4 +1,12 @@
-# FunTime — V2.1.15
+# FunTime — V2.1.16
+
+## V2.1.16 — baralho de frases e respostas à insistência
+
+O mundo invertido passa a usar 11 frases padrão em um baralho embaralhado: cada frase aparece uma vez antes de um novo ciclo, e a primeira frase do ciclo seguinte não repete a última do anterior. O algoritmo percorre a lista dinamicamente, portanto novas frases podem ser incluídas sem alterar a regra.
+
+Ativações iniciadas com no máximo 45s de diferença formam uma sequência rápida. Do 10º ao 14º disparo, cinco respostas especiais aparecem na ordem definida; elas não consomem as frases padrão ainda pendentes. Após as respostas, o baralho continua de onde parou. Uma diferença maior que 45s reinicia apenas o contador de insistência, preservando o ciclo padrão. Todo o estado permanece apenas na sessão e não integra dados, preferências ou backup.
+
+Validação: sintaxe de app.js/sw.js, diff e 25 testes em audit/upside-down-browser aprovados. Cobertura de 11 frases sem repetição, fronteira entre ciclos, respostas do 10º ao 14º disparo, retomada das frases restantes e reinício após pausa. Celular real e atualização da PWA não testados. Commit e push solicitados. App, boot, rodapés e cache alinhados a 2.1.16; DATA_VERSION 11 e política 1.0.2 preservados.
 
 ## V2.1.15 — contagens e frases no mundo invertido
 

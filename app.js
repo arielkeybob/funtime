@@ -264,7 +264,7 @@ document.addEventListener("visibilitychange", () => {
 const DATA_STORAGE_KEY = "funtime-v1-data";
 const LEGACY_DRINKS_STORAGE_KEY = "balada-v1-drinks";
 const DATA_VERSION = 11;
-const APP_VERSION = "2.1.15";
+const APP_VERSION = "2.1.16";
 const DRINK_EXPORT_TYPE = "funtime-drinks";
 const DRINK_EXPORT_FORMAT_VERSION = 1;
 const BACKUP_EXPORT_TYPE = "funtime-backup";
@@ -4566,13 +4566,55 @@ document.querySelector('#undo-icon-removal').addEventListener('click', () => {
   let upsideTimer;
   let upsideMarquee = null;
   const upsidePhrases = [
+    'Se tudo parece normal, você já estava do outro lado.',
+    'Demogorgon pediu sua localização. Ignore.',
+    'Até o relógio resolveu andar ao contrário?',
+    'Seu eu do mundo invertido mandou você beber água.',
+    'Aqui, o depois vem antes. Deixe para ontem.',
     'Não adianta tentar ficar de cabeça pra baixo.',
-    'Cuidado com o Demodog',
-    'Você foi invertido',
-    'Tente falar seu nome ao contrário',
-    'Bem-vindo ao mundo invertido',
+    'Cuidado com o Demogorgon.',
+    'Você está sóbrio ou tudo ficou invertido?',
+    'Tente falar seu nome ao contrário.',
+    'Bem-vindo ao mundo invertido, baby.',
     'E se tocar essa música ao contrário?'
   ];
+  const upsideRapidPhrases = [
+    'Parece que você gostou de ficar fazendo isso.',
+    'Porra, viciou em visitar o mundo invertido?',
+    'Sério, para com esses vícios estranhos.',
+    'Porque você não vai dançar e me deixa em paz?',
+    '!'
+  ];
+  const UPSIDE_RAPID_GAP_MS = 45000;
+  let upsidePhraseBag = [];
+  let lastStandardPhrase = null;
+  let lastUpsideStartedAt = null;
+  let rapidUpsideCount = 0;
+  const shuffledUpsidePhrases = () => {
+    const phrases = [...upsidePhrases];
+    for (let index = phrases.length - 1; index > 0; index--) {
+      const swapIndex = Math.floor(Math.random() * (index + 1));
+      [phrases[index], phrases[swapIndex]] = [phrases[swapIndex], phrases[index]];
+    }
+    if (phrases.length > 1 && phrases.at(-1) === lastStandardPhrase) {
+      [phrases[0], phrases[phrases.length - 1]] = [phrases.at(-1), phrases[0]];
+    }
+    return phrases;
+  };
+  const nextStandardUpsidePhrase = () => {
+    if (!upsidePhraseBag.length) upsidePhraseBag = shuffledUpsidePhrases();
+    const phrase = upsidePhraseBag.pop();
+    lastStandardPhrase = phrase;
+    return phrase;
+  };
+  const nextUpsidePhrase = now => {
+    rapidUpsideCount = lastUpsideStartedAt !== null && now - lastUpsideStartedAt <= UPSIDE_RAPID_GAP_MS
+      ? rapidUpsideCount + 1
+      : 1;
+    lastUpsideStartedAt = now;
+    const rapidPhrase = upsideRapidPhrases[rapidUpsideCount - 10];
+    return rapidPhrase ?? nextStandardUpsidePhrase();
+  };
   const headerBrand = homeHeader.querySelector('.home-header-eyebrow');
   const headerTitle = homeHeader.querySelector('h1');
   const endUpsideDown = () => {
@@ -4608,7 +4650,7 @@ document.querySelector('#undo-icon-removal').addEventListener('click', () => {
     upsideMarquee = document.createElement('div');
     upsideMarquee.className = 'upside-marquee';
     const phrase = document.createElement('span');
-    phrase.textContent = upsidePhrases[Math.floor(Math.random() * upsidePhrases.length)];
+    phrase.textContent = nextUpsidePhrase(Date.now());
     upsideMarquee.append(phrase);
     homeHeader.append(upsideMarquee);
     state.upsideDownActive = true;

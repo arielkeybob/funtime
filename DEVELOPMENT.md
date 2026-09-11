@@ -1,5 +1,13 @@
 # FunTime — documentação de desenvolvimento
 
+## V2.1.16 — baralho de frases e respostas à insistência
+
+As 11 frases do mundo invertido usam Fisher–Yates para formar um baralho em memória. Cada chamada remove uma frase; somente ao esvaziar o baralho ocorre novo embaralhamento. Se a próxima frase do novo ciclo coincidir com a última exibida, ela troca de posição, eliminando repetição na fronteira. O código depende de `upsidePhrases.length`, permitindo ampliar a lista sem alterar o algoritmo.
+
+Ativações cujos inícios estejam separados por até `UPSIDE_RAPID_GAP_MS = 45000` incrementam uma sequência rápida; acima desse limite, ela volta a 1. As posições 10 a 14 usam, em ordem, as cinco frases de `upsideRapidPhrases`. Essas posições não consomem o baralho padrão. A partir da posição 15, a seleção padrão retoma as frases pendentes. Datas e filas ficam apenas em memória e são descartadas ao fechar/recarregar o app.
+
+Validação: `node --check app.js`, `node --check sw.js`, `git diff --check` e 25 testes em audit/upside-down-browser. O teste integrado fixa a fonte aleatória e o relógio para provar ausência de repetição nas 11 escolhas padrão, ordem das cinco respostas, continuação do baralho e reinício da sequência rápida após 45.001ms. Celular real e atualização da PWA não testados. Commit e push solicitados. App, boot, rodapés e cache alinhados a 2.1.16; DATA_VERSION 11 e política 1.0.2 preservados.
+
 ## V2.1.15 — contagens e frases no mundo invertido
 
 Durante os 20s do efeito, a apresentação usa o modo oposto à preferência salva: regressiva vira normal e normal vira regressiva. Home e Histórico compartilham a resolução do modo temporário, inclusive na atualização do relógio e ao navegar. Encerrar o efeito restaura imediatamente a apresentação; nenhum timestamp, snapshot ou preferência é alterado. O seletor nas configurações continua mostrando a preferência salva. Se ela for alterada durante o efeito, a apresentação acompanha o inverso da nova escolha e usa essa escolha ao terminar.

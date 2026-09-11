@@ -98,3 +98,49 @@ test('Mundo invertido: gesto, cancelamento, duração, isolamento e movimento re
   }
 });
 
+test('Mundo invertido: ciclo sem repetição e respostas à sequência rápida', async () => {
+  const server = createDevServer();
+  await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
+  const browser = await chromium.launch({ channel: 'msedge', headless: true });
+  try {
+    const page = await browser.newPage({ viewport: { width: 390, height: 844 } });
+    await page.addInitScript(() => { Math.random = () => .37; });
+    await page.goto(`http://127.0.0.1:${server.address().port}/funtime/`);
+    await page.getByRole('button', { name: 'Começar sem dados', exact: true }).click();
+    for (const checkbox of await page.locator('#terms-form input[type=checkbox]').all()) await checkbox.check();
+    await page.locator('#terms-continue').click();
+    await page.waitForFunction(() => !document.body.classList.contains('boot-pending'));
+    await page.clock.install();
+    await page.clock.pauseAt(new Date(Date.now() + 1000));
+    const trigger = async () => {
+      await page.locator('#home-header h1').dispatchEvent('pointerdown', {
+        pointerId: 1, isPrimary: true, button: 0, clientX: 30, clientY: 60
+      });
+      await page.clock.runFor(1500);
+      await page.locator('#home-header h1').dispatchEvent('pointerup', {
+        pointerId: 1, isPrimary: true, button: 0, clientX: 30, clientY: 60
+      });
+      const phrase = await page.locator('.upside-marquee span').textContent();
+      await page.clock.runFor(20000);
+      return phrase;
+    };
+    const shown = [];
+    for (let index = 0; index < 16; index++) shown.push(await trigger());
+    assert.equal(new Set(shown.slice(0, 9)).size, 9);
+    assert.deepEqual(shown.slice(9, 14), [
+      'Parece que você gostou de ficar fazendo isso.',
+      'Porra, viciou em visitar o mundo invertido?',
+      'Sério, para com esses vícios estranhos.',
+      'Porque você não vai dançar e me deixa em paz?',
+      '!'
+    ]);
+    assert.equal(new Set([...shown.slice(0, 9), ...shown.slice(14, 16)]).size, 11);
+    await page.clock.runFor(45001);
+    const afterPause = await trigger();
+    assert.notEqual(afterPause, shown[15]);
+  } finally {
+    await browser.close();
+    await new Promise(resolve => server.close(resolve));
+  }
+});
+
