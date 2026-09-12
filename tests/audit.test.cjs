@@ -136,7 +136,7 @@ test('shell offline inclui as políticas e todos os arquivos existem', () => {
   assert.ok(shell.includes('./policies.html')); assert.ok(shell.includes('./policies.js'));
   assert.equal(shell.some(path=>path.startsWith('./bg/')),false);
   assert.match(sw,/BACKGROUND_CACHE_NAME = "funtime-bg-v1"/);
-  for(const path of shell) assert.ok(fs.existsSync(path));
+  for(const path of shell) assert.ok(fs.existsSync(path.split('?')[0]));
 });
 
 test('rascunho restaura marcações ao voltar, sem aceitar; nova versão zera escolhas', async () => {

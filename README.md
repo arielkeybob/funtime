@@ -1,4 +1,10 @@
-# FunTime — V2.1.21
+# FunTime — V2.1.22
+
+## V2.1.22 — cards e navegação invertidos
+
+Durante o mundo invertido, cada card move Histórico/mais opções para a coluna esquerda. O conteúdo principal passa para a direita, com o ícone à direita dos textos e todas as informações alinhadas à direita. Gradientes e barras laterais dos estados também são espelhados. A navegação inferior inverte a ordem completa dos itens, inclusive no DOM, mantendo a ordem visual e a navegação por teclado coerentes. Ao final dos 20s, cards e menu retornam à disposição original.
+
+Validação: sintaxe de app.js/sw.js, diff e 25 testes em audit/upside-down-browser aprovados; captura em 390×844 conferida. A infraestrutura de prévia passou a remover queries de revisão ao conferir arquivos físicos, corrigindo o suporte ao ícone `?rev=2`. Celular real e atualização da PWA não testados. Commit e push solicitados. App, boot, rodapés e cache alinhados a 2.1.22; DATA_VERSION 11 e política 1.0.2 preservados.
 
 ## V2.1.21 — notificações mais compactas
 

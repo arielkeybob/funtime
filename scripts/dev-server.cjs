@@ -5,7 +5,7 @@ const path = require('node:path');
 const root = path.resolve(__dirname, '..');
 function createDevServer() {
   const shell = fs.readFileSync(path.join(root, 'sw.js'), 'utf8').match(/const APP_SHELL = \[([\s\S]*?)\];/)[1];
-  const allowed = new Set([...shell.matchAll(/"\.\/([^\"]*)"/g)].map(match => match[1] || 'index.html'));
+  const allowed = new Set([...shell.matchAll(/"\.\/([^\"]*)"/g)].map(match => (match[1] || 'index.html').split('?')[0]));
   allowed.add('sw.js');
   return http.createServer((req, res) => {
     const host = req.headers.host?.split(':')[0];

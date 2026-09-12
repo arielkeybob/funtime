@@ -1,5 +1,11 @@
 # FunTime — documentação de desenvolvimento
 
+## V2.1.22 — cards e navegação invertidos
+
+Quando `state.upsideDownActive` está ativo, `render()` antepõe `.card-actions` a `.drink-main`; o CSS atribui explicitamente as colunas invertidas, espelha a grade interna, alinhamento, padding, gradientes e barras de estado. A renderização normal mantém a ordem original do template. A navegação inferior tem seus filhos revertidos ao iniciar e novamente ao encerrar o efeito, fazendo a ordem de foco acompanhar a apresentação. O encerramento já protegido por `wasActive` impede uma segunda reversão acidental.
+
+O teste integrado cobre ordem DOM e colunas dos cards, posição do ícone, alinhamento dos textos, ordem dos itens da navegação e restauração após 20s. Sintaxe de app.js/sw.js, diff e 25 testes audit/upside-down-browser aprovados; captura 390×844 conferida. `scripts/dev-server.cjs` e a auditoria agora removem query strings antes de comparar itens do APP_SHELL com arquivos físicos, permitindo testar recursos versionados como `icon-maskable-512-v2.png?rev=2`. Celular real e atualização da PWA não testados. Commit e push solicitados. App, boot, rodapés e cache alinhados a 2.1.22; DATA_VERSION 11 e política 1.0.2 preservados.
+
 ## V2.1.21 — notificações compactas
 
 Texto à esquerda e ações em coluna à direita, botões de 32px e fechamento por × com rótulo acessível. Temporização reduzida para 2,5s em avisos comuns e 4s com Desfazer ou erro; persistent e callbacks preservados. App, boot, rodapés e cache alinhados a 2.1.21, sem mudança de schema ou política.

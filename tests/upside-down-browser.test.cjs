@@ -23,6 +23,8 @@ test('Mundo invertido: gesto, cancelamento, duração, isolamento e movimento re
     const send = (type, selector = '#home-header h1', extra = {}) => page.locator(selector).dispatchEvent(type, {
       pointerId: 1, isPrimary: true, button: 0, clientX: 30, clientY: 60, ...extra
     });
+    const navOrder = () => page.locator('.bottom-nav > button').evaluateAll(buttons => buttons.map(button => button.id));
+    const normalNavOrder = ['nav-home', 'open-history', 'nav-occasion', 'open-settings'];
     const active = () => page.locator('.upside-down-world').count();
     for (const mode of ['short', 'move', 'cancel', 'multi', 'scroll']) {
       await send('pointerdown');
@@ -41,6 +43,7 @@ test('Mundo invertido: gesto, cancelamento, duração, isolamento e movimento re
       assert.equal(await active(), 0);
       await page.clock.runFor(1);
       assert.equal(await active(), 1);
+      assert.deepEqual(await navOrder(), [...normalNavOrder].reverse());
       await send('pointerup', selector);
       assert.equal(await page.locator('.home-header-eyebrow').textContent(), 'TimeFun');
       assert.equal(await page.locator('#home-header h1').textContent(), 'Final');
@@ -55,6 +58,7 @@ test('Mundo invertido: gesto, cancelamento, duração, isolamento e movimento re
       assert.equal(await active(), 0);
       assert.equal(await page.locator('.home-header-eyebrow').textContent(), 'FunTime');
       assert.equal(await page.locator('#home-header h1').textContent(), 'Início');
+      assert.deepEqual(await navOrder(), normalNavOrder);
     }
     for (const mode of ['countdown', 'normal']) {
       await page.evaluate(mode => {
@@ -67,6 +71,15 @@ test('Mundo invertido: gesto, cancelamento, duração, isolamento e movimento re
       await send('pointerdown');
       await page.clock.runFor(1500);
       await send('pointerup');
+      assert.deepEqual(await page.locator('.drink-card').evaluate(card => [...card.children].map(child => child.className)), ['card-actions', 'drink-main']);
+      assert.equal(await page.locator('.card-actions').evaluate(element => getComputedStyle(element).gridColumnStart), '1');
+      assert.equal(await page.locator('.drink-main').evaluate(element => getComputedStyle(element).gridColumnStart), '2');
+      assert.equal(await page.locator('.drink-content').evaluate(element => getComputedStyle(element).textAlign), 'right');
+      const [contentBox, iconBox] = await Promise.all([
+        page.locator('.drink-content').boundingBox(),
+        page.locator('.drink-icon').boundingBox()
+      ]);
+      assert.ok(iconBox.x > contentBox.x);
       assert.equal(await page.evaluate(() => effectiveCountingMode()), mode === 'normal' ? 'countdown' : 'normal');
       assert.match(await page.locator('#drink-list').innerText(), mode === 'normal' ? /Falta: -/ : /Contando:/);
       assert.equal(await page.locator('.upside-marquee span').count(), 1);
@@ -79,6 +92,8 @@ test('Mundo invertido: gesto, cancelamento, duração, isolamento e movimento re
       assert.match(await page.locator('#history-list').innerText(), mode === 'normal' ? /Falta 00:50/ : /atrás/);
       assert.equal(await page.evaluate(() => JSON.stringify(buildCurrentAppData())), dataBefore);
       await page.locator('#close-history').click();
+      assert.deepEqual(await page.locator('.drink-card').evaluate(card => [...card.children].map(child => child.className)), ['drink-main', 'card-actions']);
+      assert.deepEqual(await navOrder(), normalNavOrder);
       assert.match(await page.locator('#drink-list').innerText(), mode === 'normal' ? /Contando:/ : /Falta: -/);
     }
     await page.emulateMedia({ reducedMotion: 'reduce' });

@@ -283,7 +283,7 @@ document.addEventListener("visibilitychange", () => {
 const DATA_STORAGE_KEY = "funtime-v1-data";
 const LEGACY_DRINKS_STORAGE_KEY = "balada-v1-drinks";
 const DATA_VERSION = 11;
-const APP_VERSION = "2.1.21";
+const APP_VERSION = "2.1.22";
 const DRINK_EXPORT_TYPE = "funtime-drinks";
 const DRINK_EXPORT_FORMAT_VERSION = 1;
 const BACKUP_EXPORT_TYPE = "funtime-backup";
@@ -2426,6 +2426,7 @@ function render() {
     const fragment = cardTemplate.content.cloneNode(true);
     const card = fragment.querySelector(".drink-card");
     const mainButton = fragment.querySelector(".drink-main");
+    const cardActions = fragment.querySelector(".card-actions");
     const historyButton = fragment.querySelector(".drink-history-button");
     const menuButton = fragment.querySelector(".more-button");
     const icon = fragment.querySelector(".drink-icon");
@@ -2487,6 +2488,8 @@ function render() {
 
     menuButton.setAttribute("aria-label", `Mais opções para ${drink.name}`);
     menuButton.addEventListener("click", () => openDrinkMenuDialog(drink.id));
+
+    if (state.upsideDownActive) card.prepend(cardActions);
 
     drinkList.appendChild(fragment);
   });
@@ -4634,6 +4637,8 @@ document.querySelector('#undo-icon-removal').addEventListener('click', () => {
   };
   const headerBrand = homeHeader.querySelector('.home-header-eyebrow');
   const headerTitle = homeHeader.querySelector('h1');
+  const bottomNav = document.querySelector('.bottom-nav');
+  const reverseBottomNavigation = () => bottomNav.append(...[...bottomNav.children].reverse());
   const endUpsideDown = () => {
     const wasActive = state.upsideDownActive;
     state.upsideDownActive = false;
@@ -4645,7 +4650,10 @@ document.querySelector('#undo-icon-removal').addEventListener('click', () => {
     document.body.classList.remove('upside-down-active');
     headerBrand.textContent = 'FunTime';
     headerTitle.textContent = 'Início';
-    if (wasActive) refreshDataViews();
+    if (wasActive) {
+      reverseBottomNavigation();
+      refreshDataViews();
+    }
   };
   const startUpsideDown = () => {
     if (!available()) return;
@@ -4672,6 +4680,7 @@ document.querySelector('#undo-icon-removal').addEventListener('click', () => {
     homeHeader.append(upsideMarquee);
     state.upsideDownActive = true;
     document.body.classList.add('upside-down-active');
+    reverseBottomNavigation();
     refreshDataViews();
     upsideTimer = setTimeout(endUpsideDown, 20000);
   };
