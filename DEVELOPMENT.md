@@ -1,5 +1,13 @@
 # FunTime — documentação de desenvolvimento
 
+## V2.1.23 — ordem manual das bebidas
+
+`state.drinks` passa a representar a ordem manual canônica. `getDrinkDisplayGroups()` projeta essa lista em bebidas recentes, ordenadas pelo último consumo, e bebidas manuais, sem alterar os dados. Com eventos ativos, o primeiro grupo inclui registros do evento atual e qualquer contagem ainda em andamento; sem eventos, usa contagens ativas e registros das últimas 24 horas. A preferência opcional `prioritizeRecentDrinks` assume `true` em dados antigos e pode reunir toda a Home na ordem manual.
+
+Pressionar por 500 ms somente o ícone de um card manual inicia o arraste, troca temporariamente o emoji por `⠿`, cria uma cópia flutuante e desloca os demais cards. O restante do card conserva duplo toque e pressão longa para anotar. A renderização completa de um segundo é suspensa durante o gesto; soltura válida grava a ordem e cancelamento ou falha restaura os dados. Novas bebidas e importações aditivas já entram no final, enquanto exportação e backup conservam a sequência do array. DATA_VERSION 11 preservado por ser uma preferência opcional retrocompatível.
+
+Validação: `node --check app.js`, `node --check sw.js` e `git diff --check`; cinco testes integrados aprovados em viewport 390×844, cobrindo toque CDP, intenção de rolagem, separação, persistência, retorno após 24h, preferência, navegação e mundo invertido. A captura da Home foi conferida. A rodada não-browser teve 83 aprovações e quatro falhas preexistentes/independentes em `migration-sw.test.cjs` (expectativas fixas da v2.0.0) e `v2-preview.test.cjs` (query `?rev=2` tratada como parte do nome físico). Celular real, atualização da PWA e lista longa no aparelho não testados.
+
 ## V2.1.22 — cards e navegação invertidos
 
 Quando `state.upsideDownActive` está ativo, `render()` antepõe `.card-actions` a `.drink-main`; o CSS atribui explicitamente as colunas invertidas, espelha a grade interna, alinhamento, padding, gradientes e barras de estado. A renderização normal mantém a ordem original do template. A navegação inferior tem seus filhos revertidos ao iniciar e novamente ao encerrar o efeito, fazendo a ordem de foco acompanhar a apresentação. O encerramento já protegido por `wasActive` impede uma segunda reversão acidental.

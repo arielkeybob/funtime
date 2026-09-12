@@ -1,5 +1,9 @@
 # FunTime — releases v2
 
+## V2.1.23 — ordem manual das bebidas
+
+Bebidas recentes permanecem agrupadas no topo por último consumo, enquanto as demais podem ser reorganizadas segurando o ícone e conservam a posição ao sair e retornar ao período/evento. A preferência de Interface pode desativar a priorização automática. Novas bebidas e importações aditivas entram no final; exportação e backup preservam a ordem. App, boot, rodapés e cache 2.1.23; DATA_VERSION 11 mantido. Cinco testes integrados móveis, sintaxe e diff aprovados; aparência 390×844 conferida. Celular real e atualização da PWA não testados. Sem commit ou publicação.
+
 ## V2.1.18 — código de acesso para instalar
 
 Página comercial libera botão/orientações automaticamente após a senha, apenas na memória da página. PWA instalada e dados preservados. Barreira visual, sem proteção de backend. App, boot, rodapés e cache 2.1.18; DATA_VERSION 11 e política 1.0.2 mantidos. Sintaxe e testes de instalação/transição aprovados; aparência em navegador, celular e instalação real não testados. Commit e push autorizados para funtime/main.

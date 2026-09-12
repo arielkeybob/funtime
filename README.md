@@ -1,4 +1,8 @@
-# FunTime — V2.1.22
+# FunTime — V2.1.23
+
+## V2.1.23 — ordem manual das bebidas
+
+A Home agora permite segurar o ícone de uma bebida neutra para reorganizá-la. Por padrão, bebidas consumidas recentemente continuam no topo pela ordem do último consumo; uma divisão discreta separa as demais, que conservam a ordem manual quando entram e saem do período ou evento atual. Configurações → Interface permite desativar essa priorização e reorganizar toda a lista manualmente. Bebidas novas e importadas no modo Adicionar entram no final; exportação e backup preservam a ordem. O restante do card mantém os gestos de anotação. App, boot, rodapés e cache alinhados a 2.1.23; DATA_VERSION 11 preservado. Sintaxe, diff e cinco testes integrados de Home/navegação aprovados; 83 testes não-browser aprovados e quatro verificações antigas independentes falharam por expectativas fixas da v2.0.0 e query no caminho do ícone. Aparência conferida em 390×844; celular real e atualização da PWA não testados.
 
 ## V2.1.22 — cards e navegação invertidos
 

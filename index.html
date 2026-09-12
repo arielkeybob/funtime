@@ -60,7 +60,7 @@
     <footer class="browser-gate-footer">
       <span>App para estudo · não é controle de segurança</span>
       <a class="policies-link" href="./policies.html">Políticas e informações</a>
-      <span>v2.1.22 · By: arielkeybob</span>
+      <span>v2.1.23 · By: arielkeybob</span>
     </footer>
   </section>
 
@@ -158,6 +158,16 @@
         </select>
         </label>
         <label class="settings-toggle-row" for="events-enabled"><div class="settings-toggle-copy"><strong>Usar eventos</strong><span>Organize consumos por ocasião. Desativar preserva o histórico e as contagens, encerra o evento atual e suspende os agendamentos.</span></div><span class="security-switch"><input id="events-enabled" type="checkbox"><span class="security-switch-track"><span></span></span></span></label>
+        <label class="settings-toggle-row" for="prioritize-recent-drinks">
+          <div class="settings-toggle-copy">
+            <strong>Priorizar bebidas recentes</strong>
+            <span>Mantém no topo as bebidas consumidas no período ou evento atual. As demais seguem a ordem definida por você.</span>
+          </div>
+          <span class="security-switch">
+            <input id="prioritize-recent-drinks" type="checkbox" checked>
+            <span class="security-switch-track"><span></span></span>
+          </span>
+        </label>
         <label class="settings-toggle-row" for="clean-interface">
           <div class="settings-toggle-copy">
             <strong>Interface limpa e compacta</strong>
@@ -302,7 +312,7 @@
     <footer class="app-footer">
       <span class="app-footer-disclaimer">App para estudo · não é controle de segurança</span>
       <a class="policies-link" href="./policies.html">Políticas e informações</a>
-      <span class="app-footer-meta">v2.1.22 · By: arielkeybob</span>
+      <span class="app-footer-meta">v2.1.23 · By: arielkeybob</span>
     </footer>
   </div>
 
@@ -703,7 +713,7 @@
   <template id="drink-card-template">
     <article class="drink-card">
       <button class="drink-main" type="button">
-        <span class="drink-icon" aria-hidden="true"></span>
+        <span class="drink-icon" aria-hidden="true"><span class="drink-icon-symbol"></span></span>
         <span class="drink-content">
           <span class="drink-state"></span>
           <span class="drink-name"></span>

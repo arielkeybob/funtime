@@ -24,13 +24,15 @@ test('prévia local abre em aba comum e cards concluídos são neutros', { timeo
       saveData(); render();
     });
 
-    for (const id of ['antiga','recente']) {
-      const card = page.locator(`[data-drink-id="${id}"]`);
-      assert.ok((await card.getAttribute('class')).includes('neutral'));
-      assert.equal(await card.locator('.drink-time').textContent(), 'Anotar dose');
-      assert.equal(await card.locator('.drink-state').isVisible(), false);
-      assert.match(await card.locator('.drink-status').textContent(), /^Último registro:/);
-    }
+    const oldCard = page.locator('[data-drink-id=antiga]');
+    assert.ok((await oldCard.getAttribute('class')).includes('neutral'));
+    assert.equal(await oldCard.locator('.drink-time').textContent(), 'Anotar dose');
+    assert.equal(await oldCard.locator('.drink-state').isVisible(), false);
+    assert.match(await oldCard.locator('.drink-status').textContent(), /^Último registro:/);
+    const recentCard = page.locator('[data-drink-id=recente]');
+    assert.ok((await recentCard.getAttribute('class')).includes('completed'));
+    assert.equal(await recentCard.locator('.drink-time').textContent(), 'Anotar nova dose');
+    assert.equal(await page.locator('.drink-group-separator').count(), 1);
     assert.match(await page.locator('[data-drink-id=antiga] .drink-status').textContent(), /\d{2}\/\d{2}\/\d{2}/);
     assert.ok((await page.locator('[data-drink-id=ativa]').getAttribute('class')).includes('waiting'));
     assert.equal(await page.locator('[data-drink-id=nova] .drink-time').textContent(), 'Anotar primeira dose');
@@ -42,7 +44,7 @@ test('prévia local abre em aba comum e cards concluídos são neutros', { timeo
       state.events.push({ ...state.events[0], id: 'retroativa-nova', consumedAt: Date.now() - 7200000 });
       render();
     });
-    assert.ok((await page.locator('[data-drink-id=antiga]').getAttribute('class')).includes('neutral'));
+    assert.ok((await page.locator('[data-drink-id=antiga]').getAttribute('class')).includes('completed'));
     assert.deepEqual(errors, []);
   } finally { await browser.close(); await new Promise(resolve => server.close(resolve)); }
 });

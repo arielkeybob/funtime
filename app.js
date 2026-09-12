@@ -283,7 +283,7 @@ document.addEventListener("visibilitychange", () => {
 const DATA_STORAGE_KEY = "funtime-v1-data";
 const LEGACY_DRINKS_STORAGE_KEY = "balada-v1-drinks";
 const DATA_VERSION = 11;
-const APP_VERSION = "2.1.22";
+const APP_VERSION = "2.1.23";
 const DRINK_EXPORT_TYPE = "funtime-drinks";
 const DRINK_EXPORT_FORMAT_VERSION = 1;
 const BACKUP_EXPORT_TYPE = "funtime-backup";
@@ -319,6 +319,8 @@ const REORDER_ANIMATION_EASING = "cubic-bezier(0.22, 1, 0.36, 1)";
 const LONG_PRESS_MS = 600;
 const LONG_PRESS_FEEDBACK_MS = 280;
 const LONG_PRESS_MOVE_TOLERANCE = 12;
+const DRINK_REORDER_PRESS_MS = 500;
+const DRINK_REORDER_MOVE_TOLERANCE = 18;
 const DOUBLE_TAP_MAX_DELAY_MS = 430;
 const DOUBLE_TAP_FEEDBACK_MS = 430;
 
@@ -344,6 +346,7 @@ const state = {
   undo: null,
   toastTimerId: null,
   reorderAnimationUntil: 0,
+  draggingDrinkId: null,
   pendingDoubleTap: null,
   securityConfig: IS_STANDALONE_APP ? loadSecurityConfig() : getDefaultSecurityConfig(),
   securityLocked: false,
@@ -449,6 +452,7 @@ const settingsHeader = document.querySelector("#settings-header");
 const settingsView = document.querySelector("#settings-view");
 const countingModeInput = document.querySelector("#counting-mode");
 const cleanInterfaceInput = document.querySelector("#clean-interface");
+const prioritizeRecentDrinksInput = document.querySelector("#prioritize-recent-drinks");
 const exportDrinksButton = document.querySelector("#export-drinks");
 const importDrinksButton = document.querySelector("#import-drinks");
 const drinkImportFileInput = document.querySelector("#drink-import-file");
@@ -499,6 +503,7 @@ function applyInterfacePreferences() {
 
 function updateInterfaceSettingsUI() {
   countingModeInput.value = state.preferences.countingMode === "normal" ? "normal" : "countdown";
+  if (prioritizeRecentDrinksInput) prioritizeRecentDrinksInput.checked = state.preferences?.prioritizeRecentDrinks !== false;
   if (!cleanInterfaceInput) return;
   cleanInterfaceInput.checked = state.preferences?.cleanInterface !== false;
 }
@@ -1243,6 +1248,7 @@ function normalizeData(data) {
     occasions,
     preferences: {
       eventsEnabled: data.preferences?.eventsEnabled === true,
+      prioritizeRecentDrinks: data.preferences?.prioritizeRecentDrinks !== false,
       cleanInterface: data.preferences?.cleanInterface !== false,
       countingMode: data.preferences?.countingMode === "normal" ? "normal" : "countdown",
       iconCatalog: normalizeIconCatalog(data.preferences?.iconCatalog),
@@ -1756,6 +1762,7 @@ function validateBackupPayload(payload) {
   if (data.preferences?.countingMode !== undefined && !["countdown", "normal"].includes(data.preferences.countingMode)) invalid();
   // Reconstrói apenas campos conhecidos; não mescla propriedades do arquivo.
   if (data.preferences?.eventsEnabled !== undefined && typeof data.preferences.eventsEnabled !== "boolean") invalid();
+  if (data.preferences?.prioritizeRecentDrinks !== undefined && typeof data.preferences.prioritizeRecentDrinks !== "boolean") invalid();
   const catalog = data.preferences?.iconCatalog;
   if (catalog !== undefined && (!Array.isArray(catalog) || catalog.length > 100 ||
       catalog.some(icon => !validText(icon, 64)) || new Set(catalog.map(icon => icon.trim())).size !== catalog.length)) invalid();
@@ -2221,6 +2228,254 @@ function getSortedDrinks() {
   });
 }
 
+function isDrinkInRecentGroup(drink, activity = getDrinkActivity(drink), occasion = null) {
+  if (activity.state === "waiting" || activity.state === "danger") return true;
+  if (!activity.latestEvent || activity.state === "new") return false;
+
+  if (state.preferences.eventsEnabled) {
+    return Boolean(occasion && activity.latestEvent.occasionId === occasion.id);
+  }
+
+  return Date.now() - activity.latestEvent.consumedAt < 24 * 60 * 60 * 1000;
+}
+
+function getDrinkDisplayGroups() {
+  if (state.preferences?.prioritizeRecentDrinks === false) {
+    return { recent: [], manual: [...state.drinks] };
+  }
+
+  const occasion = state.preferences.eventsEnabled ? FunTimeOccasions.active(state.occasions) : null;
+  const recent = [];
+  const manual = [];
+
+  state.drinks.forEach((drink) => {
+    const activity = getDrinkActivity(drink);
+    (isDrinkInRecentGroup(drink, activity, occasion) ? recent : manual).push(drink);
+  });
+
+  recent.sort((a, b) => {
+    const aLatest = getDrinkEvents(a.id).at(-1)?.consumedAt || 0;
+    const bLatest = getDrinkEvents(b.id).at(-1)?.consumedAt || 0;
+    return bLatest - aLatest || a.name.localeCompare(b.name, "pt-BR");
+  });
+
+  return { recent, manual };
+}
+
+function persistManualDrinkOrder(orderedManualIds) {
+  const ordered = [...orderedManualIds];
+  const manualIds = new Set(ordered);
+  const byId = new Map(state.drinks.map((drink) => [drink.id, drink]));
+  let manualIndex = 0;
+  const nextDrinks = state.drinks.map((drink) => {
+    if (!manualIds.has(drink.id)) return drink;
+    return byId.get(ordered[manualIndex++]);
+  });
+
+  persistDrinkList(nextDrinks);
+}
+
+function animateManualDrinkShift(previousPositions) {
+  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  drinkList.querySelectorAll('.drink-card[data-reorder-eligible="true"]').forEach((card) => {
+    const previous = previousPositions.get(card.dataset.drinkId);
+    if (!previous) return;
+    const current = card.getBoundingClientRect();
+    const deltaY = previous.top - current.top;
+    if (Math.abs(deltaY) < 1) return;
+    card.animate(
+      [{ transform: `translateY(${deltaY}px)` }, { transform: "translateY(0)" }],
+      { duration: 180, easing: "cubic-bezier(0.22, 1, 0.36, 1)" }
+    );
+  });
+}
+
+function beginDrinkReorder(card, icon, drink, point) {
+  if (state.draggingDrinkId || card.dataset.reorderEligible !== "true") return;
+
+  const sourceRect = card.getBoundingClientRect();
+  const ghost = card.cloneNode(true);
+  ghost.className = `${card.className} drink-reorder-ghost`;
+  ghost.style.width = `${sourceRect.width}px`;
+  ghost.style.height = `${sourceRect.height}px`;
+  ghost.querySelectorAll("button").forEach((button) => { button.tabIndex = -1; });
+  document.body.appendChild(ghost);
+
+  const offsetX = point.clientX - sourceRect.left;
+  const offsetY = point.clientY - sourceRect.top;
+  const originalIcon = icon.querySelector(".drink-icon-symbol")?.textContent || drink.icon;
+  let latestPoint = point;
+  let autoScrollFrame = null;
+  const setGhostPosition = (nextPoint) => {
+    ghost.style.transform = `translate3d(${nextPoint.clientX - offsetX}px, ${nextPoint.clientY - offsetY}px, 0)`;
+  };
+
+  state.draggingDrinkId = drink.id;
+  card.classList.add("is-drink-drag-source");
+  icon.classList.add("is-dragging");
+  const symbol = icon.querySelector(".drink-icon-symbol");
+  if (symbol) symbol.textContent = "⠿";
+  setGhostPosition(point);
+  if (typeof navigator.vibrate === "function") navigator.vibrate(30);
+
+  const move = (nextPoint) => {
+    latestPoint = nextPoint;
+    setGhostPosition(nextPoint);
+    const candidates = [...drinkList.querySelectorAll('.drink-card[data-reorder-eligible="true"]')]
+      .filter((candidate) => candidate !== card);
+    const target = candidates.find((candidate) => {
+      const rect = candidate.getBoundingClientRect();
+      return nextPoint.clientY < rect.top + rect.height / 2;
+    });
+    const before = captureDrinkCardPositions();
+    if (target) drinkList.insertBefore(card, target);
+    else drinkList.appendChild(card);
+    animateManualDrinkShift(before);
+
+    if (!autoScrollFrame) autoScrollFrame = requestAnimationFrame(autoScroll);
+  };
+
+  const autoScroll = () => {
+    autoScrollFrame = null;
+    const edge = 88;
+    const speed = latestPoint.clientY < edge
+      ? -Math.ceil((edge - latestPoint.clientY) / 7)
+      : latestPoint.clientY > innerHeight - edge
+        ? Math.ceil((latestPoint.clientY - (innerHeight - edge)) / 7)
+        : 0;
+    if (!speed) return;
+    window.scrollBy(0, Math.max(-14, Math.min(14, speed)));
+    move(latestPoint);
+  };
+
+  const finish = (save) => {
+    window.removeEventListener("pointermove", pointerMove);
+    window.removeEventListener("pointerup", pointerUp);
+    window.removeEventListener("pointercancel", pointerCancel);
+    document.removeEventListener("touchmove", touchMove, true);
+    document.removeEventListener("touchend", touchEnd, true);
+    document.removeEventListener("touchcancel", touchCancel, true);
+    document.removeEventListener("pointerup", touchPointerUp, true);
+    document.removeEventListener("pointercancel", touchPointerCancel, true);
+    document.removeEventListener("pointermove", touchPointerMove, true);
+    cancelAnimationFrame(autoScrollFrame);
+    autoScrollFrame = null;
+    ghost.remove();
+    card.classList.remove("is-drink-drag-source");
+    icon.classList.remove("is-dragging");
+    if (symbol) symbol.textContent = originalIcon;
+    state.draggingDrinkId = null;
+
+    if (save) {
+      const ids = [...drinkList.querySelectorAll('.drink-card[data-reorder-eligible="true"]')]
+        .map((item) => item.dataset.drinkId);
+      try {
+        persistManualDrinkOrder(ids);
+        showToast("Ordem das bebidas salva.");
+      } catch (error) {
+        showAppNotification("Não foi possível salvar a ordem. A ordem anterior foi mantida.", { type: "error", persistent: true });
+      }
+    }
+    render();
+  };
+
+  const pointerMove = (event) => {
+    if (event.pointerId !== point.pointerId) return;
+    move(event);
+  };
+  const pointerUp = (event) => { if (event.pointerId === point.pointerId) finish(true); };
+  const pointerCancel = (event) => { if (event.pointerId === point.pointerId) finish(false); };
+  const touchMove = (event) => {
+    const touch = [...event.touches].find((item) => item.identifier === point.pointerId);
+    if (!touch) return;
+    if (event.cancelable) event.preventDefault();
+    move(touch);
+  };
+  const touchEnd = () => finish(true);
+  const touchCancel = () => finish(false);
+  const touchPointerUp = () => finish(true);
+  const touchPointerCancel = () => finish(false);
+  const touchPointerMove = (event) => move(event);
+
+  if (point.isTouch) {
+    document.addEventListener("touchmove", touchMove, { capture: true, passive: false });
+    document.addEventListener("touchend", touchEnd, true);
+    document.addEventListener("touchcancel", touchCancel, true);
+    document.addEventListener("pointerup", touchPointerUp, true);
+    document.addEventListener("pointercancel", touchPointerCancel, true);
+    document.addEventListener("pointermove", touchPointerMove, true);
+  } else {
+    window.addEventListener("pointermove", pointerMove);
+    window.addEventListener("pointerup", pointerUp);
+    window.addEventListener("pointercancel", pointerCancel);
+  }
+}
+
+function attachDrinkReorderGesture(card, icon, drink) {
+  let pressTimer = null;
+  let suppressClick = false;
+  const cancelPending = () => {
+    clearTimeout(pressTimer);
+    pressTimer = null;
+    icon.classList.remove("is-reorder-pressing");
+  };
+  const start = (point) => {
+    if (state.draggingDrinkId || card.dataset.reorderEligible !== "true") return;
+    const origin = { ...point };
+    icon.classList.add("is-reorder-pressing");
+    pressTimer = setTimeout(() => {
+      cleanup();
+      suppressClick = true;
+      beginDrinkReorder(card, icon, drink, origin);
+    }, DRINK_REORDER_PRESS_MS);
+
+    const move = (next) => {
+      if (Math.hypot(next.clientX - origin.clientX, next.clientY - origin.clientY) <= DRINK_REORDER_MOVE_TOLERANCE) return;
+      cleanup();
+    };
+    const cleanup = () => {
+      cancelPending();
+      window.removeEventListener("pointermove", pointerMove);
+      window.removeEventListener("pointerup", cleanup);
+      window.removeEventListener("pointercancel", cleanup);
+      document.removeEventListener("touchmove", touchMove, true);
+      document.removeEventListener("touchend", cleanup, true);
+      document.removeEventListener("touchcancel", cleanup, true);
+    };
+    const pointerMove = (event) => { if (event.pointerId === origin.pointerId) move(event); };
+    const touchMove = (event) => {
+      const touch = [...event.touches].find((item) => item.identifier === origin.pointerId);
+      if (touch) move(touch);
+    };
+    if (origin.isTouch) {
+      document.addEventListener("touchmove", touchMove, { capture: true, passive: true });
+      document.addEventListener("touchend", cleanup, true);
+      document.addEventListener("touchcancel", cleanup, true);
+    } else {
+      window.addEventListener("pointermove", pointerMove);
+      window.addEventListener("pointerup", cleanup);
+      window.addEventListener("pointercancel", cleanup);
+    }
+  };
+
+  icon.addEventListener("click", (event) => {
+    if (!suppressClick) return;
+    event.preventDefault();
+    event.stopPropagation();
+    suppressClick = false;
+  }, true);
+  icon.addEventListener("contextmenu", (event) => event.preventDefault());
+  icon.addEventListener("touchstart", (event) => {
+    if (event.touches.length !== 1) return;
+    const touch = event.touches[0];
+    start({ isTouch: true, pointerId: touch.identifier, clientX: touch.clientX, clientY: touch.clientY });
+  }, { passive: true });
+  icon.addEventListener("pointerdown", (event) => {
+    if (event.pointerType === "touch" || event.button !== 0) return;
+    start({ isTouch: false, pointerId: event.pointerId, clientX: event.clientX, clientY: event.clientY });
+  });
+}
+
 function captureDrinkCardPositions() {
   const positions = new Map();
 
@@ -2333,6 +2588,7 @@ function attachDrinkInteractions(mainButton, drink) {
   };
 
   mainButton.addEventListener("pointerdown", (event) => {
+    if (event.target.closest(".is-reorder-handle")) return;
     if (event.pointerType === "mouse" && event.button !== 0) return;
 
     clearPressTimers();
@@ -2387,6 +2643,7 @@ function attachDrinkInteractions(mainButton, drink) {
   });
 
   mainButton.addEventListener("click", (event) => {
+    if (event.target.closest(".is-reorder-handle")) return;
     if (longPressTriggered) {
       event.preventDefault();
       event.stopPropagation();
@@ -2417,12 +2674,23 @@ function attachDrinkInteractions(mainButton, drink) {
 }
 
 function render() {
+  if (state.draggingDrinkId) return;
   globalThis.refreshOccasionContext?.();
   drinkList.innerHTML = "";
   emptyState.hidden = state.drinks.length > 0;
   homeAddZone.hidden = state.drinks.length === 0;
 
-  getSortedDrinks().forEach((drink) => {
+  const displayGroups = getDrinkDisplayGroups();
+  const displayDrinks = [...displayGroups.recent, ...displayGroups.manual];
+  const manualIds = new Set(displayGroups.manual.map((drink) => drink.id));
+
+  displayDrinks.forEach((drink, index) => {
+    if (displayGroups.recent.length && displayGroups.manual.length && index === displayGroups.recent.length) {
+      const separator = document.createElement("div");
+      separator.className = "drink-group-separator";
+      separator.innerHTML = '<span>Outras bebidas</span>';
+      drinkList.appendChild(separator);
+    }
     const fragment = cardTemplate.content.cloneNode(true);
     const card = fragment.querySelector(".drink-card");
     const mainButton = fragment.querySelector(".drink-main");
@@ -2430,13 +2698,17 @@ function render() {
     const historyButton = fragment.querySelector(".drink-history-button");
     const menuButton = fragment.querySelector(".more-button");
     const icon = fragment.querySelector(".drink-icon");
+    const iconSymbol = fragment.querySelector(".drink-icon-symbol");
     const name = fragment.querySelector(".drink-name");
     const stateLabel = fragment.querySelector(".drink-state");
     const status = fragment.querySelector(".drink-status");
     const time = fragment.querySelector(".drink-time");
 
     card.dataset.drinkId = drink.id;
-    icon.textContent = drink.icon;
+    card.dataset.reorderEligible = String(manualIds.has(drink.id));
+    iconSymbol.textContent = drink.icon;
+    icon.classList.toggle("is-reorder-handle", manualIds.has(drink.id));
+    icon.title = manualIds.has(drink.id) ? "Segure para reorganizar" : "";
     name.textContent = drink.name;
 
     const activity = getDrinkActivity(drink);
@@ -2482,6 +2754,7 @@ function render() {
       status.append(document.createTextNode(" · Registro anterior ao evento"));
     }
     attachDrinkInteractions(mainButton, drink);
+    if (manualIds.has(drink.id)) attachDrinkReorderGesture(card, icon, drink);
 
     historyButton.setAttribute("aria-label", `Ver histórico de ${drink.name}`);
     historyButton.addEventListener("click", () => openHistoryView(drink.id));
@@ -4214,6 +4487,19 @@ cleanInterfaceInput.addEventListener("change", () => {
   applyInterfacePreferences();
   saveData();
   showToast(cleanInterfaceInput.checked ? "Interface limpa ativada." : "Informações auxiliares exibidas.");
+});
+
+prioritizeRecentDrinksInput.addEventListener("change", () => {
+  state.preferences.prioritizeRecentDrinks = prioritizeRecentDrinksInput.checked;
+  try {
+    saveData();
+    render();
+    showToast(prioritizeRecentDrinksInput.checked ? "Bebidas recentes priorizadas." : "Ordem manual aplicada a todas as bebidas.");
+  } catch (error) {
+    state.preferences.prioritizeRecentDrinks = !prioritizeRecentDrinksInput.checked;
+    prioritizeRecentDrinksInput.checked = state.preferences.prioritizeRecentDrinks;
+    showAppNotification("Não foi possível salvar esta configuração.", { type: "error", persistent: true });
+  }
 });
 
 exportDrinksButton.addEventListener("click", exportDrinks);
