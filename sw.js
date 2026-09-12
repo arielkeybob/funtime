@@ -1,5 +1,5 @@
-const APP_VERSION = "2.1.18";
-const CACHE_NAME = "funtime-v2-1-18-icons-2";
+const APP_VERSION = "2.1.19";
+const CACHE_NAME = "funtime-v2-1-19";
 const BACKGROUND_CACHE_NAME = "funtime-bg-v1";
 const SHARE_IMPORT_CACHE_NAME = "funtime-share-target-v1";
 const SHARE_IMPORT_REQUEST_PATH = "./__shared-drinks-import__";

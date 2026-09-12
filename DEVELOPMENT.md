@@ -1,5 +1,11 @@
 # FunTime — documentação de desenvolvimento
 
+## V2.1.19 — rodapé sem seleção de texto
+
+CSS aplica user-select: none, prefixo WebKit e bloqueio de touch-callout aos rodapés e seus descendentes. O link de políticas mantém a interação; gestos do BPM não foram alterados. App, boot, rodapés e cache alinhados a 2.1.19, sem alteração de schema ou política.
+
+Validação: node --check app.js, node --check sw.js, git diff --check e cinco testes de release/ui aprovados. O teste tap-bpm-browser não concluiu com sucesso na validação local e foi interrompido após reportar falha. Toque em celular real e atualização da PWA não testados. Commit e push solicitados.
+
 ## V2.1.17 — abertura fixa do ciclo de frases
 
 `UPSIDE_CYCLE_OPENING_PHRASE` identifica a abertura. Ao criar o baralho, o algoritmo separa essa frase, embaralha dinamicamente todas as demais e coloca a abertura na posição consumida primeiro por `pop()`. Se a frase for removida da lista principal futuramente, o baralho continua funcionando apenas com as frases disponíveis. As respostas rápidas não consomem nem recriam o baralho.

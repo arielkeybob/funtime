@@ -1,4 +1,8 @@
-# FunTime — V2.1.18
+# FunTime — V2.1.19
+
+## V2.1.19 — rodapé sem seleção de texto
+
+Textos dos rodapés deixam de ser selecionáveis durante toques repetidos; Políticas e informações continua clicável. App, boot, rodapés e cache alinhados a 2.1.19; DATA_VERSION 11 e política 1.0.2 preservados. Validação no celular pendente. Commit e push solicitados.
 
 ## V2.1.18 — código de acesso para instalar
 

@@ -275,6 +275,16 @@ body {
   flex-direction: column;
 }
 
+/* Evita seleção no rodapé durante toques repetidos nos easter eggs. */
+.app-footer,
+.app-footer *,
+.browser-gate-footer,
+.browser-gate-footer * {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+
 .app-footer {
   display: grid;
   gap: 3px;
