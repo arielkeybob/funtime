@@ -1,5 +1,5 @@
 const APP_VERSION = "2.1.18";
-const CACHE_NAME = "funtime-v2-1-18";
+const CACHE_NAME = "funtime-v2-1-18-icons-2";
 const BACKGROUND_CACHE_NAME = "funtime-bg-v1";
 const SHARE_IMPORT_CACHE_NAME = "funtime-share-target-v1";
 const SHARE_IMPORT_REQUEST_PATH = "./__shared-drinks-import__";
@@ -26,7 +26,7 @@ const APP_SHELL = [
   "./manifest.webmanifest",
   "./icons/icon-192-v2.png",
   "./icons/icon-512-v2.png",
-  "./icons/icon-maskable-512-v2.png",
+  "./icons/icon-maskable-512-v2.png?rev=2",
   "./icons/apple-touch-icon-v2.png",
   "./icons/favicon-32-v2.png"
 ];

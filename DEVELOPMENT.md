@@ -2388,3 +2388,11 @@ A página pública pede um código de acesso antes de mostrar o botão ou as ori
 É apenas uma barreira visual: código e manifest continuam públicos, e a instalação pelo menu do navegador não é bloqueada. Nenhum dado privado ou armazenamento é acessado pelo desbloqueio. App, boot, rodapés e cache alinhados a 2.1.18; DATA_VERSION 11 e política 1.0.2 preservados.
 
 Validação local: sintaxe de app.js/sw.js, diff e 24 testes de install/receiver/transition/ui aprovados. Cobertura de senha parcial/incorreta/correta, prompt antes/depois da liberação, orientação sem prompt, recarga simulada e instalação detectada. Aparência em navegador, instalação real e celular não testados. Commit e push solicitados.
+
+## Ícone Android — revisão local de 11/09/2026
+
+Matriz funtime-maskable-master-v2.png e exportação icon-maskable-512-v2.png atualizadas: personagem ampliado de aproximadamente 43% para 72% da altura. Edição pela ferramenta integrada de imagens, preservando o conceito existente. Prompt: ampliar o personagem, conservar cores, relógio, óculos, canudo e fundo contínuo; manter o desenho dentro do círculo central de diâmetro 80%. Refinamento final: reduzir 6% em relação à primeira saída e deslocar 2% para baixo.
+
+Manifest e precache usam icon-maskable-512-v2.png?rev=2; cache funtime-v2-1-18-icons-2 distingue a revisão de assets. Versão funcional 2.1.18 e DATA_VERSION preservados. Commit e push para funtime/main solicitados em 11/09/2026.
+
+Validação: PNG RGB opaco 512×512, caminhos dos ícones do manifest existentes, inspeção visual do recorte circular mínimo de 80% (personagem inteiro), node --check app.js, node --check sw.js e git diff --check aprovados. Instalação, atualização do ícone no launcher e celular real não testados; atualização dos metadados depende do navegador/sistema.
