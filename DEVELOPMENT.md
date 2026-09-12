@@ -1,5 +1,11 @@
 # FunTime — documentação de desenvolvimento
 
+## V2.1.20 — início direto e ações visíveis
+
+changeOccasion dispensa a confirmação apenas para start; mantém validações de bloqueio, conflito e persistência. O início efetivo usa o horário atual. Nos detalhes de eventos pendentes sem autoStart, as ações secundárias usam um bloco visível em vez de details. As confirmações de encerramento, cancelamento, reabertura e exclusão permanecem.
+
+App, boot, rodapés e cache alinhados a 2.1.20; schema e política preservados. Validação: sintaxe de app.js, sw.js e occasions-ui.js; 12 testes de agenda, occasions, release e ui; git diff --check. Interface no navegador, toque em celular e atualização da PWA não testados nesta entrega. Commit e push solicitados.
+
 ## V2.1.19 — rodapé sem seleção de texto
 
 CSS aplica user-select: none, prefixo WebKit e bloqueio de touch-callout aos rodapés e seus descendentes. O link de políticas mantém a interação; gestos do BPM não foram alterados. App, boot, rodapés e cache alinhados a 2.1.19, sem alteração de schema ou política.

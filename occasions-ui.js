@@ -140,13 +140,12 @@ async function changeOccasion(id, action) {
   const item = state.occasions.find(occasion => occasion.id === id); if (!item) return;
   const snapshot = JSON.stringify(item);
   const options = {
-    start: ['Iniciar evento', 'Iniciar agora', 'Iniciar ' + item.name + ' agora? O horário efetivo será o atual.'],
     end: ['Encerrar evento', 'Encerrar', 'Encerrar ' + item.name + '? Registros e contagens serão preservados.'],
     reopen: ['Reabrir evento', 'Reabrir', 'Reabrir ' + item.name + '? O encerramento programado anterior será desativado.'],
     cancel: ['Cancelar agendamento', 'Cancelar agendamento', 'Cancelar o agendamento de ' + item.name + '?'],
     delete: ['Excluir evento', 'Excluir evento', 'Excluir ' + item.name + '? As doses serão preservadas no histórico, sem evento.'],
   }[action];
-  if (!(await showAppConfirmation(options[2], { title: options[0], confirmLabel: options[1] }))) return;
+  if (action !== 'start' && !(await showAppConfirmation(options[2], { title: options[0], confirmLabel: options[1] }))) return;
   if (state.securityLocked || JSON.stringify(state.occasions.find(occasion => occasion.id === id)) !== snapshot) return;
   try {
     let updated; let records = state.events;
@@ -205,7 +204,9 @@ function openOccasionDetails(id) {
   else if (FunTimeOccasions.pending(item)) actions.append(occasionButton('Iniciar agora', () => changeOccasion(id, 'start'), 'primary-button'));
   if (item.startedAt !== null) actions.append(occasionButton('Ver registros', () => openOccasionHistory(id)));
   content.append(actions);
-  const more = document.createElement('details'); more.className = 'agenda-options'; const caption = document.createElement('summary'); caption.textContent = 'Mais opções'; more.append(caption);
+  const manualStart = FunTimeOccasions.pending(item) && !item.autoStart;
+  const more = document.createElement(manualStart ? 'div' : 'details'); more.className = 'agenda-options';
+  if (!manualStart) { const caption = document.createElement('summary'); caption.textContent = 'Mais opções'; more.append(caption); }
   more.append(occasionButton(item.startedAt === null && item.closedAt != null ? 'Reagendar' : 'Editar', () => openOccasionEditor(id)));
   if (item.endedAt !== null && !FunTimeOccasions.active(state.occasions)) more.append(occasionButton('Reabrir', () => changeOccasion(id, 'reopen')));
   if (FunTimeOccasions.pending(item)) more.append(occasionButton('Cancelar agendamento', () => changeOccasion(id, 'cancel')));

@@ -1,4 +1,8 @@
-# FunTime — V2.1.19
+# FunTime — V2.1.20
+
+## V2.1.20 — início direto de eventos
+
+Iniciar um evento dispensa a confirmação e usa o horário atual. Nos detalhes de eventos pendentes com início manual, Editar, Cancelar agendamento e Excluir evento aparecem diretamente, sem Mais opções. App, boot, rodapés e cache alinhados a 2.1.20; DATA_VERSION 11 e política 1.0.2 preservados. Commit e push solicitados.
 
 ## V2.1.19 — rodapé sem seleção de texto
 
