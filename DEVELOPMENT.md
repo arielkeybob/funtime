@@ -1,5 +1,11 @@
 # FunTime — documentação de desenvolvimento
 
+## V2.1.21 — notificações compactas
+
+Texto à esquerda e ações em coluna à direita, botões de 32px e fechamento por × com rótulo acessível. Temporização reduzida para 2,5s em avisos comuns e 4s com Desfazer ou erro; persistent e callbacks preservados. App, boot, rodapés e cache alinhados a 2.1.21, sem mudança de schema ou política.
+
+Validação: sintaxe de app.js/sw.js, cinco testes de ui/release e git diff --check. Aparência em navegador, celular real e atualização da PWA não testados nesta entrega. Commit e push solicitados.
+
 ## V2.1.20 — início direto e ações visíveis
 
 changeOccasion dispensa a confirmação apenas para start; mantém validações de bloqueio, conflito e persistência. O início efetivo usa o horário atual. Nos detalhes de eventos pendentes sem autoStart, as ações secundárias usam um bloco visível em vez de details. As confirmações de encerramento, cancelamento, reabertura e exclusão permanecem.

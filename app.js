@@ -283,7 +283,7 @@ document.addEventListener("visibilitychange", () => {
 const DATA_STORAGE_KEY = "funtime-v1-data";
 const LEGACY_DRINKS_STORAGE_KEY = "balada-v1-drinks";
 const DATA_VERSION = 11;
-const APP_VERSION = "2.1.20";
+const APP_VERSION = "2.1.21";
 const DRINK_EXPORT_TYPE = "funtime-drinks";
 const DRINK_EXPORT_FORMAT_VERSION = 1;
 const BACKUP_EXPORT_TYPE = "funtime-backup";
@@ -2810,7 +2810,7 @@ function showToast(message, undo = null, options = {}) {
   if (!options.persistent) state.toastTimerId = setTimeout(() => {
     state.undo = null;
     hideToast();
-  }, type === "error" || undo ? 6000 : 4000);
+  }, type === "error" || undo ? 4000 : 2500);
 }
 
 function hideToast() {

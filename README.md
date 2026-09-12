@@ -1,4 +1,8 @@
-# FunTime — V2.1.20
+# FunTime — V2.1.21
+
+## V2.1.21 — notificações mais compactas
+
+Notificações exibem texto à esquerda e ações menores à direita, com × para fechar. Avisos comuns duram 2,5s; Desfazer e erros, 4s. Avisos persistentes permanecem até serem fechados. App, boot, rodapés e cache alinhados a 2.1.21; DATA_VERSION 11 e política 1.0.2 preservados. Commit e push solicitados.
 
 ## V2.1.20 — início direto de eventos
 
