@@ -2887,9 +2887,9 @@ function refreshDataViews() {
 
 function openHistoryView(drinkId = null) {
   state.historyOccasionId = "all";
-  globalThis.refreshOccasionFilters?.();
   const drink = drinkId ? state.drinks.find((item) => item.id === drinkId) : null;
   state.historyDrinkId = drink?.id || null;
+  globalThis.refreshOccasionFilters?.();
   state.currentView = "history";
 
   if (drink) {

@@ -51,6 +51,26 @@ test('agenda compacta, evento, edição, agendamento automático, aviso e persis
   });
   assert.equal(await page.locator('#history-occasion-filter').isVisible(),true);
   assert.equal(await page.locator('.history-event-detail').textContent(),'Evento passado');
+  await page.evaluate(() => {
+    const firstOccasion = state.occasions[0];
+    state.drinks.push({id:'wine', name:'Vinho', icon:'🍷', intervalMinutes:60, askDoseSize:false});
+    state.occasions.push({id:'other-occasion', name:'Somente outra bebida', startedAt:Date.now()-3600000, endedAt:Date.now()});
+    state.events.push(
+      {id:'wine-with-event', drinkId:'wine', drinkName:'Vinho', drinkIcon:'🍷', consumedAt:firstOccasion.startedAt+1000, occasionId:firstOccasion.id, intervalMinutes:60},
+      {id:'wine-without-event', drinkId:'wine', drinkName:'Vinho', drinkIcon:'🍷', consumedAt:Date.now()-1000, occasionId:null, intervalMinutes:60},
+      {id:'other-drink-event', drinkId:'old', drinkName:'Água', drinkIcon:'💧', consumedAt:Date.now()-2000, occasionId:'other-occasion', intervalMinutes:60}
+    );
+    openHistoryView('wine');
+  });
+  await page.locator('#history-occasion-filter').click();
+  assert.deepEqual(await page.locator('.history-filter-option').allTextContents(), [
+    'Todos os eventos', 'Sem evento', 'Evento passado · ' + await page.evaluate(() => toLocalDateInputValue(state.occasions[0].startedAt))
+  ]);
+  assert.equal(await page.getByRole('option', {name:/Somente outra bebida/}).count(), 0);
+  await page.getByRole('option', {name:'Sem evento', exact:true}).click();
+  assert.equal(await page.locator('#history-occasion-filter-label').textContent(), 'Sem evento');
+  assert.equal(await page.locator('.history-event').count(), 1);
+  assert.equal(await page.evaluate(() => state.historyOccasionId), 'none');
   await page.evaluate(()=>{state.drinks=[];commitOccasions([],[]);});
   await page.locator('#nav-occasion').click(); await page.locator('#occasion-new').click(); await page.locator('#occasion-name').fill('Aniversário do João');
   await page.locator('#occasion-submit').click(); await page.waitForFunction(()=>state.currentView==='home');

@@ -3557,8 +3557,19 @@ body {
 .occasion-actions button { min-height: 44px; font-size: .8rem; padding: 10px; }
 .occasion-actions .primary-button, .occasion-actions .delete-event-button { grid-column: 1 / -1; }
 .occasion-history > h2 { font-size: 1rem; margin: 26px 0 16px; }
-#history-occasion-filter, #record-occasion, .field input[type="datetime-local"] { width: 100%; min-width: 0; min-height: 48px; padding: 10px 12px; border: 1px solid var(--border); border-radius: 12px; background: #09090b; color: var(--text); font: inherit; }
+#record-occasion, .field input[type="datetime-local"] { width: 100%; min-width: 0; min-height: 48px; padding: 10px 12px; border: 1px solid var(--border); border-radius: 12px; background: #09090b; color: var(--text); font: inherit; }
 #history-view > .field { margin-bottom: 16px; }
+.history-occasion-field { position: relative; }
+.history-filter-trigger { display: flex; align-items: center; justify-content: space-between; gap: 12px; width: 100%; min-height: 48px; padding: 10px 13px; border: 1px solid var(--border); border-radius: 12px; background: #09090b; color: var(--text); text-align: left; font: inherit; }
+.history-filter-trigger:focus-visible { outline: 2px solid var(--text); outline-offset: 2px; }
+.history-filter-chevron { color: var(--muted); font-size: 1.15rem; line-height: 1; transition: transform .16s ease; }
+.history-filter-trigger[aria-expanded="true"] .history-filter-chevron { transform: rotate(180deg); }
+.history-filter-options { position: absolute; z-index: 20; top: calc(100% + 6px); left: 0; right: 0; max-height: min(240px, 42vh); overflow-y: auto; padding: 5px; border: 1px solid var(--border); border-radius: 14px; background: #1b1b1f; box-shadow: 0 14px 34px #0009; overscroll-behavior: contain; }
+.history-filter-options[hidden] { display: none; }
+.history-filter-option { display: flex; align-items: center; width: 100%; min-height: 40px; padding: 8px 10px; border: 0; border-radius: 9px; background: transparent; color: var(--text); text-align: left; font: inherit; font-size: .88rem; line-height: 1.3; }
+.history-filter-option[aria-selected="true"] { background: #303036; color: #fff; }
+.history-filter-option[aria-selected="true"]::after { content: "✓"; margin-left: auto; padding-left: 12px; color: #cfc2ff; font-weight: 700; }
+.history-filter-option:focus-visible { outline: 1px solid #aaa2bd; outline-offset: -1px; }
 
 .date-time-editor { border: 1px solid var(--border); border-radius: 12px; background: #09090b; }
 .date-time-editor > summary { padding: 15px; cursor: pointer; font-size: .9rem; }

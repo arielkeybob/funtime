@@ -256,11 +256,34 @@ function refreshOccasionReminder() {
   box.append(text, occasionButton('Iniciar agora', () => changeOccasion(upcoming.id, 'start'), 'primary-button'), occasionButton('Agora não', () => { try { sessionStorage.setItem('funtime-agenda-dismissed', key); } catch {} box.dataset.dismissed = key; box.hidden = true; }));
 }
 function refreshOccasionFilters() {
-  $occasion('history-occasion-filter').parentElement.hidden = !state.preferences.eventsEnabled;
+  const field = $occasion('history-occasion-field');
+  const trigger = $occasion('history-occasion-filter');
+  const label = $occasion('history-occasion-filter-label');
+  const options = $occasion('history-occasion-options');
+  field.hidden = !state.preferences.eventsEnabled;
   if (!state.preferences.eventsEnabled) state.historyOccasionId = 'all';
-  const select = $occasion('history-occasion-filter'); select.replaceChildren(new Option('Todos os eventos', 'all'), new Option('Sem evento', 'none'));
-  for (const item of [...state.occasions].filter(item => item.startedAt !== null).sort((a,b) => b.startedAt-a.startedAt)) select.add(new Option(item.name + ' · ' + toLocalDateInputValue(item.startedAt), item.id));
-  if (!['all','none', ...state.occasions.map(item => item.id)].includes(state.historyOccasionId)) state.historyOccasionId = 'all'; select.value = state.historyOccasionId || 'all';
+  const scopedEvents = state.events.filter(event => !state.historyDrinkId || event.drinkId === state.historyDrinkId);
+  const occasionIds = new Set(scopedEvents.map(event => event.occasionId).filter(Boolean));
+  const items = [{ id: 'all', label: 'Todos os eventos' }];
+  if (scopedEvents.some(event => !event.occasionId)) items.push({ id: 'none', label: 'Sem evento' });
+  for (const item of [...state.occasions].filter(item => occasionIds.has(item.id)).sort((a,b) => b.startedAt-a.startedAt)) {
+    items.push({ id: item.id, label: item.name + ' · ' + toLocalDateInputValue(item.startedAt) });
+  }
+  if (!items.some(item => item.id === state.historyOccasionId)) state.historyOccasionId = 'all';
+  options.replaceChildren(...items.map(item => {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'history-filter-option';
+    button.dataset.value = item.id;
+    button.setAttribute('role', 'option');
+    button.setAttribute('aria-selected', String(item.id === state.historyOccasionId));
+    button.textContent = item.label;
+    return button;
+  }));
+  label.textContent = items.find(item => item.id === state.historyOccasionId)?.label || items[0].label;
+  trigger.setAttribute('aria-label', 'Filtrar por evento: ' + label.textContent);
+  trigger.setAttribute('aria-expanded', 'false');
+  options.hidden = true;
 }
 function populateRecordOccasions(record) {
   $occasion('record-occasion').parentElement.hidden = !state.preferences.eventsEnabled;
@@ -271,7 +294,39 @@ $occasion('occasion-close').addEventListener('click', closeOccasionEditor); $occ
 $occasion('occasion-detail-close').addEventListener('click', closeOccasionDetails); $occasion('occasion-detail-back').addEventListener('click', closeOccasionDetails);
 $occasion('occasion-new').addEventListener('click', () => openOccasionEditor());
 $occasion('home-occasion').addEventListener('click', openHomeOccasion); $occasion('nav-occasion').addEventListener('click', openOccasionView); $occasion('nav-home').addEventListener('click', closeHistoryView);
-$occasion('history-occasion-filter').addEventListener('change', event => { state.historyOccasionId = event.target.value; renderHistory(); });
+function closeHistoryOccasionFilter({ restoreFocus = false } = {}) {
+  const trigger = $occasion('history-occasion-filter');
+  $occasion('history-occasion-options').hidden = true;
+  trigger.setAttribute('aria-expanded', 'false');
+  if (restoreFocus) trigger.focus();
+}
+$occasion('history-occasion-filter').addEventListener('click', () => {
+  const options = $occasion('history-occasion-options');
+  const willOpen = options.hidden;
+  options.hidden = !willOpen;
+  $occasion('history-occasion-filter').setAttribute('aria-expanded', String(willOpen));
+  if (willOpen) options.querySelector('[aria-selected="true"]')?.focus();
+});
+$occasion('history-occasion-options').addEventListener('click', event => {
+  const option = event.target.closest('.history-filter-option');
+  if (!option) return;
+  state.historyOccasionId = option.dataset.value;
+  refreshOccasionFilters();
+  renderHistory();
+  $occasion('history-occasion-filter').focus();
+});
+$occasion('history-occasion-options').addEventListener('keydown', event => {
+  const options = [...event.currentTarget.querySelectorAll('.history-filter-option')];
+  const current = options.indexOf(document.activeElement);
+  if (event.key === 'Escape') { event.preventDefault(); closeHistoryOccasionFilter({ restoreFocus: true }); return; }
+  if (!['ArrowDown', 'ArrowUp', 'Home', 'End'].includes(event.key)) return;
+  event.preventDefault();
+  const next = event.key === 'Home' ? 0 : event.key === 'End' ? options.length - 1 : (current + (event.key === 'ArrowDown' ? 1 : -1) + options.length) % options.length;
+  options[next]?.focus();
+});
+document.addEventListener('pointerdown', event => {
+  if (!$occasion('history-occasion-field').contains(event.target)) closeHistoryOccasionFilter();
+});
 for (const [id, tab] of [['agenda-upcoming','upcoming'],['agenda-past','past']]) $occasion(id).addEventListener('click', () => { agendaTab = tab; agendaLimit = 20; renderOccasions(); });
 for (const id of ['agenda-search','agenda-month']) $occasion(id).addEventListener('input', () => { agendaLimit = 20; renderOccasions(); });
 $occasion('agenda-more').addEventListener('click', () => { agendaLimit += 20; renderOccasions(); });

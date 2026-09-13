@@ -125,7 +125,14 @@
     </main>
 
     <main id="history-view" hidden>
-      <label class="field"><span>Evento</span><select id="history-occasion-filter" aria-label="Filtrar por evento"></select></label>
+      <div id="history-occasion-field" class="field history-occasion-field">
+        <span>Evento</span>
+        <button id="history-occasion-filter" class="history-filter-trigger" type="button" aria-haspopup="listbox" aria-expanded="false" aria-controls="history-occasion-options">
+          <span id="history-occasion-filter-label">Todos os eventos</span>
+          <span class="history-filter-chevron" aria-hidden="true">⌄</span>
+        </button>
+        <div id="history-occasion-options" class="history-filter-options" role="listbox" aria-label="Filtrar por evento" hidden></div>
+      </div>
       <section class="history-intro">
         <div>
           <strong id="history-count">0 registros</strong>
