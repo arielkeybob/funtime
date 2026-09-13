@@ -1,5 +1,9 @@
 # FunTime — documentação de desenvolvimento
 
+## V2.1.31 — verificação manual de atualizações
+
+Configurações inclui `#check-app-update`, que primeiro recupera `registration.waiting` sem depender de uma nova consulta à rede. Sem worker aguardando, força `registration.update()` e apresenta estados distintos para atualização disponível, instalação em andamento, versão atual, consulta concorrente e falha/offline. A verificação automática continua silenciosa quando não há atualização. App, rodapé e cache 2.1.31; DATA_VERSION 11 preservado.
+
 ## V2.1.30 — exceção local de bloqueio durante evento
 
 Nos detalhes de um evento em andamento, a proteção ativa revela o toggle **Manter desbloqueado durante este evento**. A escolha grava apenas `eventUnlockOccasionId` na configuração de segurança local, que já fica fora de backups e transferências. O privacy shield continua cobrindo o app em segundo plano; no retorno, a autenticação é dispensada enquanto o mesmo evento permanecer ativo. Inicialização e retorno também validam o vínculo, inclusive após reconciliação da agenda. Encerrar, excluir ou desativar o evento limpa a exceção; **Bloquear agora** a cancela antes de bloquear. Eventos pendentes ou encerrados não oferecem o controle. `SECURITY_CONFIG_VERSION` 3 continua compatível porque o campo é opcional; DATA_VERSION 11 preservado. App, boot, rodapés e cache 2.1.30.

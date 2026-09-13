@@ -1,4 +1,8 @@
-# FunTime — V2.1.30
+# FunTime — V2.1.31
+
+## V2.1.31 — verificação manual de atualizações
+
+Configurações passa a mostrar a versão instalada e o botão **Verificar atualizações**. A ação recupera uma atualização que já esteja aguardando mesmo depois de o aviso ter sido fechado, consulta novas versões e informa quando o app já está atualizado ou quando a verificação não pode ser concluída. App, rodapé e cache alinhados a 2.1.31; DATA_VERSION 11 preservado.
 
 ## V2.1.30 — desbloqueio durante o evento
 

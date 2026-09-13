@@ -283,7 +283,7 @@ document.addEventListener("visibilitychange", () => {
 const DATA_STORAGE_KEY = "funtime-v1-data";
 const LEGACY_DRINKS_STORAGE_KEY = "balada-v1-drinks";
 const DATA_VERSION = 11;
-const APP_VERSION = "2.1.30";
+const APP_VERSION = "2.1.31";
 const DRINK_EXPORT_TYPE = "funtime-drinks";
 const DRINK_EXPORT_FORMAT_VERSION = 1;
 const BACKUP_EXPORT_TYPE = "funtime-backup";
@@ -462,6 +462,7 @@ const drinkImportFileInput = document.querySelector("#drink-import-file");
 const createBackupButton = document.querySelector("#create-backup");
 const restoreBackupButton = document.querySelector("#restore-backup");
 const backupRestoreFileInput = document.querySelector("#backup-restore-file");
+const checkAppUpdateButton = document.querySelector("#check-app-update");
 
 const drinkImportDialog = document.querySelector("#drink-import-dialog");
 const drinkImportFileName = document.querySelector("#drink-import-file-name");
@@ -4397,10 +4398,11 @@ function hideUpdateAvailable() {
 
 async function checkForAppUpdate({ force = false } = {}) {
   const registration = state.serviceWorkerRegistration;
-  if (!registration || state.updateCheckInFlight) return;
+  if (!registration) return "unsupported";
+  if (state.updateCheckInFlight) return "busy";
 
   const now = Date.now();
-  if (!force && now - state.lastUpdateCheckAt < 30000) return;
+  if (!force && now - state.lastUpdateCheckAt < 30000) return "throttled";
 
   state.updateCheckInFlight = true;
   state.lastUpdateCheckAt = now;
@@ -4409,15 +4411,47 @@ async function checkForAppUpdate({ force = false } = {}) {
     await registration.update();
     if (registration.waiting) {
       showUpdateAvailable(registration.waiting);
+      return "available";
     }
+    return registration.installing ? "installing" : "current";
   } catch (error) {
     // Offline é um estado normal da PWA; não mostramos erro ao usuário.
     if (navigator.onLine) {
       console.warn("Não foi possível verificar atualização da PWA.", error);
     }
+    return "error";
   } finally {
     state.updateCheckInFlight = false;
   }
+}
+
+async function checkForAppUpdateManually() {
+  const registration = state.serviceWorkerRegistration;
+
+  if (registration?.waiting) {
+    showUpdateAvailable(registration.waiting);
+    return;
+  }
+
+  checkAppUpdateButton.disabled = true;
+  checkAppUpdateButton.textContent = "Verificando…";
+
+  const result = await checkForAppUpdate({ force: true });
+
+  if (result === "available") {
+    // O aviso persistente contém a ação Atualizar.
+  } else if (result === "installing") {
+    showAppNotification("Uma nova versão foi encontrada e está sendo preparada. O botão Atualizar aparecerá em seguida.", { title: "Atualização encontrada" });
+  } else if (result === "current") {
+    showAppNotification(`Você já está usando a versão mais recente disponível (v${APP_VERSION}).`, { title: "Aplicativo atualizado" });
+  } else if (result === "busy") {
+    showAppNotification("A verificação já está em andamento. Aguarde um instante e tente novamente.", { title: "Verificando atualização" });
+  } else {
+    showAppNotification("Não foi possível verificar agora. Confira a conexão com a internet e tente novamente.", { title: "Falha na verificação", type: "error" });
+  }
+
+  checkAppUpdateButton.disabled = false;
+  checkAppUpdateButton.textContent = "Verificar atualizações";
 }
 
 function watchServiceWorkerRegistration(registration) {
@@ -4531,6 +4565,7 @@ backupRestoreFileInput.addEventListener("change", () => {
   const file = backupRestoreFileInput.files?.[0];
   if (file) prepareBackupRestoreFile(file);
 });
+checkAppUpdateButton.addEventListener("click", checkForAppUpdateManually);
 
 document.querySelector("#close-drink-import").addEventListener("click", closeDrinkImportDialog);
 document.querySelector("#cancel-drink-import").addEventListener("click", closeDrinkImportDialog);
