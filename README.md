@@ -1,4 +1,8 @@
-# FunTime — V2.1.25
+# FunTime — V2.1.26
+
+## V2.1.26 — separa duplo toque e pressão longa
+
+O término do toque passa a cancelar a pressão longa no documento inteiro, mesmo quando o dedo termina fora do card. O temporizador também confirma que o card ainda está conectado antes de abrir a anotação manual. Após um duplo toque reconhecido, uma janela de 520 ms absorve o terceiro ou quarto toque acidental, evitando iniciar outro registro ou uma pressão longa atrasada. A pressão intencional de 750 ms permanece disponível. App, boot, rodapés e cache alinhados a 2.1.26; DATA_VERSION 11 preservado.
 
 ## V2.1.25 — arraste sem rolagem involuntária
 

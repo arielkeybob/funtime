@@ -1,5 +1,9 @@
 # FunTime — documentação de desenvolvimento
 
+## V2.1.26 — ciclo de vida do gesto de registro
+
+`attachDrinkInteractions()` passa a acompanhar movimento, `pointerup` e `pointercancel` no documento durante uma pressão, além de cancelar em blur e ocultação. O callback de 750 ms exige `mainButton.isConnected`, impedindo que um card substituído pelo `render()` abra o diálogo retroativo. Todo `click` encerra preventivamente a pressão. Depois de reconhecer o segundo toque, `ignoreDrinkGestureUntil` absorve novos `pointerdown` e `click` por 520 ms; isso transforma sequências acidentais de três ou quatro toques em um único registro. O menu `⋮` continua sendo a alternativa explícita para anotação manual.
+
 ## V2.1.25 — bloqueio da rolagem durante o arraste
 
 O listener de `touchmove` da espera passa a ser não passivo: oscilações dentro da tolerância de 18px chamam `preventDefault()`, enquanto movimentos maiores cancelam a pressão e permanecem disponíveis para rolagem. Durante o arraste, o bloqueio já existente continua ativo. O autoscroll deixou de usar uma zona fixa de 88px baseada no dedo e agora calcula os limites da cópia do card; só chama `scrollBy()` quando o topo fica negativo ou a base ultrapassa `innerHeight`. A ativação automática excepcional do Service Worker foi removida após a recuperação da v2.1.24.

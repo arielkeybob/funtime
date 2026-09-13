@@ -1,5 +1,9 @@
 # FunTime — releases v2
 
+## V2.1.26 — duplo toque sem anotação manual atrasada
+
+Cancela a pressão longa mesmo quando o toque termina fora do card, invalida temporizadores de cards reconstruídos e absorve toques excedentes por 520 ms depois de um duplo toque concluído. A pressão intencional continua exigindo 750 ms. App, boot, rodapés e cache 2.1.26; DATA_VERSION 11 mantido. Publicação ainda não autorizada.
+
 ## V2.1.25 — arraste sem rolagem involuntária
 
 Bloqueia pequenas oscilações durante a espera e a rolagem nativa após ativar o arraste. A rolagem controlada passa a ocorrer somente quando a cópia do card ultrapassa a área visível. O Service Worker retorna à atualização normal mediante confirmação. App, boot, rodapés e cache 2.1.25; DATA_VERSION 11 mantido. Publicação ainda não autorizada.
