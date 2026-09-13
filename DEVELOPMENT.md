@@ -1,5 +1,9 @@
 # FunTime — documentação de desenvolvimento
 
+## V2.1.34 — mensagem de espera condicionada ao Web Lock
+
+O boot deixa de exibir preventivamente a orientação para fechar janelas. Antes de `navigator.locks.request()`, mostra **Abrindo o FunTime…** e inicia um atraso de 800 ms; o aviso de concorrência só substitui o texto se o callback do lock ainda não tiver iniciado. A aquisição ou rejeição cancela o temporizador. O lock `funtime-app-writer-v1` continua mantido por toda a vida da janela, sem mudança na exclusividade de escrita, migração ou armazenamento. App, boot, rodapés e cache 2.1.34; DATA_VERSION 11 preservado.
+
 ## V2.1.33 — ações diretas nos detalhes do evento
 
 `openOccasionDetails()` deixa de criar `details/summary` para `.agenda-options`: Editar, Reabrir, Cancelar agendamento e Excluir evento são renderizados diretamente conforme o estado. O grupo principal recebe `.is-active` durante um evento em andamento, removendo apenas nesse caso a expansão de coluna do botão primário e posicionando **Encerrar evento** ao lado de **Ver registros**. Outros botões primários, como **Iniciar agora**, continuam ocupando a largura disponível. App, boot, rodapés e cache 2.1.33; DATA_VERSION 11 preservado.

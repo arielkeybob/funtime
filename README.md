@@ -1,4 +1,8 @@
-# FunTime — V2.1.33
+# FunTime — V2.1.34
+
+## V2.1.34 — abertura sem falso aviso de outra janela
+
+A inicialização normal mostra apenas **Abrindo o FunTime…**. A orientação para fechar outras janelas aparece somente quando a obtenção do bloqueio exclusivo demora mais de 800 ms, indicando provável uso simultâneo; o temporizador é cancelado assim que o app obtém o lock ou se a solicitação falha. A proteção contra gravações concorrentes permanece inalterada. App, boot, rodapés e cache alinhados a 2.1.34; DATA_VERSION 11 preservado.
 
 ## V2.1.33 — ações do evento sempre visíveis
 

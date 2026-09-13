@@ -37,7 +37,7 @@
       return false;
     }
     const version = await request(worker, "GET_VERSION");
-    if (version?.version !== "2.1.33") {
+    if (version?.version !== "2.1.34") {
       // Não ativar uma atualização sem a ação explícita do usuário.
       await registration.update();
       show("Há uma atualização necessária para abrir o FunTime.");
@@ -134,39 +134,50 @@
       oldLink.hidden = false;
       await FunTimeReceiver.verifyBridge(navigator.serviceWorker, origin, request, false);
     }
-    show("Feche as outras janelas do FunTime, inclusive a versão anterior, para continuar aqui.");
+    show("Abrindo o FunTime…");
+    let waitingForWriter = true;
+    const writerWaitNotice = setTimeout(() => {
+      if (waitingForWriter) show("O FunTime já está aberto em outra janela. Feche as outras janelas, inclusive a versão anterior, para continuar aqui.");
+    }, 800);
     // Uma janela escritora por origem. As demais aguardam e carregam o estado mais recente.
-    await navigator.locks.request(FunTimeTransition.writerLock, async () => {
-      try {
-        if (!(await prepareWorker())) return;
-        const before = FunTimeReceiver.inspect(localStorage, origin);
-        if (!before.owner) {
-          await FunTimeReceiver.verifyBridge(navigator.serviceWorker, origin, request, before.existing);
-          const choice = await chooseSetup(before.existing);
-          FunTimeReceiver.unchanged(localStorage, before.values);
-          // A posse somente é gravada depois de preparar e reler os dados sob o lock.
-          const snapshot = await FunTimeReceiver.prepare(localStorage, origin);
-          FunTimeReceiver.claim(localStorage, origin, snapshot);
-          globalThis.FunTimeRestoreRequested = choice === "backup";
-          // A nova instalação exige o desbloqueio normal, sem herdar sessão da v1.
-          globalThis.FunTimeSessionReady = false;
-          try {
-            sessionStorage.removeItem("funtime-security-session-v1");
-            sessionStorage.removeItem("intervalo-security-session-v1");
-          } catch { /* Sem sessão confiável, manter desbloqueio obrigatório. */ }
-        } else {
-          FunTimeMigration.repairDrinkOrderCorruption(localStorage);
-          await FunTimeReceiver.prepare(localStorage, origin);
-          globalThis.FunTimeSessionReady = true;
-        }
-        window.addEventListener("storage", event => {
-          if (FunTimeMigration.oldKeys.includes(event.key) || event.key === FunTimeTransition.ownerKey || event.key === null) window.location.reload();
-        });
-        await loadApp();
-      } catch (error) { showError(error); }
-      // O navegador libera o Web Lock ao destruir a página. Não liberar no background.
-      await new Promise(() => {});
-    });
+    try {
+      await navigator.locks.request(FunTimeTransition.writerLock, async () => {
+        waitingForWriter = false;
+        clearTimeout(writerWaitNotice);
+        try {
+          if (!(await prepareWorker())) return;
+          const before = FunTimeReceiver.inspect(localStorage, origin);
+          if (!before.owner) {
+            await FunTimeReceiver.verifyBridge(navigator.serviceWorker, origin, request, before.existing);
+            const choice = await chooseSetup(before.existing);
+            FunTimeReceiver.unchanged(localStorage, before.values);
+            // A posse somente é gravada depois de preparar e reler os dados sob o lock.
+            const snapshot = await FunTimeReceiver.prepare(localStorage, origin);
+            FunTimeReceiver.claim(localStorage, origin, snapshot);
+            globalThis.FunTimeRestoreRequested = choice === "backup";
+            // A nova instalação exige o desbloqueio normal, sem herdar sessão da v1.
+            globalThis.FunTimeSessionReady = false;
+            try {
+              sessionStorage.removeItem("funtime-security-session-v1");
+              sessionStorage.removeItem("intervalo-security-session-v1");
+            } catch { /* Sem sessão confiável, manter desbloqueio obrigatório. */ }
+          } else {
+            FunTimeMigration.repairDrinkOrderCorruption(localStorage);
+            await FunTimeReceiver.prepare(localStorage, origin);
+            globalThis.FunTimeSessionReady = true;
+          }
+          window.addEventListener("storage", event => {
+            if (FunTimeMigration.oldKeys.includes(event.key) || event.key === FunTimeTransition.ownerKey || event.key === null) window.location.reload();
+          });
+          await loadApp();
+        } catch (error) { showError(error); }
+        // O navegador libera o Web Lock ao destruir a página. Não liberar no background.
+        await new Promise(() => {});
+      });
+    } finally {
+      waitingForWriter = false;
+      clearTimeout(writerWaitNotice);
+    }
   }
   window.addEventListener("pageshow", event => { if (event.persisted) window.location.reload(); });
   start().catch(showError);
