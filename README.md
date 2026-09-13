@@ -1,4 +1,8 @@
-# FunTime — V2.1.34
+# FunTime — V2.1.35
+
+## V2.1.35 — notificações compactas no iPhone
+
+O toast neutraliza explicitamente dimensões, offsets, margens e overflow nativos do Popover no Safari/iOS. Notificações comuns, persistentes, de erro e com **Desfazer** permanecem compactas no canto inferior, respeitam as áreas seguras e nunca ocupam mais de metade da altura visível. O fallback para navegadores sem Popover permanece. App, boot, rodapés e cache alinhados a 2.1.35; DATA_VERSION 11 preservado.
 
 ## V2.1.34 — abertura sem falso aviso de outra janela
 

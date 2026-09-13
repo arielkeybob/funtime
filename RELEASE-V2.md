@@ -1,5 +1,9 @@
 # FunTime — releases v2
 
+## V2.1.35 — toast compacto no Safari/iOS
+
+Neutraliza o layout nativo do Popover que podia expandir notificações no iPhone. O toast recebe dimensões e offsets explícitos, respeita áreas seguras, limita a altura e mantém backdrop transparente sem bloquear a interface. App, boot, rodapés e cache 2.1.35; DATA_VERSION 11 mantido. Publicação ainda não autorizada.
+
 ## V2.1.34 — abertura com mensagem contextual
 
 Troca o aviso transitório de outras janelas por **Abrindo o FunTime…** durante o fluxo normal. A orientação para fechar outras instâncias só aparece após 800 ms de espera real pelo Web Lock. A exclusividade de escrita continua preservada. App, boot, rodapés e cache 2.1.34; DATA_VERSION 11 mantido. Publicação ainda não autorizada.

@@ -3508,6 +3508,23 @@ body {
 #toast-undo { background: #34343d; color: #fff; border: 1px solid #62626d; }
 @media (max-width: 600px) { #toast.app-notification { width: auto; } }
 
+/* Neutraliza a caixa nativa do Popover no Safari/iOS. */
+#toast.app-notification[popover] {
+  position: fixed;
+  inset: auto max(12px, env(safe-area-inset-right)) max(12px, env(safe-area-inset-bottom)) auto;
+  width: min(420px, calc(100vw - 24px));
+  min-width: 0;
+  max-width: calc(100vw - 24px);
+  height: auto;
+  min-height: 0;
+  max-height: min(50dvh, 320px);
+  margin: 0;
+  box-sizing: border-box;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+#toast.app-notification[popover]::backdrop { background: transparent; pointer-events: none; }
+
 .date-picker-display { position: relative; display: block; padding: 15px; border: 1px solid var(--border); border-radius: 12px; background: var(--input-bg, #09090b); color: var(--text); }
 .date-picker-display::after { content: '⌄'; float: right; }
 .date-picker-display input[type="date"] { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; }

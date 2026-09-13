@@ -1,5 +1,9 @@
 # FunTime — documentação de desenvolvimento
 
+## V2.1.35 — reset completo do Popover das notificações
+
+`#toast.app-notification[popover]` passa a sobrescrever explicitamente o box nativo do Popover: `inset`, largura, altura, mínimos, máximos, margem, box sizing e overflow. O posicionamento usa `safe-area-inset-right/bottom`; a altura máxima é `min(50dvh, 320px)`. O backdrop fica transparente e não captura eventos. O fallback de `showToast()` para navegadores sem `showPopover()` permanece inalterado. Teste integrado em 390×844 verifica largura, altura e distância das bordas. App, boot, rodapés e cache 2.1.35; DATA_VERSION 11 preservado.
+
 ## V2.1.34 — mensagem de espera condicionada ao Web Lock
 
 O boot deixa de exibir preventivamente a orientação para fechar janelas. Antes de `navigator.locks.request()`, mostra **Abrindo o FunTime…** e inicia um atraso de 800 ms; o aviso de concorrência só substitui o texto se o callback do lock ainda não tiver iniciado. A aquisição ou rejeição cancela o temporizador. O lock `funtime-app-writer-v1` continua mantido por toda a vida da janela, sem mudança na exclusividade de escrita, migração ou armazenamento. App, boot, rodapés e cache 2.1.34; DATA_VERSION 11 preservado.

@@ -163,6 +163,13 @@ test('Menu de dose, contagem cancelada e editor de horário', { timeout: 90000 }
       }, prepare);
       assert.equal(await page.locator('#toast').isVisible(), true);
       assert.equal(await page.locator('#toast-title').textContent(), 'Não foi possível concluir');
+      const toastBox = await page.locator('#toast').evaluate(node => {
+        const box = node.getBoundingClientRect();
+        return { width: box.width, height: box.height, right: innerWidth - box.right, bottom: innerHeight - box.bottom, viewportWidth: innerWidth, viewportHeight: innerHeight };
+      });
+      assert.ok(toastBox.width <= toastBox.viewportWidth - 24 && toastBox.height < toastBox.viewportHeight / 2);
+      assert.ok(toastBox.right >= 11 && toastBox.bottom >= 11);
+      await page.screenshot({ path: path.join(require('node:os').tmpdir(), 'funtime-mobile-toast.png') });
       assert.equal(await page.evaluate(() => JSON.stringify(buildCurrentAppData())), saved);
       await page.evaluate(() => hideToast());
     }
