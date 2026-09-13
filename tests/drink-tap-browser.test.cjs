@@ -53,7 +53,9 @@ test('duplo toque registra uma vez e pressão longa reorganiza sem abrir anotaç
       render();
     });
     await touch('touchStart', point);
-    await page.waitForTimeout(780);
+    await page.waitForTimeout(450);
+    assert.equal(await page.locator('.drink-reorder-ghost').count(), 0);
+    await page.waitForTimeout(100);
     assert.equal(await page.locator('.drink-reorder-ghost').count(), 1);
     assert.equal(await page.locator('#log-dialog').evaluate(dialog => dialog.open), false);
     await touch('touchEnd');

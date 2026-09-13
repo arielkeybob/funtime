@@ -283,7 +283,7 @@ document.addEventListener("visibilitychange", () => {
 const DATA_STORAGE_KEY = "funtime-v1-data";
 const LEGACY_DRINKS_STORAGE_KEY = "balada-v1-drinks";
 const DATA_VERSION = 11;
-const APP_VERSION = "2.1.27";
+const APP_VERSION = "2.1.28";
 const DRINK_EXPORT_TYPE = "funtime-drinks";
 const DRINK_EXPORT_FORMAT_VERSION = 1;
 const BACKUP_EXPORT_TYPE = "funtime-backup";
@@ -316,7 +316,7 @@ const WHEEL_ITEM_HEIGHT = 44;
 const REORDER_ANIMATION_MS = 880;
 const REORDER_ANIMATION_EASING = "cubic-bezier(0.22, 1, 0.36, 1)";
 
-const DRINK_REORDER_PRESS_MS = 750;
+const DRINK_REORDER_PRESS_MS = 500;
 const DRINK_REORDER_MOVE_TOLERANCE = 18;
 const DOUBLE_TAP_MAX_DELAY_MS = 430;
 const DOUBLE_TAP_FEEDBACK_MS = 430;
@@ -3273,11 +3273,6 @@ function editDrinkFromDrinkMenu() {
   if (drinkId) openEditDrinkDialog(drinkId);
 }
 
-function deleteDrinkFromDrinkMenu() {
-  const drinkId = state.menuDrinkId;
-  if (drinkId) openDeleteDrinkDialog(drinkId);
-}
-
 function openIntervalWarningDialog(drinkId) {
   const drink = state.drinks.find((item) => item.id === drinkId);
   if (!drink) return;
@@ -4556,7 +4551,6 @@ document.querySelector('#drink-menu-stop').addEventListener('click', openStopCou
 document.querySelector('#cancel-stop-countdown').addEventListener('click', closeStopCountdownDialog);
 document.querySelector('#confirm-stop-countdown').addEventListener('click', confirmStopCountdown);
 document.querySelector("#drink-menu-edit").addEventListener("click", editDrinkFromDrinkMenu);
-document.querySelector("#drink-menu-delete").addEventListener("click", deleteDrinkFromDrinkMenu);
 
 document.querySelector("#close-log-dialog").addEventListener("click", closeLogDialog);
 document.querySelector("#cancel-log-dialog").addEventListener("click", closeLogDialog);

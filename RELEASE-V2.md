@@ -1,5 +1,9 @@
 # FunTime — releases v2
 
+## V2.1.28 — arraste em 500 ms e menu contextual enxuto
+
+Reduz a espera do arraste de 750 para 500 ms. Remove **Excluir bebida** do menu `⋮`, mantendo a ação dentro da edição, e aplica o destaque vermelho a **Cancelar contagem atual**. App, boot, rodapés e cache 2.1.28; DATA_VERSION 11 mantido. Publicação ainda não autorizada.
+
 ## V2.1.27 — segurar o card para reorganizar
 
 A pressão longa deixa de abrir a anotação manual e passa a iniciar o arraste por toda a área principal do card elegível, não somente pelo ícone. Bebidas recentes/em andamento continuam não reordenáveis; o menu `⋮` mantém a anotação manual e o duplo toque mantém o registro rápido. App, boot, rodapés e cache 2.1.27; DATA_VERSION 11 mantido. Publicação ainda não autorizada.

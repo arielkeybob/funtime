@@ -1,5 +1,9 @@
 # FunTime — documentação de desenvolvimento
 
+## V2.1.28 — ativação em 500 ms e hierarquia do menu
+
+`DRINK_REORDER_PRESS_MS` passa de 750 para 500 ms. O menu contextual remove o atalho `#drink-menu-delete` e seu listener; excluir a bebida continua disponível no editor, com as mesmas confirmações e opções de preservação do histórico. `#drink-menu-stop`, visível somente durante uma contagem ativa, recebe a classe visual `danger`. Nenhum dado ou schema muda.
+
 ## V2.1.27 — um único gesto de pressão longa nos cards
 
 O reconhecedor de pressão longa de `attachDrinkInteractions()` foi removido: nenhum ponto do card abre mais `openLogDialog()` ao segurar. `attachDrinkReorderGesture()` passa a observar toda a área `.drink-main` dos cards pertencentes ao grupo manual e conserva o ícone apenas como feedback visual durante a espera e o arraste. Cards recentes/em andamento não recebem esse reconhecedor e continuam impedidos de entrar na lista manual. O menu `⋮` é o caminho explícito para anotação manual; duplo toque e cooldown contra toques excedentes permanecem independentes.

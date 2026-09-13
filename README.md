@@ -1,4 +1,8 @@
-# FunTime — V2.1.27
+# FunTime — V2.1.28
+
+## V2.1.28 — arraste mais rápido e menu simplificado
+
+Segurar um card elegível por 500 ms inicia a reordenação. O menu `⋮` não oferece mais **Excluir bebida**; a exclusão permanece na edição do cadastro. **Cancelar contagem atual** passa a usar o destaque vermelho de ação destrutiva. App, boot, rodapés e cache alinhados a 2.1.28; DATA_VERSION 11 preservado.
 
 ## V2.1.27 — pressão longa reorganiza o card
 

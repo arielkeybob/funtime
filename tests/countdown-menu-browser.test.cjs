@@ -43,6 +43,8 @@ test('Menu de dose, contagem cancelada e editor de horário', { timeout: 90000 }
     });
     const before = await page.evaluate(() => JSON.parse(JSON.stringify(state.events)));
     assert.equal(await page.locator('#drink-menu-stop').isVisible(), true);
+    assert.equal(await page.locator('#drink-menu-stop').evaluate(node => node.classList.contains('danger')), true);
+    assert.equal(await page.locator('#drink-menu-delete').count(), 0);
     await page.screenshot({ path: path.join(require('node:os').tmpdir(), 'funtime-dose-menu.png') });
     await page.locator('#drink-menu-stop').click();
     await page.keyboard.press('Escape');
