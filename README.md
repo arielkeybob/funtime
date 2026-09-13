@@ -1,4 +1,8 @@
-# FunTime — V2.1.24
+# FunTime — V2.1.25
+
+## V2.1.25 — arraste sem rolagem involuntária
+
+Pequenas oscilações do dedo durante os 750 ms de espera agora são consumidas pelo ícone, impedindo o navegador de iniciar a rolagem antes do arraste. Um deslocamento claro antes da ativação ainda cancela o gesto. Depois de ativado, o toque bloqueia a rolagem nativa; a rolagem controlada só começa quando o próprio card ultrapassa o topo ou a base visível da tela. O Service Worker volta ao fluxo normal de atualização com confirmação. App, boot, rodapés e cache alinhados a 2.1.25; DATA_VERSION 11 preservado.
 
 ## V2.1.24 — corrige arraste e recupera a ordem
 

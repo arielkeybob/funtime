@@ -1,5 +1,9 @@
 # FunTime — releases v2
 
+## V2.1.25 — arraste sem rolagem involuntária
+
+Bloqueia pequenas oscilações durante a espera e a rolagem nativa após ativar o arraste. A rolagem controlada passa a ocorrer somente quando a cópia do card ultrapassa a área visível. O Service Worker retorna à atualização normal mediante confirmação. App, boot, rodapés e cache 2.1.25; DATA_VERSION 11 mantido. Publicação ainda não autorizada.
+
 ## V2.1.24 — correção e recuperação do arraste
 
 Elimina a disputa entre o relógio da Home, a espera da pressão longa e o arraste; impede reinserção visual, animações concorrentes e gravação de referências ausentes. Inclui reparo conservador que remove apenas posições `null` geradas pela v2.1.23 após validar todos os demais dados, preservando histórico e preferências. O Service Worker ativa esta correção automaticamente porque usuários afetados ficam presos antes do aviso normal de atualização. App, boot, rodapés e cache 2.1.24; DATA_VERSION 11 mantido. Foram aprovados 45 testes de dados/instalação e cinco integrados; o cenário móvel foi repetido duas vezes. Publicação ainda não autorizada nesta etapa.

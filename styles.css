@@ -410,12 +410,14 @@ body {
 
 .drink-icon.is-reorder-handle.is-reorder-pressing {
   border-color: rgb(161 161 170 / 0.55);
+  touch-action: none;
   transform: scale(0.94);
 }
 
 .drink-icon.is-reorder-handle.is-dragging {
   border-color: rgb(161 161 170 / 0.75);
   color: var(--muted);
+  touch-action: none;
 }
 
 .drink-card.is-drink-drag-source {

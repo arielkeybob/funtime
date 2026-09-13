@@ -283,7 +283,7 @@ document.addEventListener("visibilitychange", () => {
 const DATA_STORAGE_KEY = "funtime-v1-data";
 const LEGACY_DRINKS_STORAGE_KEY = "balada-v1-drinks";
 const DATA_VERSION = 11;
-const APP_VERSION = "2.1.24";
+const APP_VERSION = "2.1.25";
 const DRINK_EXPORT_TYPE = "funtime-drinks";
 const DRINK_EXPORT_FORMAT_VERSION = 1;
 const BACKUP_EXPORT_TYPE = "funtime-backup";
@@ -2353,11 +2353,12 @@ function beginDrinkReorder(card, icon, drink, point) {
 
   const autoScroll = () => {
     autoScrollFrame = null;
-    const edge = 88;
-    const speed = latestPoint.clientY < edge
-      ? -Math.ceil((edge - latestPoint.clientY) / 7)
-      : latestPoint.clientY > innerHeight - edge
-        ? Math.ceil((latestPoint.clientY - (innerHeight - edge)) / 7)
+    const ghostTop = latestPoint.clientY - offsetY;
+    const ghostBottom = ghostTop + sourceRect.height;
+    const speed = ghostTop < 0
+      ? -Math.ceil(Math.abs(ghostTop) / 7)
+      : ghostBottom > innerHeight
+        ? Math.ceil((ghostBottom - innerHeight) / 7)
         : 0;
     if (!speed) return;
     window.scrollBy(0, Math.max(-14, Math.min(14, speed)));
@@ -2457,8 +2458,9 @@ function attachDrinkReorderGesture(card, icon, drink) {
     }, DRINK_REORDER_PRESS_MS);
 
     const move = (next) => {
-      if (Math.hypot(next.clientX - origin.clientX, next.clientY - origin.clientY) <= DRINK_REORDER_MOVE_TOLERANCE) return;
+      if (Math.hypot(next.clientX - origin.clientX, next.clientY - origin.clientY) <= DRINK_REORDER_MOVE_TOLERANCE) return true;
       cleanup();
+      return false;
     };
     const cleanup = () => {
       cancelPending();
@@ -2479,10 +2481,10 @@ function attachDrinkReorderGesture(card, icon, drink) {
     const pointerMove = (event) => { if (event.pointerId === origin.pointerId) move(event); };
     const touchMove = (event) => {
       const touch = [...event.touches].find((item) => item.identifier === origin.pointerId);
-      if (touch) move(touch);
+      if (touch && move(touch) && event.cancelable) event.preventDefault();
     };
     if (origin.isTouch) {
-      document.addEventListener("touchmove", touchMove, { capture: true, passive: true });
+      document.addEventListener("touchmove", touchMove, { capture: true, passive: false });
       document.addEventListener("touchend", cleanup, true);
       document.addEventListener("touchcancel", cleanup, true);
     } else {

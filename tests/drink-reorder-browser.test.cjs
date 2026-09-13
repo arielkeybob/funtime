@@ -75,20 +75,20 @@ test('Home separa recentes e preserva a ordem manual pelo arraste no ícone', { 
     await page.waitForTimeout(100);
 
     const juice = await center(page.locator('[data-drink-id=juice] .drink-icon'));
+    const wineCard = await page.locator('[data-drink-id=wine]').evaluate(element => element.getBoundingClientRect().toJSON());
+    const scrollBeforeDrag = await page.evaluate(() => scrollY);
     await touch('touchStart', juice);
     await page.waitForFunction(() => document.querySelector('.drink-reorder-ghost'));
     assert.equal(await page.locator('#log-dialog').evaluate(dialog => dialog.open), false);
-    const waterCard = await page.locator('[data-drink-id=water]').evaluate(element => {
-      element.scrollIntoView({ block: 'nearest' });
-      return element.getBoundingClientRect().toJSON();
-    });
-    const target = { x: waterCard.x + waterCard.width / 2, y: waterCard.y + 10 };
+    const target = { x: wineCard.x + wineCard.width / 2, y: wineCard.y + 10 };
     await touch('touchMove', target);
+    await page.waitForTimeout(100);
+    assert.equal(await page.evaluate(() => scrollY), scrollBeforeDrag);
     await touch('touchEnd');
     await page.waitForFunction(() => !document.querySelector('.drink-reorder-ghost'));
 
-    assert.deepEqual(await domOrder(), ['recent', 'juice', 'water', 'wine']);
-    assert.deepEqual(await page.evaluate(() => state.drinks.map(drink => drink.id)), ['recent', 'juice', 'water', 'wine']);
+    assert.deepEqual(await domOrder(), ['recent', 'water', 'juice', 'wine']);
+    assert.deepEqual(await page.evaluate(() => state.drinks.map(drink => drink.id)), ['recent', 'water', 'juice', 'wine']);
     await page.screenshot({ path: require('node:path').join(require('node:os').tmpdir(), 'funtime-drink-reorder.png') });
 
     // Ao sair do período recente, o card retorna à posição manual preservada.
@@ -98,7 +98,7 @@ test('Home separa recentes e preserva a ordem manual pelo arraste no ícone', { 
       render();
     });
     assert.equal(await page.locator('.drink-group-separator').count(), 0);
-    assert.deepEqual(await domOrder(), ['recent', 'juice', 'water', 'wine']);
+    assert.deepEqual(await domOrder(), ['recent', 'water', 'juice', 'wine']);
 
     await page.evaluate(() => openSettingsView());
     assert.equal(await page.locator('#prioritize-recent-drinks').isChecked(), true);
@@ -112,7 +112,7 @@ test('Home separa recentes e preserva a ordem manual pelo arraste no ícone', { 
     await page.waitForFunction(() => typeof state !== 'undefined' && state.drinks.length === 4);
     await page.evaluate(() => { clearInterval(state.timerId); state.timerId = null; });
     assert.equal(await page.locator('#prioritize-recent-drinks').isChecked(), false);
-    assert.deepEqual(await domOrder(), ['recent', 'juice', 'water', 'wine']);
+    assert.deepEqual(await domOrder(), ['recent', 'water', 'juice', 'wine']);
     await page.evaluate(() => closeSettingsView());
 
     // Se uma ação remover o card durante o gesto, o arraste é cancelado sem
@@ -127,7 +127,7 @@ test('Home separa recentes e preserva a ordem manual pelo arraste no ícone', { 
     });
     await touch('touchEnd');
     assert.equal(await page.locator('.drink-reorder-ghost').count(), 0);
-    assert.deepEqual(await page.evaluate(() => state.drinks.map(drink => drink.id)), ['recent', 'juice', 'water']);
+    assert.deepEqual(await page.evaluate(() => state.drinks.map(drink => drink.id)), ['recent', 'water', 'juice']);
     assert.equal(await page.evaluate(() => JSON.parse(localStorage.getItem('funtime-v1-data')).drinks.includes(null)), false);
 
     await page.evaluate(() => {
@@ -137,7 +137,7 @@ test('Home separa recentes e preserva a ordem manual pelo arraste no ícone', { 
     });
     await page.reload();
     await page.waitForFunction(() => typeof state !== 'undefined' && !document.body.classList.contains('boot-pending'));
-    assert.deepEqual(await page.evaluate(() => state.drinks.map(drink => drink.id)), ['recent', 'juice', 'water']);
+    assert.deepEqual(await page.evaluate(() => state.drinks.map(drink => drink.id)), ['recent', 'water', 'juice']);
     assert.equal(await page.evaluate(() => state.events.some(event => event.id === 'event')), true);
     assert.deepEqual(errors, []);
   } finally {

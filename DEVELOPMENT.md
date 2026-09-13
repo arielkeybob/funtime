@@ -1,5 +1,9 @@
 # FunTime — documentação de desenvolvimento
 
+## V2.1.25 — bloqueio da rolagem durante o arraste
+
+O listener de `touchmove` da espera passa a ser não passivo: oscilações dentro da tolerância de 18px chamam `preventDefault()`, enquanto movimentos maiores cancelam a pressão e permanecem disponíveis para rolagem. Durante o arraste, o bloqueio já existente continua ativo. O autoscroll deixou de usar uma zona fixa de 88px baseada no dedo e agora calcula os limites da cópia do card; só chama `scrollBy()` quando o topo fica negativo ou a base ultrapassa `innerHeight`. A ativação automática excepcional do Service Worker foi removida após a recuperação da v2.1.24.
+
 ## V2.1.24 — estabilidade e recuperação do arraste
 
 A pressão de 750 ms agora marca `pendingDrinkReorderId`, impedindo que o relógio reconstrua o DOM antes de o arraste começar. O long press no corpo do card também passa de 600 para 750 ms. Uma reconstrução funcional cancela a espera ou o gesto ativo; a finalização é idempotente e `persistManualDrinkOrder()` rejeita referências ausentes ou repetidas antes de montar o array. Animações FLIP anteriores são canceladas por card e o placeholder arrastado não é animado, eliminando a disputa visual observada no aparelho.

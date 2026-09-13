@@ -1,5 +1,5 @@
-const APP_VERSION = "2.1.24";
-const CACHE_NAME = "funtime-v2-1-24";
+const APP_VERSION = "2.1.25";
+const CACHE_NAME = "funtime-v2-1-25";
 const BACKGROUND_CACHE_NAME = "funtime-bg-v1";
 const SHARE_IMPORT_CACHE_NAME = "funtime-share-target-v1";
 const SHARE_IMPORT_REQUEST_PATH = "./__shared-drinks-import__";
@@ -50,9 +50,8 @@ async function precacheAppShell() {
 }
 
 self.addEventListener("install", (event) => {
-  // Resgate da v2.1.23: usuários presos no boot não conseguem tocar no aviso
-  // normal de atualização. Voltar ao fluxo com confirmação na próxima versão.
-  event.waitUntil(precacheAppShell().then(() => self.skipWaiting()));
+  // Uma versão nova fica em WAITING até o usuário confirmar no app.
+  event.waitUntil(precacheAppShell());
 });
 
 self.addEventListener("activate", (event) => {
