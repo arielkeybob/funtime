@@ -1,4 +1,8 @@
-# FunTime — V2.1.28
+# FunTime — V2.1.29
+
+## V2.1.29 — filtro de eventos coerente e compacto
+
+No histórico de uma bebida, o filtro mostra somente eventos que realmente possuem consumo daquela bebida; **Sem evento** aparece apenas quando há registro correspondente. O seletor nativo foi substituído por um menu compacto integrado ao visual do app, com suporte a toque e teclado. App, boot, rodapés e cache alinhados a 2.1.29; DATA_VERSION 11 preservado.
 
 ## V2.1.28 — arraste mais rápido e menu simplificado
 

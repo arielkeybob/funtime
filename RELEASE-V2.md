@@ -1,5 +1,9 @@
 # FunTime — releases v2
 
+## V2.1.29 — filtro contextual de eventos
+
+Restringe o filtro do histórico aos eventos com consumo da bebida aberta e só exibe **Sem evento** quando aplicável. Substitui a lista nativa do navegador por um menu compacto, integrado ao app e acessível por teclado. App, boot, rodapés e cache 2.1.29; DATA_VERSION 11 mantido. Publicação autorizada em 13/09/2026.
+
 ## V2.1.28 — arraste em 500 ms e menu contextual enxuto
 
 Reduz a espera do arraste de 750 para 500 ms. Remove **Excluir bebida** do menu `⋮`, mantendo a ação dentro da edição, e aplica o destaque vermelho a **Cancelar contagem atual**. App, boot, rodapés e cache 2.1.28; DATA_VERSION 11 mantido. Publicação ainda não autorizada.

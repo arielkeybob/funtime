@@ -1,5 +1,9 @@
 # FunTime — documentação de desenvolvimento
 
+## V2.1.29 — filtro contextual no histórico da bebida
+
+`refreshOccasionFilters()` passa a derivar as opções dos registros no escopo atual. No histórico de uma bebida, eventos sem consumo correspondente deixam de aparecer e **Sem evento** só é oferecido quando existe dose sem vínculo. O `select` nativo foi substituído por um listbox compacto com fechamento externo, Escape, setas, Home/End e estado acessível. `openHistoryView()` define a bebida antes de atualizar as opções. Regressão integrada cobre evento exclusivo de outra bebida e seleção de registros sem evento. App, boot, rodapés e cache 2.1.29; DATA_VERSION 11 preservado.
+
 ## V2.1.28 — ativação em 500 ms e hierarquia do menu
 
 `DRINK_REORDER_PRESS_MS` passa de 750 para 500 ms. O menu contextual remove o atalho `#drink-menu-delete` e seu listener; excluir a bebida continua disponível no editor, com as mesmas confirmações e opções de preservação do histórico. `#drink-menu-stop`, visível somente durante uma contagem ativa, recebe a classe visual `danger`. Nenhum dado ou schema muda.
