@@ -1,5 +1,9 @@
 # FunTime — documentação de desenvolvimento
 
+## V2.1.27 — um único gesto de pressão longa nos cards
+
+O reconhecedor de pressão longa de `attachDrinkInteractions()` foi removido: nenhum ponto do card abre mais `openLogDialog()` ao segurar. `attachDrinkReorderGesture()` passa a observar toda a área `.drink-main` dos cards pertencentes ao grupo manual e conserva o ícone apenas como feedback visual durante a espera e o arraste. Cards recentes/em andamento não recebem esse reconhecedor e continuam impedidos de entrar na lista manual. O menu `⋮` é o caminho explícito para anotação manual; duplo toque e cooldown contra toques excedentes permanecem independentes.
+
 ## V2.1.26 — ciclo de vida do gesto de registro
 
 `attachDrinkInteractions()` passa a acompanhar movimento, `pointerup` e `pointercancel` no documento durante uma pressão, além de cancelar em blur e ocultação. O callback de 750 ms exige `mainButton.isConnected`, impedindo que um card substituído pelo `render()` abra o diálogo retroativo. Todo `click` encerra preventivamente a pressão. Depois de reconhecer o segundo toque, `ignoreDrinkGestureUntil` absorve novos `pointerdown` e `click` por 520 ms; isso transforma sequências acidentais de três ou quatro toques em um único registro. O menu `⋮` continua sendo a alternativa explícita para anotação manual.

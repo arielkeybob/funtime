@@ -4,7 +4,7 @@ const assert = require('node:assert/strict');
 const { chromium } = require('playwright');
 const { createDevServer } = require('../scripts/dev-server.cjs');
 
-test('Home separa recentes e preserva a ordem manual pelo arraste no ícone', { timeout: 60000 }, async () => {
+test('Home separa recentes e preserva a ordem manual ao segurar o card', { timeout: 60000 }, async () => {
   const server = createDevServer();
   await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
   const browser = await chromium.launch({ channel: process.env.PWA_BROWSER_CHANNEL || 'msedge', headless: true });
@@ -53,8 +53,15 @@ test('Home separa recentes e preserva a ordem manual pelo arraste no ícone', { 
     const cdp = await context.newCDPSession(page);
     const touch = (type, point) => cdp.send('Input.dispatchTouchEvent', { type, touchPoints: point ? [point] : [] });
 
+    // Bebidas do grupo recente não entram no arraste, mesmo segurando o card.
+    const recent = await center(page.locator('[data-drink-id=recent] .drink-content'));
+    await touch('touchStart', recent);
+    await page.waitForTimeout(780);
+    assert.equal(await page.locator('.drink-reorder-ghost').count(), 0);
+    await touch('touchEnd');
+
     // Um movimento de rolagem antes da pressão longa não inicia o arraste.
-    const water = await center(page.locator('[data-drink-id=water] .drink-icon'));
+    const water = await center(page.locator('[data-drink-id=water] .drink-content'));
     await touch('touchStart', water);
     await touch('touchMove', { x: water.x, y: water.y + 40 });
     await page.waitForTimeout(550);
@@ -63,7 +70,7 @@ test('Home separa recentes e preserva a ordem manual pelo arraste no ícone', { 
 
     // Uma reconstrução solicitada durante os 750 ms de espera cancela o gesto
     // e nunca reinsere um card antigo que já saiu do DOM.
-    const juicePending = await center(page.locator('[data-drink-id=juice] .drink-icon'));
+    const juicePending = await center(page.locator('[data-drink-id=juice] .drink-content'));
     await touch('touchStart', juicePending);
     await page.waitForTimeout(200);
     assert.equal(await page.evaluate(() => state.pendingDrinkReorderId), 'juice');
@@ -74,7 +81,7 @@ test('Home separa recentes e preserva a ordem manual pelo arraste no ícone', { 
     await touch('touchEnd');
     await page.waitForTimeout(100);
 
-    const juice = await center(page.locator('[data-drink-id=juice] .drink-icon'));
+    const juice = await center(page.locator('[data-drink-id=juice] .drink-content'));
     const wineCard = await page.locator('[data-drink-id=wine]').evaluate(element => element.getBoundingClientRect().toJSON());
     const scrollBeforeDrag = await page.evaluate(() => scrollY);
     await touch('touchStart', juice);
@@ -117,7 +124,7 @@ test('Home separa recentes e preserva a ordem manual pelo arraste no ícone', { 
 
     // Se uma ação remover o card durante o gesto, o arraste é cancelado sem
     // reintroduzir a bebida nem gravar uma posição nula na lista.
-    const wine = await center(page.locator('[data-drink-id=wine] .drink-icon'));
+    const wine = await center(page.locator('[data-drink-id=wine] .drink-content'));
     await touch('touchStart', wine);
     await page.waitForFunction(() => document.querySelector('.drink-reorder-ghost'));
     await page.evaluate(() => {

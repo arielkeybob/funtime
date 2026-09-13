@@ -1,5 +1,9 @@
 # FunTime — releases v2
 
+## V2.1.27 — segurar o card para reorganizar
+
+A pressão longa deixa de abrir a anotação manual e passa a iniciar o arraste por toda a área principal do card elegível, não somente pelo ícone. Bebidas recentes/em andamento continuam não reordenáveis; o menu `⋮` mantém a anotação manual e o duplo toque mantém o registro rápido. App, boot, rodapés e cache 2.1.27; DATA_VERSION 11 mantido. Publicação ainda não autorizada.
+
 ## V2.1.26 — duplo toque sem anotação manual atrasada
 
 Cancela a pressão longa mesmo quando o toque termina fora do card, invalida temporizadores de cards reconstruídos e absorve toques excedentes por 520 ms depois de um duplo toque concluído. A pressão intencional continua exigindo 750 ms. App, boot, rodapés e cache 2.1.26; DATA_VERSION 11 mantido. Publicação ainda não autorizada.

@@ -283,7 +283,7 @@ document.addEventListener("visibilitychange", () => {
 const DATA_STORAGE_KEY = "funtime-v1-data";
 const LEGACY_DRINKS_STORAGE_KEY = "balada-v1-drinks";
 const DATA_VERSION = 11;
-const APP_VERSION = "2.1.26";
+const APP_VERSION = "2.1.27";
 const DRINK_EXPORT_TYPE = "funtime-drinks";
 const DRINK_EXPORT_FORMAT_VERSION = 1;
 const BACKUP_EXPORT_TYPE = "funtime-backup";
@@ -316,9 +316,6 @@ const WHEEL_ITEM_HEIGHT = 44;
 const REORDER_ANIMATION_MS = 880;
 const REORDER_ANIMATION_EASING = "cubic-bezier(0.22, 1, 0.36, 1)";
 
-const LONG_PRESS_MS = 750;
-const LONG_PRESS_FEEDBACK_MS = 280;
-const LONG_PRESS_MOVE_TOLERANCE = 12;
 const DRINK_REORDER_PRESS_MS = 750;
 const DRINK_REORDER_MOVE_TOLERANCE = 18;
 const DOUBLE_TAP_MAX_DELAY_MS = 430;
@@ -2440,7 +2437,7 @@ function beginDrinkReorder(card, icon, drink, point) {
   }
 }
 
-function attachDrinkReorderGesture(card, icon, drink) {
+function attachDrinkReorderGesture(card, dragSurface, icon, drink) {
   let pressTimer = null;
   let suppressClick = false;
   const cancelPending = () => {
@@ -2496,19 +2493,19 @@ function attachDrinkReorderGesture(card, icon, drink) {
     }
   };
 
-  icon.addEventListener("click", (event) => {
+  dragSurface.addEventListener("click", (event) => {
     if (!suppressClick) return;
     event.preventDefault();
     event.stopPropagation();
     suppressClick = false;
   }, true);
-  icon.addEventListener("contextmenu", (event) => event.preventDefault());
-  icon.addEventListener("touchstart", (event) => {
+  dragSurface.addEventListener("contextmenu", (event) => event.preventDefault());
+  dragSurface.addEventListener("touchstart", (event) => {
     if (event.touches.length !== 1) return;
     const touch = event.touches[0];
     start({ isTouch: true, pointerId: touch.identifier, clientX: touch.clientX, clientY: touch.clientY });
   }, { passive: true });
-  icon.addEventListener("pointerdown", (event) => {
+  dragSurface.addEventListener("pointerdown", (event) => {
     if (event.pointerType === "touch" || event.button !== 0) return;
     start({ isTouch: false, pointerId: event.pointerId, clientX: event.clientX, clientY: event.clientY });
   });
@@ -2596,50 +2593,7 @@ function performNormalDrinkTap(drink, activity) {
 }
 
 function attachDrinkInteractions(mainButton, drink) {
-  let longPressTimer = null;
-  let feedbackTimer = null;
   let doubleTapFeedbackTimer = null;
-  let startX = 0;
-  let startY = 0;
-  let activePointerId = null;
-  let longPressTriggered = false;
-
-  const removeGlobalPressListeners = () => {
-    document.removeEventListener("pointermove", handleGlobalPointerMove, true);
-    document.removeEventListener("pointerup", handleGlobalPointerEnd, true);
-    document.removeEventListener("pointercancel", handleGlobalPointerEnd, true);
-    window.removeEventListener("blur", handleGlobalPointerEnd);
-    document.removeEventListener("visibilitychange", handleVisibilityChange);
-  };
-
-  const clearPressTimers = () => {
-    clearTimeout(longPressTimer);
-    clearTimeout(feedbackTimer);
-    longPressTimer = null;
-    feedbackTimer = null;
-    mainButton.classList.remove("is-long-pressing");
-  };
-
-  const cancelPress = () => {
-    clearPressTimers();
-    activePointerId = null;
-    removeGlobalPressListeners();
-  };
-
-  const handleGlobalPointerMove = (event) => {
-    if (activePointerId !== event.pointerId) return;
-    const distance = Math.hypot(event.clientX - startX, event.clientY - startY);
-    if (distance > LONG_PRESS_MOVE_TOLERANCE) cancelPress();
-  };
-
-  const handleGlobalPointerEnd = (event) => {
-    if (event?.pointerId !== undefined && activePointerId !== event.pointerId) return;
-    cancelPress();
-  };
-
-  const handleVisibilityChange = () => {
-    if (document.visibilityState !== "visible") cancelPress();
-  };
 
   const showFirstTapFeedback = () => {
     clearTimeout(doubleTapFeedbackTimer);
@@ -2649,70 +2603,16 @@ function attachDrinkInteractions(mainButton, drink) {
     }, DOUBLE_TAP_FEEDBACK_MS);
   };
 
-  mainButton.addEventListener("pointerdown", (event) => {
-    if (event.target.closest(".is-reorder-handle")) return;
-    if (event.pointerType === "mouse" && event.button !== 0) return;
-    if (performance.now() < state.ignoreDrinkGestureUntil) return;
-
-    cancelPress();
-    longPressTriggered = false;
-    activePointerId = event.pointerId;
-    startX = event.clientX;
-    startY = event.clientY;
-    document.addEventListener("pointermove", handleGlobalPointerMove, { capture: true, passive: true });
-    document.addEventListener("pointerup", handleGlobalPointerEnd, true);
-    document.addEventListener("pointercancel", handleGlobalPointerEnd, true);
-    window.addEventListener("blur", handleGlobalPointerEnd);
-    document.addEventListener("visibilitychange", handleVisibilityChange);
-
-    feedbackTimer = setTimeout(() => {
-      if (activePointerId === event.pointerId) {
-        mainButton.classList.add("is-long-pressing");
-      }
-    }, LONG_PRESS_FEEDBACK_MS);
-
-    longPressTimer = setTimeout(() => {
-      if (activePointerId !== event.pointerId || !mainButton.isConnected || performance.now() < state.ignoreDrinkGestureUntil) {
-        cancelPress();
-        return;
-      }
-
-      longPressTriggered = true;
-      state.pendingDoubleTap = null;
-      cancelPress();
-      mainButton.classList.remove("is-awaiting-second-tap");
-
-      if (typeof navigator.vibrate === "function") {
-        try {
-          navigator.vibrate(30);
-        } catch (error) {
-          // Vibração é apenas feedback opcional; alguns browsers a bloqueiam.
-        }
-      }
-
-      openLogDialog(drink.id);
-    }, LONG_PRESS_MS);
-  });
-
   mainButton.addEventListener("contextmenu", (event) => {
     event.preventDefault();
   });
 
   mainButton.addEventListener("click", (event) => {
-    if (event.target.closest(".is-reorder-handle")) return;
-    cancelPress();
     if (performance.now() < state.ignoreDrinkGestureUntil) {
       event.preventDefault();
       event.stopPropagation();
       return;
     }
-    if (longPressTriggered) {
-      event.preventDefault();
-      event.stopPropagation();
-      longPressTriggered = false;
-      return;
-    }
-
     const now = performance.now();
     const previousTap = state.pendingDoubleTap;
     const isSecondTap = Boolean(
@@ -2777,7 +2677,7 @@ function render() {
     card.dataset.reorderEligible = String(manualIds.has(drink.id));
     iconSymbol.textContent = drink.icon;
     icon.classList.toggle("is-reorder-handle", manualIds.has(drink.id));
-    icon.title = manualIds.has(drink.id) ? "Segure para reorganizar" : "";
+    icon.title = "";
     name.textContent = drink.name;
 
     const activity = getDrinkActivity(drink);
@@ -2789,14 +2689,14 @@ function render() {
       stateLabel.textContent = occasion ? "SEM REGISTRO NESTE EVENTO" : "SEM REGISTRO";
       status.textContent = `Intervalo: ${formatInterval(drink.intervalMinutes).replaceAll(" ", "\u00a0")}`;
       time.textContent = "Anotar primeira dose";
-      mainButton.setAttribute("aria-label", `Anotar ${drink.name} agora com dois toques rápidos. Toque e segure para anotar outra dose.`);
+      mainButton.setAttribute("aria-label", `Anotar ${drink.name} agora com dois toques rápidos.${manualIds.has(drink.id) ? " Toque e segure o card para reorganizar." : ""}`);
     } else if (activity.state === "waiting") {
       stateLabel.hidden = true;
       setClockStatus(status, "Tomou às", activity.latestEvent.consumedAt, getDoseStatusSuffix(activity.latestEvent));
       time.textContent = formatActivityCounter(activity);
       mainButton.setAttribute(
         "aria-label",
-        `${drink.name}: intervalo em andamento. ${formatTime(activity.remainingMs)} restantes. Toque duas vezes para abrir as opções de anotação ou toque e segure para anotar outra dose.`
+        `${drink.name}: intervalo em andamento. ${formatTime(activity.remainingMs)} restantes. Toque duas vezes para abrir as opções de anotação.`
       );
     } else if (activity.state === "danger") {
       stateLabel.textContent = "⚠ TOMOU DOSE POR CIMA DA OUTRA";
@@ -2809,21 +2709,21 @@ function render() {
       time.textContent = formatActivityCounter(activity);
       mainButton.setAttribute(
         "aria-label",
-        `${drink.name}: atenção. ${activity.violationClusterCount} anotações em sequência antes do intervalo terminar. ${formatTime(activity.remainingMs)} restantes. Toque duas vezes para abrir as opções ou toque e segure para anotar outra dose.`
+        `${drink.name}: atenção. ${activity.violationClusterCount} anotações em sequência antes do intervalo terminar. ${formatTime(activity.remainingMs)} restantes. Toque duas vezes para abrir as opções.`
       );
     } else {
       stateLabel.hidden = neutral && !occasion;
       stateLabel.textContent = neutral ? "SEM REGISTRO NESTE EVENTO" : "✓ INTERVALO CONCLUÍDO";
       setPreviousStatus(status, activity.latestEvent.consumedAt, getDoseStatusSuffix(activity.latestEvent), Date.now(), neutral ? "Último registro:" : "Anterior:");
       time.textContent = neutral ? "Anotar dose" : "Anotar nova dose";
-      mainButton.setAttribute("aria-label", 'Anotar dose de ' + drink.name + ' agora com dois toques rápidos. Toque e segure para anotar outra dose.');
+      mainButton.setAttribute("aria-label", `Anotar dose de ${drink.name} agora com dois toques rápidos.${manualIds.has(drink.id) ? " Toque e segure o card para reorganizar." : ""}`);
     }
 
     if (occasion && activity.remainingMs > 0 && activity.latestEvent.occasionId !== occasion.id) {
       status.append(document.createTextNode(" · Registro anterior ao evento"));
     }
     attachDrinkInteractions(mainButton, drink);
-    if (manualIds.has(drink.id)) attachDrinkReorderGesture(card, icon, drink);
+    if (manualIds.has(drink.id)) attachDrinkReorderGesture(card, mainButton, icon, drink);
 
     historyButton.setAttribute("aria-label", `Ver histórico de ${drink.name}`);
     historyButton.addEventListener("click", () => openHistoryView(drink.id));

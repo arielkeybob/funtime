@@ -1,4 +1,8 @@
-# FunTime — V2.1.26
+# FunTime — V2.1.27
+
+## V2.1.27 — pressão longa reorganiza o card
+
+Segurar a área principal de uma bebida ainda não consumida inicia a reordenação; o ícone deixa de ser a única área de ativação. A pressão longa não abre mais a anotação manual, que permanece disponível pelo menu `⋮`. Bebidas em andamento ou recentes continuam fora da lista reordenável. Duplo toque e proteção contra toques excedentes são preservados. App, boot, rodapés e cache alinhados a 2.1.27; DATA_VERSION 11 preservado.
 
 ## V2.1.26 — separa duplo toque e pressão longa
 
