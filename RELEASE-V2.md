@@ -1,5 +1,9 @@
 # FunTime — releases v2
 
+## V2.1.33 — ações sempre abertas no evento
+
+Remove o recolhimento **Mais opções** dos detalhes e mantém todas as ações aplicáveis visíveis. Em eventos em andamento, **Encerrar evento** e **Ver registros** passam a dividir a mesma linha. App, boot, rodapés e cache 2.1.33; DATA_VERSION 11 mantido. Publicação ainda não autorizada.
+
 ## V2.1.32 — desbloqueio no cadastro do evento
 
 Leva **Manter app desbloqueado durante este evento** para o formulário de um evento iniciado agora, evitando abrir novamente os detalhes após a criação. Agendamentos continuam sem ativação antecipada. App, boot, rodapés e cache 2.1.32; DATA_VERSION 11 mantido. Publicação ainda não autorizada.

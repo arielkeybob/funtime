@@ -1,4 +1,8 @@
-# FunTime — V2.1.32
+# FunTime — V2.1.33
+
+## V2.1.33 — ações do evento sempre visíveis
+
+Os detalhes do evento deixam de recolher Editar, Reabrir e Excluir sob **Mais opções**. Todas as ações aplicáveis ficam visíveis diretamente; em eventos em andamento, **Encerrar evento** e **Ver registros** aparecem lado a lado. App, boot, rodapés e cache alinhados a 2.1.33; DATA_VERSION 11 preservado.
 
 ## V2.1.32 — desbloqueio já no início do evento
 

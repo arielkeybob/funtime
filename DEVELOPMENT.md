@@ -1,5 +1,9 @@
 # FunTime — documentação de desenvolvimento
 
+## V2.1.33 — ações diretas nos detalhes do evento
+
+`openOccasionDetails()` deixa de criar `details/summary` para `.agenda-options`: Editar, Reabrir, Cancelar agendamento e Excluir evento são renderizados diretamente conforme o estado. O grupo principal recebe `.is-active` durante um evento em andamento, removendo apenas nesse caso a expansão de coluna do botão primário e posicionando **Encerrar evento** ao lado de **Ver registros**. Outros botões primários, como **Iniciar agora**, continuam ocupando a largura disponível. App, boot, rodapés e cache 2.1.33; DATA_VERSION 11 preservado.
+
 ## V2.1.32 — exceção de bloqueio no cadastro do evento
 
 O formulário de evento mostra `#occasion-unlock-field` quando a proteção está ativa e o modo efetivo é **Iniciar agora**. A opção fica oculta para agendamentos, eventos encerrados e cadastros retroativos que ainda estão no fluxo de data. Após persistir o evento, a preferência local é associada ao novo ID; falha ao gravar a configuração de segurança mantém o evento criado e preserva o erro visível. O texto dos detalhes também passa a ser **Manter app desbloqueado durante este evento**. App, boot, rodapés e cache 2.1.32; DATA_VERSION 11 e SECURITY_CONFIG_VERSION 3 preservados.
