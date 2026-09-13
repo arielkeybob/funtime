@@ -1,5 +1,15 @@
 # FunTime — documentação de desenvolvimento
 
+## V2.1.24 — estabilidade e recuperação do arraste
+
+A pressão de 750 ms agora marca `pendingDrinkReorderId`, impedindo que o relógio reconstrua o DOM antes de o arraste começar. O long press no corpo do card também passa de 600 para 750 ms. Uma reconstrução funcional cancela a espera ou o gesto ativo; a finalização é idempotente e `persistManualDrinkOrder()` rejeita referências ausentes ou repetidas antes de montar o array. Animações FLIP anteriores são canceladas por card e o placeholder arrastado não é animado, eliminando a disputa visual observada no aparelho.
+
+A falha da v2.1.23 foi reproduzida: se o DOM fosse reconstruído durante a espera, o callback conservava a referência do card removido e `insertBefore()` o reinseria como uma segunda representação. Excluir a bebida enquanto esse gesto permanecia ativo permitia que a finalização tardia resolvesse o ID apagado como `undefined`; `JSON.stringify()` o gravava como `null`, corretamente recusado pela barreira de migração na abertura seguinte.
+
+`FunTimeMigration.repairDrinkOrderCorruption()` atua somente em instalações já marcadas como migração concluída e somente quando `drinks` contém `null`. Remove essas posições, valida integralmente o candidato com o contrato atual e verifica a gravação. JSON inválido, IDs duplicados, migração incompleta ou qualquer outro conflito permanecem bloqueados. Eventos órfãos continuam preservados como snapshots históricos. A v2.1.24 usa `skipWaiting()` excepcionalmente na instalação do Service Worker para alcançar usuários presos antes do carregamento do app; a política normal de confirmação deve voltar na versão seguinte.
+
+Validação automatizada inclui reprodução do gesto interrompido pela reconstrução, exclusão do card durante o arraste sem posição nula, toque CDP, persistência, navegação/mundo invertido e reparo positivo/negativo da migração. Celular real ainda precisa confirmar a suavidade do gesto e a recuperação automática da instalação afetada.
+
 ## V2.1.23 — ordem manual das bebidas
 
 `state.drinks` passa a representar a ordem manual canônica. `getDrinkDisplayGroups()` projeta essa lista em bebidas recentes, ordenadas pelo último consumo, e bebidas manuais, sem alterar os dados. Com eventos ativos, o primeiro grupo inclui registros do evento atual e qualquer contagem ainda em andamento; sem eventos, usa contagens ativas e registros das últimas 24 horas. A preferência opcional `prioritizeRecentDrinks` assume `true` em dados antigos e pode reunir toda a Home na ordem manual.

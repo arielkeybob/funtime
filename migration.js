@@ -165,6 +165,22 @@ globalThis.FunTimeMigration = (() => {
     // O marcador final continua compatível com os leitores da v1.15.0.
     verifiedWrite(storage, markerKey, JSON.stringify({ version: 1, phase: "done" }));
   }
+  function repairDrinkOrderCorruption(storage) {
+    const marker = storage.getItem(markerKey);
+    const raw = storage.getItem("funtime-v1-data");
+    if (raw === null || marker === null) return false;
+    let journal;
+    try { journal = JSON.parse(marker); } catch { return false; }
+    if (!object(journal) || journal.version !== 1 || journal.phase !== "done") return false;
+    let value;
+    try { value = JSON.parse(raw); } catch { return false; }
+    if (!object(value) || !Array.isArray(value.drinks) || !value.drinks.some(drink => drink === null)) return false;
+    const repaired = { ...value, drinks: value.drinks.filter(drink => drink !== null) };
+    const serialized = JSON.stringify(repaired);
+    validate(serialized, "funtime-v1-data");
+    verifiedWrite(storage, "funtime-v1-data", serialized);
+    return true;
+  }
   function migrateSession(storage) {
     for (const [old, key] of sessionPairs) {
       const source = storage.getItem(old), target = storage.getItem(key);
@@ -172,5 +188,5 @@ globalThis.FunTimeMigration = (() => {
       storage.removeItem(old);
     }
   }
-  return { migrate, migrateSession, validate, oldKeys, sessionPairs };
+  return { migrate, migrateSession, validate, repairDrinkOrderCorruption, oldKeys, sessionPairs };
 })();

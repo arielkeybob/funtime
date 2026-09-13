@@ -19,6 +19,24 @@ test('migração preserva bytes de registros, proteção e aceite; repetição n
   const s=store(original()),m=api();await m.migrate(s);done(s);
   const next=JSON.stringify({...data,events:[]});s.setItem('funtime-v1-data',next);await m.migrate(s);assert.equal(s.getItem('funtime-v1-data'),next);
 });
+test('reparo da v2.1.23 remove somente posições nulas da ordem após migração concluída',()=>{
+  const m=api(),corrupted={...data,drinks:[data.drinks[0],null]};
+  const s=store({'funtime-v1-data':JSON.stringify(corrupted),'funtime-migration-v1':JSON.stringify({version:1,phase:'done'})});
+  assert.equal(m.repairDrinkOrderCorruption(s),true);
+  assert.deepEqual(JSON.parse(s.getItem('funtime-v1-data')).drinks,data.drinks);
+  assert.deepEqual(JSON.parse(s.getItem('funtime-v1-data')).events,data.events);
+  assert.equal(m.repairDrinkOrderCorruption(s),false);
+
+  for(const seed of [
+    {'funtime-v1-data':JSON.stringify(corrupted)},
+    {'funtime-v1-data':'{','funtime-migration-v1':JSON.stringify({version:1,phase:'done'})},
+    {'funtime-v1-data':JSON.stringify({...data,drinks:[data.drinks[0],data.drinks[0]]}),'funtime-migration-v1':JSON.stringify({version:1,phase:'done'})},
+  ]) {
+    const guarded=store(seed),before=Object.fromEntries(guarded.map);
+    assert.equal(m.repairDrinkOrderCorruption(guarded),false);
+    assert.deepEqual(Object.fromEntries(guarded.map),before);
+  }
+});
 test('cada falha de leitura, gravação ou exclusão pode retomar sem perda ou duplicação',async()=>{
   const m=api(),probe=store(original());await m.migrate(probe);const operations=probe.count();
   for(let n=1;n<=operations;n++){

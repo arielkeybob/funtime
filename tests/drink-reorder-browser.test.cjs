@@ -33,6 +33,8 @@ test('Home separa recentes e preserva a ordem manual pelo arraste no ícone', { 
       }];
       saveData();
       render();
+      clearInterval(state.timerId);
+      state.timerId = null;
     });
 
     const domOrder = () => page.locator('.drink-card').evaluateAll(cards => cards.map(card => card.dataset.drinkId));
@@ -41,7 +43,13 @@ test('Home separa recentes e preserva a ordem manual pelo arraste no ícone', { 
     assert.equal(await page.locator('[data-drink-id=recent] .is-reorder-handle').count(), 0);
     assert.equal(await page.locator('.is-reorder-handle').count(), 3);
 
-    const center = locator => locator.boundingBox().then(box => ({ x: box.x + box.width / 2, y: box.y + box.height / 2 }));
+    const center = async locator => {
+      return locator.evaluate(element => {
+        element.scrollIntoView({ block: 'nearest' });
+        const box = element.getBoundingClientRect();
+        return { x: box.x + box.width / 2, y: box.y + box.height / 2 };
+      });
+    };
     const cdp = await context.newCDPSession(page);
     const touch = (type, point) => cdp.send('Input.dispatchTouchEvent', { type, touchPoints: point ? [point] : [] });
 
@@ -53,11 +61,27 @@ test('Home separa recentes e preserva a ordem manual pelo arraste no ícone', { 
     assert.equal(await page.locator('.drink-reorder-ghost').count(), 0);
     await touch('touchEnd');
 
+    // Uma reconstrução solicitada durante os 750 ms de espera cancela o gesto
+    // e nunca reinsere um card antigo que já saiu do DOM.
+    const juicePending = await center(page.locator('[data-drink-id=juice] .drink-icon'));
+    await touch('touchStart', juicePending);
+    await page.waitForTimeout(200);
+    assert.equal(await page.evaluate(() => state.pendingDrinkReorderId), 'juice');
+    await page.evaluate(() => render());
+    await page.waitForTimeout(400);
+    assert.equal(await page.locator('.drink-reorder-ghost').count(), 0);
+    assert.deepEqual(await domOrder(), ['recent', 'water', 'wine', 'juice']);
+    await touch('touchEnd');
+    await page.waitForTimeout(100);
+
     const juice = await center(page.locator('[data-drink-id=juice] .drink-icon'));
     await touch('touchStart', juice);
     await page.waitForFunction(() => document.querySelector('.drink-reorder-ghost'));
     assert.equal(await page.locator('#log-dialog').evaluate(dialog => dialog.open), false);
-    const waterCard = await page.locator('[data-drink-id=water]').boundingBox();
+    const waterCard = await page.locator('[data-drink-id=water]').evaluate(element => {
+      element.scrollIntoView({ block: 'nearest' });
+      return element.getBoundingClientRect().toJSON();
+    });
     const target = { x: waterCard.x + waterCard.width / 2, y: waterCard.y + 10 };
     await touch('touchMove', target);
     await touch('touchEnd');
@@ -78,12 +102,43 @@ test('Home separa recentes e preserva a ordem manual pelo arraste no ícone', { 
 
     await page.evaluate(() => openSettingsView());
     assert.equal(await page.locator('#prioritize-recent-drinks').isChecked(), true);
-    await page.locator('label[for=prioritize-recent-drinks]').click();
+    await page.evaluate(() => {
+      const input = document.querySelector('#prioritize-recent-drinks');
+      input.checked = false;
+      input.dispatchEvent(new Event('change', { bubbles: true }));
+    });
     assert.equal(await page.evaluate(() => state.preferences.prioritizeRecentDrinks), false);
     await page.reload();
     await page.waitForFunction(() => typeof state !== 'undefined' && state.drinks.length === 4);
+    await page.evaluate(() => { clearInterval(state.timerId); state.timerId = null; });
     assert.equal(await page.locator('#prioritize-recent-drinks').isChecked(), false);
     assert.deepEqual(await domOrder(), ['recent', 'juice', 'water', 'wine']);
+    await page.evaluate(() => closeSettingsView());
+
+    // Se uma ação remover o card durante o gesto, o arraste é cancelado sem
+    // reintroduzir a bebida nem gravar uma posição nula na lista.
+    const wine = await center(page.locator('[data-drink-id=wine] .drink-icon'));
+    await touch('touchStart', wine);
+    await page.waitForFunction(() => document.querySelector('.drink-reorder-ghost'));
+    await page.evaluate(() => {
+      state.drinks = state.drinks.filter(drink => drink.id !== 'wine');
+      saveData();
+      render();
+    });
+    await touch('touchEnd');
+    assert.equal(await page.locator('.drink-reorder-ghost').count(), 0);
+    assert.deepEqual(await page.evaluate(() => state.drinks.map(drink => drink.id)), ['recent', 'juice', 'water']);
+    assert.equal(await page.evaluate(() => JSON.parse(localStorage.getItem('funtime-v1-data')).drinks.includes(null)), false);
+
+    await page.evaluate(() => {
+      const corrupted = JSON.parse(localStorage.getItem('funtime-v1-data'));
+      corrupted.drinks.push(null);
+      localStorage.setItem('funtime-v1-data', JSON.stringify(corrupted));
+    });
+    await page.reload();
+    await page.waitForFunction(() => typeof state !== 'undefined' && !document.body.classList.contains('boot-pending'));
+    assert.deepEqual(await page.evaluate(() => state.drinks.map(drink => drink.id)), ['recent', 'juice', 'water']);
+    assert.equal(await page.evaluate(() => state.events.some(event => event.id === 'event')), true);
     assert.deepEqual(errors, []);
   } finally {
     await browser.close();

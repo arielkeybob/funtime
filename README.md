@@ -1,4 +1,8 @@
-# FunTime — V2.1.23
+# FunTime — V2.1.24
+
+## V2.1.24 — corrige arraste e recupera a ordem
+
+Corrige uma disputa entre a reconstrução de um segundo da Home e os 750 ms de ativação do arraste, que podia reinserir visualmente um card antigo, acumular animações e gravar uma posição nula se a bebida fosse excluída durante o gesto. A espera e o arraste agora suspendem a reconstrução periódica, mudanças da tela cancelam o gesto, a gravação rejeita IDs ausentes/duplicados e cada card mantém somente uma animação de deslocamento. Segurar o corpo do card para registrar e segurar o ícone para arrastar passam a exigir 750 ms. Instalações afetadas removem exclusivamente posições `null` da lista de bebidas, após validar o restante, preservando histórico e preferências. Esta atualização ativa automaticamente o novo Service Worker porque a tela de erro da v2.1.23 não permite alcançar o aviso normal de atualização. App, boot, rodapés e cache alinhados a 2.1.24; DATA_VERSION 11 preservado. Foram aprovados 45 testes de dados/instalação e cinco testes integrados, com o cenário móvel de regressão repetido duas vezes; celular real ainda não retestado.
 
 ## V2.1.23 — ordem manual das bebidas
 

@@ -1,8 +1,12 @@
 # FunTime — releases v2
 
+## V2.1.24 — correção e recuperação do arraste
+
+Elimina a disputa entre o relógio da Home, a espera da pressão longa e o arraste; impede reinserção visual, animações concorrentes e gravação de referências ausentes. Inclui reparo conservador que remove apenas posições `null` geradas pela v2.1.23 após validar todos os demais dados, preservando histórico e preferências. O Service Worker ativa esta correção automaticamente porque usuários afetados ficam presos antes do aviso normal de atualização. App, boot, rodapés e cache 2.1.24; DATA_VERSION 11 mantido. Foram aprovados 45 testes de dados/instalação e cinco integrados; o cenário móvel foi repetido duas vezes. Publicação ainda não autorizada nesta etapa.
+
 ## V2.1.23 — ordem manual das bebidas
 
-Bebidas recentes permanecem agrupadas no topo por último consumo, enquanto as demais podem ser reorganizadas segurando o ícone e conservam a posição ao sair e retornar ao período/evento. A preferência de Interface pode desativar a priorização automática. Novas bebidas e importações aditivas entram no final; exportação e backup preservam a ordem. App, boot, rodapés e cache 2.1.23; DATA_VERSION 11 mantido. Cinco testes integrados móveis, sintaxe e diff aprovados; aparência 390×844 conferida. Celular real e atualização da PWA não testados. Sem commit ou publicação.
+Bebidas recentes permanecem agrupadas no topo por último consumo, enquanto as demais podem ser reorganizadas segurando o ícone e conservam a posição ao sair e retornar ao período/evento. A preferência de Interface pode desativar a priorização automática. Novas bebidas e importações aditivas entram no final; exportação e backup preservam a ordem. App, boot, rodapés e cache 2.1.23; DATA_VERSION 11 mantido. Cinco testes integrados móveis, sintaxe e diff aprovados; aparência 390×844 conferida. Celular real e atualização da PWA não testados. Publicado no commit `9d125c2`.
 
 ## V2.1.18 — código de acesso para instalar
 

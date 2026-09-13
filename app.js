@@ -283,7 +283,7 @@ document.addEventListener("visibilitychange", () => {
 const DATA_STORAGE_KEY = "funtime-v1-data";
 const LEGACY_DRINKS_STORAGE_KEY = "balada-v1-drinks";
 const DATA_VERSION = 11;
-const APP_VERSION = "2.1.23";
+const APP_VERSION = "2.1.24";
 const DRINK_EXPORT_TYPE = "funtime-drinks";
 const DRINK_EXPORT_FORMAT_VERSION = 1;
 const BACKUP_EXPORT_TYPE = "funtime-backup";
@@ -316,10 +316,10 @@ const WHEEL_ITEM_HEIGHT = 44;
 const REORDER_ANIMATION_MS = 880;
 const REORDER_ANIMATION_EASING = "cubic-bezier(0.22, 1, 0.36, 1)";
 
-const LONG_PRESS_MS = 600;
+const LONG_PRESS_MS = 750;
 const LONG_PRESS_FEEDBACK_MS = 280;
 const LONG_PRESS_MOVE_TOLERANCE = 12;
-const DRINK_REORDER_PRESS_MS = 500;
+const DRINK_REORDER_PRESS_MS = 750;
 const DRINK_REORDER_MOVE_TOLERANCE = 18;
 const DOUBLE_TAP_MAX_DELAY_MS = 430;
 const DOUBLE_TAP_FEEDBACK_MS = 430;
@@ -347,6 +347,7 @@ const state = {
   toastTimerId: null,
   reorderAnimationUntil: 0,
   draggingDrinkId: null,
+  pendingDrinkReorderId: null,
   pendingDoubleTap: null,
   securityConfig: IS_STANDALONE_APP ? loadSecurityConfig() : getDefaultSecurityConfig(),
   securityLocked: false,
@@ -361,6 +362,9 @@ const state = {
   pendingBackupRestore: null,
   pendingSharedImportCheck: false,
 };
+
+let cancelActiveDrinkReorder = null;
+let cancelPendingDrinkReorder = null;
 
 const homeHeader = document.querySelector("#home-header");
 const historyHeader = document.querySelector("#history-header");
@@ -2263,13 +2267,17 @@ function getDrinkDisplayGroups() {
 }
 
 function persistManualDrinkOrder(orderedManualIds) {
-  const ordered = [...orderedManualIds];
-  const manualIds = new Set(ordered);
   const byId = new Map(state.drinks.map((drink) => [drink.id, drink]));
+  const ordered = [...orderedManualIds];
+  const validOrdered = ordered.filter((id, index) => byId.has(id) && ordered.indexOf(id) === index);
+  if (validOrdered.length !== ordered.length) {
+    throw new Error("A lista mudou durante a reorganização.");
+  }
+  const manualIds = new Set(validOrdered);
   let manualIndex = 0;
   const nextDrinks = state.drinks.map((drink) => {
     if (!manualIds.has(drink.id)) return drink;
-    return byId.get(ordered[manualIndex++]);
+    return byId.get(validOrdered[manualIndex++]);
   });
 
   persistDrinkList(nextDrinks);
@@ -2278,20 +2286,26 @@ function persistManualDrinkOrder(orderedManualIds) {
 function animateManualDrinkShift(previousPositions) {
   if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
   drinkList.querySelectorAll('.drink-card[data-reorder-eligible="true"]').forEach((card) => {
+    if (card.classList.contains("is-drink-drag-source")) return;
     const previous = previousPositions.get(card.dataset.drinkId);
     if (!previous) return;
     const current = card.getBoundingClientRect();
     const deltaY = previous.top - current.top;
     if (Math.abs(deltaY) < 1) return;
-    card.animate(
+    card._manualReorderAnimation?.cancel();
+    const animation = card.animate(
       [{ transform: `translateY(${deltaY}px)` }, { transform: "translateY(0)" }],
       { duration: 180, easing: "cubic-bezier(0.22, 1, 0.36, 1)" }
     );
+    card._manualReorderAnimation = animation;
+    animation.finished.finally(() => {
+      if (card._manualReorderAnimation === animation) card._manualReorderAnimation = null;
+    }).catch(() => {});
   });
 }
 
 function beginDrinkReorder(card, icon, drink, point) {
-  if (state.draggingDrinkId || card.dataset.reorderEligible !== "true") return;
+  if (state.draggingDrinkId || !card.isConnected || card.dataset.reorderEligible !== "true") return;
 
   const sourceRect = card.getBoundingClientRect();
   const ghost = card.cloneNode(true);
@@ -2327,12 +2341,14 @@ function beginDrinkReorder(card, icon, drink, point) {
       const rect = candidate.getBoundingClientRect();
       return nextPoint.clientY < rect.top + rect.height / 2;
     });
+    if (!autoScrollFrame) autoScrollFrame = requestAnimationFrame(autoScroll);
+    const alreadyPlaced = target ? card.nextElementSibling === target : card === drinkList.lastElementChild;
+    if (alreadyPlaced) return;
     const before = captureDrinkCardPositions();
     if (target) drinkList.insertBefore(card, target);
     else drinkList.appendChild(card);
     animateManualDrinkShift(before);
 
-    if (!autoScrollFrame) autoScrollFrame = requestAnimationFrame(autoScroll);
   };
 
   const autoScroll = () => {
@@ -2349,6 +2365,9 @@ function beginDrinkReorder(card, icon, drink, point) {
   };
 
   const finish = (save) => {
+    if (state.draggingDrinkId !== drink.id) return;
+    state.draggingDrinkId = null;
+    cancelActiveDrinkReorder = null;
     window.removeEventListener("pointermove", pointerMove);
     window.removeEventListener("pointerup", pointerUp);
     window.removeEventListener("pointercancel", pointerCancel);
@@ -2358,14 +2377,14 @@ function beginDrinkReorder(card, icon, drink, point) {
     document.removeEventListener("pointerup", touchPointerUp, true);
     document.removeEventListener("pointercancel", touchPointerCancel, true);
     document.removeEventListener("pointermove", touchPointerMove, true);
+    window.removeEventListener("blur", cancelExternally);
+    document.removeEventListener("visibilitychange", cancelExternally);
     cancelAnimationFrame(autoScrollFrame);
     autoScrollFrame = null;
     ghost.remove();
     card.classList.remove("is-drink-drag-source");
     icon.classList.remove("is-dragging");
     if (symbol) symbol.textContent = originalIcon;
-    state.draggingDrinkId = null;
-
     if (save) {
       const ids = [...drinkList.querySelectorAll('.drink-card[data-reorder-eligible="true"]')]
         .map((item) => item.dataset.drinkId);
@@ -2386,16 +2405,23 @@ function beginDrinkReorder(card, icon, drink, point) {
   const pointerUp = (event) => { if (event.pointerId === point.pointerId) finish(true); };
   const pointerCancel = (event) => { if (event.pointerId === point.pointerId) finish(false); };
   const touchMove = (event) => {
-    const touch = [...event.touches].find((item) => item.identifier === point.pointerId);
-    if (!touch) return;
+    const touch = event.touches[0];
+    if (!touch || event.touches.length !== 1) return finish(false);
     if (event.cancelable) event.preventDefault();
     move(touch);
   };
   const touchEnd = () => finish(true);
   const touchCancel = () => finish(false);
   const touchPointerUp = () => finish(true);
-  const touchPointerCancel = () => finish(false);
+  const touchPointerCancel = () => setTimeout(() => finish(true), 0);
   const touchPointerMove = (event) => move(event);
+  const cancelExternally = () => {
+    if (document.visibilityState !== "visible" || !document.hasFocus()) finish(false);
+  };
+  cancelActiveDrinkReorder = () => finish(false);
+
+  window.addEventListener("blur", cancelExternally);
+  document.addEventListener("visibilitychange", cancelExternally);
 
   if (point.isTouch) {
     document.addEventListener("touchmove", touchMove, { capture: true, passive: false });
@@ -2420,8 +2446,9 @@ function attachDrinkReorderGesture(card, icon, drink) {
     icon.classList.remove("is-reorder-pressing");
   };
   const start = (point) => {
-    if (state.draggingDrinkId || card.dataset.reorderEligible !== "true") return;
+    if (state.draggingDrinkId || state.pendingDrinkReorderId || !card.isConnected || card.dataset.reorderEligible !== "true") return;
     const origin = { ...point };
+    state.pendingDrinkReorderId = drink.id;
     icon.classList.add("is-reorder-pressing");
     pressTimer = setTimeout(() => {
       cleanup();
@@ -2435,13 +2462,20 @@ function attachDrinkReorderGesture(card, icon, drink) {
     };
     const cleanup = () => {
       cancelPending();
+      if (state.pendingDrinkReorderId === drink.id) state.pendingDrinkReorderId = null;
+      if (cancelPendingDrinkReorder === cleanup) cancelPendingDrinkReorder = null;
       window.removeEventListener("pointermove", pointerMove);
       window.removeEventListener("pointerup", cleanup);
       window.removeEventListener("pointercancel", cleanup);
       document.removeEventListener("touchmove", touchMove, true);
       document.removeEventListener("touchend", cleanup, true);
       document.removeEventListener("touchcancel", cleanup, true);
+      window.removeEventListener("blur", cleanup);
+      document.removeEventListener("visibilitychange", cleanup);
     };
+    cancelPendingDrinkReorder = cleanup;
+    window.addEventListener("blur", cleanup);
+    document.addEventListener("visibilitychange", cleanup);
     const pointerMove = (event) => { if (event.pointerId === origin.pointerId) move(event); };
     const touchMove = (event) => {
       const touch = [...event.touches].find((item) => item.identifier === origin.pointerId);
@@ -2674,7 +2708,13 @@ function attachDrinkInteractions(mainButton, drink) {
 }
 
 function render() {
-  if (state.draggingDrinkId) return;
+  if (state.pendingDrinkReorderId) {
+    cancelPendingDrinkReorder?.();
+  }
+  if (state.draggingDrinkId) {
+    cancelActiveDrinkReorder?.();
+    return;
+  }
   globalThis.refreshOccasionContext?.();
   drinkList.innerHTML = "";
   emptyState.hidden = state.drinks.length > 0;
@@ -4465,7 +4505,7 @@ function startClock() {
   clearInterval(state.timerId);
   state.timerId = setInterval(() => {
     globalThis.reconcileOccasions?.();
-    if (state.currentView === "home" && Date.now() >= state.reorderAnimationUntil) {
+    if (state.currentView === "home" && !state.draggingDrinkId && !state.pendingDrinkReorderId && Date.now() >= state.reorderAnimationUntil) {
       render();
     } else if (state.currentView === "history") {
       updateHistoryElapsedLabels();

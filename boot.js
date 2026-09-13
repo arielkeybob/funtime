@@ -37,7 +37,7 @@
       return false;
     }
     const version = await request(worker, "GET_VERSION");
-    if (version?.version !== "2.1.23") {
+    if (version?.version !== "2.1.24") {
       // Não ativar uma atualização sem a ação explícita do usuário.
       await registration.update();
       show("Há uma atualização necessária para abrir o FunTime.");
@@ -155,6 +155,7 @@
             sessionStorage.removeItem("intervalo-security-session-v1");
           } catch { /* Sem sessão confiável, manter desbloqueio obrigatório. */ }
         } else {
+          FunTimeMigration.repairDrinkOrderCorruption(localStorage);
           await FunTimeReceiver.prepare(localStorage, origin);
           globalThis.FunTimeSessionReady = true;
         }
