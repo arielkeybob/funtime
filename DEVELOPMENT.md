@@ -1,5 +1,9 @@
 # FunTime — documentação de desenvolvimento
 
+## V2.1.30 — exceção local de bloqueio durante evento
+
+Nos detalhes de um evento em andamento, a proteção ativa revela o toggle **Manter desbloqueado durante este evento**. A escolha grava apenas `eventUnlockOccasionId` na configuração de segurança local, que já fica fora de backups e transferências. O privacy shield continua cobrindo o app em segundo plano; no retorno, a autenticação é dispensada enquanto o mesmo evento permanecer ativo. Inicialização e retorno também validam o vínculo, inclusive após reconciliação da agenda. Encerrar, excluir ou desativar o evento limpa a exceção; **Bloquear agora** a cancela antes de bloquear. Eventos pendentes ou encerrados não oferecem o controle. `SECURITY_CONFIG_VERSION` 3 continua compatível porque o campo é opcional; DATA_VERSION 11 preservado. App, boot, rodapés e cache 2.1.30.
+
 ## V2.1.29 — filtro contextual no histórico da bebida
 
 `refreshOccasionFilters()` passa a derivar as opções dos registros no escopo atual. No histórico de uma bebida, eventos sem consumo correspondente deixam de aparecer e **Sem evento** só é oferecido quando existe dose sem vínculo. O `select` nativo foi substituído por um listbox compacto com fechamento externo, Escape, setas, Home/End e estado acessível. `openHistoryView()` define a bebida antes de atualizar as opções. Regressão integrada cobre evento exclusivo de outra bebida e seleção de registros sem evento. App, boot, rodapés e cache 2.1.29; DATA_VERSION 11 preservado.

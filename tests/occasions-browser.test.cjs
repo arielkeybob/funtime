@@ -82,9 +82,23 @@ test('agenda compacta, evento, edição, agendamento automático, aviso e persis
   await page.emulateMedia({reducedMotion:'reduce'});
   assert.equal(await page.locator('#home-occasion').evaluate(el=>getComputedStyle(el).animationName),'none');
   await page.emulateMedia({reducedMotion:'no-preference'});
+  await page.evaluate(()=>{
+    state.securityConfig={version:3,enabled:true,method:'pin',relockSeconds:300,eventUnlockOccasionId:null,pin:{salt:'salt',hash:'hash',iterations:210000,length:4},webauthn:null};
+    saveSecurityConfig();
+  });
   await page.locator('#home-occasion').click();
   assert.equal(await page.locator('#occasion-detail-dialog').isVisible(),true);
   assert.equal(await page.locator('#occasion-detail-content h2').textContent(),'Aniversário do João');
+  await page.screenshot({path:require('node:path').join(require('node:os').tmpdir(),'funtime-event-unlock.png')});
+  assert.equal(await page.getByRole('checkbox',{name:/Manter o app desbloqueado/}).isVisible(),true);
+  await page.getByRole('checkbox',{name:/Manter o app desbloqueado/}).check();
+  assert.equal(await page.evaluate(()=>state.securityConfig.eventUnlockOccasionId),await page.evaluate(()=>state.occasions[0].id));
+  assert.equal(await page.evaluate(()=>JSON.parse(localStorage.getItem('funtime-security-v1')).eventUnlockOccasionId),await page.evaluate(()=>state.occasions[0].id));
+  await page.evaluate(()=>document.querySelector('#lock-now').click());
+  assert.equal(await page.evaluate(()=>state.securityLocked),true);
+  assert.equal(await page.evaluate(()=>state.securityConfig.eventUnlockOccasionId),null);
+  await page.evaluate(()=>{unlockApp();openOccasionDetails(state.occasions[0].id);});
+  await page.getByRole('checkbox',{name:/Manter o app desbloqueado/}).check();
   assert.equal(await page.evaluate(()=>state.currentView),'home');
   await page.locator('#occasion-detail-close').click();
   await page.evaluate(()=>{state.drinks=[{id:'d', name:'Água', icon:'💧', intervalMinutes:60, askDoseSize:false}]; registerDrinkAt('d', Date.now());});
@@ -94,6 +108,7 @@ test('agenda compacta, evento, edição, agendamento automático, aviso e persis
   await page.getByRole('button',{name:'Ver registros',exact:true}).click(); assert.equal(await page.locator('.history-event').count(),1);
   await page.locator('#nav-occasion').click(); await page.locator('#occasion-current .agenda-row').click();
   await page.getByRole('button',{name:'Encerrar evento',exact:true}).click(); await page.locator('#app-confirm-accept').click(); await page.waitForFunction(()=>state.currentView==='home');
+  assert.equal(await page.evaluate(()=>state.securityConfig.eventUnlockOccasionId),null);
   assert.ok((await page.locator('[data-drink-id=d]').getAttribute('class')).includes('waiting'));
   await page.locator('#nav-occasion').click(); await page.locator('#agenda-past').click(); await page.locator('#occasion-list .agenda-row').click();
   await page.locator('.agenda-options summary').click(); await page.getByRole('button',{name:'Editar',exact:true}).click();

@@ -1,4 +1,8 @@
-# FunTime — V2.1.29
+# FunTime — V2.1.30
+
+## V2.1.30 — desbloqueio durante o evento
+
+Eventos em andamento oferecem **Manter desbloqueado durante este evento** quando a proteção do app está ativa. A exceção pertence somente ao aparelho, mantém a proteção visual ao sair do app e termina ao encerrar, excluir ou desativar o evento. **Bloquear agora** também cancela a exceção. App, boot, rodapés e cache alinhados a 2.1.30; DATA_VERSION 11 e formato de backup preservados.
 
 ## V2.1.29 — filtro de eventos coerente e compacto
 

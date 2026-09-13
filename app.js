@@ -283,7 +283,7 @@ document.addEventListener("visibilitychange", () => {
 const DATA_STORAGE_KEY = "funtime-v1-data";
 const LEGACY_DRINKS_STORAGE_KEY = "balada-v1-drinks";
 const DATA_VERSION = 11;
-const APP_VERSION = "2.1.29";
+const APP_VERSION = "2.1.30";
 const DRINK_EXPORT_TYPE = "funtime-drinks";
 const DRINK_EXPORT_FORMAT_VERSION = 1;
 const BACKUP_EXPORT_TYPE = "funtime-backup";
@@ -521,6 +521,7 @@ function getDefaultSecurityConfig() {
     enabled: false,
     method: null,
     relockSeconds: 300,
+    eventUnlockOccasionId: null,
     pin: null,
     webauthn: null,
   };
@@ -538,6 +539,9 @@ function loadSecurityConfig() {
     const storedRelock = Number(parsed.relockSeconds);
     const allowedRelock = [0, 30, 60, 300, 900];
     config.relockSeconds = allowedRelock.includes(storedRelock) ? storedRelock : 300;
+    config.eventUnlockOccasionId = typeof parsed.eventUnlockOccasionId === "string" && parsed.eventUnlockOccasionId
+      ? parsed.eventUnlockOccasionId
+      : null;
     // V1.8.0/1.8.1 usavam 1 minuto como padrão. Na migração para V1.8.3,
     // configurações antigas ainda no padrão anterior passam para o novo padrão de 5 min.
     if (Number(parsed.version || 0) < 3 && storedRelock === 60) config.relockSeconds = 300;
@@ -603,6 +607,47 @@ function markSecurityActive() {
 function saveSecurityConfig() {
   localStorage.setItem(SECURITY_STORAGE_KEY, JSON.stringify(state.securityConfig));
 }
+
+function getSecurityEventUnlockOccasion() {
+  const occasionId = state.securityConfig?.eventUnlockOccasionId;
+  if (!state.securityConfig?.enabled || !state.preferences?.eventsEnabled || !occasionId) return null;
+  return state.occasions.find((occasion) => occasion.id === occasionId && occasion.startedAt !== null && occasion.endedAt === null &&
+    (occasion.scheduledEndAt == null || occasion.scheduledEndAt > Date.now())) || null;
+}
+
+function isSecurityEventUnlockActive(occasionId = null) {
+  const occasion = getSecurityEventUnlockOccasion();
+  return Boolean(occasion && (!occasionId || occasion.id === occasionId));
+}
+
+function setSecurityEventUnlock(occasionId, enabled) {
+  if (enabled) {
+    const occasion = state.occasions.find((item) => item.id === occasionId);
+    if (!state.securityConfig.enabled || !state.preferences.eventsEnabled || !occasion || occasion.startedAt === null || occasion.endedAt !== null) return false;
+  }
+  const previous = state.securityConfig.eventUnlockOccasionId;
+  state.securityConfig.eventUnlockOccasionId = enabled ? occasionId : null;
+  try {
+    saveSecurityConfig();
+    if (enabled) markSecurityActive();
+    return true;
+  } catch (error) {
+    state.securityConfig.eventUnlockOccasionId = previous;
+    showAppNotification("Não foi possível salvar a preferência de desbloqueio neste aparelho.", { type: "error" });
+    return false;
+  }
+}
+
+function syncSecurityEventUnlock() {
+  if (!state.securityConfig.eventUnlockOccasionId || getSecurityEventUnlockOccasion()) return isSecurityEventUnlockActive();
+  state.securityConfig.eventUnlockOccasionId = null;
+  try { saveSecurityConfig(); } catch (error) { /* O valor inválido será ignorado também na próxima abertura. */ }
+  return false;
+}
+
+globalThis.isSecurityEventUnlockActive = isSecurityEventUnlockActive;
+globalThis.setSecurityEventUnlock = setSecurityEventUnlock;
+globalThis.syncSecurityEventUnlock = syncSecurityEventUnlock;
 
 function bytesToBase64Url(input) {
   const bytes = input instanceof Uint8Array ? input : new Uint8Array(input);
@@ -1152,10 +1197,11 @@ async function initializeSecurity() {
   document.body.classList.remove("security-booting");
 
   if (state.securityConfig.enabled) {
+    const eventUnlockActive = syncSecurityEventUnlock();
     const session = loadSecuritySession();
     const referenceAt = session?.hiddenAt || session?.lastActiveAt || 0;
     const relockMs = state.securityConfig.relockSeconds * 1000;
-    const mayResume = state.securityConfig.relockSeconds > 0 && referenceAt > 0 && (Date.now() - referenceAt) < relockMs;
+    const mayResume = eventUnlockActive || (state.securityConfig.relockSeconds > 0 && referenceAt > 0 && (Date.now() - referenceAt) < relockMs);
 
     if (mayResume) {
       state.securityLocked = false;
@@ -4503,7 +4549,10 @@ securityEnabledInput.addEventListener("change", () => {
 });
 
 document.querySelector("#change-security-method").addEventListener("click", () => openSecurityMethodDialog("change"));
-document.querySelector("#lock-now").addEventListener("click", lockApp);
+document.querySelector("#lock-now").addEventListener("click", () => {
+  if (state.securityConfig.eventUnlockOccasionId) setSecurityEventUnlock(state.securityConfig.eventUnlockOccasionId, false);
+  lockApp();
+});
 securityRelockSelect.addEventListener("change", () => {
   const value = Number(securityRelockSelect.value);
   if (![0, 30, 60, 300, 900].includes(value)) return;
@@ -4665,7 +4714,7 @@ document.addEventListener("visibilitychange", () => {
       saveSecuritySession({ hiddenAt: state.securityHiddenAt, lastActiveAt: Date.now() });
       showPrivacyShield();
       closeSensitiveDialogs();
-      if (state.securityConfig.relockSeconds === 0) lockApp();
+      if (state.securityConfig.relockSeconds === 0 && !isSecurityEventUnlockActive()) lockApp();
     }
     return;
   }
@@ -4679,9 +4728,12 @@ document.addEventListener("visibilitychange", () => {
     return;
   }
 
+  globalThis.reconcileOccasions?.();
+  const eventUnlockActive = syncSecurityEventUnlock();
+
   if (state.securityConfig.enabled && state.securityHiddenAt) {
     const elapsedSeconds = (Date.now() - state.securityHiddenAt) / 1000;
-    if (elapsedSeconds >= state.securityConfig.relockSeconds) {
+    if (!eventUnlockActive && elapsedSeconds >= state.securityConfig.relockSeconds) {
       lockApp();
     } else {
       state.securityHiddenAt = null;

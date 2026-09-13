@@ -13,6 +13,7 @@ function commitOccasions(occasions, events = state.events, preferences = state.p
   const normalized = FunTimeOccasions.normalize({ occasions, events });
   localStorage.setItem(DATA_STORAGE_KEY, JSON.stringify({ ...buildCurrentAppData(), occasions: normalized, events, preferences }));
   state.occasions = normalized; state.events = events; state.preferences = preferences;
+  globalThis.syncSecurityEventUnlock?.();
   refreshOccasionFilters(); refreshDataViews();
 }
 function reconcileOccasions() {
@@ -192,6 +193,22 @@ function openOccasionDetails(id) {
     const warning = document.createElement('p'); warning.className = 'active-warning'; warning.textContent = 'Há outro agendamento nesse período. Apenas um evento poderá ficar em andamento; conflitos exigirão revisão.'; content.append(warning);
   }
   if (item.timeZone && item.timeZone !== Intl.DateTimeFormat().resolvedOptions().timeZone) { const note = document.createElement('p'); note.textContent = 'Agendado no fuso ' + item.timeZone + '. Horários exibidos no fuso atual do aparelho.'; content.append(note); }
+  if (state.securityConfig.enabled && item.startedAt !== null && item.endedAt === null) {
+    const unlock = document.createElement('label'); unlock.className = 'setting-toggle occasion-unlock-toggle';
+    const copy = document.createElement('span'); copy.className = 'occasion-unlock-copy';
+    const title = document.createElement('strong'); title.textContent = 'Manter desbloqueado durante este evento';
+    const help = document.createElement('small'); help.textContent = 'Ao voltar ao app, não será necessário autenticar. A tela recente continua protegida.';
+    copy.append(title, help);
+    const control = document.createElement('span'); control.className = 'setting-toggle-control';
+    const input = document.createElement('input'); input.type = 'checkbox'; input.checked = globalThis.isSecurityEventUnlockActive?.(item.id) === true; input.setAttribute('aria-label', 'Manter o app desbloqueado durante ' + item.name);
+    const track = document.createElement('span'); track.className = 'setting-toggle-track'; track.setAttribute('aria-hidden', 'true'); track.append(document.createElement('span'));
+    input.addEventListener('change', () => {
+      const saved = globalThis.setSecurityEventUnlock?.(item.id, input.checked) === true;
+      if (!saved) input.checked = !input.checked;
+      else showToast(input.checked ? 'O app ficará desbloqueado durante este evento.' : 'Bloqueio normal restaurado para este evento.');
+    });
+    control.append(input, track); unlock.append(copy, control); content.append(unlock);
+  }
   const explanations = { recovery48h: 'Após 48 horas, o evento foi encerrado no término da última contagem. Você pode revisar as datas.', empty48h: 'Encerrado após 48 horas sem registros.', expired: 'O período programado passou sem início. Não foi criado um evento em andamento.', scheduled: 'Encerrado na data programada. Contagens das doses continuam normalmente.' };
   if (explanations[item.endReason]) { const note = document.createElement('p'); note.className = 'settings-description'; note.textContent = explanations[item.endReason] + ' Processado em ' + occasionDate(item.closedAt) + '.'; content.append(note); }
   if (FunTimeOccasions.pending(item) && item.autoStart && item.scheduledStartAt <= Date.now()) { const note = document.createElement('p'); note.className = 'active-warning'; note.textContent = 'O início automático encontrou outro evento no período. Revise as datas ou inicie manualmente.'; content.append(note); }
