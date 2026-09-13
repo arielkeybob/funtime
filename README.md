@@ -1,4 +1,8 @@
-# FunTime — V2.1.31
+# FunTime — V2.1.32
+
+## V2.1.32 — desbloqueio já no início do evento
+
+Ao cadastrar um evento com **Iniciar agora**, quem usa o bloqueio pode marcar **Manter app desbloqueado durante este evento** no próprio formulário. A escolha já entra em vigor quando o evento é criado e continua disponível nos detalhes; agendamentos não ativam a exceção antecipadamente. App, boot, rodapés e cache alinhados a 2.1.32; DATA_VERSION 11 preservado.
 
 ## V2.1.31 — verificação manual de atualizações
 

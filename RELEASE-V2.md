@@ -1,5 +1,13 @@
 # FunTime — releases v2
 
+## V2.1.32 — desbloqueio no cadastro do evento
+
+Leva **Manter app desbloqueado durante este evento** para o formulário de um evento iniciado agora, evitando abrir novamente os detalhes após a criação. Agendamentos continuam sem ativação antecipada. App, boot, rodapés e cache 2.1.32; DATA_VERSION 11 mantido. Publicação ainda não autorizada.
+
+## V2.1.31 — verificação manual de atualizações
+
+Configurações mostra a versão instalada e permite verificar atualizações manualmente, inclusive recuperando um Service Worker que já esteja aguardando depois de o aviso ter sido fechado. App, boot, rodapés e cache 2.1.31; DATA_VERSION 11 mantido. Publicada no commit `fb7780a`.
+
 ## V2.1.30 — manter desbloqueado durante o evento
 
 Adiciona uma exceção opcional e local ao bloqueio para o evento em andamento. A tela recente permanece protegida, mas o retorno ao app dispensa autenticação até o evento terminar. Encerramento, exclusão, desativação de eventos e **Bloquear agora** removem a exceção. A configuração não entra no backup. App, boot, rodapés e cache 2.1.30; DATA_VERSION 11 mantido. Publicação ainda não autorizada.

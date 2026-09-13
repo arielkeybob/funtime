@@ -61,6 +61,7 @@ function editorVisibility() {
   const past = planned && new Date($occasion('occasion-start').value).getTime() < Date.now();
   $occasion('occasion-start').parentElement.hidden = !current && !planned;
   $occasion('occasion-past-notice').hidden = !past;
+  $occasion('occasion-unlock-field').hidden = !state.securityConfig.enabled || planned || current?.endedAt != null;
   $occasion('occasion-end-toggle').querySelector('.setting-toggle-copy').textContent = past ? 'Informar data de término' : 'Encerrar automaticamente em uma data';
   $occasion('occasion-auto-field').hidden = !planned || past;
   $occasion('occasion-end-toggle').hidden = current?.endedAt != null;
@@ -80,6 +81,7 @@ function openOccasionEditor(id = null) {
   $occasion('occasion-mode').value = planned ? 'scheduled' : 'now';
   $occasion('occasion-mode').querySelector('[value="now"]').disabled = Boolean(FunTimeOccasions.active(state.occasions));
   $occasion('occasion-name').value = current?.name || '';
+  $occasion('occasion-unlock').checked = Boolean(current && globalThis.isSecurityEventUnlockActive?.(current.id));
   $occasion('occasion-start').value = occasionInput(current?.startedAt ?? current?.scheduledStartAt ?? occasionSuggestedStart);
   $occasion('occasion-auto').checked = Boolean(current?.autoStart);
   $occasion('occasion-has-end').checked = current?.scheduledEndAt != null;
@@ -131,9 +133,12 @@ occasionForm.addEventListener('submit', event => {
     const records = !planned && (!current || retrospective || periodChanged) ? FunTimeOccasions.includeUnassigned(state.events, item) : state.events;
     const included = records.filter((record, i) => record !== state.events[i]).length;
     commitOccasions(current ? state.occasions.map(old => old.id === item.id ? item : old) : [...state.occasions, item], records);
+    const wantsEventUnlock = !planned && item.endedAt === null && $occasion('occasion-unlock').checked;
+    const hadEventUnlock = state.securityConfig.eventUnlockOccasionId === item.id;
+    const unlockSaved = wantsEventUnlock === hadEventUnlock || globalThis.setSecurityEventUnlock?.(item.id, wantsEventUnlock) === true;
     closeOccasionEditor(); if (occasionDetailDialog.open) closeOccasionDetails();
     if (!planned && !current && !retrospective) closeHistoryView(); else { agendaTab = planned ? 'upcoming' : 'past'; openOccasionView(); }
-    showToast((current ? 'Evento atualizado.' : retrospective ? 'Evento cadastrado.' : planned ? 'Evento agendado.' : 'Evento iniciado.') + (included ? ' ' + included + ' registro(s) incluído(s).' : ''));
+    if (unlockSaved) showToast((current ? 'Evento atualizado.' : retrospective ? 'Evento cadastrado.' : planned ? 'Evento agendado.' : 'Evento iniciado.') + (included ? ' ' + included + ' registro(s) incluído(s).' : ''));
   } catch { occasionError('Não foi possível salvar. Verifique períodos conflitantes, registros fora do período ou tente novamente.'); }
 });
 async function changeOccasion(id, action) {
@@ -196,11 +201,11 @@ function openOccasionDetails(id) {
   if (state.securityConfig.enabled && item.startedAt !== null && item.endedAt === null) {
     const unlock = document.createElement('label'); unlock.className = 'setting-toggle occasion-unlock-toggle';
     const copy = document.createElement('span'); copy.className = 'occasion-unlock-copy';
-    const title = document.createElement('strong'); title.textContent = 'Manter desbloqueado durante este evento';
+    const title = document.createElement('strong'); title.textContent = 'Manter app desbloqueado durante este evento';
     const help = document.createElement('small'); help.textContent = 'Ao voltar ao app, não será necessário autenticar. A tela recente continua protegida.';
     copy.append(title, help);
     const control = document.createElement('span'); control.className = 'setting-toggle-control';
-    const input = document.createElement('input'); input.type = 'checkbox'; input.checked = globalThis.isSecurityEventUnlockActive?.(item.id) === true; input.setAttribute('aria-label', 'Manter o app desbloqueado durante ' + item.name);
+    const input = document.createElement('input'); input.type = 'checkbox'; input.checked = globalThis.isSecurityEventUnlockActive?.(item.id) === true; input.setAttribute('aria-label', 'Manter app desbloqueado durante ' + item.name);
     const track = document.createElement('span'); track.className = 'setting-toggle-track'; track.setAttribute('aria-hidden', 'true'); track.append(document.createElement('span'));
     input.addEventListener('change', () => {
       const saved = globalThis.setSecurityEventUnlock?.(item.id, input.checked) === true;

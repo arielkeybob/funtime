@@ -1,5 +1,9 @@
 # FunTime — documentação de desenvolvimento
 
+## V2.1.32 — exceção de bloqueio no cadastro do evento
+
+O formulário de evento mostra `#occasion-unlock-field` quando a proteção está ativa e o modo efetivo é **Iniciar agora**. A opção fica oculta para agendamentos, eventos encerrados e cadastros retroativos que ainda estão no fluxo de data. Após persistir o evento, a preferência local é associada ao novo ID; falha ao gravar a configuração de segurança mantém o evento criado e preserva o erro visível. O texto dos detalhes também passa a ser **Manter app desbloqueado durante este evento**. App, boot, rodapés e cache 2.1.32; DATA_VERSION 11 e SECURITY_CONFIG_VERSION 3 preservados.
+
 ## V2.1.31 — verificação manual de atualizações
 
 Configurações inclui `#check-app-update`, que primeiro recupera `registration.waiting` sem depender de uma nova consulta à rede. Sem worker aguardando, força `registration.update()` e apresenta estados distintos para atualização disponível, instalação em andamento, versão atual, consulta concorrente e falha/offline. A verificação automática continua silenciosa quando não há atualização. App, rodapé e cache 2.1.31; DATA_VERSION 11 preservado.
