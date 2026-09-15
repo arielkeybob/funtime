@@ -1324,8 +1324,7 @@ function normalizeIconCatalog(value) {
 
 function persistIconCatalog(icons) {
   const preferences = { ...state.preferences, iconCatalog: icons };
-  localStorage.setItem(DATA_STORAGE_KEY, JSON.stringify({ ...buildCurrentAppData(), preferences }));
-  state.preferences = preferences;
+  state.preferences = commitAppData(DATA_STORAGE_KEY, buildCurrentAppData(), { preferences }).preferences;
 }
 
 function normalizeIntervalMinutes(value) {
@@ -1349,16 +1348,11 @@ function getDoseStatusSuffix(event) {
   return label ? ` · ${label}` : "";
 }
 
+// Nada em app.js chama isso mais (ver docs/specs/0009) — mantida só porque
+// vários tests/*-browser.test.cjs chamam saveData() via page.evaluate para
+// persistir fixtures de teste antes de continuar.
 function saveData() {
-  const data = {
-    version: DATA_VERSION,
-    drinks: state.drinks,
-    events: state.events,
-    occasions: state.occasions || [],
-    preferences: state.preferences,
-  };
-
-  localStorage.setItem(DATA_STORAGE_KEY, JSON.stringify(data));
+  commitAppData(DATA_STORAGE_KEY, buildCurrentAppData(), {});
 }
 
 
@@ -1675,17 +1669,7 @@ function buildReplacementDrinkList(importedDrinks) {
 }
 
 function persistDrinkList(nextDrinks) {
-  const nextData = {
-    version: DATA_VERSION,
-    drinks: nextDrinks,
-    events: state.events,
-    occasions: state.occasions || [],
-    preferences: state.preferences,
-  };
-
-  const serialized = JSON.stringify(nextData);
-  localStorage.setItem(DATA_STORAGE_KEY, serialized);
-  state.drinks = nextDrinks;
+  state.drinks = commitAppData(DATA_STORAGE_KEY, buildCurrentAppData(), { drinks: nextDrinks }).drinks;
 }
 
 function confirmDrinkImport() {
@@ -1821,7 +1805,7 @@ function confirmBackupRestore() {
 
   try {
     // Gravação única: se o setItem falhar, o estado atual permanece intacto.
-    localStorage.setItem(DATA_STORAGE_KEY, JSON.stringify(pending.data));
+    commitAppData(DATA_STORAGE_KEY, pending.data, {});
     try { sessionStorage.setItem("funtime-restore-success-v1", "1"); } catch { /* Aviso opcional: dados já restaurados. */ }
     globalThis.FunTimeNavigation?.prepareReload();
     closeBackupRestoreDialog();
@@ -4483,13 +4467,12 @@ cleanInterfaceInput.addEventListener("change", () => {
 });
 
 prioritizeRecentDrinksInput.addEventListener("change", () => {
-  state.preferences.prioritizeRecentDrinks = prioritizeRecentDrinksInput.checked;
+  const preferences = { ...state.preferences, prioritizeRecentDrinks: prioritizeRecentDrinksInput.checked };
   try {
-    saveData();
+    state.preferences = commitAppData(DATA_STORAGE_KEY, buildCurrentAppData(), { preferences }).preferences;
     render();
     showToast(prioritizeRecentDrinksInput.checked ? "Bebidas recentes priorizadas." : "Ordem manual aplicada a todas as bebidas.");
   } catch (error) {
-    state.preferences.prioritizeRecentDrinks = !prioritizeRecentDrinksInput.checked;
     prioritizeRecentDrinksInput.checked = state.preferences.prioritizeRecentDrinks;
     showAppNotification("Não foi possível salvar esta configuração.", { type: "error", persistent: true });
   }

@@ -11,6 +11,7 @@ function extract(name) {
 function context(extra = {}) {
   const ctx = vm.createContext({ console, Blob, File, crypto: require('node:crypto').webcrypto, FunTimeOccasions: require("../occasions.js"), ...extra });
   vm.runInContext(`const DATA_VERSION=11, PICKER_ICONS=["🍺","💧"], DEFAULT_ICON='🍺', DRINK_EXPORT_TYPE='funtime-drinks', DRINK_EXPORT_FORMAT_VERSION=1, BACKUP_EXPORT_TYPE='funtime-backup', BACKUP_EXPORT_FORMAT_VERSION=2, DATA_STORAGE_KEY='funtime-v1-data';`, ctx);
+  vm.runInContext('function commitAppData(key,current,patch){const next={...current,...patch};localStorage.setItem(key,JSON.stringify(next));return next;}', ctx);
   for (const name of ['normalizeIconCatalog', 'persistIconCatalog', 'createId', 'normalizeIcon', 'normalizeIntervalMinutes', 'normalizeDoseSize', 'normalizeData', 'normalizeImportedDrink', 'validateDrinkExportPayload', 'validateBackupPayload', 'confirmBackupRestore', 'buildCurrentAppData', 'persistDrinkList']) vm.runInContext(extract(name), ctx);
   vm.runInContext('async ' + extract('readJsonFile'), ctx);
   return ctx;
@@ -272,7 +273,6 @@ test('falha ao salvar contagem preserva a preferência anterior e dados', () => 
  const state={preferences:{countingMode:'countdown'},drinks:[drink],events:backup().data.events};
  let saved;
  const c=context({state, countingModeInput:{value:'normal'},refreshDataViews:()=>{},showToast:()=>{},showAppNotification:()=>{},localStorage:{setItem:(k,v)=>{saved=JSON.parse(v);}}});
- vm.runInContext('function commitAppData(key,current,patch){const next={...current,...patch};localStorage.setItem(key,JSON.stringify(next));return next;}',c);
  vm.runInContext(extract('changeCountingMode'),c);
  c.changeCountingMode('normal');assert.equal(saved.preferences.countingMode,'normal');assert.deepEqual(saved.events,state.events);
  c.localStorage.setItem=()=>{throw Error('quota');};c.changeCountingMode('countdown');
