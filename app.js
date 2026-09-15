@@ -2953,10 +2953,16 @@ function choosePendingDoseSize(value) {
     return;
   }
 
-  event.doseSize = value === "half" ? "half" : "full";
-  saveData();
+  const doseSize = value === "half" ? "half" : "full";
+  const nextEvents = state.events.map((item) => (item.id === event.id ? { ...item, doseSize } : item));
+  try {
+    state.events = commitAppData(DATA_STORAGE_KEY, buildCurrentAppData(), { events: nextEvents }).events;
+  } catch {
+    showAppNotification("Não foi possível salvar. Tente novamente.", { type: "error" });
+    return;
+  }
   refreshDataViews();
-  updateDoseDialogSelection(event.doseSize);
+  updateDoseDialogSelection(doseSize);
   closeDoseSizeDialog();
 }
 
@@ -2974,8 +2980,13 @@ function closeDoseSizeDialog({ showResult = true } = {}) {
 function undoLastRegistration() {
   if (!state.undo || state.undo.type !== "add-event") return;
 
-  state.events = state.events.filter((event) => event.id !== state.undo.eventId);
-  saveData();
+  const nextEvents = state.events.filter((event) => event.id !== state.undo.eventId);
+  try {
+    state.events = commitAppData(DATA_STORAGE_KEY, buildCurrentAppData(), { events: nextEvents }).events;
+  } catch {
+    showAppNotification("Não foi possível desfazer. Tente novamente.", { type: "error" });
+    return;
+  }
   refreshDataViews();
   state.undo = null;
   hideToast();
@@ -4459,9 +4470,15 @@ document.querySelector("#close-settings").addEventListener("click", closeSetting
 countingModeInput.addEventListener("change", () => changeCountingMode(countingModeInput.value));
 
 cleanInterfaceInput.addEventListener("change", () => {
-  state.preferences.cleanInterface = cleanInterfaceInput.checked;
+  const preferences = { ...state.preferences, cleanInterface: cleanInterfaceInput.checked };
+  try {
+    state.preferences = commitAppData(DATA_STORAGE_KEY, buildCurrentAppData(), { preferences }).preferences;
+  } catch {
+    applyInterfacePreferences();
+    showAppNotification("Não foi possível salvar esta configuração.", { type: "error", persistent: true });
+    return;
+  }
   applyInterfacePreferences();
-  saveData();
   showToast(cleanInterfaceInput.checked ? "Interface limpa ativada." : "Informações auxiliares exibidas.");
 });
 

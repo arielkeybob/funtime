@@ -10,6 +10,12 @@ function extract(name) {
   return source.slice(start, next < 0 ? source.length : start + 1 + next);
 }
 
+function extractStatement(startText) {
+  const start = source.indexOf(startText);
+  const end = source.indexOf('\n});', start) + 4;
+  return source.slice(start, end);
+}
+
 const COMMIT_APP_DATA_SRC = 'function commitAppData(key,current,patch){const next={...current,...patch};localStorage.setItem(key,JSON.stringify(next));return next;}';
 
 function context(extra = {}) {
@@ -282,4 +288,130 @@ test('handleDrinkSubmit: editar bebida — falha de gravação preserva o objeto
   assert.equal(state.drinks[0], original);
   assert.equal(state.drinks[0].name, 'Água');
   assert.match(errorShown, /Não foi possível salvar/);
+});
+
+// --- choosePendingDoseSize ---
+
+test('choosePendingDoseSize: sucesso substitui o evento imutavelmente e grava', () => {
+  const original = { id: 'e1', drinkId: 'd1', doseSize: null };
+  const state = { pendingDoseEventId: 'e1', events: [original] };
+  let refreshed = false, selection = null, closed = false;
+  const c = context({
+    state,
+    showAppNotification: () => { throw new Error('não deveria notificar erro'); },
+    refreshDataViews: () => { refreshed = true; },
+    updateDoseDialogSelection: value => { selection = value; },
+    closeDoseSizeDialog: () => { closed = true; },
+    localStorage: workingLocalStorage(),
+  });
+  vm.runInContext(extract('choosePendingDoseSize'), c);
+  c.choosePendingDoseSize('half');
+  assert.equal(state.events[0].doseSize, 'half');
+  assert.notEqual(state.events[0], original, 'evento foi substituído, não mutado em place');
+  assert.equal(original.doseSize, null, 'objeto original não foi mutado');
+  assert.equal(selection, 'half');
+  assert.equal(refreshed, true);
+  assert.equal(closed, true);
+});
+
+test('choosePendingDoseSize: falha de gravação preserva o evento original e mostra erro', () => {
+  const original = { id: 'e1', drinkId: 'd1', doseSize: null };
+  const state = { pendingDoseEventId: 'e1', events: [original] };
+  let notified = null, closed = false;
+  const c = context({
+    state,
+    showAppNotification: msg => { notified = msg; },
+    refreshDataViews: () => { throw new Error('não deveria atualizar a tela em caso de erro'); },
+    updateDoseDialogSelection: () => {},
+    closeDoseSizeDialog: () => { closed = true; },
+    localStorage: throwingLocalStorage(),
+  });
+  vm.runInContext(extract('choosePendingDoseSize'), c);
+  c.choosePendingDoseSize('half');
+  assert.equal(state.events[0], original);
+  assert.equal(state.events[0].doseSize, null);
+  assert.match(notified, /Não foi possível salvar/);
+  assert.equal(closed, false);
+});
+
+// --- undoLastRegistration ---
+
+test('undoLastRegistration: sucesso remove o evento desfeito e limpa o undo', () => {
+  const state = { undo: { type: 'add-event', eventId: 'e1' }, events: [{ id: 'e1' }, { id: 'e2' }] };
+  let refreshed = false, hidden = false;
+  const c = context({
+    state,
+    showAppNotification: () => { throw new Error('não deveria notificar erro'); },
+    refreshDataViews: () => { refreshed = true; },
+    hideToast: () => { hidden = true; },
+    localStorage: workingLocalStorage(),
+  });
+  vm.runInContext(extract('undoLastRegistration'), c);
+  c.undoLastRegistration();
+  assert.deepEqual(state.events.map(e => e.id), ['e2']);
+  assert.equal(state.undo, null);
+  assert.equal(refreshed, true);
+  assert.equal(hidden, true);
+});
+
+test('undoLastRegistration: falha de gravação preserva events e o undo pendente', () => {
+  const state = { undo: { type: 'add-event', eventId: 'e1' }, events: [{ id: 'e1' }] };
+  let notified = null;
+  const c = context({
+    state,
+    showAppNotification: msg => { notified = msg; },
+    refreshDataViews: () => { throw new Error('não deveria atualizar a tela em caso de erro'); },
+    hideToast: () => { throw new Error('não deveria esconder o toast em caso de erro'); },
+    localStorage: throwingLocalStorage(),
+  });
+  vm.runInContext(extract('undoLastRegistration'), c);
+  c.undoLastRegistration();
+  assert.equal(state.events.length, 1);
+  assert.notEqual(state.undo, null);
+  assert.match(notified, /Não foi possível desfazer/);
+});
+
+// --- toggle "interface limpa" ---
+
+function cleanInterfaceContext(state, checked, overrides = {}) {
+  const listeners = {};
+  const cleanInterfaceInput = { checked, addEventListener: (type, fn) => { listeners[type] = fn; } };
+  const c = context({
+    state,
+    cleanInterfaceInput,
+    applyInterfacePreferences: () => {
+      const clean = state.preferences?.cleanInterface !== false;
+      cleanInterfaceInput.checked = clean;
+    },
+    showAppNotification: () => {},
+    showToast: () => {},
+    localStorage: workingLocalStorage(),
+    ...overrides,
+  });
+  vm.runInContext(extractStatement('cleanInterfaceInput.addEventListener("change"'), c);
+  return { c, fire: () => listeners.change(), cleanInterfaceInput };
+}
+
+test('toggle "interface limpa": sucesso grava a preferência e sincroniza a UI', () => {
+  const state = { preferences: { cleanInterface: true } };
+  let toast = null;
+  const { fire, cleanInterfaceInput } = cleanInterfaceContext(state, false, { showToast: msg => { toast = msg; } });
+  fire();
+  assert.equal(state.preferences.cleanInterface, false);
+  assert.equal(cleanInterfaceInput.checked, false);
+  assert.match(toast, /auxiliares exibidas/);
+});
+
+test('toggle "interface limpa": falha de gravação reverte o checkbox e mostra erro', () => {
+  const state = { preferences: { cleanInterface: true } };
+  let notified = null;
+  const { fire, cleanInterfaceInput } = cleanInterfaceContext(state, false, {
+    localStorage: throwingLocalStorage(),
+    showAppNotification: (msg) => { notified = msg; },
+    showToast: () => { throw new Error('não deveria mostrar toast de sucesso'); },
+  });
+  fire();
+  assert.equal(state.preferences.cleanInterface, true, 'preferência não muda em caso de falha');
+  assert.equal(cleanInterfaceInput.checked, true, 'checkbox é revertido visualmente');
+  assert.match(notified, /Não foi possível salvar esta configuração/);
 });
