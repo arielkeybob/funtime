@@ -31,7 +31,7 @@ Contexto geral do refactor: ver o plano aprovado em
 | [0016](0016-render-tick-performance.md) | Separar tick (texto) de render estrutural | implementada |
 | [0017](0017-app-js-module.md) | `app.js` vira módulo ES; remove `legacy-bridge.js` | implementada |
 | [0018](0018-remove-v1-support.md) | Remover suporte à V1 ("Intervalo"): ponte, transferência e coexistência | implementada |
-| [0019](0019-remaining-classic-scripts.md) | Converter os scripts clássicos restantes para módulos ES (Fase 8) | aprovada |
+| [0019](0019-remaining-classic-scripts.md) | Converter os scripts clássicos restantes para módulos ES (Fase 8) | implementada |
 
 Status possíveis: `proposta` (escrita, aguardando aprovação) · `aprovada` (pode
 implementar) · `implementada` (já no código, commit referenciado).

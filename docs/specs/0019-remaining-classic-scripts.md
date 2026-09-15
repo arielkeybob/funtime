@@ -1,6 +1,6 @@
 # 0019 — Converter os scripts clássicos restantes para módulos ES (Fase 8)
 
-Status: aprovada (implementação em andamento, por sub-fase)
+Status: implementada
 
 ## Nota de escopo: `occasions.js` fica de fora
 
@@ -173,6 +173,47 @@ em `tests/navigation-browser.test.cjs`.
    coberto por `tests/navigation-browser.test.cjs`/`tests/occasions-browser.test.cjs`.
 3. **`app.js:2723`**: reconciliação de ocasiões precisa continuar rodando normalmente ao
    abrir a Home — testável abrindo o app com um evento agendado pendente.
+
+## Correção após a implementação: `export` real não era necessário em 3 dos 7 arquivos
+
+O desenho original desta spec previa `export` de verdade para `reset.js` (funções +
+`export let resetPending`) e `occasions-ui.js` (`openOccasionView`/`reconcileOccasions`),
+com `navigation.js` importando de verdade na 8.5, e um redesenho do `tests/reset.test.cjs`
+(que reatribui `resetPending` de fora via uma segunda `vm.runInContext` no mesmo
+contexto — técnica que só funciona com sintaxe de script clássico).
+
+Na implementação, percebi que nada realmente precisa de `import` nomeado desses dois
+arquivos — `globalThis.X` já resolve identificador solto de dentro de um módulo (mesmo
+mecanismo que já sustenta `FunTimeOccasions`/`FunTimeTouchDebug`/`FunTimeNavigation`
+desde antes desta spec). Ou seja: **`reset.js`, `occasions-ui.js` e `navigation.js`
+viraram módulos sem ganhar nenhum `export`** — só o `<script type="module">` em
+`boot.js` e, nos dois primeiros, a publicação em `globalThis` dos identificadores que
+outro arquivo ainda lê solto (`closeDataReset`, `returnToResetPreview`, `openDataReset`,
+`resetAuthorizationIsCurrent`, `resetPending` via getter em `reset.js`;
+`openOccasionView`, `reconcileOccasions`, `refreshOccasionContext`,
+`refreshOccasionFilters`, `refreshOccasionReminder`, `commitOccasions`, `occasionInput`,
+`openOccasionDetails`, `populateRecordOccasions`, `occasionRetryAt` via getter+setter em
+`occasions-ui.js`). `navigation.js` não precisou de nenhuma mudança de conteúdo — já
+lia tudo solto e tudo já é propriedade de `globalThis`.
+
+Resultado prático: **`tests/reset.test.cjs` não precisou do redesenho previsto** — como
+o arquivo continua sem nenhuma palavra `export`/`import`, ele continua sendo um script
+clássico válido do ponto de vista de sintaxe, e a técnica de `vm.runInContext(source, c)`
++ reatribuição de `resetPending` no mesmo contexto continuou funcionando sem tocar em
+uma linha do teste. `occasions-ui.js` e `navigation.js` nunca tiveram teste de arquivo
+inteiro via `vm`/`require`, então não havia risco de quebra de sintaxe ali de qualquer
+forma. Único ajuste de teste real fora do previsto: `tests/navigation-browser.test.cjs`
+também lia `openDataReset`/`resetAuthorizationIsCurrent` soltos (não listados na
+decisão original da 8.3), publicados também em `globalThis`.
+
+Diferença em relação a `emoji-data.js`/`policies.js`/`ui.js` (8.1/8.2, que ganharam
+`export` de verdade): nesses três havia um motivo concreto — `emoji-data.js` tem um
+único consumidor (`app.js`), então `import` direto é mais simples que uma ponte;
+`policies.js`/`ui.js` foram convertidos antes de eu perceber que a ponte pura por
+`globalThis` também bastava ali. Ambos os desenhos continuam corretos e coexistem no
+código — a lição, registrada aqui para a Fase 9, é que `export` só compensa quando há
+um motivo concreto (um único consumidor natural, ou um teste que já vai precisar de
+`import()` de qualquer forma), não como padrão automático de "virar módulo".
 
 ## Plano de teste
 

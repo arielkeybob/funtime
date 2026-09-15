@@ -1,5 +1,40 @@
 # FunTime — documentação de desenvolvimento
 
+## V2.1.39 — Fase 8: últimos scripts clássicos viram módulos ES
+
+`policies.js`, `ui.js`, `emoji-data.js`, `touch-debug.js`, `reset.js`, `occasions-ui.js`
+e `navigation.js` passam a `<script type="module">` (implementa a spec 0019, em 5
+sub-fases/commits, do menos ao mais acoplado). `occasions.js` fica de fora de propósito
+— já era uma IIFE isolada, publicando só `globalThis.FunTimeOccasions`, e três testes
+fazem `require('../occasions.js')`, que quebraria com `export` real sem nenhum ganho.
+
+Descoberta na implementação: nenhum dos 3 arquivos mais entrelaçados (`reset.js`,
+`occasions-ui.js`, `navigation.js`) precisou de `export` de verdade — bastou publicar em
+`globalThis` os identificadores que outro arquivo ainda lê solto (mesmo mecanismo que já
+sustentava `FunTimeOccasions`/`FunTimeTouchDebug`/`FunTimeNavigation`), porque identificador
+solto de dentro de um módulo cai de volta em propriedade de `globalThis` quando não há
+binding léxico. Isso evitou o redesenho de teste que a spec havia previsto como
+necessário para `tests/reset.test.cjs` (a técnica de reatribuir `resetPending` de fora via
+`vm.runInContext` no mesmo contexto só funciona com sintaxe de script clássico — como o
+arquivo não ganhou nenhum `export`, continua funcionando sem tocar no teste).
+
+Corrigido de passagem: `app.js` (`registerDrinkAt`) testava a existência de
+`reconcileOccasions` com `globalThis.` mas chamava a função solta — funcionava por
+acidente enquanto `occasions-ui.js` era script clássico; com ele como módulo, isso
+pularia a reconciliação de eventos silenciosamente, sem erro. Agora os dois lados usam
+`globalThis.`, consistente.
+
+Todo script carregado por `boot.js` agora é módulo ES, exceto `occasions.js`. O
+`Object.assign(globalThis, {...})` de `app.js` (Fase 7) continua necessário — os 3
+arquivos acima ainda leem os 88 identificadores dele por ali, só que de dentro de
+módulos em vez de scripts clássicos. Removê-lo fica para uma Fase 9 própria. Nenhuma
+mudança de comportamento visível, de formato de dados ou `DATA_VERSION`. Validado:
+`node --check` em cada arquivo tocado; suíte completa (138/139, única falha conhecida e
+pré-existente) rodada após cada uma das 5 sub-fases; teste manual completo confirmado
+pelo usuário (boot do zero, diálogos incluindo botão Voltar/Esc, PIN, agenda de eventos,
+reset de dados, aceite de termos). App, boot, rodapés e cache alinhados a 2.1.39;
+DATA_VERSION 11 preservado.
+
 ## V2.1.38 — remove suporte à V1 ("Intervalo")
 
 Ninguém mais usa a versão anterior do app ("Intervalo", `/intervalo/`). Removido o protocolo inteiro de coexistência/transferência entre as duas versões: `migration.js`, `transition.js` e `receiver.js` saíram por completo; `boot.js` perdeu a negociação de posse/ponte com a v1 (`chooseSetup()`, verificação do service worker da v1) mas manteve, simplificada, a exclusividade entre janelas/abas do próprio FunTime 2 via um único Web Lock (renomeado para `funtime-writer-lock`, sem sufixo `-v1-`). A tela "Encontramos dados da versão anterior…"/"Começar sem dados" não existe mais — o boot vai direto para o app.

@@ -1,4 +1,11 @@
-# FunTime — V2.1.38
+# FunTime — V2.1.39
+
+## V2.1.39 — reorganização interna concluída, sem mudança de comportamento
+
+Os últimos arquivos internos que ainda eram scripts do formato antigo passaram para o
+formato modular usado no resto do app. É só organização de código — nenhuma tela, texto
+ou fluxo muda para quem usa o app. App, boot, rodapés e cache alinhados a 2.1.39;
+DATA_VERSION 11 preservado.
 
 ## V2.1.38 — fim do suporte à versão anterior ("Intervalo")
 
