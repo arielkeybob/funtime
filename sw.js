@@ -15,6 +15,7 @@ const APP_SHELL = [
   "./src/security/pin-crypto.js",
   "./src/data/store.js",
   "./src/ui/dialogs.js",
+  "./src/ui/wheel-picker.js",
   "./src/bootstrap/legacy-bridge.js",
   "./app.js",
   "./occasions.js",

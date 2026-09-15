@@ -23,6 +23,7 @@ Contexto geral do refactor: ver o plano aprovado em
 | [0008](0008-more-ordering-bug-sites.md) | Mais 3 pontos com o mesmo bug de ordenação | implementada |
 | [0009](0009-store-remaining-sites.md) | Fecha a Fase 2: últimos 4 pontos + `saveData()` reduzida a shim de teste | implementada |
 | [0010](0010-dialog-dismissal.md) | Extrair `wireDialogDismissal` para `src/ui/dialogs.js` | implementada |
+| [0011](0011-duration-picker.md) | Extrair `createDurationPicker` para `src/ui/wheel-picker.js` | implementada |
 
 Status possíveis: `proposta` (escrita, aguardando aprovação) · `aprovada` (pode
 implementar) · `implementada` (já no código, commit referenciado).

@@ -8,6 +8,7 @@ import { derEcdsaSignatureToRaw } from "../security/webauthn-signature.js";
 import { derivePinHash, PIN_PBKDF2_ITERATIONS } from "../security/pin-crypto.js";
 import { commit } from "../data/store.js";
 import { wireDialogDismissal } from "../ui/dialogs.js";
+import { createDurationPicker } from "../ui/wheel-picker.js";
 
 Object.assign(globalThis, {
   formatTime, formatClock, formatHistoryElapsed, formatInterval, resolveCountingMode,
@@ -15,4 +16,5 @@ Object.assign(globalThis, {
   derivePinHash, PIN_PBKDF2_ITERATIONS,
   commitAppData: commit,
   wireDialogDismissal,
+  createDurationPicker,
 });

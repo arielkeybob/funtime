@@ -3606,42 +3606,21 @@ function updateMinuteWheelAvailability(hours = Number(intervalHoursInput.value))
   intervalMinutesWheel.tabIndex = isMaxHours ? -1 : 0;
 }
 
-function setLogDurationPicker(hours, minutes) {
-  const safeHours = Math.max(0, Math.min(48, Number(hours) || 0));
-  const safeMinutes = Math.max(0, Math.min(59, Number(minutes) || 0));
+const logDurationPicker = createDurationPicker({
+  maxHours: 48, hoursWheel: logHoursWheel, minutesWheel: logMinutesWheel,
+  hoursInput: logHoursAgoInput, minutesInput: logMinutesAgoInput,
+  createWheelPicker, setWheelPickerValue,
+});
+function setLogDurationPicker(hours, minutes) { logDurationPicker.set(hours, minutes); }
+function initializeLogDurationPickers() { logDurationPicker.initialize(0, 0); }
 
-  logHoursAgoInput.value = String(safeHours);
-  logMinutesAgoInput.value = String(safeMinutes);
-  setWheelPickerValue(logHoursWheel, safeHours);
-  setWheelPickerValue(logMinutesWheel, safeMinutes);
-}
-
-function initializeLogDurationPickers() {
-  createWheelPicker(logHoursWheel, logHoursAgoInput, 48);
-  createWheelPicker(logMinutesWheel, logMinutesAgoInput, 59);
-  setLogDurationPicker(0, 0);
-}
-
-function setDurationPicker(hours, minutes) {
-  const safeHours = Math.max(0, Math.min(24, Number(hours) || 0));
-  const safeMinutes = safeHours === 24 ? 0 : Math.max(0, Math.min(59, Number(minutes) || 0));
-
-  delete intervalMinutesWheel.dataset.valueBeforeMax;
-  intervalMinutesWheel.classList.remove("is-disabled");
-  intervalMinutesWheel.setAttribute("aria-disabled", "false");
-  intervalMinutesWheel.tabIndex = 0;
-
-  intervalHoursInput.value = String(safeHours);
-  intervalMinutesInput.value = String(safeMinutes);
-  setWheelPickerValue(intervalMinutesWheel, safeMinutes);
-  setWheelPickerValue(intervalHoursWheel, safeHours);
-}
-
-function initializeDurationPickers() {
-  createWheelPicker(intervalHoursWheel, intervalHoursInput, 24);
-  createWheelPicker(intervalMinutesWheel, intervalMinutesInput, 59);
-  setDurationPicker(1, 0);
-}
+const intervalDurationPicker = createDurationPicker({
+  maxHours: 24, hoursWheel: intervalHoursWheel, minutesWheel: intervalMinutesWheel,
+  hoursInput: intervalHoursInput, minutesInput: intervalMinutesInput,
+  capMinutesAtMaxHours: true, createWheelPicker, setWheelPickerValue,
+});
+function setDurationPicker(hours, minutes) { intervalDurationPicker.set(hours, minutes); }
+function initializeDurationPickers() { intervalDurationPicker.initialize(1, 0); }
 
 let removedCatalogIcon = null;
 let editingIconCatalog = false;
