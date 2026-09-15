@@ -1939,8 +1939,7 @@ function changeCountingMode(mode) {
   if (!["normal", "countdown"].includes(mode)) return;
   const preferences = { ...state.preferences, countingMode: mode };
   try {
-    localStorage.setItem(DATA_STORAGE_KEY, JSON.stringify({ ...buildCurrentAppData(), preferences }));
-    state.preferences = preferences;
+    state.preferences = commitAppData(DATA_STORAGE_KEY, buildCurrentAppData(), { preferences }).preferences;
     refreshDataViews();
     showToast(mode === "normal" ? "Contagem normal ativada." : "Contagem regressiva ativada.");
   } catch (error) {
@@ -2890,8 +2889,7 @@ function registerDrinkAt(id, timestamp, { doseSize = null, onSaved = null } = {}
 
   const events = [...state.events, event];
   try {
-    localStorage.setItem(DATA_STORAGE_KEY, JSON.stringify({ ...buildCurrentAppData(), events }));
-    state.events = events;
+    state.events = commitAppData(DATA_STORAGE_KEY, buildCurrentAppData(), { events }).events;
   } catch {
     showAppNotification('Não foi possível salvar a dose. Tente novamente.', { type: 'error' }); return;
   }
@@ -3196,8 +3194,7 @@ function confirmStopCountdown() {
   }
   const events = state.events.filter(event => event.id !== latest.id);
   try {
-    localStorage.setItem(DATA_STORAGE_KEY, JSON.stringify({ ...buildCurrentAppData(), events }));
-    state.events = events;
+    state.events = commitAppData(DATA_STORAGE_KEY, buildCurrentAppData(), { events }).events;
   } catch (error) {
     const message = document.querySelector('#stop-countdown-error');
     message.textContent = 'Não foi possível salvar. A contagem foi mantida. Tente novamente.';
@@ -3422,8 +3419,7 @@ function handleEventSubmit(event) {
 
   try {
     const events = state.events.map(item => item.id === updatedEvent.id ? updatedEvent : item);
-    localStorage.setItem(DATA_STORAGE_KEY, JSON.stringify({ ...buildCurrentAppData(), events }));
-    state.events = events;
+    state.events = commitAppData(DATA_STORAGE_KEY, buildCurrentAppData(), { events }).events;
   } catch { showEventFormError("Não foi possível salvar. A anotação anterior foi mantida."); return; }
   closeEventDialog();
   refreshDataViews();

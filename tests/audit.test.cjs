@@ -272,6 +272,7 @@ test('falha ao salvar contagem preserva a preferência anterior e dados', () => 
  const state={preferences:{countingMode:'countdown'},drinks:[drink],events:backup().data.events};
  let saved;
  const c=context({state, countingModeInput:{value:'normal'},refreshDataViews:()=>{},showToast:()=>{},showAppNotification:()=>{},localStorage:{setItem:(k,v)=>{saved=JSON.parse(v);}}});
+ vm.runInContext('function commitAppData(key,current,patch){const next={...current,...patch};localStorage.setItem(key,JSON.stringify(next));return next;}',c);
  vm.runInContext(extract('changeCountingMode'),c);
  c.changeCountingMode('normal');assert.equal(saved.preferences.countingMode,'normal');assert.deepEqual(saved.events,state.events);
  c.localStorage.setItem=()=>{throw Error('quota');};c.changeCountingMode('countdown');
