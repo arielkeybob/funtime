@@ -7,7 +7,7 @@ test('ícones declarados têm dimensões PNG corretas e identidade v2',()=>{
   assert.equal(manifest.id,'/funtime/');
   assert.equal(manifest.icons.filter(icon=>icon.purpose==='maskable').length,1);
   for(const icon of manifest.icons){
-    const png=fs.readFileSync(icon.src);
+    const png=fs.readFileSync(icon.src.split('?')[0]);
     assert.equal(png.subarray(1,4).toString(),'PNG');
     assert.equal(`${png.readUInt32BE(16)}x${png.readUInt32BE(20)}`,icon.sizes);
   }

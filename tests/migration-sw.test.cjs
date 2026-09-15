@@ -3,15 +3,18 @@ const assert=require('node:assert/strict');
 const fs=require('node:fs');
 const vm=require('node:vm');
 const {MessageChannel}=require('node:worker_threads');
+const SW_SOURCE=fs.readFileSync('sw.js','utf8');
+const CACHE_NAME=SW_SOURCE.match(/const CACHE_NAME = "([^"]+)"/)[1];
+const APP_VERSION=SW_SOURCE.match(/const APP_VERSION = "([^"]+)"/)[1];
 function worker(extra={}){
   const handlers={};
   const self={registration:{scope:'https://example.test/funtime/'},location:{origin:'https://example.test'},clients:{claim:async()=>{}},addEventListener:(k,fn)=>handlers[k]=fn};
   const ctx=vm.createContext({URL,Request,Response,File,MessageChannel,setTimeout,clearTimeout,self,...extra});
-  vm.runInContext(fs.readFileSync('sw.js','utf8'),ctx);return {ctx,self,handlers};
+  vm.runInContext(SW_SOURCE,ctx);return {ctx,self,handlers};
 }
 test('ativação limpa apenas shells antigos e conserva pendências e caches de outros apps',async()=>{
   const removed=[];
-  const {handlers}=worker({caches:{keys:async()=>['intervalo-v1-14-3','funtime-v1-14-9','funtime-v1-16-0','funtime-v2-0-0-dev-2','funtime-v2-0-0','intervalo-share-target-v1','funtime-share-target-v1','other-v1','intervalo-arquivo'],delete:async key=>removed.push(key)}});
+  const {handlers}=worker({caches:{keys:async()=>['intervalo-v1-14-3','funtime-v1-14-9','funtime-v1-16-0','funtime-v2-0-0-dev-2',CACHE_NAME,'intervalo-share-target-v1','funtime-share-target-v1','other-v1','intervalo-arquivo'],delete:async key=>removed.push(key)}});
   let work;handlers.activate({waitUntil:p=>work=p});await work;
   assert.deepEqual(removed,['funtime-v2-0-0-dev-2']);
 });
@@ -30,7 +33,7 @@ test('janela que não atualiza impede autorizar migração',async()=>{
 test('fetch usa somente cache da versão ativa, nunca cache global de outra geração',async()=>{
   const seen=[];
   const cache={match:async request=>{seen.push(typeof request==='string'?request:request.url);return new Response('FunTime');}};
-  const {handlers}=worker({caches:{open:async key=>{assert.equal(key,'funtime-v2-0-0');return cache;},match:()=>{throw Error('cache global proibido');}}});
+  const {handlers}=worker({caches:{open:async key=>{assert.equal(key,CACHE_NAME);return cache;},match:()=>{throw Error('cache global proibido');}}});
   let response;handlers.fetch({request:new Request('https://example.test/funtime/app.js'),respondWith:p=>response=p});
   assert.equal(await (await response).text(),'FunTime');assert.equal(seen.length,1);
 });
@@ -38,7 +41,7 @@ test('fetch usa somente cache da versão ativa, nunca cache global de outra gera
 test('worker anuncia capacidades verificáveis pela futura v2 antes de assumir os dados',async()=>{
   const {handlers,self}=worker();let version,ready,work;self.clients.matchAll=async()=>[];
   handlers.message({data:{type:'GET_VERSION'},ports:[{postMessage:value=>version=value}]});
-  assert.equal(version.version,'2.0.0');assert.equal(version.migrationProtocol,2);assert.equal(version.transitionProtocol,1);
+  assert.equal(version.version,APP_VERSION);assert.equal(version.migrationProtocol,2);assert.equal(version.transitionProtocol,1);
   handlers.message({data:{type:'FUNTIME_PREPARE'},ports:[{postMessage:value=>ready=value}],waitUntil:value=>work=value});await work;
   assert.equal(ready.ready,true);assert.equal(ready.protocol,2);assert.equal(ready.transitionProtocol,1);
 });
