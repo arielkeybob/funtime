@@ -19,6 +19,7 @@ const APP_SHELL = [
   "./src/ui/field-errors.js",
   "./src/ui/drink-reorder.js",
   "./src/ui/icon-reorder.js",
+  "./src/easter-eggs/index.js",
   "./src/bootstrap/legacy-bridge.js",
   "./app.js",
   "./occasions.js",

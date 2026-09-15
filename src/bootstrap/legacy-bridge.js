@@ -12,6 +12,7 @@ import { createDurationPicker } from "../ui/wheel-picker.js";
 import { createFieldErrorController, createFormErrorController } from "../ui/field-errors.js";
 import { createDrinkReorderController } from "../ui/drink-reorder.js";
 import { createIconReorderController } from "../ui/icon-reorder.js";
+import { initEasterEggs } from "../easter-eggs/index.js";
 
 Object.assign(globalThis, {
   formatTime, formatClock, formatHistoryElapsed, formatInterval, resolveCountingMode,
@@ -22,4 +23,5 @@ Object.assign(globalThis, {
   createDurationPicker,
   createFieldErrorController, createFormErrorController,
   createDrinkReorderController, createIconReorderController,
+  initEasterEggs,
 });
