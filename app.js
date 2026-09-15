@@ -3111,7 +3111,7 @@ function deleteDrinkKeepingHistory() {
   const drink = state.drinks.find((item) => item.id === drinkId);
   if (!drink) return;
 
-  state.events = state.events.map((event) => {
+  const nextEvents = state.events.map((event) => {
     if (event.drinkId !== drinkId) return event;
     return {
       ...event,
@@ -3119,10 +3119,17 @@ function deleteDrinkKeepingHistory() {
       drinkIcon: drink.icon,
     };
   });
-
-  state.drinks = state.drinks.filter((item) => item.id !== drinkId);
+  const nextDrinks = state.drinks.filter((item) => item.id !== drinkId);
   state.editingDrinkId = null;
-  saveData();
+
+  try {
+    const result = commitAppData(DATA_STORAGE_KEY, buildCurrentAppData(), { events: nextEvents, drinks: nextDrinks });
+    state.events = result.events;
+    state.drinks = result.drinks;
+  } catch {
+    showAppNotification("Não foi possível excluir a bebida. Tente novamente.", { type: "error" });
+    return;
+  }
   closeDeleteDrinkDialog();
   refreshDataViews();
   showToast(`${drink.name} foi excluída da lista. O histórico foi mantido.`);
@@ -3134,10 +3141,18 @@ function deleteDrinkWithHistory() {
   if (!drink) return;
 
   const hadHistory = state.events.some(item => item.drinkId === drinkId);
-  state.drinks = state.drinks.filter((item) => item.id !== drinkId);
-  state.events = state.events.filter((event) => event.drinkId !== drinkId);
+  const nextDrinks = state.drinks.filter((item) => item.id !== drinkId);
+  const nextEvents = state.events.filter((event) => event.drinkId !== drinkId);
   state.editingDrinkId = null;
-  saveData();
+
+  try {
+    const result = commitAppData(DATA_STORAGE_KEY, buildCurrentAppData(), { drinks: nextDrinks, events: nextEvents });
+    state.drinks = result.drinks;
+    state.events = result.events;
+  } catch {
+    showAppNotification("Não foi possível excluir a bebida. Tente novamente.", { type: "error" });
+    return;
+  }
   closeDeleteDrinkDialog();
   refreshDataViews();
   showToast(hadHistory ? `${drink.name} e seus registros foram excluídos.` : `${drink.name} foi excluída.`);
@@ -3436,8 +3451,13 @@ async function deleteSelectedEvent() {
   if (!confirmed) return;
 
   if (state.securityLocked || state.selectedEventId !== selectedEvent.id || !state.events.includes(selectedEvent)) return;
-  state.events = state.events.filter((item) => item.id !== selectedEvent.id);
-  saveData();
+  const nextEvents = state.events.filter((item) => item.id !== selectedEvent.id);
+  try {
+    state.events = commitAppData(DATA_STORAGE_KEY, buildCurrentAppData(), { events: nextEvents }).events;
+  } catch {
+    showAppNotification("Não foi possível excluir o registro. Tente novamente.", { type: "error" });
+    return;
+  }
   closeEventDialog();
   refreshDataViews();
   showToast("Anotação excluída. Os intervalos foram recalculados.");
@@ -4149,14 +4169,12 @@ function handleDrinkSubmit(event) {
       return;
     }
 
-    drink.name = name;
-    drink.icon = icon;
-    drink.intervalMinutes = totalMinutes;
-    drink.askDoseSize = askDoseSize;
+    const updatedDrink = { ...drink, name, icon, intervalMinutes: totalMinutes, askDoseSize };
+    const nextDrinks = state.drinks.map((item) => (item.id === drink.id ? updatedDrink : item));
 
     // Nome e ícone representam a identidade da bebida e acompanham correções.
     // O intervalo histórico NÃO é alterado: cada evento mantém seu snapshot.
-    state.events = state.events.map((event) => {
+    const nextEvents = state.events.map((event) => {
       if (event.drinkId !== drink.id) return event;
       return {
         ...event,
@@ -4165,22 +4183,34 @@ function handleDrinkSubmit(event) {
       };
     });
 
-    saveData();
+    try {
+      const result = commitAppData(DATA_STORAGE_KEY, buildCurrentAppData(), { drinks: nextDrinks, events: nextEvents });
+      state.drinks = result.drinks;
+      state.events = result.events;
+    } catch {
+      showFormError("Não foi possível salvar. Tente novamente.");
+      return;
+    }
     closeDrinkDialog();
     refreshDataViews();
     showToast(`${name} atualizada. Novas anotações usarão o novo intervalo.`);
     return;
   }
 
-  state.drinks.push({
+  const nextDrinks = [...state.drinks, {
     id: createId(),
     name,
     icon,
     intervalMinutes: totalMinutes,
     askDoseSize,
-  });
+  }];
 
-  saveData();
+  try {
+    state.drinks = commitAppData(DATA_STORAGE_KEY, buildCurrentAppData(), { drinks: nextDrinks }).drinks;
+  } catch {
+    showFormError("Não foi possível salvar. Tente novamente.");
+    return;
+  }
   closeDrinkDialog();
   refreshDataViews();
 }

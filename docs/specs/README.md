@@ -19,6 +19,7 @@ Contexto geral do refactor: ver o plano aprovado em
 | [0004](0004-pin-crypto.md) | Extrair `derivePinHash`/`PIN_PBKDF2_ITERATIONS` para `src/security/pin-crypto.js` | implementada |
 | [0005](0005-store-core.md) | Criar `src/data/store.js` (núcleo da persistência, sem migrar call sites ainda) | implementada |
 | [0006](0006-store-mechanical-sites.md) | Migrar para `commit()` os 4 pontos que já têm try/catch correto | implementada |
+| [0007](0007-store-ordering-bug-sites.md) | Corrigir os 5 pontos que mutam `state` antes de gravar | implementada |
 
 Status possíveis: `proposta` (escrita, aguardando aprovação) · `aprovada` (pode
 implementar) · `implementada` (já no código, commit referenciado).
