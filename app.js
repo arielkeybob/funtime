@@ -1965,8 +1965,7 @@ function createId() {
 }
 
 function effectiveCountingMode() {
-  const normal = state.preferences.countingMode === "normal";
-  return (state.upsideDownActive ? !normal : normal) ? "normal" : "countdown";
+  return resolveCountingMode(state.preferences.countingMode, state.upsideDownActive);
 }
 
 function formatActivityCounter(activity) {

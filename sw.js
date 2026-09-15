@@ -10,6 +10,7 @@ const APP_SHELL = [
   "./index.html",
   "./styles.css",
   "./src/format/datetime.js",
+  "./src/format/counting-mode.js",
   "./src/bootstrap/legacy-bridge.js",
   "./app.js",
   "./occasions.js",

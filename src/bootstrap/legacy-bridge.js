@@ -3,5 +3,6 @@
 // encontrar como identificador solto. Cresce uma linha a cada extração; some
 // quando o último consumidor virar módulo (ver docs/specs/).
 import { formatTime, formatClock, formatHistoryElapsed, formatInterval } from "../format/datetime.js";
+import { resolveCountingMode } from "../format/counting-mode.js";
 
-Object.assign(globalThis, { formatTime, formatClock, formatHistoryElapsed, formatInterval });
+Object.assign(globalThis, { formatTime, formatClock, formatHistoryElapsed, formatInterval, resolveCountingMode });

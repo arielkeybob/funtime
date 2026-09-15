@@ -249,7 +249,8 @@ test('preferência de contagem migra como regressiva e é preservada no backup',
 
 test('contadores usam timestamps e intervalo histórico, com limites e transição', () => {
  const { formatTime, formatHistoryElapsed } = require('../src/format/datetime.js');
- const c=vm.createContext({state:{preferences:{countingMode:'normal'}}, formatTime, formatHistoryElapsed});
+ const { resolveCountingMode } = require('../src/format/counting-mode.js');
+ const c=vm.createContext({state:{preferences:{countingMode:'normal'}}, formatTime, formatHistoryElapsed, resolveCountingMode});
  for (const name of ['effectiveCountingMode','formatHistoryCounter','formatActivityCounter']) vm.runInContext(extract(name),c);
  const activity={latestEvent:{intervalMinutes:90},remainingMs:5400000};
  assert.equal(c.formatActivityCounter(activity),'Contando: 00:00:00');
