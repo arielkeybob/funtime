@@ -15,7 +15,6 @@ test('Home separa recentes e preserva a ordem manual ao segurar o card', { timeo
     const errors = [];
     page.on('pageerror', error => errors.push(error.message));
     await page.goto(`http://127.0.0.1:${server.address().port}/funtime/`);
-    await page.getByRole('button', { name: 'Começar sem dados', exact: true }).click();
     for (const checkbox of await page.locator('#terms-form input[type=checkbox]').all()) await checkbox.check();
     await page.locator('#terms-continue').click();
     await page.waitForFunction(() => typeof state !== 'undefined' && !document.body.classList.contains('boot-pending'));

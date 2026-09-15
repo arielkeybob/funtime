@@ -296,7 +296,7 @@ document.addEventListener("visibilitychange", () => {
 const DATA_STORAGE_KEY = "funtime-v1-data";
 const LEGACY_DRINKS_STORAGE_KEY = "balada-v1-drinks";
 const DATA_VERSION = 11;
-const APP_VERSION = "2.1.37";
+const APP_VERSION = "2.1.38";
 const DRINK_EXPORT_TYPE = "funtime-drinks";
 const DRINK_EXPORT_FORMAT_VERSION = 1;
 const BACKUP_EXPORT_TYPE = "funtime-backup";
@@ -537,11 +537,47 @@ function getDefaultSecurityConfig() {
   };
 }
 
+// Falha fechada em dado corrompido: nunca resetar silenciosamente proteção/dados reais.
+function validateStoredShape(raw, key) {
+  if (raw === null) return;
+  const fail = () => { throw new Error(`Há dados incompatíveis em ${key}.`); };
+  let value;
+  try { value = JSON.parse(raw); } catch { fail(); }
+  const isObject = (v) => v && typeof v === "object" && !Array.isArray(v);
+  if (!isObject(value)) fail();
+  if (key === DATA_STORAGE_KEY) {
+    if ((value.version !== undefined && (!Number.isInteger(value.version) || value.version < 1 || value.version > 11)) ||
+        !Array.isArray(value.drinks) || !Array.isArray(value.events)) fail();
+    const ids = new Set(), events = new Set();
+    for (const drink of value.drinks) {
+      if (drink === null) continue; // normalizeData() já filtra nulls remanescentes do bug de arraste da v2.1.23.
+      if (!isObject(drink) || !drink.id || !drink.name || ids.has(String(drink.id))) fail();
+      ids.add(String(drink.id));
+    }
+    for (const event of value.events) {
+      if (!isObject(event) || !event.id || !event.drinkId ||
+          !Number.isFinite(Number(event.consumedAt)) || events.has(String(event.id))) fail();
+      events.add(String(event.id));
+    }
+  } else if (key === SECURITY_STORAGE_KEY) {
+    if (typeof value.enabled !== "boolean") fail();
+    if (value.enabled) {
+      if (value.method === "pin") {
+        if (!value.pin || typeof value.pin.salt !== "string" || !value.pin.salt ||
+            typeof value.pin.hash !== "string" || !value.pin.hash) fail();
+      } else if (value.method === "device") {
+        if (!value.webauthn || typeof value.webauthn.credentialId !== "string" || !value.webauthn.credentialId ||
+            typeof value.webauthn.publicKey !== "string" || !value.webauthn.publicKey) fail();
+      } else fail();
+    }
+  }
+}
+
 function loadSecurityConfig() {
   try {
     const raw = localStorage.getItem(SECURITY_STORAGE_KEY);
     if (!raw) return getDefaultSecurityConfig();
-    globalThis.FunTimeMigration?.validate(raw, SECURITY_STORAGE_KEY);
+    validateStoredShape(raw, SECURITY_STORAGE_KEY);
     const parsed = JSON.parse(raw);
     const config = getDefaultSecurityConfig();
     config.enabled = Boolean(parsed.enabled);
@@ -574,13 +610,11 @@ function loadSecurityConfig() {
     return config;
   } catch (error) {
     console.warn("Não foi possível carregar as configurações de segurança.", error);
-    if (globalThis.FunTimeMigration) throw new Error("Não foi possível ler a proteção do app. Tente novamente.");
-    return getDefaultSecurityConfig();
+    throw new Error("Não foi possível ler a proteção do app. Tente novamente.");
   }
 }
 
 function loadSecuritySession() {
-  if (globalThis.FunTimeSessionReady === false) return null;
   try {
     const raw = sessionStorage.getItem(SECURITY_SESSION_KEY);
     if (!raw) return null;
@@ -1188,18 +1222,18 @@ function loadAppData() {
     const raw = localStorage.getItem(DATA_STORAGE_KEY);
 
     if (raw) {
-      globalThis.FunTimeMigration?.validate(raw, DATA_STORAGE_KEY);
+      validateStoredShape(raw, DATA_STORAGE_KEY);
       const parsed = JSON.parse(raw);
       const normalized = normalizeData(parsed);
 
       if (normalized) {
         return normalized;
       }
+      throw new Error("Os dados salvos não estão em um formato reconhecido.");
     }
-    if (globalThis.FunTimeMigration) throw new Error("Os dados migrados não estão disponíveis.");
   } catch (error) {
     console.error("Não foi possível carregar os dados atuais.", error);
-    if (globalThis.FunTimeMigration) throw new Error("Não foi possível ler seus dados. Tente novamente.");
+    throw new Error("Não foi possível ler seus dados. Tente novamente.");
   }
 
   return migrateLegacyData();
@@ -1831,25 +1865,16 @@ async function readPendingSharedDrinkFile() {
   if (!("caches" in window)) return null;
 
   try {
-    const requestUrls = [...new Set([
-      new URL('/intervalo/__shared-drinks-import__', window.location.origin).href,
-      new URL(SHARE_IMPORT_REQUEST_PATH, window.location.href).href
-    ])];
-    // Se ambas as gerações têm arquivos, mostrar a pendência antiga primeiro sem apagá-las em conjunto.
-    for (const name of ["intervalo-share-target-v1", SHARE_IMPORT_CACHE_NAME]) {
-      if (!(await caches.has(name))) continue;
-      const cache = await caches.open(name);
-      for (const requestUrl of requestUrls) {
-        const response = await cache.match(requestUrl);
-        if (!response) continue;
-        const filename = decodeURIComponent(response.headers.get("X-FunTime-Filename") || response.headers.get("X-Intervalo-Filename") || "FunTime-Bebidas.json");
-        const text = await response.text();
-        const file = new File([text], filename, { type: "application/json" });
-        if (!(await cache.delete(requestUrl))) throw new Error("Não foi possível consumir o arquivo recebido.");
-        return file;
-      }
-    }
-    return null;
+    if (!(await caches.has(SHARE_IMPORT_CACHE_NAME))) return null;
+    const cache = await caches.open(SHARE_IMPORT_CACHE_NAME);
+    const requestUrl = new URL(SHARE_IMPORT_REQUEST_PATH, window.location.href).href;
+    const response = await cache.match(requestUrl);
+    if (!response) return null;
+    const filename = decodeURIComponent(response.headers.get("X-FunTime-Filename") || "FunTime-Bebidas.json");
+    const text = await response.text();
+    const file = new File([text], filename, { type: "application/json" });
+    if (!(await cache.delete(requestUrl))) throw new Error("Não foi possível consumir o arquivo recebido.");
+    return file;
   } catch (error) {
     console.warn("Não foi possível recuperar o arquivo recebido.", error);
     return null;
@@ -1867,16 +1892,10 @@ function cleanSharedImportUrl() {
 async function maybeHandleSharedDrinkImport() {
   const url = new URL(window.location.href);
   let pending = url.searchParams.has("import-shared");
-  if (!pending && "caches" in window) {
-    for (const name of ["intervalo-share-target-v1", SHARE_IMPORT_CACHE_NAME]) {
-      if (await caches.has(name)) {
-        const cache = await caches.open(name);
-        for (const requestUrl of [new URL('/intervalo/__shared-drinks-import__', window.location.origin).href,
-          new URL(SHARE_IMPORT_REQUEST_PATH, window.location.href).href]) {
-          pending ||= Boolean(await cache.match(requestUrl));
-        }
-      }
-    }
+  if (!pending && "caches" in window && (await caches.has(SHARE_IMPORT_CACHE_NAME))) {
+    const cache = await caches.open(SHARE_IMPORT_CACHE_NAME);
+    const requestUrl = new URL(SHARE_IMPORT_REQUEST_PATH, window.location.href).href;
+    pending = Boolean(await cache.match(requestUrl));
   }
   if (!pending) return;
 
@@ -4240,13 +4259,6 @@ async function bootstrapApp() {
   render();
   startClock();
   await initializeSecurity();
-  if (globalThis.FunTimeRestoreRequested) {
-    globalThis.FunTimeRestoreRequested = false;
-    openSettingsView();
-    restoreBackupButton.scrollIntoView({ block: "center" });
-    restoreBackupButton.focus();
-    showAppNotification("Toque em Restaurar backup e selecione o arquivo da versão anterior. Você poderá conferir a prévia antes de aplicar. Configure o bloqueio deste aparelho depois da restauração.", { title: "Recuperar seus dados", persistent: true });
-  }
   showRestoreSuccessIfNeeded();
   await maybeHandleSharedDrinkImport();
 }

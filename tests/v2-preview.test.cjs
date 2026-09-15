@@ -15,18 +15,17 @@ test('ícones declarados têm dimensões PNG corretas e identidade v2',()=>{
     assert.doesNotMatch(fs.readFileSync(file,'utf8'),/v164\.png/);
   }
 });
-test('v2 no endereço antigo não acessa armazenamento nem registra worker',async()=>{
+test('v2 fora do endereço /funtime/ não acessa armazenamento nem registra worker',async()=>{
   const elements=new Map();
   const context=vm.createContext({
     document:{body:{classList:{add(){}}},querySelector(selector){if(!elements.has(selector))elements.set(selector,{});return elements.get(selector);}},
     navigator:{serviceWorker:{addEventListener(){},register(){assert.fail('Não registrar worker');}}},
-    window:{addEventListener(){},location:{pathname:'/intervalo/'}},
+    window:{addEventListener(){},location:{pathname:'/outro-caminho/'}},
     localStorage:{getItem(){assert.fail('Não ler dados');}},
     console:{error(){}}
   });
   vm.runInContext(fs.readFileSync('boot.js','utf8'),context);
   await new Promise(resolve=>setImmediate(resolve));
-  assert.match(elements.get('#startup-message').textContent,/funtime/);
-  assert.equal(elements.get('#startup-continue').hidden,true);
+  assert.match(elements.get('#startup-message').textContent,/\/funtime\//);
   assert.equal(elements.get('#startup-retry').hidden,false);
 });

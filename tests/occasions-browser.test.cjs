@@ -6,7 +6,6 @@ test('agenda compacta, evento, edição, agendamento automático, aviso e persis
  try {
   const page = await browser.newPage({ viewport: { width: 390, height: 844 } }); const errors=[]; page.on('pageerror', e=>errors.push(e.message));
   await page.goto(`http://127.0.0.1:${server.address().port}/funtime/`);
-  await page.getByRole('button',{name:'Começar sem dados',exact:true}).click();
   for(const box of await page.locator('#terms-form input[type=checkbox]').all()) await box.check();
   await page.locator('#terms-continue').click(); await page.waitForFunction(()=>!document.body.classList.contains('boot-pending'));
   assert.equal(await page.locator('#nav-occasion').isVisible(),false);

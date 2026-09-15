@@ -4,9 +4,6 @@
   const screen = document.querySelector("#startup-screen");
   const message = document.querySelector("#startup-message");
   const retry = document.querySelector("#startup-retry");
-  const continueLink = document.querySelector("#startup-continue");
-  const backup = document.querySelector("#startup-backup");
-  const oldLink = document.querySelector("#startup-old");
   let booted = false;
   let failed = false;
   function show(text) { message.textContent = text; }
@@ -19,7 +16,7 @@
     });
   }
   if ("serviceWorker" in navigator) {
-    // O worker distingue estas páginas das versões antigas antes de autorizar migração.
+    // Responde ao Service Worker se esta janela já roda o boot atual, antes de liberar uma atualização.
     navigator.serviceWorker.addEventListener("message", event => {
       if (event.data?.type === "FUNTIME_BOOT_CHECK") event.ports[0]?.postMessage({ protocol: 2 });
     });
@@ -37,7 +34,7 @@
       return false;
     }
     const version = await request(worker, "GET_VERSION");
-    if (version?.version !== "2.1.37") {
+    if (version?.version !== "2.1.38") {
       // Não ativar uma atualização sem a ação explícita do usuário.
       await registration.update();
       show("Há uma atualização necessária para abrir o FunTime.");
@@ -79,13 +76,11 @@
     document.body.classList.add("boot-pending");
     console.error("Falha ao preparar o FunTime.", error);
     const storageMessage = error.name === "QuotaExceededError"
-      ? "Não há espaço no navegador para concluir a migração. Seus dados foram preservados. Tente novamente quando houver espaço disponível."
+      ? "Não há espaço no navegador para concluir a operação. Seus dados foram preservados. Tente novamente quando houver espaço disponível."
       : error.name === "SecurityError"
         ? "O navegador bloqueou o acesso ao armazenamento do app. Verifique as permissões e tente novamente."
         : null;
     show(storageMessage || error.message || "Não foi possível preparar o app. Seus dados não foram descartados.");
-    continueLink.hidden = true;
-    backup.hidden = true;
     retry.hidden = false;
     retry.disabled = false;
     retry.className = "primary-button";
@@ -93,27 +88,6 @@
     retry.onclick = () => window.location.reload();
   }
   globalThis.FunTimeBootFailure = showError;
-  function chooseSetup(existing) {
-    show(existing
-      ? "Encontramos dados da versão anterior nesta instalação. Ao continuar, eles serão usados pelo FunTime 2 e a versão anterior deixará de alterá-los. Mantenha seu backup."
-      : "Nenhum dado foi encontrado nesta instalação. Se você já usava o app, abra a versão anterior e faça um backup para restaurar aqui. Também é possível começar sem dados.");
-    oldLink.hidden = false;
-    retry.hidden = false;
-    retry.textContent = existing ? "Continuar no FunTime 2" : "Começar sem dados";
-    retry.className = existing ? "primary-button" : "secondary-button";
-    backup.hidden = existing;
-    return new Promise(resolve => {
-      const finish = choice => {
-        retry.hidden = true;
-        backup.hidden = true;
-        oldLink.hidden = true;
-        show("Preparando o FunTime 2…");
-        resolve(choice);
-      };
-      retry.onclick = () => finish(existing ? "transfer" : "new");
-      backup.onclick = () => finish("backup");
-    });
-  }
   async function loadApp() {
     // app.js é módulo ES (importa de src/ diretamente) e publica em globalThis o
     // que os demais scripts clássicos (reset.js, occasions-ui.js, navigation.js)
@@ -128,53 +102,24 @@
   }
   async function start() {
     if (!["/funtime/", "/funtime/index.html"].includes(window.location.pathname)) {
-      throw new Error("Abra o FunTime 2 pelo endereço /funtime/. A versão anterior continua em /intervalo/.");
+      throw new Error("Abra o FunTime pelo endereço /funtime/.");
     }
     const installed = navigator.standalone === true || ["standalone", "fullscreen", "minimal-ui"].some(mode => matchMedia(`(display-mode: ${mode})`).matches);
     // A página de instalação não lê/grava dados privados nem mantém o bloqueio de escrita.
     if (!installed) { await loadApp(); return; }
-    if (!navigator.locks) throw new Error("Este navegador precisa ser atualizado para migrar os dados com proteção contra janelas simultâneas.");
-    if (!(await prepareWorker())) return;
-    const origin = window.location.origin;
-    if (!FunTimeTransition.readOwner(localStorage, origin)) {
-      oldLink.hidden = false;
-      await FunTimeReceiver.verifyBridge(navigator.serviceWorker, origin, request, false);
-    }
+    if (!navigator.locks) throw new Error("Este navegador precisa ser atualizado para usar o FunTime com proteção contra janelas simultâneas.");
     show("Abrindo o FunTime…");
     let waitingForWriter = true;
     const writerWaitNotice = setTimeout(() => {
-      if (waitingForWriter) show("O FunTime já está aberto em outra janela. Feche as outras janelas, inclusive a versão anterior, para continuar aqui.");
+      if (waitingForWriter) show("O FunTime já está aberto em outra janela. Feche as outras janelas para continuar aqui.");
     }, 800);
-    // Uma janela escritora por origem. As demais aguardam e carregam o estado mais recente.
+    // Uma janela escritora por origem. As demais aguardam e carregam o estado mais recente ao assumir.
     try {
-      await navigator.locks.request(FunTimeTransition.writerLock, async () => {
+      await navigator.locks.request("funtime-writer-lock", async () => {
         waitingForWriter = false;
         clearTimeout(writerWaitNotice);
         try {
           if (!(await prepareWorker())) return;
-          const before = FunTimeReceiver.inspect(localStorage, origin);
-          if (!before.owner) {
-            await FunTimeReceiver.verifyBridge(navigator.serviceWorker, origin, request, before.existing);
-            const choice = await chooseSetup(before.existing);
-            FunTimeReceiver.unchanged(localStorage, before.values);
-            // A posse somente é gravada depois de preparar e reler os dados sob o lock.
-            const snapshot = await FunTimeReceiver.prepare(localStorage, origin);
-            FunTimeReceiver.claim(localStorage, origin, snapshot);
-            globalThis.FunTimeRestoreRequested = choice === "backup";
-            // A nova instalação exige o desbloqueio normal, sem herdar sessão da v1.
-            globalThis.FunTimeSessionReady = false;
-            try {
-              sessionStorage.removeItem("funtime-security-session-v1");
-              sessionStorage.removeItem("intervalo-security-session-v1");
-            } catch { /* Sem sessão confiável, manter desbloqueio obrigatório. */ }
-          } else {
-            FunTimeMigration.repairDrinkOrderCorruption(localStorage);
-            await FunTimeReceiver.prepare(localStorage, origin);
-            globalThis.FunTimeSessionReady = true;
-          }
-          window.addEventListener("storage", event => {
-            if (FunTimeMigration.oldKeys.includes(event.key) || event.key === FunTimeTransition.ownerKey || event.key === null) window.location.reload();
-          });
           await loadApp();
         } catch (error) { showError(error); }
         // O navegador libera o Web Lock ao destruir a página. Não liberar no background.

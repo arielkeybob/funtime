@@ -308,3 +308,29 @@ test('histórico troca horário por data no limite de 24h durante a atualizaçã
   c.updateHistoryElapsedLabels();
   assert.equal(element.textContent, 'em 06/09/26');
 });
+
+function shapeContext() {
+  const ctx = vm.createContext({});
+  vm.runInContext(`const DATA_STORAGE_KEY='funtime-v1-data', SECURITY_STORAGE_KEY='funtime-security-v1';`, ctx);
+  vm.runInContext(extract('validateStoredShape'), ctx);
+  return ctx;
+}
+test('validateStoredShape: dado ausente ou nulo não lança; JSON inválido e formato incompatível falham fechado', () => {
+  const c = shapeContext();
+  assert.doesNotThrow(() => c.validateStoredShape(null, 'funtime-v1-data'));
+  assert.throws(() => c.validateStoredShape('{invalido', 'funtime-v1-data'));
+  assert.throws(() => c.validateStoredShape('[]', 'funtime-v1-data'));
+  assert.throws(() => c.validateStoredShape(JSON.stringify({ drinks: [], events: 'não é array' }), 'funtime-v1-data'));
+  assert.throws(() => c.validateStoredShape(JSON.stringify({ drinks: [{ id: 'a' }], events: [] }), 'funtime-v1-data'));
+  assert.throws(() => c.validateStoredShape(JSON.stringify({ drinks: [{ id: 'a', name: 'x' }, { id: 'a', name: 'y' }], events: [] }), 'funtime-v1-data'));
+  assert.doesNotThrow(() => c.validateStoredShape(JSON.stringify({ version: 11, drinks: [{ id: 'a', name: 'Água' }], events: [] }), 'funtime-v1-data'));
+  assert.doesNotThrow(() => c.validateStoredShape(JSON.stringify({ drinks: [{ id: 'a', name: 'Água' }, null], events: [] }), 'funtime-v1-data'));
+});
+test('validateStoredShape: segurança exige método coerente com pin/webauthn presentes', () => {
+  const c = shapeContext();
+  assert.doesNotThrow(() => c.validateStoredShape(JSON.stringify({ enabled: false }), 'funtime-security-v1'));
+  assert.throws(() => c.validateStoredShape(JSON.stringify({ enabled: true, method: 'pin' }), 'funtime-security-v1'));
+  assert.throws(() => c.validateStoredShape(JSON.stringify({ enabled: true, method: 'outro' }), 'funtime-security-v1'));
+  assert.doesNotThrow(() => c.validateStoredShape(JSON.stringify({ enabled: true, method: 'pin', pin: { salt: 's', hash: 'h' } }), 'funtime-security-v1'));
+  assert.doesNotThrow(() => c.validateStoredShape(JSON.stringify({ enabled: true, method: 'device', webauthn: { credentialId: 'c', publicKey: 'p' } }), 'funtime-security-v1'));
+});

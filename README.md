@@ -1,4 +1,8 @@
-# FunTime — V2.1.37
+# FunTime — V2.1.38
+
+## V2.1.38 — fim do suporte à versão anterior ("Intervalo")
+
+Ninguém mais usa a versão anterior do app, então todo o código que coexistia com ela e transferia dados entre as duas versões foi removido. Quem já está no FunTime 2 não percebe nenhuma mudança de tela ou de fluxo — o app abre exatamente como antes. App, boot, rodapés e cache alinhados a 2.1.38; DATA_VERSION 11 preservado.
 
 ## V2.1.37 — Home mais leve por segundo, sem mudança visível
 

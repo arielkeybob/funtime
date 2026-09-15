@@ -24,7 +24,6 @@ test('Ícones: arraste, teclado, cancelamento e persistência em perfil isolado'
     const errors = [];
     page.on('pageerror', e => errors.push(e.message));
     await page.goto(`http://127.0.0.1:${server.address().port}/funtime/`);
-    await page.getByRole('button', { name: 'Começar sem dados', exact: true }).click();
     for (const checkbox of await page.locator('#terms-form input[type=checkbox]').all()) await checkbox.check();
     await page.locator('#terms-continue').click();
     await page.waitForFunction(() => history.state?.funtimeNavigation && !document.body.classList.contains('boot-pending'));

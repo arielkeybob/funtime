@@ -16,7 +16,6 @@ test('BPM: oito toques, interrupções, isolamento e movimento reduzido', { time
     const errors = [];
     page.on('pageerror', error => errors.push(error.message));
     await page.goto(`http://127.0.0.1:${server.address().port}/funtime/`);
-    await page.getByRole('button', { name: 'Começar sem dados', exact: true }).click();
     for (const checkbox of await page.locator('#terms-form input[type=checkbox]').all()) await checkbox.check();
     await page.locator('#terms-continue').click();
     await page.waitForFunction(() => typeof state !== 'undefined' && !document.body.classList.contains('boot-pending'));
@@ -84,7 +83,6 @@ test('vídeo: segurar o aviso abre um player temporário ao fundo', { timeout: 6
       Object.defineProperty(navigator, 'vibrate', { value: duration => { window.testVibrations.push(duration); return true; } });
     });
     await page.goto(`http://127.0.0.1:${server.address().port}/funtime/`);
-    await page.getByRole('button', { name: 'Começar sem dados', exact: true }).click();
     for (const checkbox of await page.locator('#terms-form input[type=checkbox]').all()) await checkbox.check();
     await page.locator('#terms-continue').click();
     await page.waitForFunction(() => typeof state !== 'undefined' && !document.body.classList.contains('boot-pending'));

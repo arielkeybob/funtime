@@ -9,7 +9,6 @@ async function environment() {
   const browser = await chromium.launch({ channel: process.env.PWA_BROWSER_CHANNEL || 'msedge', headless: true });
   const page = await browser.newPage({ viewport: { width: 390, height: 844 } });
   await page.goto(`http://127.0.0.1:${server.address().port}/funtime/`);
-  await page.getByRole('button', { name: 'Começar sem dados', exact: true }).click();
   for (const checkbox of await page.locator('#terms-form input[type=checkbox]').all()) await checkbox.check();
   await page.locator('#terms-continue').click();
   await page.waitForFunction(() => !document.body.classList.contains('boot-pending'));

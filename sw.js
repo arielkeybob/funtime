@@ -1,5 +1,5 @@
-const APP_VERSION = "2.1.37";
-const CACHE_NAME = "funtime-v2-1-37";
+const APP_VERSION = "2.1.38";
+const CACHE_NAME = "funtime-v2-1-38";
 const BACKGROUND_CACHE_NAME = "funtime-bg-v1";
 const SHARE_IMPORT_CACHE_NAME = "funtime-share-target-v1";
 const SHARE_IMPORT_REQUEST_PATH = "./__shared-drinks-import__";
@@ -25,9 +25,6 @@ const APP_SHELL = [
   "./occasions.js",
   "./occasions-ui.js",
   "./touch-debug.js",
-  "./migration.js",
-  "./transition.js",
-  "./receiver.js",
   "./boot.js",
   "./emoji-data.js",
   "./ui.js",
@@ -83,14 +80,14 @@ self.addEventListener("activate", (event) => {
 
 self.addEventListener("message", (event) => {
   if (event.data?.type === "GET_VERSION") {
-    event.ports[0]?.postMessage({ version: APP_VERSION, migrationProtocol: 2, transitionProtocol: 1 });
+    event.ports[0]?.postMessage({ version: APP_VERSION });
   }
   if (event.data?.type === "SKIP_WAITING") {
     self.skipWaiting();
   }
   if (event.data?.type === "FUNTIME_PREPARE") {
-    event.waitUntil(prepareMigrationClients().then(
-      () => event.ports[0]?.postMessage({ ready: true, protocol: 2, transitionProtocol: 1 }),
+    event.waitUntil(prepareBootClients().then(
+      () => event.ports[0]?.postMessage({ ready: true, protocol: 2 }),
       () => event.ports[0]?.postMessage({ ready: false })
     ));
   }
@@ -101,7 +98,7 @@ function isAppWindow(client) {
   return url.origin === scope.origin && (url.pathname === scope.pathname || url.pathname === `${scope.pathname}index.html`);
 }
 
-function hasMigrationBoot(client) {
+function hasCurrentBoot(client) {
   return new Promise(resolve => {
     const channel = new MessageChannel();
     const timer = setTimeout(() => { channel.port1.close(); resolve(false); }, 1500);
@@ -110,14 +107,14 @@ function hasMigrationBoot(client) {
   });
 }
 
-async function prepareMigrationClients() {
-  // Novas navegações já recebem o shell novo. Retirar código antigo antes de tocar nas chaves.
+async function prepareBootClients() {
+  // Nenhuma janela pode ficar rodando o script antigo antes de liberar uma atualização.
   const clients = (await self.clients.matchAll({ type: "window", includeUncontrolled: true })).filter(isAppWindow);
   await Promise.all(clients.map(async client => {
-    if (await hasMigrationBoot(client)) return;
+    if (await hasCurrentBoot(client)) return;
     const updated = await client.navigate(client.url);
     if (!updated && await self.clients.get(client.id)) throw new Error("Não foi possível atualizar a janela.");
-    if (updated && !(await hasMigrationBoot(updated))) throw new Error("Janela ainda não atualizada.");
+    if (updated && !(await hasCurrentBoot(updated))) throw new Error("Janela ainda não atualizada.");
   }));
 }
 
@@ -166,7 +163,7 @@ self.addEventListener("fetch", (event) => {
 
   if (request.method !== "GET") return;
   if (url.origin !== self.location.origin) return;
-  // Não guardar recursos da ponte nem devolver o shell v2 fora do próprio escopo.
+  // Nunca responder por recursos fora do próprio escopo (ex.: outro app na mesma origem).
   if (!url.pathname.startsWith(new URL(self.registration.scope).pathname)) return;
 
   const backgroundPath = new URL("./bg/", self.registration.scope).pathname;

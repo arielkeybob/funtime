@@ -12,7 +12,6 @@ test('Mundo invertido: gesto, cancelamento, duração, isolamento e movimento re
     const errors = [];
     page.on('pageerror', e => errors.push(e.message));
     await page.goto(`http://127.0.0.1:${server.address().port}/funtime/`);
-    await page.getByRole('button', { name: 'Começar sem dados', exact: true }).click();
     for (const checkbox of await page.locator('#terms-form input[type=checkbox]').all()) await checkbox.check();
     await page.locator('#terms-continue').click();
     await page.waitForFunction(() => !document.body.classList.contains('boot-pending'));
@@ -121,7 +120,6 @@ test('Mundo invertido: ciclo sem repetição e respostas à sequência rápida',
     const page = await browser.newPage({ viewport: { width: 390, height: 844 } });
     await page.addInitScript(() => { Math.random = () => .37; });
     await page.goto(`http://127.0.0.1:${server.address().port}/funtime/`);
-    await page.getByRole('button', { name: 'Começar sem dados', exact: true }).click();
     for (const checkbox of await page.locator('#terms-form input[type=checkbox]').all()) await checkbox.check();
     await page.locator('#terms-continue').click();
     await page.waitForFunction(() => !document.body.classList.contains('boot-pending'));

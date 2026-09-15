@@ -112,8 +112,8 @@ test('verificação periódica encontra instalação depois de cinco segundos e 
   assert.equal(nodes['#browser-install-status-title'].textContent, 'App já instalado');
   assert.equal(timers.size, 0);
 });
-test('v1 instalada não é confundida com FunTime 2', async () => {
-  const { context } = setup([{ platform: 'webapp', url: 'https://example.com/intervalo/manifest.webmanifest', id: '/intervalo/' }]);
+test('app relacionado com outro id não é confundido com o FunTime', async () => {
+  const { context } = setup([{ platform: 'webapp', url: 'https://example.com/outro-app/manifest.webmanifest', id: '/outro-app/' }]);
   assert.equal(await context.detectInstalledPwa(), false);
 });
 test('sem API mantém orientação; aceitar prompt não confirma instalação', async () => {
