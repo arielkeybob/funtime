@@ -9,6 +9,7 @@ import { derivePinHash, PIN_PBKDF2_ITERATIONS } from "../security/pin-crypto.js"
 import { commit } from "../data/store.js";
 import { wireDialogDismissal } from "../ui/dialogs.js";
 import { createDurationPicker } from "../ui/wheel-picker.js";
+import { createFieldErrorController, createFormErrorController } from "../ui/field-errors.js";
 
 Object.assign(globalThis, {
   formatTime, formatClock, formatHistoryElapsed, formatInterval, resolveCountingMode,
@@ -17,4 +18,5 @@ Object.assign(globalThis, {
   commitAppData: commit,
   wireDialogDismissal,
   createDurationPicker,
+  createFieldErrorController, createFormErrorController,
 });

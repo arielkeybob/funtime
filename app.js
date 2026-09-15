@@ -4209,19 +4209,11 @@ function handleLogSubmit(event) {
   registerMinutesAgo(totalMinutesAgo);
 }
 
-function setDrinkFieldError(field, hasError) {
-  if (field === "name") {
-    drinkNameField.classList.toggle("has-error", hasError);
-    drinkNameError.hidden = !hasError;
-    nameInput.setAttribute("aria-invalid", hasError ? "true" : "false");
-    return;
-  }
+const drinkNameFieldError = createFieldErrorController({ fieldEl: drinkNameField, errorEl: drinkNameError, inputEl: nameInput });
+const drinkIconFieldError = createFieldErrorController({ fieldEl: drinkIconField, errorEl: drinkIconError, inputEl: iconOptions });
 
-  if (field === "icon") {
-    drinkIconField.classList.toggle("has-error", hasError);
-    drinkIconError.hidden = !hasError;
-    iconOptions.setAttribute("aria-invalid", hasError ? "true" : "false");
-  }
+function setDrinkFieldError(field, hasError) {
+  (field === "name" ? drinkNameFieldError : drinkIconFieldError).set(hasError);
 }
 
 function clearDrinkFieldError(field) {
@@ -4233,20 +4225,9 @@ function clearDrinkValidation() {
   clearDrinkFieldError("icon");
 }
 
-function showFormError(message) {
-  formError.textContent = message;
-  formError.hidden = false;
-}
-
-function showLogFormError(message) {
-  logFormError.textContent = message;
-  logFormError.hidden = false;
-}
-
-function showEventFormError(message) {
-  eventFormError.textContent = message;
-  eventFormError.hidden = false;
-}
+const showFormError = createFormErrorController(formError);
+const showLogFormError = createFormErrorController(logFormError);
+const showEventFormError = createFormErrorController(eventFormError);
 
 
 function getWaitingWorkerVersion(worker) {
