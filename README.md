@@ -1,4 +1,8 @@
-# FunTime — V2.1.36
+# FunTime — V2.1.37
+
+## V2.1.37 — Home mais leve por segundo, sem mudança visível
+
+O relógio da Home deixa de reconstruir todos os cards a cada segundo. Agora só o texto do contador é atualizado quando nada muda de fato; o card só é reconstruído quando algo realmente muda — uma dose que termina o intervalo, ou uma dose concluída que sai do grupo "recentes" depois de 24h. O resultado visível é idêntico; só o trabalho da tela por trás diminui. App, boot, rodapés e cache alinhados a 2.1.37; DATA_VERSION 11 preservado.
 
 ## V2.1.36 — reorganização interna do código, sem mudança de comportamento
 
