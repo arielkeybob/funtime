@@ -5,8 +5,10 @@
 import { formatTime, formatClock, formatHistoryElapsed, formatInterval } from "../format/datetime.js";
 import { resolveCountingMode } from "../format/counting-mode.js";
 import { derEcdsaSignatureToRaw } from "../security/webauthn-signature.js";
+import { derivePinHash, PIN_PBKDF2_ITERATIONS } from "../security/pin-crypto.js";
 
 Object.assign(globalThis, {
   formatTime, formatClock, formatHistoryElapsed, formatInterval, resolveCountingMode,
   derEcdsaSignatureToRaw,
+  derivePinHash, PIN_PBKDF2_ITERATIONS,
 });

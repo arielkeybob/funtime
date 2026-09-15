@@ -1,6 +1,6 @@
 # 0004 — Extrair `derivePinHash`/`PIN_PBKDF2_ITERATIONS` para `src/security/pin-crypto.js`
 
-Status: proposta
+Status: implementada
 
 ## Contexto
 

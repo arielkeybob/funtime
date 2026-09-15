@@ -4,7 +4,7 @@
   "type": "commonjs",
   "description": "Metadado de ferramental de desenvolvimento do FunTime (testes). O app publicado continua HTML/CSS/JS puro, sem build e sem backend — este arquivo não introduz nenhum dos dois. Os arquivos .js existentes na raiz continuam CommonJS-compatíveis (require() nos testes); só o código novo em src/ é ES Module, escopado por src/package.json.",
   "scripts": {
-    "test": "node --test --test-concurrency=1 tests/",
+    "test": "node --test --test-concurrency=1",
     "test:browser": "node --test --test-concurrency=1 \"tests/*-browser.test.cjs\""
   },
   "devDependencies": {

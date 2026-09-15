@@ -12,6 +12,7 @@ const APP_SHELL = [
   "./src/format/datetime.js",
   "./src/format/counting-mode.js",
   "./src/security/webauthn-signature.js",
+  "./src/security/pin-crypto.js",
   "./src/bootstrap/legacy-bridge.js",
   "./app.js",
   "./occasions.js",

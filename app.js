@@ -297,7 +297,6 @@ const SECURITY_SESSION_KEY = "funtime-security-session-v1";
 const SECURITY_CONFIG_VERSION = 3;
 const PIN_LENGTH = 4;
 const LEGACY_PIN_LENGTH = 6;
-const PIN_PBKDF2_ITERATIONS = 210000;
 const PIN_LOCKOUT_ATTEMPTS = 5;
 const PIN_LOCKOUT_MS = 30000;
 
@@ -676,23 +675,6 @@ function equalBytes(a, b) {
   let diff = 0;
   for (let i = 0; i < left.length; i += 1) diff |= left[i] ^ right[i];
   return diff === 0;
-}
-
-async function derivePinHash(pin, saltBytes, iterations = PIN_PBKDF2_ITERATIONS) {
-  const material = await crypto.subtle.importKey(
-    "raw",
-    new TextEncoder().encode(pin),
-    "PBKDF2",
-    false,
-    ["deriveBits"]
-  );
-  const bits = await crypto.subtle.deriveBits({
-    name: "PBKDF2",
-    salt: saltBytes,
-    iterations,
-    hash: "SHA-256",
-  }, material, 256);
-  return new Uint8Array(bits);
 }
 
 function getConfiguredPinLength() {
