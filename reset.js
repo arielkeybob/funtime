@@ -245,3 +245,11 @@ document.querySelector('#reset-select-all').addEventListener('click', () => sele
 document.querySelector('#reset-select-none').addEventListener('click', () => selectResetDrinks(false));
 document.querySelector('#reset-drinks-list').addEventListener('scroll', updateResetListHint, { passive: true });
 window.addEventListener('resize', updateResetListHint);
+
+// navigation.js (script clássico até virar módulo) ainda lê estas soltas, e
+// tests/navigation-browser.test.cjs lê algumas via page.evaluate. Ver docs/specs/0019.
+globalThis.closeDataReset = closeDataReset;
+globalThis.returnToResetPreview = returnToResetPreview;
+globalThis.openDataReset = openDataReset;
+globalThis.resetAuthorizationIsCurrent = resetAuthorizationIsCurrent;
+Object.defineProperty(globalThis, "resetPending", { get: () => resetPending, configurable: true });
