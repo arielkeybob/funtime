@@ -17,6 +17,7 @@ Contexto geral do refactor: ver o plano aprovado em
 | [0002](0002-counting-mode.md) | Extrair núcleo puro de `effectiveCountingMode` para `src/format/counting-mode.js` | implementada |
 | [0003](0003-webauthn-signature.md) | Extrair `derEcdsaSignatureToRaw` para `src/security/webauthn-signature.js` | implementada |
 | [0004](0004-pin-crypto.md) | Extrair `derivePinHash`/`PIN_PBKDF2_ITERATIONS` para `src/security/pin-crypto.js` | implementada |
+| [0005](0005-store-core.md) | Criar `src/data/store.js` (núcleo da persistência, sem migrar call sites ainda) | implementada |
 
 Status possíveis: `proposta` (escrita, aguardando aprovação) · `aprovada` (pode
 implementar) · `implementada` (já no código, commit referenciado).
