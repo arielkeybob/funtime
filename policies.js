@@ -3,7 +3,7 @@ const TERMS_VERSION = "1.0.2";
 const TERMS_STORAGE_KEY = "funtime-terms-v1";
 const TERMS_DRAFT_KEY = "funtime-terms-draft-v1";
 
-function hasCurrentTermsAcceptance() {
+export function hasCurrentTermsAcceptance() {
   try {
     const value = JSON.parse(localStorage.getItem(TERMS_STORAGE_KEY));
     return value?.termsAccepted === true && value.termsVersion === TERMS_VERSION &&
@@ -11,7 +11,7 @@ function hasCurrentTermsAcceptance() {
   } catch { return false; }
 }
 
-function requireTermsAcceptance() {
+export function requireTermsAcceptance() {
   if (hasCurrentTermsAcceptance()) return Promise.resolve();
   const screen = document.querySelector("#terms-screen");
   const form = document.querySelector("#terms-form");
@@ -70,3 +70,7 @@ function requireTermsAcceptance() {
     update();
   });
 }
+
+// app.js (script clássico até virar módulo) ainda lê estas funções soltas. Ver docs/specs/0019.
+globalThis.hasCurrentTermsAcceptance = hasCurrentTermsAcceptance;
+globalThis.requireTermsAcceptance = requireTermsAcceptance;

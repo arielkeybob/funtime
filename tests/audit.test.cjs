@@ -119,7 +119,7 @@ test('aceite requer três confirmações, persiste localmente e falha fechada', 
   const handlers={}, checks=[{checked:false},{checked:false},{checked:false}];
   const elements={ '#terms-screen':{hidden:true}, '#terms-form':{querySelectorAll:()=>checks,addEventListener:(k,v)=>{handlers[k]=v;},removeEventListener:k=>delete handlers[k]}, '#terms-continue':{}, '#terms-error':{hidden:true}, '#terms-title':{focus:()=>{}} };
   const c=vm.createContext({localStorage:{getItem:()=>value,setItem:(k,v)=>{if(fail)throw Error('quota');value=v;}},document:{querySelector:k=>elements[k],body:{classList:{add:()=>{},remove:()=>{}}}}});
-  vm.runInContext(fs.readFileSync('policies.js','utf8'),c);
+  vm.runInContext(fs.readFileSync('policies.js','utf8').replace(/^export function/gm,'function'),c);
   assert.equal(c.hasCurrentTermsAcceptance(),false);
   let resolved=false; const pending=c.requireTermsAcceptance().then(()=>{resolved=true;});
   checks[0].checked=checks[1].checked=true; handlers.change(); assert.equal(elements['#terms-continue'].disabled,true);
@@ -148,7 +148,7 @@ test('rascunho restaura marcações ao voltar, sem aceitar; nova versão zera es
     const handlers = {}, checks = [{checked:false},{checked:false},{checked:false}];
     const elements = {'#terms-screen':{},'#terms-form':{querySelectorAll:()=>checks,addEventListener:(key,fn)=>{handlers[key]=fn;},removeEventListener:key=>delete handlers[key]},'#terms-continue':{},'#terms-error':{},'#terms-title':{focus(){}}};
     const ctx = vm.createContext({sessionStorage,localStorage:{getItem:()=>accepted,setItem:(key,value)=>{accepted=value;}},document:{querySelector:key=>elements[key],body:{classList:{add(){},remove(){}}}}});
-    vm.runInContext(fs.readFileSync('policies.js','utf8').replace(/const TERMS_VERSION = "[^"]+";/, `const TERMS_VERSION = "${version}";`),ctx);
+    vm.runInContext(fs.readFileSync('policies.js','utf8').replace(/^export function/gm,'function').replace(/const TERMS_VERSION = "[^"]+";/, `const TERMS_VERSION = "${version}";`),ctx);
     const pending=ctx.requireTermsAcceptance();
     return {ctx,checks,handlers,elements,pending};
   }

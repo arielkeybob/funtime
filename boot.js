@@ -92,7 +92,7 @@
     // Scripts convertidos em módulo ES importam de src/ e uns dos outros diretamente e
     // publicam em globalThis o que os scripts ainda clássicos leem como identificador
     // solto. Ver docs/specs/0017 e docs/specs/0019.
-    const moduleScripts = new Set(["./emoji-data.js", "./touch-debug.js", "./app.js"]);
+    const moduleScripts = new Set(["./policies.js", "./ui.js", "./emoji-data.js", "./touch-debug.js", "./app.js"]);
     for (const src of ["./occasions.js", "./policies.js", "./ui.js", "./emoji-data.js", "./touch-debug.js", "./app.js", "./reset.js", "./occasions-ui.js", "./navigation.js"]) {
       await loadScript(src, { module: moduleScripts.has(src) });
     }

@@ -26,14 +26,14 @@ function readFormDraft(form) {
     .filter(input => !['radio', 'checkbox'].includes(input.type) || input.checked)
     .map(input => [input.name || input.id, input.value]));
 }
-function updateFormDraft(form) {
+export function updateFormDraft(form) {
   if (!formDrafts.has(form)) return;
   const changed = readFormDraft(form) !== formDrafts.get(form);
   form.querySelectorAll('button[type="submit"]').forEach(button => { button.hidden = !changed; });
   form.querySelector('.app-dialog-actions')?.classList.toggle('has-only-cancel', !changed);
   return changed;
 }
-function beginFormDraft(form) {
+export function beginFormDraft(form) {
   formDrafts.set(form, readFormDraft(form));
   updateFormDraft(form);
   if (form.dataset.draftTracked) return;
@@ -45,7 +45,7 @@ function beginFormDraft(form) {
 }
 
 // Fechar pelo Voltar, Escape ou bloqueio equivale a cancelar.
-function showAppConfirmation(message, { title = 'Confirmar', confirmLabel = 'Confirmar' } = {}) {
+export function showAppConfirmation(message, { title = 'Confirmar', confirmLabel = 'Confirmar' } = {}) {
   const dialog = document.getElementById('app-confirm-dialog');
   if (dialog.open) return Promise.resolve(false);
   document.getElementById('app-confirm-title').textContent = title;
@@ -58,7 +58,7 @@ function showAppConfirmation(message, { title = 'Confirmar', confirmLabel = 'Con
   });
 }
 // Editor compacto de data/horário usando as roletas e classes comuns.
-function initializeDateTimeEditor(input) {
+export function initializeDateTimeEditor(input) {
   if (input._dateTimeEditor) { input._dateTimeEditor.refresh(); return; }
   const label = input.parentElement;
   const details = document.createElement('details'); details.className = 'date-time-editor'; details.id = label.id; details.hidden = label.hidden;
@@ -107,3 +107,9 @@ function initializeDateTimeEditor(input) {
   details.addEventListener('toggle', () => { if (details.open) refresh(); });
   input._dateTimeEditor = { refresh, collapse() { details.open = false; } }; refresh();
 }
+
+// occasions-ui.js (script clássico até virar módulo) ainda lê estas 4 soltas. Ver docs/specs/0019.
+globalThis.initializeDateTimeEditor = initializeDateTimeEditor;
+globalThis.beginFormDraft = beginFormDraft;
+globalThis.updateFormDraft = updateFormDraft;
+globalThis.showAppConfirmation = showAppConfirmation;
