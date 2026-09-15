@@ -2367,6 +2367,26 @@ function attachDrinkInteractions(mainButton, drink) {
   });
 }
 
+function describeDrinkForRender(drink, manualIds, occasion) {
+  const activity = getDrinkActivity(drink);
+  const neutral = activity.state === "completed" && (state.preferences.eventsEnabled
+    ? (!occasion || activity.latestEvent.occasionId !== occasion.id)
+    : Date.now() - activity.latestEvent.consumedAt >= 86400000);
+  const associatedNote = Boolean(occasion && activity.remainingMs > 0 && activity.latestEvent && activity.latestEvent.occasionId !== occasion.id);
+  const signaturePart = `${drink.id}:${manualIds.has(drink.id) ? "m" : "r"}:${activity.state}:${neutral}:${associatedNote}`;
+  return { activity, neutral, associatedNote, signaturePart };
+}
+
+function setTickingCardText(mainButton, time, drink, activity) {
+  time.textContent = formatActivityCounter(activity);
+  mainButton.setAttribute(
+    "aria-label",
+    activity.state === "waiting"
+      ? `${drink.name}: intervalo em andamento. ${formatTime(activity.remainingMs)} restantes. Toque duas vezes para abrir as opções de anotação.`
+      : `${drink.name}: atenção. ${activity.violationClusterCount} anotações em sequência antes do intervalo terminar. ${formatTime(activity.remainingMs)} restantes. Toque duas vezes para abrir as opções.`
+  );
+}
+
 function render() {
   if (state.pendingDrinkReorderId) {
     drinkReorder.cancelPending();
@@ -2383,6 +2403,7 @@ function render() {
   const displayGroups = getDrinkDisplayGroups();
   const displayDrinks = [...displayGroups.recent, ...displayGroups.manual];
   const manualIds = new Set(displayGroups.manual.map((drink) => drink.id));
+  const signatureParts = [];
 
   displayDrinks.forEach((drink, index) => {
     if (displayGroups.recent.length && displayGroups.manual.length && index === displayGroups.recent.length) {
@@ -2411,9 +2432,9 @@ function render() {
     icon.title = "";
     name.textContent = drink.name;
 
-    const activity = getDrinkActivity(drink);
     const occasion = state.preferences.eventsEnabled ? FunTimeOccasions.active(state.occasions) : null;
-    const neutral = activity.state === "completed" && (state.preferences.eventsEnabled ? (!occasion || activity.latestEvent.occasionId !== occasion.id) : Date.now() - activity.latestEvent.consumedAt >= 86400000);
+    const { activity, neutral, associatedNote, signaturePart } = describeDrinkForRender(drink, manualIds, occasion);
+    signatureParts.push(signaturePart);
     card.classList.add(neutral ? "neutral" : activity.state);
 
     if (activity.state === "new") {
@@ -2424,11 +2445,7 @@ function render() {
     } else if (activity.state === "waiting") {
       stateLabel.hidden = true;
       setClockStatus(status, "Tomou às", activity.latestEvent.consumedAt, getDoseStatusSuffix(activity.latestEvent));
-      time.textContent = formatActivityCounter(activity);
-      mainButton.setAttribute(
-        "aria-label",
-        `${drink.name}: intervalo em andamento. ${formatTime(activity.remainingMs)} restantes. Toque duas vezes para abrir as opções de anotação.`
-      );
+      setTickingCardText(mainButton, time, drink, activity);
     } else if (activity.state === "danger") {
       stateLabel.textContent = "⚠ TOMOU DOSE POR CIMA DA OUTRA";
       setClockStatus(
@@ -2437,11 +2454,7 @@ function render() {
         activity.latestEvent.consumedAt,
         `${getDoseStatusSuffix(activity.latestEvent)} · ${activity.violationClusterCount} registros em sequência`
       );
-      time.textContent = formatActivityCounter(activity);
-      mainButton.setAttribute(
-        "aria-label",
-        `${drink.name}: atenção. ${activity.violationClusterCount} anotações em sequência antes do intervalo terminar. ${formatTime(activity.remainingMs)} restantes. Toque duas vezes para abrir as opções.`
-      );
+      setTickingCardText(mainButton, time, drink, activity);
     } else {
       stateLabel.hidden = neutral && !occasion;
       stateLabel.textContent = neutral ? "SEM REGISTRO NESTE EVENTO" : "✓ INTERVALO CONCLUÍDO";
@@ -2450,7 +2463,7 @@ function render() {
       mainButton.setAttribute("aria-label", `Anotar dose de ${drink.name} agora com dois toques rápidos.${manualIds.has(drink.id) ? " Toque e segure o card para reorganizar." : ""}`);
     }
 
-    if (occasion && activity.remainingMs > 0 && activity.latestEvent.occasionId !== occasion.id) {
+    if (associatedNote) {
       status.append(document.createTextNode(" · Registro anterior ao evento"));
     }
     attachDrinkInteractions(mainButton, drink);
@@ -2465,6 +2478,36 @@ function render() {
     if (state.upsideDownActive) card.prepend(cardActions);
 
     drinkList.appendChild(fragment);
+  });
+
+  state.lastRenderSignature = `${signatureParts.join("|")}#upsideDown:${state.upsideDownActive}`;
+}
+
+function tickDrinkCards() {
+  globalThis.refreshOccasionContext?.();
+  const displayGroups = getDrinkDisplayGroups();
+  const manualIds = new Set(displayGroups.manual.map((drink) => drink.id));
+  const occasion = state.preferences.eventsEnabled ? FunTimeOccasions.active(state.occasions) : null;
+  const signatureParts = [];
+  const activitiesById = new Map();
+
+  [...displayGroups.recent, ...displayGroups.manual].forEach((drink) => {
+    const { activity, signaturePart } = describeDrinkForRender(drink, manualIds, occasion);
+    activitiesById.set(drink.id, activity);
+    signatureParts.push(signaturePart);
+  });
+
+  const signature = `${signatureParts.join("|")}#upsideDown:${state.upsideDownActive}`;
+  if (signature !== state.lastRenderSignature) {
+    render();
+    return;
+  }
+
+  drinkList.querySelectorAll(".drink-card[data-drink-id]").forEach((card) => {
+    const activity = activitiesById.get(card.dataset.drinkId);
+    if (!activity || (activity.state !== "waiting" && activity.state !== "danger")) return;
+    const drink = state.drinks.find((item) => item.id === card.dataset.drinkId);
+    if (drink) setTickingCardText(card.querySelector(".drink-main"), card.querySelector(".drink-time"), drink, activity);
   });
 }
 
@@ -3918,7 +3961,7 @@ function startClock() {
   state.timerId = setInterval(() => {
     globalThis.reconcileOccasions?.();
     if (state.currentView === "home" && !state.draggingDrinkId && !state.pendingDrinkReorderId && Date.now() >= state.reorderAnimationUntil) {
-      render();
+      tickDrinkCards();
     } else if (state.currentView === "history") {
       updateHistoryElapsedLabels();
     }
