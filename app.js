@@ -10,6 +10,7 @@ import { createDrinkReorderController } from "./src/ui/drink-reorder.js";
 import { createIconReorderController } from "./src/ui/icon-reorder.js";
 import { initEasterEggs } from "./src/easter-eggs/index.js";
 import { validateDrinkDraft } from "./src/drinks/validate.js";
+import { EMOJI_GROUPS } from "./emoji-data.js";
 
 const IS_STANDALONE_APP = (
   window.matchMedia("(display-mode: standalone)").matches ||

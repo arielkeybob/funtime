@@ -191,7 +191,7 @@ test('catálogo migra backups antigos e preserva lista vazia e ordem personaliza
 });
 test('catálogo interno tem opções únicas por categoria e inclui todos os padrões', () => {
  const c=vm.createContext({});
- vm.runInContext(fs.readFileSync('emoji-data.js', 'utf8'),c);
+ vm.runInContext(fs.readFileSync('emoji-data.js', 'utf8').replace(/^export const/m, 'const'),c);
  const groups=vm.runInContext('EMOJI_GROUPS',c);
  const icons=groups.flatMap(group=>group.icons);
  assert.equal(icons.length,1906);

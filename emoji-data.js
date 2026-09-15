@@ -2,7 +2,7 @@
 // Source: https://unicode.org/Public/emoji/16.0/emoji-test.txt
 // License: UNICODE-LICENSE.txt
 // Skin tone variants omitted; default emoji presentations retained.
-const EMOJI_GROUPS = [
+export const EMOJI_GROUPS = [
   {
     "name": "Bebidas e comidas",
     "icons": [
