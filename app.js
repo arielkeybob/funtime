@@ -361,9 +361,6 @@ const state = {
   pendingSharedImportCheck: false,
 };
 
-let cancelActiveDrinkReorder = null;
-let cancelPendingDrinkReorder = null;
-
 const homeHeader = document.querySelector("#home-header");
 const historyHeader = document.querySelector("#history-header");
 const homeView = document.querySelector("#home-view");
@@ -2239,213 +2236,11 @@ function animateManualDrinkShift(previousPositions) {
   });
 }
 
-function beginDrinkReorder(card, icon, drink, point) {
-  if (state.draggingDrinkId || !card.isConnected || card.dataset.reorderEligible !== "true") return;
-
-  const sourceRect = card.getBoundingClientRect();
-  const ghost = card.cloneNode(true);
-  ghost.className = `${card.className} drink-reorder-ghost`;
-  ghost.style.width = `${sourceRect.width}px`;
-  ghost.style.height = `${sourceRect.height}px`;
-  ghost.querySelectorAll("button").forEach((button) => { button.tabIndex = -1; });
-  document.body.appendChild(ghost);
-
-  const offsetX = point.clientX - sourceRect.left;
-  const offsetY = point.clientY - sourceRect.top;
-  const originalIcon = icon.querySelector(".drink-icon-symbol")?.textContent || drink.icon;
-  let latestPoint = point;
-  let autoScrollFrame = null;
-  const setGhostPosition = (nextPoint) => {
-    ghost.style.transform = `translate3d(${nextPoint.clientX - offsetX}px, ${nextPoint.clientY - offsetY}px, 0)`;
-  };
-
-  state.draggingDrinkId = drink.id;
-  card.classList.add("is-drink-drag-source");
-  icon.classList.add("is-dragging");
-  const symbol = icon.querySelector(".drink-icon-symbol");
-  if (symbol) symbol.textContent = "⠿";
-  setGhostPosition(point);
-  if (typeof navigator.vibrate === "function") navigator.vibrate(30);
-
-  const move = (nextPoint) => {
-    latestPoint = nextPoint;
-    setGhostPosition(nextPoint);
-    const candidates = [...drinkList.querySelectorAll('.drink-card[data-reorder-eligible="true"]')]
-      .filter((candidate) => candidate !== card);
-    const target = candidates.find((candidate) => {
-      const rect = candidate.getBoundingClientRect();
-      return nextPoint.clientY < rect.top + rect.height / 2;
-    });
-    if (!autoScrollFrame) autoScrollFrame = requestAnimationFrame(autoScroll);
-    const alreadyPlaced = target ? card.nextElementSibling === target : card === drinkList.lastElementChild;
-    if (alreadyPlaced) return;
-    const before = captureDrinkCardPositions();
-    if (target) drinkList.insertBefore(card, target);
-    else drinkList.appendChild(card);
-    animateManualDrinkShift(before);
-
-  };
-
-  const autoScroll = () => {
-    autoScrollFrame = null;
-    const ghostTop = latestPoint.clientY - offsetY;
-    const ghostBottom = ghostTop + sourceRect.height;
-    const speed = ghostTop < 0
-      ? -Math.ceil(Math.abs(ghostTop) / 7)
-      : ghostBottom > innerHeight
-        ? Math.ceil((ghostBottom - innerHeight) / 7)
-        : 0;
-    if (!speed) return;
-    window.scrollBy(0, Math.max(-14, Math.min(14, speed)));
-    move(latestPoint);
-  };
-
-  const finish = (save) => {
-    if (state.draggingDrinkId !== drink.id) return;
-    state.draggingDrinkId = null;
-    cancelActiveDrinkReorder = null;
-    window.removeEventListener("pointermove", pointerMove);
-    window.removeEventListener("pointerup", pointerUp);
-    window.removeEventListener("pointercancel", pointerCancel);
-    document.removeEventListener("touchmove", touchMove, true);
-    document.removeEventListener("touchend", touchEnd, true);
-    document.removeEventListener("touchcancel", touchCancel, true);
-    document.removeEventListener("pointerup", touchPointerUp, true);
-    document.removeEventListener("pointercancel", touchPointerCancel, true);
-    document.removeEventListener("pointermove", touchPointerMove, true);
-    window.removeEventListener("blur", cancelExternally);
-    document.removeEventListener("visibilitychange", cancelExternally);
-    cancelAnimationFrame(autoScrollFrame);
-    autoScrollFrame = null;
-    ghost.remove();
-    card.classList.remove("is-drink-drag-source");
-    icon.classList.remove("is-dragging");
-    if (symbol) symbol.textContent = originalIcon;
-    if (save) {
-      const ids = [...drinkList.querySelectorAll('.drink-card[data-reorder-eligible="true"]')]
-        .map((item) => item.dataset.drinkId);
-      try {
-        persistManualDrinkOrder(ids);
-        showToast("Ordem das bebidas salva.");
-      } catch (error) {
-        showAppNotification("Não foi possível salvar a ordem. A ordem anterior foi mantida.", { type: "error", persistent: true });
-      }
-    }
-    render();
-  };
-
-  const pointerMove = (event) => {
-    if (event.pointerId !== point.pointerId) return;
-    move(event);
-  };
-  const pointerUp = (event) => { if (event.pointerId === point.pointerId) finish(true); };
-  const pointerCancel = (event) => { if (event.pointerId === point.pointerId) finish(false); };
-  const touchMove = (event) => {
-    const touch = event.touches[0];
-    if (!touch || event.touches.length !== 1) return finish(false);
-    if (event.cancelable) event.preventDefault();
-    move(touch);
-  };
-  const touchEnd = () => finish(true);
-  const touchCancel = () => finish(false);
-  const touchPointerUp = () => finish(true);
-  const touchPointerCancel = () => setTimeout(() => finish(true), 0);
-  const touchPointerMove = (event) => move(event);
-  const cancelExternally = () => {
-    if (document.visibilityState !== "visible" || !document.hasFocus()) finish(false);
-  };
-  cancelActiveDrinkReorder = () => finish(false);
-
-  window.addEventListener("blur", cancelExternally);
-  document.addEventListener("visibilitychange", cancelExternally);
-
-  if (point.isTouch) {
-    document.addEventListener("touchmove", touchMove, { capture: true, passive: false });
-    document.addEventListener("touchend", touchEnd, true);
-    document.addEventListener("touchcancel", touchCancel, true);
-    document.addEventListener("pointerup", touchPointerUp, true);
-    document.addEventListener("pointercancel", touchPointerCancel, true);
-    document.addEventListener("pointermove", touchPointerMove, true);
-  } else {
-    window.addEventListener("pointermove", pointerMove);
-    window.addEventListener("pointerup", pointerUp);
-    window.addEventListener("pointercancel", pointerCancel);
-  }
-}
-
-function attachDrinkReorderGesture(card, dragSurface, icon, drink) {
-  let pressTimer = null;
-  let suppressClick = false;
-  const cancelPending = () => {
-    clearTimeout(pressTimer);
-    pressTimer = null;
-    icon.classList.remove("is-reorder-pressing");
-  };
-  const start = (point) => {
-    if (state.draggingDrinkId || state.pendingDrinkReorderId || !card.isConnected || card.dataset.reorderEligible !== "true") return;
-    const origin = { ...point };
-    state.pendingDrinkReorderId = drink.id;
-    icon.classList.add("is-reorder-pressing");
-    pressTimer = setTimeout(() => {
-      cleanup();
-      suppressClick = true;
-      beginDrinkReorder(card, icon, drink, origin);
-    }, DRINK_REORDER_PRESS_MS);
-
-    const move = (next) => {
-      if (Math.hypot(next.clientX - origin.clientX, next.clientY - origin.clientY) <= DRINK_REORDER_MOVE_TOLERANCE) return true;
-      cleanup();
-      return false;
-    };
-    const cleanup = () => {
-      cancelPending();
-      if (state.pendingDrinkReorderId === drink.id) state.pendingDrinkReorderId = null;
-      if (cancelPendingDrinkReorder === cleanup) cancelPendingDrinkReorder = null;
-      window.removeEventListener("pointermove", pointerMove);
-      window.removeEventListener("pointerup", cleanup);
-      window.removeEventListener("pointercancel", cleanup);
-      document.removeEventListener("touchmove", touchMove, true);
-      document.removeEventListener("touchend", cleanup, true);
-      document.removeEventListener("touchcancel", cleanup, true);
-      window.removeEventListener("blur", cleanup);
-      document.removeEventListener("visibilitychange", cleanup);
-    };
-    cancelPendingDrinkReorder = cleanup;
-    window.addEventListener("blur", cleanup);
-    document.addEventListener("visibilitychange", cleanup);
-    const pointerMove = (event) => { if (event.pointerId === origin.pointerId) move(event); };
-    const touchMove = (event) => {
-      const touch = [...event.touches].find((item) => item.identifier === origin.pointerId);
-      if (touch && move(touch) && event.cancelable) event.preventDefault();
-    };
-    if (origin.isTouch) {
-      document.addEventListener("touchmove", touchMove, { capture: true, passive: false });
-      document.addEventListener("touchend", cleanup, true);
-      document.addEventListener("touchcancel", cleanup, true);
-    } else {
-      window.addEventListener("pointermove", pointerMove);
-      window.addEventListener("pointerup", cleanup);
-      window.addEventListener("pointercancel", cleanup);
-    }
-  };
-
-  dragSurface.addEventListener("click", (event) => {
-    if (!suppressClick) return;
-    event.preventDefault();
-    event.stopPropagation();
-    suppressClick = false;
-  }, true);
-  dragSurface.addEventListener("contextmenu", (event) => event.preventDefault());
-  dragSurface.addEventListener("touchstart", (event) => {
-    if (event.touches.length !== 1) return;
-    const touch = event.touches[0];
-    start({ isTouch: true, pointerId: touch.identifier, clientX: touch.clientX, clientY: touch.clientY });
-  }, { passive: true });
-  dragSurface.addEventListener("pointerdown", (event) => {
-    if (event.pointerType === "touch" || event.button !== 0) return;
-    start({ isTouch: false, pointerId: event.pointerId, clientX: event.clientX, clientY: event.clientY });
-  });
-}
+const drinkReorder = createDrinkReorderController({
+  state, drinkList, pressMs: DRINK_REORDER_PRESS_MS, moveTolerance: DRINK_REORDER_MOVE_TOLERANCE,
+  captureDrinkCardPositions, animateManualDrinkShift, persistManualDrinkOrder,
+  showToast, showAppNotification, render,
+});
 
 function captureDrinkCardPositions() {
   const positions = new Map();
@@ -2574,10 +2369,10 @@ function attachDrinkInteractions(mainButton, drink) {
 
 function render() {
   if (state.pendingDrinkReorderId) {
-    cancelPendingDrinkReorder?.();
+    drinkReorder.cancelPending();
   }
   if (state.draggingDrinkId) {
-    cancelActiveDrinkReorder?.();
+    drinkReorder.cancelActive();
     return;
   }
   globalThis.refreshOccasionContext?.();
@@ -2659,7 +2454,7 @@ function render() {
       status.append(document.createTextNode(" · Registro anterior ao evento"));
     }
     attachDrinkInteractions(mainButton, drink);
-    if (manualIds.has(drink.id)) attachDrinkReorderGesture(card, mainButton, icon, drink);
+    if (manualIds.has(drink.id)) drinkReorder.attachDrinkReorderGesture(card, mainButton, icon, drink);
 
     historyButton.setAttribute("aria-label", `Ver histórico de ${drink.name}`);
     historyButton.addEventListener("click", () => openHistoryView(drink.id));
@@ -3154,7 +2949,7 @@ function deleteDrinkWithHistory() {
 }
 
 function closeDrinkDialog() {
-  cancelIconDrag?.();
+  iconReorder.cancel();
   state.editingDrinkId = null;
   drinkDialog.close();
 }
@@ -3625,10 +3420,9 @@ function initializeDurationPickers() { intervalDurationPicker.initialize(1, 0); 
 let removedCatalogIcon = null;
 let editingIconCatalog = false;
 let movedCatalogIcons = null;
-let cancelIconDrag = null;
 
 function toggleIconDeletion() {
-  cancelIconDrag?.();
+  iconReorder.cancel();
   editingIconCatalog = !editingIconCatalog;
   const scroll = iconOptions.scrollLeft;
   buildIconPicker(iconOptions.querySelector('input:checked')?.value || null, true);
@@ -3679,262 +3473,18 @@ function removeCatalogIcon(icon) {
   } catch (error) { setIconCatalogStatus('Não foi possível salvar. O ícone foi mantido.'); }
 }
 
-function attachIconGestures(wrapper, input, icon) {
-  const handle = wrapper.querySelector('label');
-  let suppressClick = false;
-  input.setAttribute('aria-describedby', 'icon-reorder-help icon-reorder-keyboard');
-  input.addEventListener('keydown', event => {
-    if (!event.altKey || editingIconCatalog) return;
-    const offsets = { ArrowLeft: -2, ArrowRight: 2, ArrowUp: -1, ArrowDown: 1 };
-    const index = state.preferences.iconCatalog.indexOf(icon);
-    const target = event.key === 'Home' ? 0 : event.key === 'End' ? state.preferences.iconCatalog.length - 1 : index + offsets[event.key];
-    if (!Number.isFinite(target)) return;
-    event.preventDefault();
-    if (!cancelIconDrag) commitIconMove(icon, target);
-  });
-  handle.addEventListener('contextmenu', event => { globalThis.FunTimeTouchDebug?.record('context-menu', event); event.preventDefault(); });
-  handle.addEventListener('dragstart', event => event.preventDefault());
-  // Registrar antes de touchstart: o navegador precisa saber que o gesto
-  // pode ser consumido depois da pressão longa, antes de iniciar a rolagem.
-  handle.addEventListener('touchmove', event => {
-    if (iconOptions.classList.contains('icon-drag-active') && event.cancelable) event.preventDefault();
-  }, { passive: false });
-  handle.addEventListener('click', event => {
-    if (suppressClick && event.detail !== 0) { event.preventDefault(); event.stopPropagation(); }
-  }, true);
-  const startPress = event => {
-    suppressClick = false;
-    if (editingIconCatalog || event.button !== 0 || !event.isPrimary || cancelIconDrag) return;
-    let latest = event;
-    globalThis.FunTimeTouchDebug?.record('press-start', event);
-    const cancel = reason => {
-      globalThis.FunTimeTouchDebug?.record('press-end', latest, typeof reason === 'string' ? reason : reason?.type || 'app-cancel');
-      clearTimeout(timer);
-      window.removeEventListener('pointermove', move);
-      window.removeEventListener('pointerup', cancel);
-      window.removeEventListener('pointercancel', cancel);
-      window.removeEventListener('pointerdown', anotherPointer);
-      window.removeEventListener('blur', cancel);
-      window.removeEventListener('keydown', escape, true);
-      document.removeEventListener('scroll', cancel, true);
-      document.removeEventListener('visibilitychange', cancel);
-      document.removeEventListener('touchmove', touchMove, true);
-      document.removeEventListener('touchend', cancel);
-      document.removeEventListener('touchcancel', cancel);
-      document.removeEventListener('touchstart', extraTouch);
-      cancelIconDrag = null;
-    };
-    const move = next => {
-      if (next.pointerId !== event.pointerId) return;
-      latest = next;
-      const distance = Math.hypot(next.clientX - event.clientX, next.clientY - event.clientY);
-      globalThis.FunTimeTouchDebug?.record('press-move', next, '', distance);
-      if (distance > (event.isTouch ? 18 : 10)) cancel('scroll-intent');
-    };
-    const touchMove = next => {
-      const touch = [...next.touches].find(touch => touch.identifier === event.pointerId);
-      if (!touch || next.touches.length !== 1) { cancel('multiple-or-missing-touch'); return; }
-      move(iconTouchPoint(touch, next));
-      // Pequena oscilação durante a espera não deve entregar o gesto ao navegador.
-      if (cancelIconDrag === cancel && next.cancelable) next.preventDefault();
-    };
-    const extraTouch = next => { if (next.touches.length !== 1) cancel('multiple-touch'); };
-    const anotherPointer = next => { if (next.pointerId !== event.pointerId) cancel(); };
-    const escape = next => { if (next.key === 'Escape') { next.preventDefault(); next.stopImmediatePropagation(); cancel(); } };
-    const timer = setTimeout(() => {
-      cancel('activated');
-      if (!handle.isConnected || !drinkDialog.open || document.hidden || editingIconCatalog) return;
-      suppressClick = true;
-      input.focus({ preventScroll: true });
-      beginIconDrag(wrapper, handle, icon, latest);
-    }, 500);
-    cancelIconDrag = cancel;
-    if (event.isTouch) {
-      document.addEventListener('touchmove', touchMove, { capture: true, passive: false });
-      document.addEventListener('touchend', cancel);
-      document.addEventListener('touchcancel', cancel);
-      document.addEventListener('touchstart', extraTouch);
-    } else {
-      window.addEventListener('pointermove', move);
-      window.addEventListener('pointerup', cancel);
-      window.addEventListener('pointercancel', cancel);
-      window.addEventListener('pointerdown', anotherPointer);
-    }
-    window.addEventListener('blur', cancel);
-    window.addEventListener('keydown', escape, true);
-    document.addEventListener('scroll', cancel, true);
-    document.addEventListener('visibilitychange', cancel);
-  };
-  handle.addEventListener('touchstart', event => {
-    if (event.touches.length === 1) startPress(iconTouchPoint(event.touches[0], event));
-  }, { passive: true });
-  handle.addEventListener('pointerdown', event => {
-    if (event.pointerType !== 'touch') startPress(event);
-  });
-}
-
-function iconTouchPoint(touch, event) {
-  return { isTouch: true, button: 0, isPrimary: true, pointerType: 'touch',
-    pointerId: touch.identifier, clientX: touch.clientX, clientY: touch.clientY,
-    width: touch.radiusX * 2, height: touch.radiusY * 2, pressure: touch.force,
-    type: event.type, cancelable: event.cancelable };
-}
-
-function beginIconDrag(wrapper, handle, icon, event) {
-    globalThis.FunTimeTouchDebug?.record('drag-start', event);
-    const pointerId = event.pointerId;
-    const startX = event.clientX, startY = event.clientY;
-    let x = startX, y = startY, targetIndex = null, frame, previewIndex = -1, overTrash = false;
-    const trash = document.querySelector('#icon-trash');
-    const nodes = [...iconOptions.querySelectorAll('[data-catalog-icon]')];
-    nodes.forEach(node => node.getAnimations().forEach(animation => animation.finish()));
-    const sourceIndex = nodes.indexOf(wrapper);
-    const boundsAtStart = iconOptions.getBoundingClientRect();
-    // Posições fixas da grade: os elementos animados não mudam o alvo do gesto.
-    const slots = nodes.map(node => {
-      const rect = node.getBoundingClientRect();
-      return { x: rect.left - boundsAtStart.left + iconOptions.scrollLeft, y: rect.top - boundsAtStart.top, width: rect.width, height: rect.height };
-    });
-    const rect = wrapper.getBoundingClientRect();
-    const ghost = document.createElement('div');
-    ghost.className = 'icon-drag-ghost';
-    ghost.textContent = icon;
-    ghost.setAttribute('aria-hidden', 'true');
-    ghost.style.width = rect.width + 'px';
-    ghost.style.height = rect.height + 'px';
-    drinkDialog.append(ghost);
-    wrapper.classList.add('icon-dragging');
-    iconOptions.classList.add('icon-drag-active');
-    trash.hidden = false;
-    const preview = index => {
-      if (previewIndex === index) return;
-      previewIndex = index;
-      const order = [...nodes];
-      order.splice(sourceIndex, 1);
-      order.splice(index, 0, wrapper);
-      order.forEach((node, position) => {
-        const original = slots[nodes.indexOf(node)], destination = slots[position];
-        node.style.transform = `translate(${destination.x - original.x}px, ${destination.y - original.y}px)`;
-      });
-    };
-    const update = () => {
-      ghost.style.left = (x - (startX - rect.left)) + 'px';
-      ghost.style.top = (y - (startY - rect.top)) + 'px';
-      const bounds = iconOptions.getBoundingClientRect();
-      trash.style.left = bounds.left + 'px';
-      trash.style.top = (bounds.bottom + 18) + 'px';
-      trash.style.width = bounds.width + 'px';
-      const trashBounds = trash.getBoundingClientRect();
-      overTrash = x >= trashBounds.left && x <= trashBounds.right && y >= trashBounds.top && y <= trashBounds.bottom;
-      trash.classList.toggle('icon-trash-active', overTrash);
-      ghost.classList.toggle('icon-drag-delete', overTrash);
-      targetIndex = null;
-      if (x >= bounds.left && x <= bounds.right && y >= bounds.top && y <= bounds.bottom) {
-        if (x < bounds.left + 28) iconOptions.scrollLeft -= 7;
-        if (x > bounds.right - 28) iconOptions.scrollLeft += 7;
-        let nearest = Infinity;
-        slots.forEach((slot, index) => {
-          const left = bounds.left + slot.x - iconOptions.scrollLeft, top = bounds.top + slot.y;
-          const distance = Math.hypot(x - left - slot.width / 2, y - top - slot.height / 2);
-          if (distance < nearest) { nearest = distance; targetIndex = index; }
-        });
-        // Não aceitar o espaço dos botões +/caneta como uma posição da lista.
-        if (nearest > Math.max(rect.width, rect.height)) targetIndex = null;
-        if (targetIndex !== null) {
-          preview(targetIndex);
-        }
-      }
-      if (targetIndex === null) preview(sourceIndex);
-    };
-    const tick = () => {
-      if (!handle.isConnected || !drinkDialog.open || document.hidden) { cancel(); return; }
-      update();
-      frame = requestAnimationFrame(tick);
-    };
-    const move = event => { if (event.pointerId === pointerId) { x = event.clientX; y = event.clientY; globalThis.FunTimeTouchDebug?.record('drag-move', event); } };
-    const finish = () => {
-      cancelAnimationFrame(frame);
-      nodes.forEach(node => { node.style.transform = ''; });
-      ghost.remove();
-      trash.hidden = true;
-      trash.classList.remove('icon-trash-active');
-      wrapper.classList.remove('icon-dragging');
-      iconOptions.classList.remove('icon-drag-active');
-      handle.removeEventListener('pointermove', move);
-      handle.removeEventListener('pointerup', drop);
-      handle.removeEventListener('pointercancel', cancel);
-      handle.removeEventListener('lostpointercapture', cancel);
-      window.removeEventListener('keydown', escape, true);
-      document.removeEventListener('touchmove', preventTouchScroll, true);
-      document.removeEventListener('visibilitychange', cancel);
-      window.removeEventListener('blur', cancel);
-      window.removeEventListener('resize', cancel);
-      window.removeEventListener('pointerdown', anotherPointer);
-      document.removeEventListener('touchend', touchEnd, true);
-      document.removeEventListener('touchcancel', cancel, true);
-      document.removeEventListener('touchstart', extraTouch, true);
-      handle.removeEventListener('pointercancel', tracePointerCancel);
-      cancelIconDrag = null;
-      if (!event.isTouch && handle.hasPointerCapture(pointerId)) handle.releasePointerCapture(pointerId);
-    };
-    const cancel = reason => { globalThis.FunTimeTouchDebug?.record('drag-cancel', reason, reason?.type || 'app-cancel'); finish(); };
-    const drop = event => {
-      if (event.pointerId !== pointerId) return;
-      x = event.clientX; y = event.clientY;
-      update();
-      const destination = targetIndex;
-      const shouldDelete = overTrash;
-      globalThis.FunTimeTouchDebug?.record('drag-drop', event, shouldDelete ? 'trash' : destination !== null ? 'grid' : 'outside');
-      finish();
-      if (shouldDelete) removeCatalogIcon(icon);
-      else if (destination !== null) commitIconMove(icon, destination);
-    };
-    const escape = event => { if (event.key === 'Escape') { event.preventDefault(); event.stopImmediatePropagation(); cancel(); } };
-    const preventTouchScroll = next => {
-      if (event.isTouch) {
-        const touch = [...next.touches].find(touch => touch.identifier === pointerId);
-        if (!touch || next.touches.length !== 1) { cancel(next); return; }
-        move(iconTouchPoint(touch, next));
-      }
-      if (next.cancelable) next.preventDefault();
-    };
-    const touchEnd = next => {
-      const touch = [...next.changedTouches].find(touch => touch.identifier === pointerId);
-      if (!touch) return;
-      if (next.cancelable) next.preventDefault();
-      drop(iconTouchPoint(touch, next));
-    };
-    const extraTouch = next => { if (next.touches.length !== 1) cancel(next); };
-    const tracePointerCancel = next => globalThis.FunTimeTouchDebug?.record('pointer-cancel-ignored', next);
-    const anotherPointer = event => { if (event.pointerId !== pointerId) cancel(); };
-    cancelIconDrag = cancel;
-    if (event.isTouch) {
-      document.addEventListener('touchend', touchEnd, true);
-      document.addEventListener('touchcancel', cancel, true);
-      document.addEventListener('touchstart', extraTouch, true);
-      handle.addEventListener('pointercancel', tracePointerCancel);
-    } else {
-      handle.setPointerCapture(pointerId);
-      handle.addEventListener('pointermove', move);
-      handle.addEventListener('pointerup', drop);
-      handle.addEventListener('pointercancel', cancel);
-      handle.addEventListener('lostpointercapture', cancel);
-      window.addEventListener('pointerdown', anotherPointer);
-    }
-    window.addEventListener('keydown', escape, true);
-    document.addEventListener('touchmove', preventTouchScroll, { capture: true, passive: false });
-    document.addEventListener('visibilitychange', cancel);
-    window.addEventListener('blur', cancel);
-    window.addEventListener('resize', cancel);
-    tick();
-}
+const iconReorder = createIconReorderController({
+  state, iconOptions, drinkDialog,
+  getEditingIconCatalog: () => editingIconCatalog,
+  commitIconMove, removeCatalogIcon,
+});
 
 function setIconCatalogStatus(message) {
   document.querySelector('#icon-catalog-status').textContent = message;
 }
 
 function buildIconPicker(selectedIcon = null, preserveFeedback = false) {
-  cancelIconDrag?.();
+  iconReorder.cancel();
   iconOptions.innerHTML = '';
   if (!preserveFeedback) {
     removedCatalogIcon = null;
@@ -3970,7 +3520,7 @@ function buildIconPicker(selectedIcon = null, preserveFeedback = false) {
     wrapper.append(label);
     if (catalog.includes(icon)) {
       wrapper.dataset.catalogIcon = icon;
-      attachIconGestures(wrapper, input, icon);
+      iconReorder.attachIconGestures(wrapper, input, icon);
       const remove = document.createElement('button');
       remove.type = 'button';
       remove.className = 'icon-remove';

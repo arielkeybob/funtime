@@ -10,6 +10,8 @@ import { commit } from "../data/store.js";
 import { wireDialogDismissal } from "../ui/dialogs.js";
 import { createDurationPicker } from "../ui/wheel-picker.js";
 import { createFieldErrorController, createFormErrorController } from "../ui/field-errors.js";
+import { createDrinkReorderController } from "../ui/drink-reorder.js";
+import { createIconReorderController } from "../ui/icon-reorder.js";
 
 Object.assign(globalThis, {
   formatTime, formatClock, formatHistoryElapsed, formatInterval, resolveCountingMode,
@@ -19,4 +21,5 @@ Object.assign(globalThis, {
   wireDialogDismissal,
   createDurationPicker,
   createFieldErrorController, createFormErrorController,
+  createDrinkReorderController, createIconReorderController,
 });

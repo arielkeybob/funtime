@@ -25,6 +25,7 @@ Contexto geral do refactor: ver o plano aprovado em
 | [0010](0010-dialog-dismissal.md) | Extrair `wireDialogDismissal` para `src/ui/dialogs.js` | implementada |
 | [0011](0011-duration-picker.md) | Extrair `createDurationPicker` para `src/ui/wheel-picker.js` | implementada |
 | [0012](0012-field-errors.md) | Extrair controladores de erro de campo/formulário para `src/ui/field-errors.js` | implementada |
+| [0013](0013-drag-reorder-modules.md) | Mover drag-and-drop para módulos próprios, sem unificar | implementada |
 
 Status possíveis: `proposta` (escrita, aguardando aprovação) · `aprovada` (pode
 implementar) · `implementada` (já no código, commit referenciado).
