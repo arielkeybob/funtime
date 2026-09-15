@@ -1,4 +1,8 @@
-# FunTime — V2.1.35
+# FunTime — V2.1.36
+
+## V2.1.36 — reorganização interna do código, sem mudança de comportamento
+
+`app.js` (5.228 linhas monolíticas) foi dividido em módulos ES sob `src/` — formatação de data/hora, segurança (PIN/WebAuthn), a camada única de gravação de dados, diálogos e outros helpers de UI, drag-and-drop de bebidas/ícones, easter eggs e a validação do formulário de bebida — carregados sem bundler via `<script type="module">`. De quebra, uma auditoria dos pontos onde o app salva dados encontrou e corrigiu 8 casos em que uma falha de armazenamento podia deixar a tela e os dados salvos divergentes; todos ganharam teste novo. Nenhuma tela, texto ou fluxo visível muda. App, boot, rodapés e cache alinhados a 2.1.36; DATA_VERSION 11 preservado.
 
 ## V2.1.35 — notificações compactas no iPhone
 
