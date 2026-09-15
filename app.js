@@ -4269,17 +4269,6 @@ function showEventFormError(message) {
   eventFormError.hidden = false;
 }
 
-function closeDialogOnBackdrop(dialogElement, event, closeFunction) {
-  const rect = dialogElement.getBoundingClientRect();
-  const inside =
-    event.clientX >= rect.left &&
-    event.clientX <= rect.right &&
-    event.clientY >= rect.top &&
-    event.clientY <= rect.bottom;
-
-  if (!inside) closeFunction();
-}
-
 
 function getWaitingWorkerVersion(worker) {
   return new Promise((resolve) => {
@@ -4592,79 +4581,17 @@ document.querySelectorAll(".quick-time-button").forEach((button) => {
 
 toastUndo.addEventListener("click", undoLastRegistration);
 
-drinkDialog.addEventListener("click", (event) => {
-  closeDialogOnBackdrop(drinkDialog, event, closeDrinkDialog);
-});
-
-deleteDrinkDialog.addEventListener("click", (event) => {
-  closeDialogOnBackdrop(deleteDrinkDialog, event, () => closeDeleteDrinkDialog());
-});
-
-deleteDrinkDialog.addEventListener("cancel", (event) => {
-  event.preventDefault();
-  closeDeleteDrinkDialog();
-});
-
-intervalWarningDialog.addEventListener("click", (event) => {
-  closeDialogOnBackdrop(intervalWarningDialog, event, closeIntervalWarningDialog);
-});
-
-drinkMenuDialog.addEventListener("click", (event) => {
-  closeDialogOnBackdrop(drinkMenuDialog, event, closeDrinkMenuDialog);
-});
-
-drinkMenuDialog.addEventListener("cancel", (event) => {
-  event.preventDefault();
-  closeDrinkMenuDialog();
-});
-
-logDialog.addEventListener("click", (event) => {
-  closeDialogOnBackdrop(logDialog, event, closeLogDialog);
-});
-
-doseSizeDialog.addEventListener("click", (event) => {
-  closeDialogOnBackdrop(doseSizeDialog, event, closeDoseSizeDialog);
-});
-
-doseSizeDialog.addEventListener("cancel", (event) => {
-  event.preventDefault();
-  closeDoseSizeDialog();
-});
-
-eventDialog.addEventListener("click", (event) => {
-  closeDialogOnBackdrop(eventDialog, event, closeEventDialog);
-});
-
-drinkImportDialog.addEventListener("click", (event) => {
-  closeDialogOnBackdrop(drinkImportDialog, event, closeDrinkImportDialog);
-});
-drinkImportDialog.addEventListener("cancel", (event) => {
-  event.preventDefault();
-  closeDrinkImportDialog();
-});
-
-backupRestoreDialog.addEventListener("click", (event) => {
-  closeDialogOnBackdrop(backupRestoreDialog, event, closeBackupRestoreDialog);
-});
-backupRestoreDialog.addEventListener("cancel", (event) => {
-  event.preventDefault();
-  closeBackupRestoreDialog();
-});
-
-securityMethodDialog.addEventListener("click", (event) => {
-  closeDialogOnBackdrop(securityMethodDialog, event, () => closeSecurityMethodDialog());
-});
-securityMethodDialog.addEventListener("cancel", (event) => {
-  event.preventDefault();
-  closeSecurityMethodDialog();
-});
-pinSetupDialog.addEventListener("click", (event) => {
-  closeDialogOnBackdrop(pinSetupDialog, event, () => closePinSetupDialog());
-});
-pinSetupDialog.addEventListener("cancel", (event) => {
-  event.preventDefault();
-  closePinSetupDialog();
-});
+wireDialogDismissal(drinkDialog, closeDrinkDialog);
+wireDialogDismissal(deleteDrinkDialog, () => closeDeleteDrinkDialog(), { cancel: true });
+wireDialogDismissal(intervalWarningDialog, closeIntervalWarningDialog);
+wireDialogDismissal(drinkMenuDialog, closeDrinkMenuDialog, { cancel: true });
+wireDialogDismissal(logDialog, closeLogDialog);
+wireDialogDismissal(doseSizeDialog, closeDoseSizeDialog, { cancel: true });
+wireDialogDismissal(eventDialog, closeEventDialog);
+wireDialogDismissal(drinkImportDialog, closeDrinkImportDialog, { cancel: true });
+wireDialogDismissal(backupRestoreDialog, closeBackupRestoreDialog, { cancel: true });
+wireDialogDismissal(securityMethodDialog, () => closeSecurityMethodDialog(), { cancel: true });
+wireDialogDismissal(pinSetupDialog, () => closePinSetupDialog(), { cancel: true });
 
 document.addEventListener("visibilitychange", () => {
   if (!IS_STANDALONE_APP || document.body.classList.contains("terms-pending")) return;
