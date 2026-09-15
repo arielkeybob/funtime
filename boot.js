@@ -56,10 +56,11 @@
     if (!response?.ready) throw new Error("Não foi possível atualizar todas as janelas do app. Tente novamente.");
     return true;
   }
-  function loadScript(src) {
+  function loadScript(src, { module = false } = {}) {
     return new Promise((resolve, reject) => {
       const script = document.createElement("script");
       script.src = src;
+      if (module) script.type = "module";
       const runtimeError = event => {
         if (event.filename === script.src) {
           window.removeEventListener("error", runtimeError);
@@ -114,7 +115,11 @@
     });
   }
   async function loadApp() {
-    for (const src of ["./occasions.js", "./policies.js", "./ui.js", "./emoji-data.js", "./touch-debug.js", "./app.js", "./reset.js", "./occasions-ui.js", "./navigation.js"]) await loadScript(src);
+    // src/bootstrap/legacy-bridge.js é módulo ES; publica em globalThis o que app.js
+    // (script clássico) ainda lê como identificador solto. Ver docs/specs/.
+    for (const src of ["./occasions.js", "./policies.js", "./ui.js", "./emoji-data.js", "./touch-debug.js", "./src/bootstrap/legacy-bridge.js", "./app.js", "./reset.js", "./occasions-ui.js", "./navigation.js"]) {
+      await loadScript(src, { module: src.endsWith("legacy-bridge.js") });
+    }
     if (failed) return;
     booted = true;
     screen.hidden = true;
