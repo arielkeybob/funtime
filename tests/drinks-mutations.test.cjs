@@ -18,8 +18,10 @@ function extractStatement(startText) {
 
 const COMMIT_APP_DATA_SRC = 'function commitAppData(key,current,patch){const next={...current,...patch};localStorage.setItem(key,JSON.stringify(next));return next;}';
 
+const { validateDrinkDraft } = require('../src/drinks/validate.js');
+
 function context(extra = {}) {
-  const ctx = vm.createContext({ console, crypto: require('node:crypto').webcrypto, ...extra });
+  const ctx = vm.createContext({ console, crypto: require('node:crypto').webcrypto, validateDrinkDraft, ...extra });
   vm.runInContext('const DATA_VERSION=11, DATA_STORAGE_KEY="funtime-v1-data", DEFAULT_ICON="🍺";', ctx);
   vm.runInContext(COMMIT_APP_DATA_SRC, ctx);
   for (const name of ['buildCurrentAppData', 'normalizeIcon', 'createId', 'getEventDrinkIdentity']) {

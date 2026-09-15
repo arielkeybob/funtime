@@ -27,6 +27,7 @@ Contexto geral do refactor: ver o plano aprovado em
 | [0012](0012-field-errors.md) | Extrair controladores de erro de campo/formulário para `src/ui/field-errors.js` | implementada |
 | [0013](0013-drag-reorder-modules.md) | Mover drag-and-drop para módulos próprios, sem unificar | implementada |
 | [0014](0014-easter-eggs.md) | Extrair easter eggs para `src/easter-eggs/index.js` | implementada |
+| [0015](0015-drink-draft-validation.md) | Extrair `validateDrinkDraft` de `handleDrinkSubmit` | implementada |
 
 Status possíveis: `proposta` (escrita, aguardando aprovação) · `aprovada` (pode
 implementar) · `implementada` (já no código, commit referenciado).

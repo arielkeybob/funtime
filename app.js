@@ -3649,41 +3649,23 @@ function handleDrinkSubmit(event) {
   const minutes = Number(formData.get("intervalMinutes"));
   const askDoseSize = formData.get("askDoseSize") === "on";
 
-  let firstInvalidField = null;
-
-  if (!name) {
-    setDrinkFieldError("name", true);
-    firstInvalidField = drinkNameField;
-  }
-
-  if (!icon) {
-    setDrinkFieldError("icon", true);
-    if (!firstInvalidField) firstInvalidField = drinkIconField;
-  }
-
-  if (firstInvalidField) {
-    requestAnimationFrame(() => {
-      firstInvalidField.scrollIntoView({ behavior: "smooth", block: "center" });
-    });
+  const draft = validateDrinkDraft({ name, icon, hours, minutes });
+  if (!draft.ok) {
+    if (draft.fieldErrors) {
+      let firstInvalidField = null;
+      for (const field of draft.fieldErrors) {
+        setDrinkFieldError(field, true);
+        if (!firstInvalidField) firstInvalidField = field === "name" ? drinkNameField : drinkIconField;
+      }
+      requestAnimationFrame(() => {
+        firstInvalidField.scrollIntoView({ behavior: "smooth", block: "center" });
+      });
+      return;
+    }
+    showFormError(draft.message);
     return;
   }
-
-  if (!Number.isInteger(hours) || hours < 0 || hours > 24) {
-    showFormError("Use um valor de horas entre 0 e 24.");
-    return;
-  }
-
-  if (!Number.isInteger(minutes) || minutes < 0 || minutes > 59) {
-    showFormError("Use um valor de minutos entre 0 e 59.");
-    return;
-  }
-
-  const totalMinutes = hours * 60 + minutes;
-
-  if (totalMinutes < 1 || totalMinutes > 1440) {
-    showFormError("O intervalo deve ficar entre 1 minuto e 24 horas.");
-    return;
-  }
+  const totalMinutes = draft.totalMinutes;
 
   if (state.editingDrinkId) {
     const drink = currentDrink;

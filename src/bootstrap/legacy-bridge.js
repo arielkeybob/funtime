@@ -13,6 +13,7 @@ import { createFieldErrorController, createFormErrorController } from "../ui/fie
 import { createDrinkReorderController } from "../ui/drink-reorder.js";
 import { createIconReorderController } from "../ui/icon-reorder.js";
 import { initEasterEggs } from "../easter-eggs/index.js";
+import { validateDrinkDraft } from "../drinks/validate.js";
 
 Object.assign(globalThis, {
   formatTime, formatClock, formatHistoryElapsed, formatInterval, resolveCountingMode,
@@ -24,4 +25,5 @@ Object.assign(globalThis, {
   createFieldErrorController, createFormErrorController,
   createDrinkReorderController, createIconReorderController,
   initEasterEggs,
+  validateDrinkDraft,
 });
