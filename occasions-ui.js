@@ -369,3 +369,20 @@ $occasion('events-enabled').addEventListener('change', async event => {
   finally { input.disabled = false; input.checked = state.preferences.eventsEnabled === true; }
 });
 refreshOccasionContext(); refreshOccasionFilters(); setCurrentView(state.currentView); reconcileOccasions();
+
+// app.js e navigation.js (script clássico até virar módulo) ainda leem estas soltas;
+// alguns testes leem/escrevem via page.evaluate. Ver docs/specs/0019.
+globalThis.openOccasionView = openOccasionView;
+globalThis.reconcileOccasions = reconcileOccasions;
+globalThis.refreshOccasionContext = refreshOccasionContext;
+globalThis.refreshOccasionFilters = refreshOccasionFilters;
+globalThis.refreshOccasionReminder = refreshOccasionReminder;
+globalThis.commitOccasions = commitOccasions;
+globalThis.occasionInput = occasionInput;
+globalThis.openOccasionDetails = openOccasionDetails;
+globalThis.populateRecordOccasions = populateRecordOccasions;
+Object.defineProperty(globalThis, "occasionRetryAt", {
+  get: () => occasionRetryAt,
+  set: (value) => { occasionRetryAt = value; },
+  configurable: true,
+});

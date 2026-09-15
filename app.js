@@ -2721,7 +2721,7 @@ function closeHistoryView() {
 }
 
 function registerDrinkAt(id, timestamp, { doseSize = null, onSaved = null } = {}) {
-  if (globalThis.reconcileOccasions && !reconcileOccasions()) return;
+  if (globalThis.reconcileOccasions && !globalThis.reconcileOccasions()) return;
   const drink = state.drinks.find((item) => item.id === id);
   if (!drink) return;
 
