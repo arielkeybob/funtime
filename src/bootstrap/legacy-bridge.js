@@ -4,5 +4,9 @@
 // quando o último consumidor virar módulo (ver docs/specs/).
 import { formatTime, formatClock, formatHistoryElapsed, formatInterval } from "../format/datetime.js";
 import { resolveCountingMode } from "../format/counting-mode.js";
+import { derEcdsaSignatureToRaw } from "../security/webauthn-signature.js";
 
-Object.assign(globalThis, { formatTime, formatClock, formatHistoryElapsed, formatInterval, resolveCountingMode });
+Object.assign(globalThis, {
+  formatTime, formatClock, formatHistoryElapsed, formatInterval, resolveCountingMode,
+  derEcdsaSignatureToRaw,
+});
