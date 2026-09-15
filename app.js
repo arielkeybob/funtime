@@ -1,3 +1,16 @@
+import { formatTime, formatClock, formatHistoryElapsed, formatInterval } from "./src/format/datetime.js";
+import { resolveCountingMode } from "./src/format/counting-mode.js";
+import { derEcdsaSignatureToRaw } from "./src/security/webauthn-signature.js";
+import { derivePinHash, PIN_PBKDF2_ITERATIONS } from "./src/security/pin-crypto.js";
+import { commit as commitAppData } from "./src/data/store.js";
+import { wireDialogDismissal } from "./src/ui/dialogs.js";
+import { createDurationPicker } from "./src/ui/wheel-picker.js";
+import { createFieldErrorController, createFormErrorController } from "./src/ui/field-errors.js";
+import { createDrinkReorderController } from "./src/ui/drink-reorder.js";
+import { createIconReorderController } from "./src/ui/icon-reorder.js";
+import { initEasterEggs } from "./src/easter-eggs/index.js";
+import { validateDrinkDraft } from "./src/drinks/validate.js";
+
 const IS_STANDALONE_APP = (
   window.matchMedia("(display-mode: standalone)").matches ||
   window.matchMedia("(display-mode: fullscreen)").matches ||
@@ -893,7 +906,7 @@ function closePinSetupDialog({ cancelEnable = true } = {}) {
 
 async function configurePinSecurity(pin, isCurrent = () => true) {
   const salt = randomBytes(16);
-  const hash = await derivePinHash(pin, salt);
+  const hash = await (globalThis.derivePinHash || derivePinHash)(pin, salt);
   if (!isCurrent()) throw new Error('Configuração cancelada.');
   state.securityConfig = {
     ...state.securityConfig,
@@ -1013,7 +1026,7 @@ async function verifyPin(pin) {
   const stored = state.securityConfig.pin;
   if (!stored) return false;
   const salt = base64UrlToBytes(stored.salt);
-  const derived = await derivePinHash(pin, salt, stored.iterations);
+  const derived = await (globalThis.derivePinHash || derivePinHash)(pin, salt, stored.iterations);
   return equalBytes(derived, base64UrlToBytes(stored.hash));
 }
 
@@ -4299,3 +4312,42 @@ document.querySelector('#toast-dismiss').addEventListener('click', () => {
   hideToast();
   onDismiss?.();
 });
+
+// app.js é o único script clássico que virou módulo ES nesta fase (ver
+// docs/specs/0017). occasions-ui.js, reset.js, navigation.js e ui.js
+// continuam scripts clássicos e leem estes identificadores via globalThis
+// em vez de identificador solto — publicados aqui em vez de importados por
+// eles porque não têm import/export. Vários tests/*.test.cjs também chamam
+// funções de app.js diretamente via page.evaluate (mesmo motivo de
+// saveData ter virado um shim de teste na spec 0009) — por isso a lista
+// abaixo é mais ampla do que só o que os 4 scripts clássicos leem.
+Object.assign(globalThis, {
+  render, saveData, effectiveCountingMode, registerDrinkAt, tickDrinkCards,
+  closeSettingsView, openDrinkMenuDialog, openEventDialog, saveSecurityConfig,
+  editDrinkFromDrinkMenu, getDrinkActivity, persistIconCatalog, unlockApp,
+  openDeleteDrinkDialog, openEditDrinkDialog, BACKUP_EXPORT_TYPE,
+  state, DATA_STORAGE_KEY, buildCurrentAppData, refreshDataViews, showToast,
+  showAppNotification, setCurrentView, createId, closeHistoryView, openHistoryView,
+  renderHistory, getEventDrinkIdentity, toLocalDateInputValue, toLocalTimeInputValue,
+  PICKER_ICONS, SECURITY_STORAGE_KEY, hideToast, applyInterfacePreferences,
+  updateDataSettingsUI, LEGACY_DRINKS_STORAGE_KEY, SHARE_IMPORT_CACHE_NAME,
+  SECURITY_SESSION_KEY, getDefaultSecurityConfig, getConfiguredPinLength,
+  getPinLockoutRemainingMs, normalizePinInput, verifyPin, PIN_LOCKOUT_ATTEMPTS,
+  PIN_LOCKOUT_MS, verifyDeviceCredential, openSecurityMethodDialog, closeDrinkDialog,
+  closeDeleteDrinkDialog, closeDrinkMenuDialog, closeStopCountdownDialog,
+  closeIntervalWarningDialog, closeLogDialog, closeDoseSizeDialog, closeEventDialog,
+  closeDrinkImportDialog, closeBackupRestoreDialog, closeSecurityMethodDialog,
+  closePinSetupDialog, iconOptions, openSettingsView, createWheelPicker, setWheelPickerValue,
+  getEditingIconCatalog: () => editingIconCatalog,
+  openDrinkDialog, openLogDialog, openIntervalWarningDialog, continueFromIntervalWarning,
+  openDoseSizeDialog, openDrinkImportPreview, choosePinSecurity, disableSecurity,
+  updateDrinkMenuCountdown, setLogDurationPicker, buildIconPicker, prepareDrinkImportFile,
+  prepareBackupRestoreFile, validateBackupPayload, persistDrinkList, readPendingSharedDrinkFile,
+  lockApp, closeSensitiveDialogs, showLockScreen, APP_VERSION, DRINK_EXPORT_TYPE, DATA_VERSION,
+  backupRestoreDialog, derivePinHash,
+});
+// tests/navigation-browser.test.cjs lê `editingIconCatalog` solto (não via
+// getEditingIconCatalog()) para checar o valor corrente após um toggle — como é
+// um `let` reatribuído em runtime, precisa de um getter vivo, não uma cópia por
+// valor (que o Object.assign acima faria).
+Object.defineProperty(globalThis, "editingIconCatalog", { get: () => editingIconCatalog, configurable: true });

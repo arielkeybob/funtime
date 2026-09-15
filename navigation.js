@@ -44,7 +44,7 @@
     for (const dialog of dialogs.filter(item => item.open)) {
       next.push({ id: dialog.id, close: closers[dialog.id] || (() => dialog.close()) });
       if (dialog.id === 'drink-dialog') {
-        if (editingIconCatalog) next.push({ id: 'icon-edit', close: () => iconOptions.querySelector('.icon-edit').click() });
+        if (globalThis.getEditingIconCatalog()) next.push({ id: 'icon-edit', close: () => iconOptions.querySelector('.icon-edit').click() });
         if (!document.querySelector('#icon-add-panel').hidden) next.push({ id: 'emoji', close: () => document.querySelector('#cancel-add-icon').click() });
       }
       if (dialog.id === 'reset-dialog' && resetPending?.confirmed) next.push({ id: 'reset-auth', close: () => returnToResetPreview() });

@@ -8,13 +8,18 @@ durante o refactor descrito em
 ## Por que isto é ES Module e o resto do app não é
 
 `src/package.json` (`{"type":"module"}`) escopa a interpretação de módulo ES **só**
-para esta subárvore. Os arquivos `.js` na raiz do projeto (`app.js`, `occasions.js`,
-etc.) continuam scripts clássicos/CommonJS-compatíveis — o `package.json` da raiz é
-`"type": "commonjs"` de propósito, para não quebrar o `require()` que os testes em
-`tests/*.test.cjs` já fazem deles. **Não mova arquivos para dentro de `src/` sem
-converter seu conteúdo para `import`/`export`, e não crie um `package.json` na raiz
-com `"type": "module"`** — isso reintroduziria exatamente o problema que este
-isolamento resolve.
+para esta subárvore. Desde a spec 0017, `app.js` importa diretamente daqui (é
+`<script type="module">` no navegador) — mas continua fisicamente na raiz, e o
+`package.json` da raiz continua `"type": "commonjs"` de propósito, porque os testes em
+`tests/*.test.cjs` leem `app.js` via `fs.readFileSync` + `extract()`/`vm.runInContext`
+(nunca via `require()` direto), e os demais arquivos da raiz (`occasions.js`,
+`reset.js`, etc.) continuam scripts clássicos/CommonJS-compatíveis de verdade,
+`require()`áveis. Por isso `app.js` precisa ser checado com
+`node --input-type=module --check < app.js` (via stdin, sem argumento de arquivo) em
+vez do `node --check app.js` comum — o `package.json` da raiz não pode declarar
+`"type": "module"` sem quebrar o `require()` dos outros arquivos. **Não crie um
+`package.json` na raiz com `"type": "module"`** — isso reintroduziria exatamente o
+problema que este isolamento resolve.
 
 ## Convenções desta pasta
 
@@ -35,6 +40,8 @@ isolamento resolve.
 
 ## Como os scripts clássicos ainda consomem isto
 
-Enquanto `app.js` e os demais arquivos da raiz não viraram módulos ES eles próprios,
-`src/bootstrap/legacy-bridge.js` importa daqui e publica em `globalThis` o que for
-necessário. Ver spec de cada extração em `docs/specs/` para o estado atual da ponte.
+`app.js` importa diretamente daqui (spec 0017) e, no final do próprio arquivo,
+publica em `globalThis` (`Object.assign(globalThis, {...})`) o que `occasions-ui.js`,
+`reset.js`, `navigation.js` e `ui.js` ainda leem como identificador solto — esses
+quatro continuam scripts clássicos. Não existe mais um arquivo de ponte separado
+(`legacy-bridge.js` foi removido); ver docs/specs/0017-app-js-module.md.

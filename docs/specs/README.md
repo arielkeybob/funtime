@@ -29,6 +29,7 @@ Contexto geral do refactor: ver o plano aprovado em
 | [0014](0014-easter-eggs.md) | Extrair easter eggs para `src/easter-eggs/index.js` | implementada |
 | [0015](0015-drink-draft-validation.md) | Extrair `validateDrinkDraft` de `handleDrinkSubmit` | implementada |
 | [0016](0016-render-tick-performance.md) | Separar tick (texto) de render estrutural | implementada |
+| [0017](0017-app-js-module.md) | `app.js` vira módulo ES; remove `legacy-bridge.js` | implementada |
 
 Status possíveis: `proposta` (escrita, aguardando aprovação) · `aprovada` (pode
 implementar) · `implementada` (já no código, commit referenciado).

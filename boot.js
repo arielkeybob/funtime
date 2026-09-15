@@ -115,10 +115,11 @@
     });
   }
   async function loadApp() {
-    // src/bootstrap/legacy-bridge.js é módulo ES; publica em globalThis o que app.js
-    // (script clássico) ainda lê como identificador solto. Ver docs/specs/.
-    for (const src of ["./occasions.js", "./policies.js", "./ui.js", "./emoji-data.js", "./touch-debug.js", "./src/bootstrap/legacy-bridge.js", "./app.js", "./reset.js", "./occasions-ui.js", "./navigation.js"]) {
-      await loadScript(src, { module: src.endsWith("legacy-bridge.js") });
+    // app.js é módulo ES (importa de src/ diretamente) e publica em globalThis o
+    // que os demais scripts clássicos (reset.js, occasions-ui.js, navigation.js)
+    // ainda leem como identificador solto. Ver docs/specs/0017.
+    for (const src of ["./occasions.js", "./policies.js", "./ui.js", "./emoji-data.js", "./touch-debug.js", "./app.js", "./reset.js", "./occasions-ui.js", "./navigation.js"]) {
+      await loadScript(src, { module: src.endsWith("app.js") });
     }
     if (failed) return;
     booted = true;
