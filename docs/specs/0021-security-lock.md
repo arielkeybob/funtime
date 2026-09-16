@@ -186,4 +186,4 @@ cobertura do comportamento.
 Teste manual completo (configurar PIN, bloquear manualmente, desbloquear certo/errado
 até o limite de tentativas, aguardar o bloqueio passar, trocar de app e voltar,
 autenticação por dispositivo se disponível, "Apagar tudo" com PIN errado até bloquear)
-pendente de confirmação do usuário para fechar a spec.
+confirmado pelo usuário no PWA real. Spec encerrada.

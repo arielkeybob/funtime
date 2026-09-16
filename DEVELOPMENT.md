@@ -32,8 +32,10 @@ Nenhuma mudança de comportamento visível. Validado: `node --input-type=module 
 em `app.js` e nos dois módulos tocados; `node --check` em `reset.js`; suíte completa
 (179/180, única falha conhecida e pré-existente) rodada após cada sub-fase;
 `navigation-browser`/`occasions-browser` (que exercitam PIN/bloqueio de ponta a ponta)
-passaram sem ajuste. App, boot, rodapés e cache alinhados a 2.1.44; DATA_VERSION 11
-preservado.
+passaram sem ajuste; teste manual completo confirmado pelo usuário no PWA real
+(configurar PIN, bloquear/desbloquear certo e errado até o limite de tentativas,
+aguardar o bloqueio passar, trocar de app e voltar, "Apagar tudo" com PIN errado até
+bloquear). App, boot, rodapés e cache alinhados a 2.1.44; DATA_VERSION 11 preservado.
 
 ## V2.1.43 — expira compartilhamento recebido não retomado em 24h
 
