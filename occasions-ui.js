@@ -331,6 +331,7 @@ $occasion('history-occasion-options').addEventListener('click', event => {
   const option = event.target.closest('.history-filter-option');
   if (!option) return;
   state.historyOccasionId = option.dataset.value;
+  state.historyLimit = 20;
   refreshOccasionFilters();
   renderHistory();
   $occasion('history-occasion-filter').focus();
