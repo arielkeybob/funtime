@@ -21,10 +21,10 @@ const COMMIT_APP_DATA_SRC = 'function commitAppData(key,current,patch){const nex
 const { validateDrinkDraft } = require('../src/drinks/validate.js');
 
 function context(extra = {}) {
-  const ctx = vm.createContext({ console, crypto: require('node:crypto').webcrypto, validateDrinkDraft, ...extra });
+  const ctx = vm.createContext({ console, crypto: require('node:crypto').webcrypto, validateDrinkDraft, FunTimeOccasions: require('../occasions.js'), ...extra });
   vm.runInContext('const DATA_VERSION=11, DATA_STORAGE_KEY="funtime-v1-data", DEFAULT_ICON="🍺";', ctx);
   vm.runInContext(COMMIT_APP_DATA_SRC, ctx);
-  for (const name of ['buildCurrentAppData', 'normalizeIcon', 'createId', 'getEventDrinkIdentity']) {
+  for (const name of ['buildCurrentAppData', 'normalizeIcon', 'createId', 'getEventDrinkIdentity', 'normalizeDoseSize', 'toLocalDateInputValue', 'toLocalTimeInputValue']) {
     vm.runInContext(extract(name), ctx);
   }
   return ctx;
@@ -202,6 +202,104 @@ test('deleteSelectedEvent: falha de gravação preserva events e mostra erro', a
   await c.deleteSelectedEvent();
   assert.equal(state.events.length, 1);
   assert.match(notified, /Não foi possível excluir o registro/);
+});
+
+// --- handleEventSubmit ---
+// Escrito antes da extração da spec 0020 (Fase 9.2.3): app.js:3255-3305 ainda não
+// tinha nenhum teste unitário. Estes testes validam o comportamento atual antes de
+// mover a função para src/, servindo de rede de segurança para a extração.
+
+function eventSubmitContext(state, formValues, overrides = {}) {
+  const elements = {
+    'event-hour': { value: formValues.hour ?? '10' },
+    'event-minute': { value: formValues.minute ?? '00' },
+    'record-occasion': { value: formValues.occasionId ?? '' },
+  };
+  return context({
+    state,
+    eventDateInput: { value: formValues.date },
+    eventDoseField: { hidden: formValues.doseHidden !== false },
+    eventForm: { querySelector: () => formValues.doseChecked ? { value: formValues.doseChecked } : null },
+    document: { getElementById: id => elements[id] },
+    showEventFormError: () => {},
+    closeEventDialog: () => {},
+    refreshDataViews: () => {},
+    showToast: () => {},
+    localStorage: workingLocalStorage(),
+    ...overrides,
+  });
+}
+
+test('handleEventSubmit: sucesso atualiza data/hora e evento correspondente', () => {
+  const original = { id: 'e1', drinkId: 'd1', consumedAt: 1700000000000, intervalMinutes: 60 };
+  const state = { selectedEventId: 'e1', events: [original], occasions: [], preferences: { eventsEnabled: false } };
+  let toast = null, closed = false, refreshed = false;
+  const c = eventSubmitContext(state, { date: '2023-11-14', hour: '22', minute: '30' }, {
+    closeEventDialog: () => { closed = true; },
+    refreshDataViews: () => { refreshed = true; },
+    showToast: msg => { toast = msg; },
+  });
+  vm.runInContext(extract('handleEventSubmit'), c);
+  c.handleEventSubmit({ preventDefault: () => {} });
+  assert.notEqual(state.events[0], original, 'evento foi substituído, não mutado em place');
+  assert.equal(original.consumedAt, 1700000000000, 'objeto original não foi mutado');
+  assert.equal(state.events[0].intervalMinutes, 60, 'campos não tocados são preservados');
+  assert.equal(closed, true);
+  assert.equal(refreshed, true);
+  assert.match(toast, /Anotação atualizada/);
+});
+
+test('handleEventSubmit: registro não encontrado mostra erro específico sem mutar events', () => {
+  const state = { selectedEventId: 'missing', events: [{ id: 'e1', drinkId: 'd1', consumedAt: 1 }], occasions: [], preferences: {} };
+  let errorShown = null;
+  const c = eventSubmitContext(state, { date: '2023-11-14' }, { showEventFormError: msg => { errorShown = msg; } });
+  vm.runInContext(extract('handleEventSubmit'), c);
+  c.handleEventSubmit({ preventDefault: () => {} });
+  assert.equal(state.events[0].consumedAt, 1);
+  assert.match(errorShown, /não foi encontrado/);
+});
+
+test('handleEventSubmit: data/hora inválida ou no futuro é rejeitada antes de gravar', () => {
+  const original = { id: 'e1', drinkId: 'd1', consumedAt: 1700000000000 };
+  for (const formValues of [{ date: '' }, { date: 'não-é-uma-data', hour: '99' }, { date: '2999-01-01' }]) {
+    const state = { selectedEventId: 'e1', events: [{ ...original }], occasions: [], preferences: {} };
+    let errorShown = null;
+    const c = eventSubmitContext(state, formValues, { showEventFormError: msg => { errorShown = msg; } });
+    vm.runInContext(extract('handleEventSubmit'), c);
+    c.handleEventSubmit({ preventDefault: () => {} });
+    assert.equal(state.events[0].consumedAt, original.consumedAt, `não deveria mutar para formValues=${JSON.stringify(formValues)}`);
+    assert.ok(errorShown, `deveria mostrar erro para formValues=${JSON.stringify(formValues)}`);
+  }
+});
+
+test('handleEventSubmit: evento fora do período do registro/ocasião é rejeitado', () => {
+  const state = {
+    selectedEventId: 'e1',
+    events: [{ id: 'e1', drinkId: 'd1', consumedAt: 1700000000000, occasionId: null }],
+    occasions: [],
+    preferences: { eventsEnabled: true },
+  };
+  let errorShown = null;
+  const c = eventSubmitContext(state, { date: '2023-11-14', occasionId: 'inexistente' }, { showEventFormError: msg => { errorShown = msg; } });
+  vm.runInContext(extract('handleEventSubmit'), c);
+  c.handleEventSubmit({ preventDefault: () => {} });
+  assert.equal(state.events[0].consumedAt, 1700000000000);
+  assert.match(errorShown, /fora deste evento/);
+});
+
+test('handleEventSubmit: falha de gravação preserva o evento original', () => {
+  const original = { id: 'e1', drinkId: 'd1', consumedAt: 1700000000000 };
+  const state = { selectedEventId: 'e1', events: [original], occasions: [], preferences: {} };
+  let errorShown = null;
+  const c = eventSubmitContext(state, { date: '2023-11-14' }, {
+    localStorage: throwingLocalStorage(),
+    showEventFormError: msg => { errorShown = msg; },
+    showToast: () => { throw new Error('não deveria mostrar toast de sucesso'); },
+  });
+  vm.runInContext(extract('handleEventSubmit'), c);
+  c.handleEventSubmit({ preventDefault: () => {} });
+  assert.equal(state.events[0], original);
+  assert.match(errorShown, /anotação anterior foi mantida/);
 });
 
 // --- handleDrinkSubmit ---
