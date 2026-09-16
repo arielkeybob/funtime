@@ -4,7 +4,7 @@ import { derEcdsaSignatureToRaw } from "./src/security/webauthn-signature.js";
 import { derivePinHash, PIN_PBKDF2_ITERATIONS } from "./src/security/pin-crypto.js";
 import { commit as commitAppData } from "./src/data/store.js";
 import { wireDialogDismissal } from "./src/ui/dialogs.js";
-import { createDurationPicker } from "./src/ui/wheel-picker.js";
+import { createDurationPicker, createWheelPicker, setWheelPickerValue } from "./src/ui/wheel-picker.js";
 import { createFieldErrorController, createFormErrorController } from "./src/ui/field-errors.js";
 import { createDrinkReorderController } from "./src/ui/drink-reorder.js";
 import { createIconReorderController } from "./src/ui/icon-reorder.js";
@@ -321,10 +321,6 @@ const PICKER_ICONS = [
   "🥶", "🥵", "🌊", "🪄", "🧪", "👽", "😈", "🧙‍♂️"
 ];
 const DEFAULT_ICON = "🍺";
-
-const WHEEL_REPEAT_COUNT = 7;
-const WHEEL_MIDDLE_REPEAT = Math.floor(WHEEL_REPEAT_COUNT / 2);
-const WHEEL_ITEM_HEIGHT = 44;
 
 const REORDER_ANIMATION_MS = 880;
 const REORDER_ANIMATION_EASING = "cubic-bezier(0.22, 1, 0.36, 1)";
@@ -3329,136 +3325,6 @@ async function deleteSelectedEvent() {
   showToast("Anotação excluída. Os intervalos foram recalculados.");
 }
 
-function createWheelPicker(element, input, maxValue) {
-  const track = element.querySelector(".wheel-picker-track");
-  const valueCount = maxValue + 1;
-  const fragment = document.createDocumentFragment();
-
-  for (let repeat = 0; repeat < WHEEL_REPEAT_COUNT; repeat += 1) {
-    for (let value = 0; value <= maxValue; value += 1) {
-      const item = document.createElement("div");
-      item.className = "wheel-picker-item";
-      item.dataset.value = String(value);
-      item.dataset.index = String(repeat * valueCount + value);
-      item.textContent = String(value).padStart(2, "0");
-      fragment.appendChild(item);
-    }
-  }
-
-  track.replaceChildren(fragment);
-
-  const wheelState = {
-    input,
-    maxValue,
-    valueCount,
-    track,
-    selectedIndex: -1,
-    scrollRaf: null,
-    settleTimer: null,
-  };
-
-  element._wheelState = wheelState;
-
-  const updateFromScroll = () => {
-    wheelState.scrollRaf = null;
-    const maxIndex = track.children.length - 1;
-    const index = Math.max(0, Math.min(maxIndex, Math.round(element.scrollTop / WHEEL_ITEM_HEIGHT)));
-    const item = track.children[index];
-    if (!item) return;
-
-    const value = Number(item.dataset.value);
-    input.value = String(value);
-    input.dispatchEvent(new Event("input", { bubbles: true }));
-    element.setAttribute("aria-valuenow", String(value));
-    element.setAttribute("aria-valuetext", String(value).padStart(2, "0"));
-
-    if (wheelState.selectedIndex !== index) {
-      if (wheelState.selectedIndex >= 0 && track.children[wheelState.selectedIndex]) {
-        track.children[wheelState.selectedIndex].classList.remove("is-selected");
-      }
-      item.classList.add("is-selected");
-      wheelState.selectedIndex = index;
-    }
-
-    if (element === intervalHoursWheel) {
-      updateMinuteWheelAvailability(value);
-    }
-  };
-
-  const settle = () => {
-    const index = Math.round(element.scrollTop / WHEEL_ITEM_HEIGHT);
-    const repeat = Math.floor(index / valueCount);
-    const value = Number(input.value);
-
-    if (repeat <= 1 || repeat >= WHEEL_REPEAT_COUNT - 2) {
-      const middleIndex = WHEEL_MIDDLE_REPEAT * valueCount + value;
-      element.scrollTo({ top: middleIndex * WHEEL_ITEM_HEIGHT, behavior: "auto" });
-      updateFromScroll();
-    }
-  };
-
-  element.addEventListener("scroll", () => {
-    if (!wheelState.scrollRaf) {
-      wheelState.scrollRaf = requestAnimationFrame(updateFromScroll);
-    }
-
-    clearTimeout(wheelState.settleTimer);
-    wheelState.settleTimer = setTimeout(settle, 120);
-  }, { passive: true });
-
-  element.addEventListener("click", (event) => {
-    const item = event.target.closest(".wheel-picker-item");
-    if (!item || element.classList.contains("is-disabled")) return;
-
-    element.scrollTo({
-      top: Number(item.dataset.index) * WHEEL_ITEM_HEIGHT,
-      behavior: "smooth",
-    });
-  });
-
-  element.addEventListener("keydown", (event) => {
-    if (element.classList.contains("is-disabled")) return;
-
-    let direction = 0;
-    if (event.key === "ArrowUp") direction = -1;
-    if (event.key === "ArrowDown") direction = 1;
-    if (!direction) return;
-
-    event.preventDefault();
-    const currentIndex = Math.round(element.scrollTop / WHEEL_ITEM_HEIGHT);
-    element.scrollTo({
-      top: (currentIndex + direction) * WHEEL_ITEM_HEIGHT,
-      behavior: "smooth",
-    });
-  });
-
-  setWheelPickerValue(element, Number(input.value) || 0);
-}
-
-function setWheelPickerValue(element, rawValue, behavior = "auto") {
-  const wheelState = element._wheelState;
-  if (!wheelState) return;
-
-  const value = Math.max(0, Math.min(wheelState.maxValue, Number(rawValue) || 0));
-  const targetIndex = WHEEL_MIDDLE_REPEAT * wheelState.valueCount + value;
-
-  wheelState.input.value = String(value);
-  wheelState.input.dispatchEvent(new Event("input", { bubbles: true }));
-  element.setAttribute("aria-valuenow", String(value));
-  element.setAttribute("aria-valuetext", String(value).padStart(2, "0"));
-  element.scrollTo({ top: targetIndex * WHEEL_ITEM_HEIGHT, behavior });
-
-  if (wheelState.selectedIndex >= 0 && wheelState.track.children[wheelState.selectedIndex]) {
-    wheelState.track.children[wheelState.selectedIndex].classList.remove("is-selected");
-  }
-  wheelState.selectedIndex = targetIndex;
-  wheelState.track.children[targetIndex]?.classList.add("is-selected");
-
-  if (element === intervalHoursWheel) {
-    updateMinuteWheelAvailability(value);
-  }
-}
-
 function updateMinuteWheelAvailability(hours = Number(intervalHoursInput.value)) {
   const isMaxHours = Number(hours) === 24;
   const wasDisabled = intervalMinutesWheel.classList.contains("is-disabled");
@@ -3480,7 +3346,6 @@ function updateMinuteWheelAvailability(hours = Number(intervalHoursInput.value))
 const logDurationPicker = createDurationPicker({
   maxHours: 48, hoursWheel: logHoursWheel, minutesWheel: logMinutesWheel,
   hoursInput: logHoursAgoInput, minutesInput: logMinutesAgoInput,
-  createWheelPicker, setWheelPickerValue,
 });
 function setLogDurationPicker(hours, minutes) { logDurationPicker.set(hours, minutes); }
 function initializeLogDurationPickers() { logDurationPicker.initialize(0, 0); }
@@ -3488,7 +3353,7 @@ function initializeLogDurationPickers() { logDurationPicker.initialize(0, 0); }
 const intervalDurationPicker = createDurationPicker({
   maxHours: 24, hoursWheel: intervalHoursWheel, minutesWheel: intervalMinutesWheel,
   hoursInput: intervalHoursInput, minutesInput: intervalMinutesInput,
-  capMinutesAtMaxHours: true, createWheelPicker, setWheelPickerValue,
+  capMinutesAtMaxHours: true, onHoursChange: updateMinuteWheelAvailability,
 });
 function setDurationPicker(hours, minutes) { intervalDurationPicker.set(hours, minutes); }
 function initializeDurationPickers() { intervalDurationPicker.initialize(1, 0); }
