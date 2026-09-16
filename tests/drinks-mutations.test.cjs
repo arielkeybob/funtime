@@ -30,6 +30,47 @@ function context(extra = {}) {
   return ctx;
 }
 
+// src/history/event-dialog.js lê `document` como global solto (convenção de
+// módulos em src/ui|history/, ver src/README.md) - testado via require() real,
+// com um document de mentira injetado em global.document pela duração da chamada.
+function fakeDocument(overrides = {}) {
+  const stub = () => ({ addEventListener() {}, hidden: true, value: '', querySelector: () => null, querySelectorAll: () => [] });
+  return { querySelector: (selector) => overrides[selector] || stub(), getElementById: (id) => overrides[id] || stub(), querySelectorAll: () => [] };
+}
+// Ponte: as funções puras extraídas de app.js pelo context() (state/localStorage
+// injetados na criação) continuam válidas fora do vm.Context, porque closures
+// atravessam realms normalmente - reaproveitadas como dependências reais do
+// factory em vez de reimplementadas.
+function eventDialogInstance(c, formValues = {}, overrides = {}) {
+  const { createEventDialog } = require('../src/history/event-dialog.js');
+  const elements = {
+    'event-hour': { value: formValues.hour ?? '10' },
+    'event-minute': { value: formValues.minute ?? '00' },
+    'record-occasion': { value: formValues.occasionId ?? '' },
+  };
+  // Fica setado (sem restaurar) pela duração do teste: handleEventSubmit/
+  // deleteSelectedEvent leem `document` tanto na construção quanto quando chamados
+  // depois, e cada teste cria sua própria instância com os elements que precisa.
+  global.document = fakeDocument(elements);
+  return createEventDialog({
+    state: c.state,
+    eventDialog: { close() {}, showModal() {} },
+    eventForm: { addEventListener() {}, querySelector: () => (formValues.doseChecked ? { value: formValues.doseChecked } : null), querySelectorAll: () => [] },
+    eventDrinkName: {}, eventDateInput: { value: formValues.date, addEventListener() {} }, eventTimeInput: {},
+    eventInterval: {}, eventWarning: {}, eventWarningText: {}, eventDeletedNote: {}, eventFormError: {},
+    eventDoseField: { hidden: formValues.doseHidden !== false },
+    getEventDrinkIdentity: c.getEventDrinkIdentity, getEventContext: () => null,
+    formatInterval: () => '', formatElapsed: () => '', formatClock: () => '10:00',
+    toLocalDateInputValue: c.toLocalDateInputValue, toLocalTimeInputValue: c.toLocalTimeInputValue,
+    normalizeDoseSize: c.normalizeDoseSize,
+    createWheelPicker() {}, setWheelPickerValue() {}, beginFormDraft() {},
+    showEventFormError: () => {}, commitAppData: c.commitAppData, buildCurrentAppData: c.buildCurrentAppData,
+    dataStorageKey: 'funtime-v1-data',
+    refreshDataViews: () => {}, showToast: () => {}, showAppNotification: () => {}, showAppConfirmation: async () => true,
+    ...overrides,
+  });
+}
+
 function workingLocalStorage() {
   const map = new Map();
   return { setItem: (k, v) => map.set(k, v), getItem: k => map.get(k) };
@@ -141,21 +182,7 @@ test('deleteDrinkWithHistory: falha de gravação preserva drinks/events e mostr
   assert.match(notified, /Não foi possível excluir/);
 });
 
-// --- deleteSelectedEvent ---
-
-function eventContext(state, overrides = {}) {
-  return context({
-    state,
-    formatClock: () => '10:00',
-    showAppConfirmation: async () => true,
-    showAppNotification: () => {},
-    closeEventDialog: () => {},
-    refreshDataViews: () => {},
-    showToast: () => {},
-    localStorage: workingLocalStorage(),
-    ...overrides,
-  });
-}
+// --- deleteSelectedEvent (src/history/event-dialog.js, spec 0020 Fase 9.2.3) ---
 
 test('deleteSelectedEvent: sucesso remove só o registro selecionado', async () => {
   const state = {
@@ -164,10 +191,10 @@ test('deleteSelectedEvent: sucesso remove só o registro selecionado', async () 
     drinks: [{ id: 'd1', name: 'Água', icon: '💧' }],
     events: [{ id: 'e1', drinkId: 'd1', consumedAt: 1 }, { id: 'e2', drinkId: 'd1', consumedAt: 2 }],
   };
+  const c = context({ state, localStorage: workingLocalStorage() });
   let toast = null;
-  const c = eventContext(state, { showToast: msg => { toast = msg; } });
-  vm.runInContext('async ' + extract('deleteSelectedEvent'), c);
-  await c.deleteSelectedEvent();
+  const eventDialog = eventDialogInstance(c, {}, { showToast: msg => { toast = msg; } });
+  await eventDialog.deleteSelectedEvent();
   assert.deepEqual(state.events.map(e => e.id), ['e2']);
   assert.match(toast, /excluída/);
 });
@@ -179,9 +206,9 @@ test('deleteSelectedEvent: cancelar a confirmação não altera events', async (
     drinks: [{ id: 'd1', name: 'Água', icon: '💧' }],
     events: [{ id: 'e1', drinkId: 'd1', consumedAt: 1 }],
   };
-  const c = eventContext(state, { showAppConfirmation: async () => false });
-  vm.runInContext('async ' + extract('deleteSelectedEvent'), c);
-  await c.deleteSelectedEvent();
+  const c = context({ state, localStorage: workingLocalStorage() });
+  const eventDialog = eventDialogInstance(c, {}, { showAppConfirmation: async () => false });
+  await eventDialog.deleteSelectedEvent();
   assert.equal(state.events.length, 1);
 });
 
@@ -192,69 +219,48 @@ test('deleteSelectedEvent: falha de gravação preserva events e mostra erro', a
     drinks: [{ id: 'd1', name: 'Água', icon: '💧' }],
     events: [{ id: 'e1', drinkId: 'd1', consumedAt: 1 }],
   };
+  const c = context({ state, localStorage: throwingLocalStorage() });
   let notified = null;
-  const c = eventContext(state, {
-    localStorage: throwingLocalStorage(),
+  const eventDialog = eventDialogInstance(c, {}, {
     showAppNotification: msg => { notified = msg; },
     showToast: () => { throw new Error('não deveria mostrar toast de sucesso'); },
   });
-  vm.runInContext('async ' + extract('deleteSelectedEvent'), c);
-  await c.deleteSelectedEvent();
+  await eventDialog.deleteSelectedEvent();
   assert.equal(state.events.length, 1);
   assert.match(notified, /Não foi possível excluir o registro/);
 });
 
-// --- handleEventSubmit ---
-// Escrito antes da extração da spec 0020 (Fase 9.2.3): app.js:3255-3305 ainda não
-// tinha nenhum teste unitário. Estes testes validam o comportamento atual antes de
-// mover a função para src/, servindo de rede de segurança para a extração.
-
-function eventSubmitContext(state, formValues, overrides = {}) {
-  const elements = {
-    'event-hour': { value: formValues.hour ?? '10' },
-    'event-minute': { value: formValues.minute ?? '00' },
-    'record-occasion': { value: formValues.occasionId ?? '' },
-  };
-  return context({
-    state,
-    eventDateInput: { value: formValues.date },
-    eventDoseField: { hidden: formValues.doseHidden !== false },
-    eventForm: { querySelector: () => formValues.doseChecked ? { value: formValues.doseChecked } : null },
-    document: { getElementById: id => elements[id] },
-    showEventFormError: () => {},
-    closeEventDialog: () => {},
-    refreshDataViews: () => {},
-    showToast: () => {},
-    localStorage: workingLocalStorage(),
-    ...overrides,
-  });
-}
+// --- handleEventSubmit (src/history/event-dialog.js, spec 0020 Fase 9.2.3) ---
+// As 5 asserções abaixo validavam app.js:3255-3305 antes da extração (Fase 9.2.3a,
+// zero cobertura até então); agora testam o módulo real via require(), com
+// eventDialogInstance() emprestando de context() as funções puras já extraídas
+// (buildCurrentAppData/commitAppData/normalizeDoseSize/toLocalDate·TimeInputValue),
+// que continuam válidas fora do vm.Context onde nasceram.
 
 test('handleEventSubmit: sucesso atualiza data/hora e evento correspondente', () => {
   const original = { id: 'e1', drinkId: 'd1', consumedAt: 1700000000000, intervalMinutes: 60 };
   const state = { selectedEventId: 'e1', events: [original], occasions: [], preferences: { eventsEnabled: false } };
+  const c = context({ state, localStorage: workingLocalStorage() });
   let toast = null, closed = false, refreshed = false;
-  const c = eventSubmitContext(state, { date: '2023-11-14', hour: '22', minute: '30' }, {
-    closeEventDialog: () => { closed = true; },
+  const eventDialog = eventDialogInstance(c, { date: '2023-11-14', hour: '22', minute: '30' }, {
     refreshDataViews: () => { refreshed = true; },
     showToast: msg => { toast = msg; },
   });
-  vm.runInContext(extract('handleEventSubmit'), c);
-  c.handleEventSubmit({ preventDefault: () => {} });
+  eventDialog.handleEventSubmit({ preventDefault: () => {} });
   assert.notEqual(state.events[0], original, 'evento foi substituído, não mutado em place');
   assert.equal(original.consumedAt, 1700000000000, 'objeto original não foi mutado');
   assert.equal(state.events[0].intervalMinutes, 60, 'campos não tocados são preservados');
-  assert.equal(closed, true);
+  assert.equal(state.selectedEventId, null, 'closeEventDialog interno rodou (limpa selectedEventId)');
   assert.equal(refreshed, true);
   assert.match(toast, /Anotação atualizada/);
 });
 
 test('handleEventSubmit: registro não encontrado mostra erro específico sem mutar events', () => {
   const state = { selectedEventId: 'missing', events: [{ id: 'e1', drinkId: 'd1', consumedAt: 1 }], occasions: [], preferences: {} };
+  const c = context({ state, localStorage: workingLocalStorage() });
   let errorShown = null;
-  const c = eventSubmitContext(state, { date: '2023-11-14' }, { showEventFormError: msg => { errorShown = msg; } });
-  vm.runInContext(extract('handleEventSubmit'), c);
-  c.handleEventSubmit({ preventDefault: () => {} });
+  const eventDialog = eventDialogInstance(c, { date: '2023-11-14' }, { showEventFormError: msg => { errorShown = msg; } });
+  eventDialog.handleEventSubmit({ preventDefault: () => {} });
   assert.equal(state.events[0].consumedAt, 1);
   assert.match(errorShown, /não foi encontrado/);
 });
@@ -263,10 +269,10 @@ test('handleEventSubmit: data/hora inválida ou no futuro é rejeitada antes de 
   const original = { id: 'e1', drinkId: 'd1', consumedAt: 1700000000000 };
   for (const formValues of [{ date: '' }, { date: 'não-é-uma-data', hour: '99' }, { date: '2999-01-01' }]) {
     const state = { selectedEventId: 'e1', events: [{ ...original }], occasions: [], preferences: {} };
+    const c = context({ state, localStorage: workingLocalStorage() });
     let errorShown = null;
-    const c = eventSubmitContext(state, formValues, { showEventFormError: msg => { errorShown = msg; } });
-    vm.runInContext(extract('handleEventSubmit'), c);
-    c.handleEventSubmit({ preventDefault: () => {} });
+    const eventDialog = eventDialogInstance(c, formValues, { showEventFormError: msg => { errorShown = msg; } });
+    eventDialog.handleEventSubmit({ preventDefault: () => {} });
     assert.equal(state.events[0].consumedAt, original.consumedAt, `não deveria mutar para formValues=${JSON.stringify(formValues)}`);
     assert.ok(errorShown, `deveria mostrar erro para formValues=${JSON.stringify(formValues)}`);
   }
@@ -279,10 +285,10 @@ test('handleEventSubmit: evento fora do período do registro/ocasião é rejeita
     occasions: [],
     preferences: { eventsEnabled: true },
   };
+  const c = context({ state, localStorage: workingLocalStorage() });
   let errorShown = null;
-  const c = eventSubmitContext(state, { date: '2023-11-14', occasionId: 'inexistente' }, { showEventFormError: msg => { errorShown = msg; } });
-  vm.runInContext(extract('handleEventSubmit'), c);
-  c.handleEventSubmit({ preventDefault: () => {} });
+  const eventDialog = eventDialogInstance(c, { date: '2023-11-14', occasionId: 'inexistente' }, { showEventFormError: msg => { errorShown = msg; } });
+  eventDialog.handleEventSubmit({ preventDefault: () => {} });
   assert.equal(state.events[0].consumedAt, 1700000000000);
   assert.match(errorShown, /fora deste evento/);
 });
@@ -290,14 +296,13 @@ test('handleEventSubmit: evento fora do período do registro/ocasião é rejeita
 test('handleEventSubmit: falha de gravação preserva o evento original', () => {
   const original = { id: 'e1', drinkId: 'd1', consumedAt: 1700000000000 };
   const state = { selectedEventId: 'e1', events: [original], occasions: [], preferences: {} };
+  const c = context({ state, localStorage: throwingLocalStorage() });
   let errorShown = null;
-  const c = eventSubmitContext(state, { date: '2023-11-14' }, {
-    localStorage: throwingLocalStorage(),
+  const eventDialog = eventDialogInstance(c, { date: '2023-11-14' }, {
     showEventFormError: msg => { errorShown = msg; },
     showToast: () => { throw new Error('não deveria mostrar toast de sucesso'); },
   });
-  vm.runInContext(extract('handleEventSubmit'), c);
-  c.handleEventSubmit({ preventDefault: () => {} });
+  eventDialog.handleEventSubmit({ preventDefault: () => {} });
   assert.equal(state.events[0], original);
   assert.match(errorShown, /anotação anterior foi mantida/);
 });
