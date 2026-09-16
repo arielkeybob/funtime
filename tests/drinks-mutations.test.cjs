@@ -71,6 +71,61 @@ function eventDialogInstance(c, formValues = {}, overrides = {}) {
   });
 }
 
+// src/drinks/interactions.js lê `document`/`FormData`/`requestAnimationFrame` como
+// globais soltos (mesma convenção do event-dialog) - testado via require() real, com
+// stubs de DOM/FormData/rAF setados em global pela duração do teste. O factory tem
+// ~50 dependências porque une vários diálogos (bebida/dose/log/menu/aviso de intervalo);
+// stubEl() cobre os elementos que só precisam existir para o wiring de construção não
+// quebrar, sem que o teste precise inspecioná-los.
+function stubEl(overrides = {}) {
+  return {
+    addEventListener() {}, removeEventListener() {},
+    classList: { add() {}, remove() {}, toggle() {}, contains: () => false },
+    dataset: {}, style: {},
+    hidden: false, textContent: '', value: '',
+    open: false, close() {}, showModal() {}, reset() {},
+    querySelector: () => null, querySelectorAll: () => [],
+    setAttribute() {}, removeAttribute() {},
+    focus() {}, blur() {}, scrollIntoView() {},
+    ...overrides,
+  };
+}
+
+function drinkInteractionsInstance(c, overrides = {}) {
+  const { createDrinkInteractions } = require('../src/drinks/interactions.js');
+  global.document = fakeDocument();
+  global.requestAnimationFrame = fn => fn();
+  return createDrinkInteractions({
+    state: c.state,
+    drinkForm: stubEl(), nameInput: stubEl(), drinkNameField: stubEl(), drinkIconField: stubEl(),
+    formError: stubEl({ hidden: true }),
+    drinkDialogEyebrow: stubEl(), drinkDialogTitle: stubEl(), drinkSubmitButton: stubEl(), deleteDrinkFromEditorButton: stubEl(),
+    drinkDangerZone: stubEl(), drinkIntervalEditNote: stubEl(), askDoseSizeInput: stubEl(), drinkDialog: stubEl(),
+    deleteDrinkDialog: stubEl(), deleteDrinkName: stubEl(), deleteDrinkSummary: stubEl(),
+    intervalWarningDialog: stubEl(), intervalWarningDrinkName: stubEl(), intervalWarningRemaining: stubEl(),
+    intervalWarningMessage: stubEl(), intervalWarningContext: stubEl(),
+    drinkMenuDialog: stubEl(), drinkMenuName: stubEl(),
+    logDialog: stubEl(), logForm: stubEl(), logDrinkName: stubEl(), activeIntervalWarning: stubEl(),
+    activeIntervalWarningTitle: stubEl(), activeIntervalWarningText: stubEl(), logHoursAgoInput: stubEl(), logMinutesAgoInput: stubEl(),
+    logHoursWheel: stubEl(), logMinutesWheel: stubEl(), intervalHoursWheel: stubEl(), intervalMinutesWheel: stubEl(),
+    intervalHoursInput: stubEl(), intervalMinutesInput: stubEl(), logFormError: stubEl(),
+    doseSizeDialog: stubEl(), doseSizeDrinkName: stubEl(), doseHalfButton: stubEl(), doseFullButton: stubEl(), toastUndo: stubEl(),
+    createDurationPicker: () => ({ set() {}, initialize() {} }),
+    validateDrinkDraft,
+    setDrinkFieldError: () => {}, clearDrinkFieldError: () => {}, clearDrinkValidation: () => {},
+    showFormError: () => {}, showLogFormError: () => {},
+    commitAppData: c.commitAppData, buildCurrentAppData: c.buildCurrentAppData, dataStorageKey: 'funtime-v1-data',
+    refreshDataViews: () => {}, showToast: () => {}, showAppNotification: () => {}, hideToast: () => {}, closeHistoryView: () => {},
+    normalizeIcon: c.normalizeIcon, normalizeDoseSize: c.normalizeDoseSize, createId: c.createId,
+    getEventDrinkIdentity: c.getEventDrinkIdentity, getDoseLabel: () => '',
+    getDrinkActivity: () => ({ remainingMs: 0, state: 'ready' }), formatClock: () => '10:00', formatTime: () => '',
+    buildIconPicker: () => {}, cancelIconReorder: () => {}, beginFormDraft: () => {},
+    captureDrinkCardPositions: () => null, animateDrinkReorder: () => ({ movedFocus: false, promise: Promise.resolve() }),
+    wireDialogDismissal: () => {},
+    ...overrides,
+  });
+}
+
 function workingLocalStorage() {
   const map = new Map();
   return { setItem: (k, v) => map.set(k, v), getItem: k => map.get(k) };
@@ -89,22 +144,19 @@ test('deleteDrinkKeepingHistory: sucesso remove a bebida, atualiza identidade no
     events: [{ id: 'e1', drinkId: 'd1', drinkName: 'Água (antigo)', drinkIcon: '💧-old' }, { id: 'e2', drinkId: 'd2' }],
     editingDrinkId: 'd1',
   };
-  let notified = null, closed = false, refreshed = false, toast = null;
-  const c = context({
-    state,
+  let notified = null, refreshed = false, toast = null;
+  const c = context({ state, localStorage: workingLocalStorage() });
+  const drinkInteractions = drinkInteractionsInstance(c, {
     showAppNotification: msg => { notified = msg; },
-    closeDeleteDrinkDialog: () => { closed = true; },
     refreshDataViews: () => { refreshed = true; },
     showToast: msg => { toast = msg; },
-    localStorage: workingLocalStorage(),
   });
-  vm.runInContext(extract('deleteDrinkKeepingHistory'), c);
-  c.deleteDrinkKeepingHistory();
+  drinkInteractions.deleteDrinkKeepingHistory();
   assert.deepEqual(state.drinks.map(d => d.id), ['d2']);
   assert.equal(state.events.find(e => e.id === 'e1').drinkName, 'Água');
   assert.equal(state.events.length, 2, 'histórico é mantido');
   assert.equal(state.editingDrinkId, null);
-  assert.equal(closed, true);
+  assert.equal(state.deleteDrinkId, null, 'closeDeleteDrinkDialog interno rodou (limpa deleteDrinkId)');
   assert.equal(refreshed, true);
   assert.match(toast, /excluída da lista/);
   assert.equal(notified, null);
@@ -117,21 +169,18 @@ test('deleteDrinkKeepingHistory: falha de gravação preserva drinks/events e mo
     events: [{ id: 'e1', drinkId: 'd1' }],
     editingDrinkId: 'd1',
   };
-  let notified = null, closed = false;
-  const c = context({
-    state,
+  let notified = null;
+  const c = context({ state, localStorage: throwingLocalStorage() });
+  const drinkInteractions = drinkInteractionsInstance(c, {
     showAppNotification: msg => { notified = msg; },
-    closeDeleteDrinkDialog: () => { closed = true; },
     refreshDataViews: () => {},
     showToast: () => { throw new Error('não deveria mostrar toast de sucesso'); },
-    localStorage: throwingLocalStorage(),
   });
-  vm.runInContext(extract('deleteDrinkKeepingHistory'), c);
-  c.deleteDrinkKeepingHistory();
+  drinkInteractions.deleteDrinkKeepingHistory();
   assert.equal(state.drinks.length, 1);
   assert.equal(state.events.length, 1);
   assert.match(notified, /Não foi possível excluir/);
-  assert.equal(closed, false);
+  assert.equal(state.deleteDrinkId, 'd1', 'closeDeleteDrinkDialog não roda quando a gravação falha');
 });
 
 // --- deleteDrinkWithHistory ---
@@ -144,16 +193,11 @@ test('deleteDrinkWithHistory: sucesso remove bebida e histórico relacionado', (
     editingDrinkId: 'd1',
   };
   let toast = null;
-  const c = context({
-    state,
-    showAppNotification: () => {},
-    closeDeleteDrinkDialog: () => {},
-    refreshDataViews: () => {},
+  const c = context({ state, localStorage: workingLocalStorage() });
+  const drinkInteractions = drinkInteractionsInstance(c, {
     showToast: msg => { toast = msg; },
-    localStorage: workingLocalStorage(),
   });
-  vm.runInContext(extract('deleteDrinkWithHistory'), c);
-  c.deleteDrinkWithHistory();
+  drinkInteractions.deleteDrinkWithHistory();
   assert.deepEqual(state.drinks.map(d => d.id), ['d2']);
   assert.deepEqual(state.events.map(e => e.id), ['e2']);
   assert.match(toast, /e seus registros foram excluídos/);
@@ -167,16 +211,12 @@ test('deleteDrinkWithHistory: falha de gravação preserva drinks/events e mostr
     editingDrinkId: 'd1',
   };
   let notified = null;
-  const c = context({
-    state,
+  const c = context({ state, localStorage: throwingLocalStorage() });
+  const drinkInteractions = drinkInteractionsInstance(c, {
     showAppNotification: msg => { notified = msg; },
-    closeDeleteDrinkDialog: () => {},
-    refreshDataViews: () => {},
     showToast: () => { throw new Error('não deveria mostrar toast de sucesso'); },
-    localStorage: throwingLocalStorage(),
   });
-  vm.runInContext(extract('deleteDrinkWithHistory'), c);
-  c.deleteDrinkWithHistory();
+  drinkInteractions.deleteDrinkWithHistory();
   assert.equal(state.drinks.length, 1);
   assert.equal(state.events.length, 1);
   assert.match(notified, /Não foi possível excluir/);
@@ -314,23 +354,13 @@ class FakeFormData {
   get(key) { return this.form[key]; }
 }
 
-function drinkFormContext(state, formValues, overrides = {}) {
-  return context({
-    state,
-    FormData: FakeFormData,
-    drinkForm: formValues,
-    drinkNameField: { scrollIntoView: () => {} },
-    drinkIconField: { scrollIntoView: () => {} },
-    formError: { hidden: true, textContent: '' },
-    requestAnimationFrame: fn => fn(),
-    clearDrinkValidation: () => {},
-    setDrinkFieldError: () => {},
-    showFormError: () => {},
-    closeDrinkDialog: () => {},
-    refreshDataViews: () => {},
-    showToast: () => {},
-    localStorage: workingLocalStorage(),
-    ...overrides,
+function drinkFormInstance(state, formValues, overrides = {}) {
+  const { localStorage, ...factoryOverrides } = overrides;
+  const c = context({ state, localStorage: localStorage || workingLocalStorage() });
+  global.FormData = FakeFormData;
+  return drinkInteractionsInstance(c, {
+    drinkForm: { ...stubEl(), ...formValues },
+    ...factoryOverrides,
   });
 }
 
@@ -339,9 +369,8 @@ const VALID_FORM = { name: 'Refrigerante', icon: '🥤', intervalHours: '1', int
 test('handleDrinkSubmit: criar bebida adiciona ao final de drinks sem mutar itens existentes', () => {
   const existing = { id: 'd1', name: 'Água', icon: '💧' };
   const state = { editingDrinkId: null, drinks: [existing], events: [] };
-  const c = drinkFormContext(state, VALID_FORM);
-  vm.runInContext(extract('handleDrinkSubmit'), c);
-  c.handleDrinkSubmit({ preventDefault: () => {} });
+  const drinkInteractions = drinkFormInstance(state, VALID_FORM);
+  drinkInteractions.handleDrinkSubmit({ preventDefault: () => {} });
   assert.equal(state.drinks.length, 2);
   assert.equal(state.drinks[0], existing, 'bebida existente não foi substituída/mutada');
   assert.equal(state.drinks[1].name, 'Refrigerante');
@@ -351,13 +380,12 @@ test('handleDrinkSubmit: criar bebida adiciona ao final de drinks sem mutar iten
 test('handleDrinkSubmit: criar bebida — falha de gravação não adiciona a bebida', () => {
   const state = { editingDrinkId: null, drinks: [], events: [] };
   let errorShown = null;
-  const c = drinkFormContext(state, VALID_FORM, {
+  const drinkInteractions = drinkFormInstance(state, VALID_FORM, {
     localStorage: throwingLocalStorage(),
     showFormError: msg => { errorShown = msg; },
     showToast: () => { throw new Error('não deveria mostrar toast de sucesso'); },
   });
-  vm.runInContext(extract('handleDrinkSubmit'), c);
-  c.handleDrinkSubmit({ preventDefault: () => {} });
+  drinkInteractions.handleDrinkSubmit({ preventDefault: () => {} });
   assert.equal(state.drinks.length, 0);
   assert.match(errorShown, /Não foi possível salvar/);
 });
@@ -369,9 +397,8 @@ test('handleDrinkSubmit: editar bebida substitui o item imutavelmente e atualiza
     drinks: [original],
     events: [{ id: 'e1', drinkId: 'd1', drinkName: 'Água', drinkIcon: '💧' }],
   };
-  const c = drinkFormContext(state, VALID_FORM);
-  vm.runInContext(extract('handleDrinkSubmit'), c);
-  c.handleDrinkSubmit({ preventDefault: () => {} });
+  const drinkInteractions = drinkFormInstance(state, VALID_FORM);
+  drinkInteractions.handleDrinkSubmit({ preventDefault: () => {} });
   assert.equal(state.drinks.length, 1);
   assert.equal(state.drinks[0].name, 'Refrigerante');
   assert.equal(original.name, 'Água', 'objeto original não foi mutado em place');
@@ -383,13 +410,12 @@ test('handleDrinkSubmit: editar bebida — falha de gravação preserva o objeto
   const original = { id: 'd1', name: 'Água', icon: '💧', intervalMinutes: 60, askDoseSize: false };
   const state = { editingDrinkId: 'd1', drinks: [original], events: [] };
   let errorShown = null;
-  const c = drinkFormContext(state, VALID_FORM, {
+  const drinkInteractions = drinkFormInstance(state, VALID_FORM, {
     localStorage: throwingLocalStorage(),
     showFormError: msg => { errorShown = msg; },
     showToast: () => { throw new Error('não deveria mostrar toast de sucesso'); },
   });
-  vm.runInContext(extract('handleDrinkSubmit'), c);
-  c.handleDrinkSubmit({ preventDefault: () => {} });
+  drinkInteractions.handleDrinkSubmit({ preventDefault: () => {} });
   assert.equal(state.drinks[0], original);
   assert.equal(state.drinks[0].name, 'Água');
   assert.match(errorShown, /Não foi possível salvar/);
@@ -399,44 +425,35 @@ test('handleDrinkSubmit: editar bebida — falha de gravação preserva o objeto
 
 test('choosePendingDoseSize: sucesso substitui o evento imutavelmente e grava', () => {
   const original = { id: 'e1', drinkId: 'd1', doseSize: null };
-  const state = { pendingDoseEventId: 'e1', events: [original] };
-  let refreshed = false, selection = null, closed = false;
-  const c = context({
-    state,
+  const state = { pendingDoseEventId: 'e1', events: [original], drinks: [] };
+  let refreshed = false;
+  const c = context({ state, localStorage: workingLocalStorage() });
+  const drinkInteractions = drinkInteractionsInstance(c, {
     showAppNotification: () => { throw new Error('não deveria notificar erro'); },
     refreshDataViews: () => { refreshed = true; },
-    updateDoseDialogSelection: value => { selection = value; },
-    closeDoseSizeDialog: () => { closed = true; },
-    localStorage: workingLocalStorage(),
   });
-  vm.runInContext(extract('choosePendingDoseSize'), c);
-  c.choosePendingDoseSize('half');
+  drinkInteractions.choosePendingDoseSize('half');
   assert.equal(state.events[0].doseSize, 'half');
   assert.notEqual(state.events[0], original, 'evento foi substituído, não mutado em place');
   assert.equal(original.doseSize, null, 'objeto original não foi mutado');
-  assert.equal(selection, 'half');
+  assert.equal(state.pendingDoseEventId, null, 'closeDoseSizeDialog interno rodou (limpa pendingDoseEventId)');
   assert.equal(refreshed, true);
-  assert.equal(closed, true);
 });
 
 test('choosePendingDoseSize: falha de gravação preserva o evento original e mostra erro', () => {
   const original = { id: 'e1', drinkId: 'd1', doseSize: null };
-  const state = { pendingDoseEventId: 'e1', events: [original] };
-  let notified = null, closed = false;
-  const c = context({
-    state,
+  const state = { pendingDoseEventId: 'e1', events: [original], drinks: [] };
+  let notified = null;
+  const c = context({ state, localStorage: throwingLocalStorage() });
+  const drinkInteractions = drinkInteractionsInstance(c, {
     showAppNotification: msg => { notified = msg; },
     refreshDataViews: () => { throw new Error('não deveria atualizar a tela em caso de erro'); },
-    updateDoseDialogSelection: () => {},
-    closeDoseSizeDialog: () => { closed = true; },
-    localStorage: throwingLocalStorage(),
   });
-  vm.runInContext(extract('choosePendingDoseSize'), c);
-  c.choosePendingDoseSize('half');
+  drinkInteractions.choosePendingDoseSize('half');
   assert.equal(state.events[0], original);
   assert.equal(state.events[0].doseSize, null);
   assert.match(notified, /Não foi possível salvar/);
-  assert.equal(closed, false);
+  assert.equal(state.pendingDoseEventId, 'e1', 'closeDoseSizeDialog não roda quando a gravação falha');
 });
 
 // --- undoLastRegistration ---
@@ -444,15 +461,13 @@ test('choosePendingDoseSize: falha de gravação preserva o evento original e mo
 test('undoLastRegistration: sucesso remove o evento desfeito e limpa o undo', () => {
   const state = { undo: { type: 'add-event', eventId: 'e1' }, events: [{ id: 'e1' }, { id: 'e2' }] };
   let refreshed = false, hidden = false;
-  const c = context({
-    state,
+  const c = context({ state, localStorage: workingLocalStorage() });
+  const drinkInteractions = drinkInteractionsInstance(c, {
     showAppNotification: () => { throw new Error('não deveria notificar erro'); },
     refreshDataViews: () => { refreshed = true; },
     hideToast: () => { hidden = true; },
-    localStorage: workingLocalStorage(),
   });
-  vm.runInContext(extract('undoLastRegistration'), c);
-  c.undoLastRegistration();
+  drinkInteractions.undoLastRegistration();
   assert.deepEqual(state.events.map(e => e.id), ['e2']);
   assert.equal(state.undo, null);
   assert.equal(refreshed, true);
@@ -462,15 +477,13 @@ test('undoLastRegistration: sucesso remove o evento desfeito e limpa o undo', ()
 test('undoLastRegistration: falha de gravação preserva events e o undo pendente', () => {
   const state = { undo: { type: 'add-event', eventId: 'e1' }, events: [{ id: 'e1' }] };
   let notified = null;
-  const c = context({
-    state,
+  const c = context({ state, localStorage: throwingLocalStorage() });
+  const drinkInteractions = drinkInteractionsInstance(c, {
     showAppNotification: msg => { notified = msg; },
     refreshDataViews: () => { throw new Error('não deveria atualizar a tela em caso de erro'); },
     hideToast: () => { throw new Error('não deveria esconder o toast em caso de erro'); },
-    localStorage: throwingLocalStorage(),
   });
-  vm.runInContext(extract('undoLastRegistration'), c);
-  c.undoLastRegistration();
+  drinkInteractions.undoLastRegistration();
   assert.equal(state.events.length, 1);
   assert.notEqual(state.undo, null);
   assert.match(notified, /Não foi possível desfazer/);
