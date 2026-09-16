@@ -355,3 +355,38 @@ test('validateStoredShape: segurança exige método coerente com pin/webauthn pr
   assert.doesNotThrow(() => c.validateStoredShape(JSON.stringify({ enabled: true, method: 'pin', pin: { salt: 's', hash: 'h' } }), 'funtime-security-v1'));
   assert.doesNotThrow(() => c.validateStoredShape(JSON.stringify({ enabled: true, method: 'device', webauthn: { credentialId: 'c', publicKey: 'p' } }), 'funtime-security-v1'));
 });
+
+// loadAppData(): dado corrompido/em formato desconhecido lança um erro com
+// name='FunTimeDataCorruptedError' - boot.js usa esse nome para oferecer o
+// botão "Baixar cópia dos dados" na tela de erro (débito técnico do ROADMAP,
+// achado original em AUDIT.md). Falha ao próprio acessar o localStorage
+// (ex.: SecurityError) continua com o erro genérico de antes, sem o nome novo.
+function loadAppDataContext(localStorage) {
+  const c = context({ localStorage });
+  vm.runInContext(extract('validateStoredShape'), c);
+  vm.runInContext(extract('loadAppData'), c);
+  return c;
+}
+test('loadAppData: leitura válida funciona normalmente', () => {
+  const c = loadAppDataContext({ getItem: () => JSON.stringify({ version: 11, drinks: [{ id: 'a', name: 'Água' }], events: [] }) });
+  assert.equal(c.loadAppData().drinks[0].name, 'Água');
+});
+test('loadAppData: JSON inválido lança erro nomeado para a tela de recuperação', () => {
+  const c = loadAppDataContext({ getItem: () => '{invalido' });
+  assert.throws(() => c.loadAppData(), (error) => {
+    assert.equal(error.name, 'FunTimeDataCorruptedError');
+    assert.match(error.message, /Não foi possível ler seus dados/);
+    return true;
+  });
+});
+test('loadAppData: formato incompatível (falha em validateStoredShape) também usa o erro nomeado', () => {
+  const c = loadAppDataContext({ getItem: () => JSON.stringify({ drinks: 'não é array', events: [] }) });
+  assert.throws(() => c.loadAppData(), (error) => error.name === 'FunTimeDataCorruptedError');
+});
+test('loadAppData: falha ao acessar o localStorage em si não usa o erro de dado corrompido', () => {
+  const c = loadAppDataContext({ getItem: () => { throw new Error('boom'); } });
+  assert.throws(() => c.loadAppData(), (error) => {
+    assert.notEqual(error.name, 'FunTimeDataCorruptedError');
+    return true;
+  });
+});

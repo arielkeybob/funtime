@@ -1146,10 +1146,16 @@ async function initializeSecurity() {
 }
 
 function loadAppData() {
+  let raw;
   try {
-    const raw = localStorage.getItem(DATA_STORAGE_KEY);
+    raw = localStorage.getItem(DATA_STORAGE_KEY);
+  } catch (error) {
+    console.error("Não foi possível carregar os dados atuais.", error);
+    throw new Error("Não foi possível ler seus dados. Tente novamente.");
+  }
 
-    if (raw) {
+  if (raw) {
+    try {
       validateStoredShape(raw, DATA_STORAGE_KEY);
       const parsed = JSON.parse(raw);
       const normalized = normalizeData(parsed);
@@ -1158,10 +1164,14 @@ function loadAppData() {
         return normalized;
       }
       throw new Error("Os dados salvos não estão em um formato reconhecido.");
+    } catch (error) {
+      console.error("Não foi possível carregar os dados atuais.", error);
+      // Nome distinto: boot.js oferece baixar uma cópia bruta só quando o
+      // problema é o formato dos dados, não uma falha genérica de script.
+      const failure = new Error("Não foi possível ler seus dados. Tente novamente.");
+      failure.name = "FunTimeDataCorruptedError";
+      throw failure;
     }
-  } catch (error) {
-    console.error("Não foi possível carregar os dados atuais.", error);
-    throw new Error("Não foi possível ler seus dados. Tente novamente.");
   }
 
   return migrateLegacyData();

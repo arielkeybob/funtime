@@ -2316,6 +2316,8 @@ body {
 .startup-screen small { display: block; margin-top: 24px; }
 .startup-screen #startup-retry:not([hidden]) { display: block; min-height: 44px; margin: 12px auto 0; }
 .startup-screen #startup-retry { padding: 10px 18px; }
+.startup-screen #startup-download:not([hidden]) { display: block; min-height: 44px; margin: 16px auto 0; }
+.startup-screen #startup-download { padding: 10px 18px; }
 .security-booting #app-shell,
 .app-locked #app-shell {
   visibility: hidden;

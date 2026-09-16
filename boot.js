@@ -4,6 +4,8 @@
   const screen = document.querySelector("#startup-screen");
   const message = document.querySelector("#startup-message");
   const retry = document.querySelector("#startup-retry");
+  const download = document.querySelector("#startup-download");
+  const DATA_STORAGE_KEY = "funtime-v1-data";
   let booted = false;
   let failed = false;
   function show(text) { message.textContent = text; }
@@ -61,7 +63,12 @@
       const runtimeError = event => {
         if (event.filename === script.src) {
           window.removeEventListener("error", runtimeError);
-          reject(new Error("Não foi possível abrir o app. Seus dados foram preservados. Tente novamente."));
+          const corrupted = event.error?.name === "FunTimeDataCorruptedError";
+          const failure = new Error(corrupted
+            ? "Não foi possível ler seus dados. Eles não foram apagados, mas o app não conseguiu abri-los."
+            : "Não foi possível abrir o app. Seus dados foram preservados. Tente novamente.");
+          if (corrupted) failure.name = "FunTimeDataCorruptedError";
+          reject(failure);
         }
       };
       window.addEventListener("error", runtimeError);
@@ -69,6 +76,21 @@
       script.onerror = () => { window.removeEventListener("error", runtimeError); reject(new Error("Não foi possível carregar o app. Tente novamente.")); };
       document.body.append(script);
     });
+  }
+  function downloadRawData() {
+    let raw;
+    try { raw = localStorage.getItem(DATA_STORAGE_KEY); } catch (error) { return; }
+    if (!raw) return;
+    const blob = new Blob([raw], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement("a");
+    anchor.href = url;
+    anchor.download = `FunTime-dados-brutos-${Date.now()}.json`;
+    anchor.rel = "noopener";
+    document.body.append(anchor);
+    anchor.click();
+    anchor.remove();
+    window.setTimeout(() => URL.revokeObjectURL(url), 1500);
   }
   function showError(error) {
     failed = true;
@@ -81,6 +103,15 @@
         ? "O navegador bloqueou o acesso ao armazenamento do app. Verifique as permissões e tente novamente."
         : null;
     show(storageMessage || error.message || "Não foi possível preparar o app. Seus dados não foram descartados.");
+    // Recarregar sozinho não resolve dado corrompido: oferece uma cópia bruta
+    // antes de qualquer outra tentativa, sem tentar corrigir o conteúdo.
+    if (error.name === "FunTimeDataCorruptedError") {
+      download.hidden = false;
+      download.onclick = downloadRawData;
+    } else {
+      download.hidden = true;
+      download.onclick = null;
+    }
     retry.hidden = false;
     retry.disabled = false;
     retry.className = "primary-button";
