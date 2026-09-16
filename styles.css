@@ -1858,17 +1858,17 @@ body {
     gap: 5px;
   }
 
-  #drink-dialog .wheel-picker-shell {
+  :is(#drink-dialog, #log-dialog) .wheel-picker-shell {
     height: 156px;
     border-radius: 14px;
   }
 
-  #drink-dialog .wheel-picker-track {
+  :is(#drink-dialog, #log-dialog) .wheel-picker-track {
     padding-block: 56px;
   }
 
-  #drink-dialog .wheel-picker-shell::before,
-  #drink-dialog .wheel-picker-shell::after {
+  :is(#drink-dialog, #log-dialog) .wheel-picker-shell::before,
+  :is(#drink-dialog, #log-dialog) .wheel-picker-shell::after {
     height: 56px;
   }
 
@@ -1876,7 +1876,7 @@ body {
     padding-top: 12px;
   }
 
-  #drink-dialog .drink-dialog-actions {
+  :is(#drink-dialog .drink-dialog-actions, #log-dialog .log-dialog-actions) {
     position: relative;
     z-index: 10;
     gap: 10px;
@@ -1887,7 +1887,7 @@ body {
     backdrop-filter: blur(10px);
   }
 
-  #drink-dialog .drink-dialog-actions button {
+  :is(#drink-dialog .drink-dialog-actions, #log-dialog .log-dialog-actions) button {
     min-height: 48px;
   }
 }
@@ -1908,11 +1908,11 @@ body {
     height: 50px;
   }
 
-  #drink-dialog .wheel-picker-shell {
+  :is(#drink-dialog, #log-dialog) .wheel-picker-shell {
     height: 144px;
   }
 
-  #drink-dialog .wheel-picker-track {
+  :is(#drink-dialog, #log-dialog) .wheel-picker-track {
     padding-block: 50px;
   }
 }
@@ -1976,49 +1976,12 @@ body {
   #log-dialog .quick-time-button {
     min-height: 50px;
   }
-
-  #log-dialog .wheel-picker-shell {
-    height: 156px;
-    border-radius: 14px;
-  }
-
-  #log-dialog .wheel-picker-track {
-    padding-block: 56px;
-  }
-
-  #log-dialog .wheel-picker-shell::before,
-  #log-dialog .wheel-picker-shell::after {
-    height: 56px;
-  }
-
-  #log-dialog .log-dialog-actions {
-    position: relative;
-    z-index: 10;
-    gap: 10px;
-    padding: 11px 14px max(11px, env(safe-area-inset-bottom));
-    border-top: 1px solid var(--border);
-    background: rgb(24 24 27 / 0.98);
-    box-shadow: 0 -12px 28px rgb(0 0 0 / 0.32);
-    backdrop-filter: blur(10px);
-  }
-
-  #log-dialog .log-dialog-actions button {
-    min-height: 48px;
-  }
 }
 
 @media (max-height: 700px) and (max-width: 600px) {
   #log-dialog .log-dialog-scroll {
     gap: 12px;
     padding-top: 12px;
-  }
-
-  #log-dialog .wheel-picker-shell {
-    height: 144px;
-  }
-
-  #log-dialog .wheel-picker-track {
-    padding-block: 50px;
   }
 }
 
