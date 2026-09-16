@@ -2,6 +2,7 @@ import { formatTime, formatClock, formatHistoryElapsed, formatInterval } from ".
 import { resolveCountingMode } from "./src/format/counting-mode.js";
 import { derEcdsaSignatureToRaw } from "./src/security/webauthn-signature.js";
 import { derivePinHash, PIN_PBKDF2_ITERATIONS } from "./src/security/pin-crypto.js";
+import { createSecurityConfig, PIN_LENGTH } from "./src/security/config.js";
 import { commit as commitAppData } from "./src/data/store.js";
 import { wireDialogDismissal } from "./src/ui/dialogs.js";
 import { createDurationPicker, createWheelPicker, setWheelPickerValue } from "./src/ui/wheel-picker.js";
@@ -310,9 +311,6 @@ const SHARE_IMPORT_CACHE_NAME = "funtime-share-target-v1";
 const SHARE_IMPORT_REQUEST_PATH = "./__shared-drinks-import__";
 const SECURITY_STORAGE_KEY = "funtime-security-v1";
 const SECURITY_SESSION_KEY = "funtime-security-session-v1";
-const SECURITY_CONFIG_VERSION = 3;
-const PIN_LENGTH = 4;
-const LEGACY_PIN_LENGTH = 6;
 const PIN_LOCKOUT_ATTEMPTS = 5;
 const PIN_LOCKOUT_MS = 30000;
 
@@ -359,7 +357,7 @@ const state = {
   pendingDrinkReorderId: null,
   pendingDoubleTap: null,
   ignoreDrinkGestureUntil: 0,
-  securityConfig: IS_STANDALONE_APP ? loadSecurityConfig() : getDefaultSecurityConfig(),
+  securityConfig: null, // preenchido logo abaixo - o factory precisa de `state` por referência
   securityLocked: false,
   securityHiddenAt: null,
   privacyShieldVisible: false,
@@ -372,6 +370,16 @@ const state = {
   pendingBackupRestore: null,
   pendingSharedImportCheck: false,
 };
+
+const securityConfig = createSecurityConfig({
+  state, localStorage, securityStorageKey: SECURITY_STORAGE_KEY,
+  validateStoredShape, base64UrlToBytes, equalBytes,
+});
+const {
+  getDefaultSecurityConfig, loadSecurityConfig, saveSecurityConfig,
+  getConfiguredPinLength, normalizePinInput, getPinLockoutRemainingMs, verifyPin,
+} = securityConfig;
+state.securityConfig = IS_STANDALONE_APP ? loadSecurityConfig() : getDefaultSecurityConfig();
 
 const homeHeader = document.querySelector("#home-header");
 const historyHeader = document.querySelector("#history-header");
@@ -524,18 +532,6 @@ function updateDataSettingsUI() {
   if (exportDrinksButton) exportDrinksButton.disabled = state.drinks.length === 0;
 }
 
-function getDefaultSecurityConfig() {
-  return {
-    version: SECURITY_CONFIG_VERSION,
-    enabled: false,
-    method: null,
-    relockSeconds: 300,
-    eventUnlockOccasionId: null,
-    pin: null,
-    webauthn: null,
-  };
-}
-
 // Falha fechada em dado corrompido: nunca resetar silenciosamente proteção/dados reais.
 function validateStoredShape(raw, key) {
   if (raw === null) return;
@@ -572,47 +568,6 @@ function validateStoredShape(raw, key) {
   }
 }
 
-function loadSecurityConfig() {
-  try {
-    const raw = localStorage.getItem(SECURITY_STORAGE_KEY);
-    if (!raw) return getDefaultSecurityConfig();
-    validateStoredShape(raw, SECURITY_STORAGE_KEY);
-    const parsed = JSON.parse(raw);
-    const config = getDefaultSecurityConfig();
-    config.enabled = Boolean(parsed.enabled);
-    config.method = parsed.method === "pin" || parsed.method === "device" ? parsed.method : null;
-    const storedRelock = Number(parsed.relockSeconds);
-    const allowedRelock = [0, 30, 60, 300, 900];
-    config.relockSeconds = allowedRelock.includes(storedRelock) ? storedRelock : 300;
-    config.eventUnlockOccasionId = typeof parsed.eventUnlockOccasionId === "string" && parsed.eventUnlockOccasionId
-      ? parsed.eventUnlockOccasionId
-      : null;
-    // V1.8.0/1.8.1 usavam 1 minuto como padrão. Na migração para V1.8.3,
-    // configurações antigas ainda no padrão anterior passam para o novo padrão de 5 min.
-    if (Number(parsed.version || 0) < 3 && storedRelock === 60) config.relockSeconds = 300;
-    config.pin = parsed.pin && parsed.pin.salt && parsed.pin.hash ? {
-      salt: String(parsed.pin.salt),
-      hash: String(parsed.pin.hash),
-      iterations: Number(parsed.pin.iterations) || PIN_PBKDF2_ITERATIONS,
-      length: [PIN_LENGTH, LEGACY_PIN_LENGTH].includes(Number(parsed.pin.length))
-        ? Number(parsed.pin.length)
-        : LEGACY_PIN_LENGTH,
-    } : null;
-    config.webauthn = parsed.webauthn && parsed.webauthn.credentialId && parsed.webauthn.publicKey ? {
-      credentialId: String(parsed.webauthn.credentialId),
-      publicKey: String(parsed.webauthn.publicKey),
-      algorithm: Number(parsed.webauthn.algorithm),
-    } : null;
-    if (config.enabled && !config.method) config.enabled = false;
-    if (config.method === "pin" && !config.pin) config.enabled = false;
-    if (config.method === "device" && !config.webauthn) config.enabled = false;
-    return config;
-  } catch (error) {
-    console.warn("Não foi possível carregar as configurações de segurança.", error);
-    throw new Error("Não foi possível ler a proteção do app. Tente novamente.");
-  }
-}
-
 function loadSecuritySession() {
   try {
     const raw = sessionStorage.getItem(SECURITY_SESSION_KEY);
@@ -645,10 +600,6 @@ function clearSecuritySession() {
 function markSecurityActive() {
   if (!state.securityConfig.enabled || state.securityLocked) return;
   saveSecuritySession({ lastActiveAt: Date.now(), hiddenAt: 0 });
-}
-
-function saveSecurityConfig() {
-  localStorage.setItem(SECURITY_STORAGE_KEY, JSON.stringify(state.securityConfig));
 }
 
 function getSecurityEventUnlockOccasion() {
@@ -718,16 +669,6 @@ function equalBytes(a, b) {
   let diff = 0;
   for (let i = 0; i < left.length; i += 1) diff |= left[i] ^ right[i];
   return diff === 0;
-}
-
-function getConfiguredPinLength() {
-  return state.securityConfig.pin?.length === LEGACY_PIN_LENGTH ? LEGACY_PIN_LENGTH : PIN_LENGTH;
-}
-
-function normalizePinInput(input, maxLength = PIN_LENGTH) {
-  const digits = input.value.replace(/\D/g, "").slice(0, maxLength);
-  if (input.value !== digits) input.value = digits;
-  return digits;
 }
 
 async function isPlatformDeviceAuthAvailable() {
@@ -1037,10 +978,6 @@ function hidePrivacyShield() {
   privacyShield.hidden = true;
 }
 
-function getPinLockoutRemainingMs() {
-  return Math.max(0, state.pinLockoutUntil - Date.now());
-}
-
 function updatePinLockoutMessage() {
   const remaining = getPinLockoutRemainingMs();
   if (remaining <= 0) {
@@ -1053,14 +990,6 @@ function updatePinLockoutMessage() {
   lockError.hidden = false;
   lockError.textContent = `Muitas tentativas. Tente novamente em ${Math.ceil(remaining / 1000)} s.`;
   state.pinLockoutTimer = setTimeout(updatePinLockoutMessage, 1000);
-}
-
-async function verifyPin(pin) {
-  const stored = state.securityConfig.pin;
-  if (!stored) return false;
-  const salt = base64UrlToBytes(stored.salt);
-  const derived = await (globalThis.derivePinHash || derivePinHash)(pin, salt, stored.iterations);
-  return equalBytes(derived, base64UrlToBytes(stored.hash));
 }
 
 async function handlePinUnlock(event) {
