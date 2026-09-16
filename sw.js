@@ -14,6 +14,7 @@ const APP_SHELL = [
   "./src/security/webauthn-signature.js",
   "./src/security/pin-crypto.js",
   "./src/security/config.js",
+  "./src/security/lock.js",
   "./src/data/store.js",
   "./src/ui/dialogs.js",
   "./src/ui/wheel-picker.js",
