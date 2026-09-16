@@ -1,5 +1,12 @@
 # FunTime — releases v2
 
+> **Arquivado** — registro paralelo de releases usado antes de o changelog se
+> consolidar em [README.md](../../README.md) (resumo por versão) e
+> [DEVELOPMENT.md](../../DEVELOPMENT.md) (detalhe técnico/validação). Conteúdo
+> preservado sem edição; as versões aqui também aparecem, com o texto vigente, nos dois
+> arquivos acima. A seção "FunTime 2.0.0" descreve a ativação da ponte V1→V2, removida
+> na spec 0018.
+
 ## V2.1.35 — toast compacto no Safari/iOS
 
 Neutraliza o layout nativo do Popover que podia expandir notificações no iPhone. O toast recebe dimensões e offsets explícitos, respeita áreas seguras, limita a altura e mantém backdrop transparente sem bloquear a interface. App, boot, rodapés e cache 2.1.35; DATA_VERSION 11 mantido. Publicação ainda não autorizada.

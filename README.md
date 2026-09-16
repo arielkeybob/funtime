@@ -229,7 +229,7 @@ FunTime 2.0: novo ícone de abacaxi com relógio, identidade `/funtime/` e cache
 
 Abra [FunTime 2](https://arielkeybob.github.io/funtime/): faça backup na versão anterior, instale pelo novo endereço, feche a janela antiga e abra o novo ícone. Após confirmar a transferência, use a v2: a antiga deixa de editar os dados. Se o sistema separar o armazenamento, escolha “Tenho um backup” e use a restauração com prévia. Quem já instalou a dev.2 recebe a versão estável pelo botão Atualizar, sem nova instalação ou transferência.
 
-O usuário confirmou os testes no celular e o funcionamento da transição. O marcador `transition.json` anuncia a versão estável para a v1.16, após verificação do deployment. Registro da entrega em [RELEASE-V2.md](RELEASE-V2.md); histórico da preparação em [V2-PREPARATION.md](V2-PREPARATION.md). As seções seguintes documentam as entregas anteriores.
+O usuário confirmou os testes no celular e o funcionamento da transição. O marcador `transition.json` anuncia a versão estável para a v1.16, após verificação do deployment. Registro da entrega em [RELEASE-V2.md](docs/history/RELEASE-V2.md); histórico da preparação em [V2-PREPARATION.md](docs/history/V2-PREPARATION.md). As seções seguintes documentam as entregas anteriores.
 
 ## V1.16.0 — preparação da transição para v2
 
@@ -237,7 +237,7 @@ A migração usa um diário compacto com SHA-256 para reduzir o espaço temporá
 
 A v1 descobre a publicação por um marcador JSON em `/funtime/transition.json`, sem enviar dados privados, e só então oferece abrir a nova instalação ou continuar na v1.16 para fazer backup. Depois que a futura v2 assumir e validar os dados, a instalação antiga passa a orientar somente a abertura do FunTime 2, sem carregar dados nem permitir escritas. Enquanto o marcador não existir ou estiver indisponível, o app funciona normalmente. A limpeza de caches da v1 também preserva os caches da geração v2.
 
-App, boot, SW e footers 1.16.0; cache `funtime-v1-16-0`; DATA_VERSION 9 e TERMS_VERSION 1.0.1 preservados. O repositório, endereço e ícone continuam os da v1.x. Implementação, contrato da futura v2 e limites dos testes em [TRANSITION-V2.md](TRANSITION-V2.md).
+App, boot, SW e footers 1.16.0; cache `funtime-v1-16-0`; DATA_VERSION 9 e TERMS_VERSION 1.0.1 preservados. O repositório, endereço e ícone continuam os da v1.x. Implementação, contrato da futura v2 e limites dos testes em [TRANSITION-V2.md](docs/history/TRANSITION-V2.md).
 
 ## V1.15.0 — primeira fase da migração FunTime
 
@@ -249,7 +249,7 @@ Antes de abrir os dados, `boot.js` coordena a atualização das janelas antigas 
 
 Novos arquivos usam `FunTime-Bebidas-…txt` / `FunTime-Backup-…json` e tipos `funtime-drinks` / `funtime-backup`. O app também lê os tipos antigos; versões antigas podem rejeitar os arquivos novos. Histórico e preferências continuam fora da importação de bebidas, e segurança/aceite/sessão/diário de migração continuam fora do backup. Importações compartilhadas pendentes da geração antiga são preservadas.
 
-APP_VERSION e footers 1.15.0; cache `funtime-v1-15-0`; DATA_VERSION 9 e TERMS_VERSION 1.0.1 preservados. O nome no launcher depende da atualização de metadados feita pelo sistema. Plano, protocolo e validação em [MIGRATION-FUNTIME.md](MIGRATION-FUNTIME.md). As seções abaixo registram versões históricas do Intervalo.
+APP_VERSION e footers 1.15.0; cache `funtime-v1-15-0`; DATA_VERSION 9 e TERMS_VERSION 1.0.1 preservados. O nome no launcher depende da atualização de metadados feita pelo sistema. Plano, protocolo e validação em [MIGRATION-FUNTIME.md](docs/history/MIGRATION-FUNTIME.md). As seções abaixo registram versões históricas do Intervalo.
 
 ## V1.14.3 — formato e rótulos dos contadores
 
@@ -337,7 +337,7 @@ Projeto desenvolvido principalmente para estudo de programação e fins acadêmi
 
 Página [Políticas e informações](./policies.html), aceite local obrigatório na PWA instalada e links discretos no footer. Validação de arquivos fortalecida e erro de restauração corrigido. Aceite `1.0` fora do backup; dados permanecem na versão 8; cache `intervalo-v1-11-0`.
 
-Veja o diagnóstico, decisões e limites em [AUDIT.md](./AUDIT.md). As seções abaixo registram versões históricas; seus nomes de cache não representam a versão atual.
+Veja o diagnóstico, decisões e limites em [AUDIT.md](docs/history/AUDIT.md). As seções abaixo registram versões históricas; seus nomes de cache não representam a versão atual.
 
 ## V1.10.1 — exportação de bebidas em TXT
 

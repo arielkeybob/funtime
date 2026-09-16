@@ -1,5 +1,9 @@
 # Eventos — agenda e revisão de UX para a linha 2.1.x
 
+> **Arquivado** — proposta de design; a agenda de eventos já foi implementada.
+> Preservado sem edição de conteúdo, como registro da análise que levou ao desenho
+> atual; veja [DEVELOPMENT.md](../../DEVELOPMENT.md) para o que de fato foi construído.
+
 Proposta de 09/09/2026. Complementa EVENTOS-PLANEJAMENTO.md. Implementação local autorizada em seguida pelo usuário e concluída para avaliação. Estado e escolhas adotadas em DEVELOPMENT.md, seção Implementação local — agenda e automações. O texto abaixo preserva o planejamento. O usuário publicou manualmente 3bcfff7 com o recurso inicial; a identificação interna está sendo alinhada localmente para 2.1.0.
 
 ## 1. Diagnóstico da tela atual

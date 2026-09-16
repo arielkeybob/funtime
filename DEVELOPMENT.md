@@ -400,7 +400,7 @@ Primeiro acesso transferido exige novo desbloqueio, sem sessão herdada da v1. D
 
 `transition.js`, carregado antes do boot e incluído no cache, consulta `/funtime/transition.json` sem dados privados. Somente uma resposta JSON direta, ready, versão 2.x e protocolo compatível oferece abrir a nova instalação; ausência, erro ou resposta inválida mantêm a v1 normal. Também lê `funtime-installation-owner-v1`, que a v1 nunca grava. Se a futura v2 registrar posse válida, o boot interrompe antes de ler dados/segurança ou carregar app.js e mostra um link restrito a `/funtime/` na mesma origem. O lock `funtime-app-writer-v1` deverá ser compartilhado pela v2. O registro e o diário continuam fora do backup.
 
-O handshake de janelas passa a protocol 2, incluindo a atualização de páginas v1.15. `GET_VERSION` e a resposta de `FUNTIME_PREPARE` anunciam capacidade de transição. Limpeza de shells fica restrita à geração v1, preservando v2 e caches de importação. Detalhes e condições de publicação em [TRANSITION-V2.md](TRANSITION-V2.md).
+O handshake de janelas passa a protocol 2, incluindo a atualização de páginas v1.15. `GET_VERSION` e a resposta de `FUNTIME_PREPARE` anunciam capacidade de transição. Limpeza de shells fica restrita à geração v1, preservando v2 e caches de importação. Detalhes e condições de publicação em [TRANSITION-V2.md](docs/history/TRANSITION-V2.md).
 
 ## V1.15.0 — migração de identidade e armazenamento
 
@@ -412,7 +412,7 @@ Os dados usam `funtime-v1-data`, segurança `funtime-security-v1` e aceite `funt
 
 O shell passa a `funtime-v1-15-0` e o SW procura recursos apenas no cache ativo, evitando misturar gerações. A limpeza remove caches versionados de shell; caches de recebimento ficam preservados. Na leitura de compartilhamento, pendência antiga tem precedência; se houver também uma nova, ela permanece para a próxima abertura. O arquivo só é retirado depois de seu conteúdo ser lido e construído. Os headers das duas gerações são reconhecidos.
 
-Além dos testes existentes, executar `node --test tests/migration.test.cjs`. O teste `node --test tests/migration-browser.test.cjs` exige Playwright no NODE_PATH e Edge instalado (ou PWA_BROWSER_CHANNEL compatível). Ele serve a v1.14.3 do commit `06feefe693059ce7ff5586e04ce847e704eacdec` e a árvore atual em uma origem HTTP local temporária, com perfis isolados. Não acessa dados reais. O modo instalado é simulado via navigator.standalone; isso testa o código/SW no navegador, não a instalação no launcher nem biometria real. Situação final dos testes em [MIGRATION-FUNTIME.md](MIGRATION-FUNTIME.md).
+Além dos testes existentes, executar `node --test tests/migration.test.cjs`. O teste `node --test tests/migration-browser.test.cjs` exige Playwright no NODE_PATH e Edge instalado (ou PWA_BROWSER_CHANNEL compatível). Ele serve a v1.14.3 do commit `06feefe693059ce7ff5586e04ce847e704eacdec` e a árvore atual em uma origem HTTP local temporária, com perfis isolados. Não acessa dados reais. O modo instalado é simulado via navigator.standalone; isso testa o código/SW no navegador, não a instalação no launcher nem biometria real. Situação final dos testes em [MIGRATION-FUNTIME.md](docs/history/MIGRATION-FUNTIME.md).
 
 > Este documento descreve a arquitetura e o comportamento técnico da versão `v1.10.2`. Ele foi escrito para facilitar manutenção, depuração e evolução do projeto sem depender do histórico da conversa em que o app foi criado.
 
@@ -422,7 +422,7 @@ Além dos testes existentes, executar `node --test tests/migration.test.cjs`. O 
 
 Validação desta alteração: sintaxe de app.js/sw.js e simulação Node dos caminhos de compartilhamento, download, cancelamento, conteúdo/MIME do arquivo e leitura TXT/JSON. A simulação não verifica integração com WhatsApp ou atualização do manifest no aparelho; esses fluxos precisam de teste na PWA publicada.
 
-> Nota de continuidade: o documento também preserva descrições e exemplos de releases anteriores. Para preferências e arquivos de dados atuais, consulte as seções V1.9.0 e V1.10.0 ao final e confira o código; exemplos antigos com modelo 7 ou caches anteriores não representam a versão vigente. A procedência do contexto recuperado está em [CONTEXT.md](CONTEXT.md), e as orientações de trabalho em [AGENTS.md](AGENTS.md).
+> Nota de continuidade: o documento também preserva descrições e exemplos de releases anteriores. Para preferências e arquivos de dados atuais, consulte as seções V1.9.0 e V1.10.0 ao final e confira o código; exemplos antigos com modelo 7 ou caches anteriores não representam a versão vigente. A procedência do contexto recuperado está em [CONTEXT.md](docs/history/CONTEXT.md), e as orientações de trabalho em [AGENTS.md](AGENTS.md).
 
 ---
 
@@ -2411,7 +2411,7 @@ Importações passam a validar tipos estritos e limites de strings. Backup rejei
 
 Testes: `node --check app.js`, `node --check sw.js`, `node --check policies.js` e `node --test tests/audit.test.cjs`. Cenários manuais adicionais: primeiro acesso; link antes do aceite; persistência após reabrir; alteração de TERMS_VERSION; armazenamento bloqueado; backup de outro dispositivo sem transferência do aceite; políticas offline após atualização; PIN/biometria e share target após o aceite. Não apagar dados reais para testar.
 
-Versão da aplicação/footers: 1.11.0. Cache: `intervalo-v1-11-0`. DATA_VERSION permanece 8. Diagnóstico e limitações residuais: [AUDIT.md](./AUDIT.md).
+Versão da aplicação/footers: 1.11.0. Cache: `intervalo-v1-11-0`. DATA_VERSION permanece 8. Diagnóstico e limitações residuais: [AUDIT.md](docs/history/AUDIT.md).
 
 
 ## V1.11.1 — rascunho do aceite

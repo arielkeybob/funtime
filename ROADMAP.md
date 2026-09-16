@@ -1,46 +1,12 @@
 # Roadmap · FunTime
 
-Este documento registra decisões de evolução e ideias em estudo. A migração FunTime abaixo foi acordada com o usuário; os demais estudos não representam funcionalidades confirmadas e podem mudar conforme testes de UX, limitações técnicas e requisitos de privacidade e segurança.
+Este documento registra decisões de evolução e ideias em estudo. Os itens abaixo não representam funcionalidades confirmadas e podem mudar conforme testes de UX, limitações técnicas e requisitos de privacidade e segurança.
 
-## Decisão acordada — FunTime v1.x → v2.0
+## Concluído — migração de marca Intervalo → FunTime
 
-FunTime 2.0.0 estabilizado após a confirmação do usuário de que os testes no celular funcionaram. Repositório principal `funtime`, Pages `/funtime/`, novo ícone e receptor real; a ponte permanece em `/intervalo/`. A atualização da dev.2 usa o botão Atualizar, sem repetir a transferência. O aviso na v1.16 é ativado separadamente após conferir o deployment estável. Registro em [RELEASE-V2.md](RELEASE-V2.md); histórico em [V2-PREPARATION.md](V2-PREPARATION.md).
-
-Registrada em 07/09/2026. Primeira fase v1.15.0 enviada ao repositório no commit `5edf167`. A segunda fase v1.16.0 integra esta entrega. Base da migração: v1.14.3, DATA_VERSION 9. O deployment do GitHub Pages deve ser conferido separadamente após o push. Consulte [MIGRATION-FUNTIME.md](MIGRATION-FUNTIME.md) e [TRANSITION-V2.md](TRANSITION-V2.md).
-
-O usuário quer substituir a identidade Intervalo por FunTime, incluindo posteriormente repositório, URL do GitHub Pages e referências internas. A transição terá versões v1.x que migram automaticamente ao tocar em Atualizar. Na v2.0, o usuário aceita uma mudança mais ampla, mesmo que os dispositivos interpretem FunTime como um novo app e precisem de nova instalação. O usuário pretende fornecer um novo ícone para distinguir a v2 da anterior.
-
-- **v1.15.0 — primeira fase:** marca FunTime, armazenamento com nomes FunTime e compatibilidade com dados/arquivos anteriores, mantendo endereço e identidade da PWA atual. Implementação e validação em [MIGRATION-FUNTIME.md](MIGRATION-FUNTIME.md).
-- **v1.16.0 — ponte da v2:** diário compacto e recuperação de versões anteriores, caches separados por geração, descoberta da publicação em `/funtime/transition.json`, contrato de posse e orientação após a transferência. Mantida no repositório antigo; o receptor real está no FunTime 2.0. Detalhes em [TRANSITION-V2.md](TRANSITION-V2.md).
-- **v2.0.0 — identidade definitiva:** novo ícone baseado no conceito do usuário, identidade da PWA e repositório `funtime`, GitHub Pages em `/funtime/`, referências atuais FunTime. A pasta local permanece `balada` por ser o workspace configurado; uma eventual mudança local será coordenada separadamente e não altera a instalação dos usuários.
-
-### Critérios de continuidade
-
-- Quem pular versões intermediárias também deve conseguir migrar. Manter migrações cumulativas e compatibilidade de arquivos antigos; não remover o suporte apenas porque uma versão intermediária foi publicada.
-- Planejar uma ponte no endereço antigo antes de renomear o repositório. Instalações antigas precisam continuar encontrando a atualização, o manifest e os recursos de transição necessários.
-- Preservar bebidas, IDs, eventos, timestamps, snapshots e preferências. Evitar duas instalações gravando estados divergentes; o mecanismo de transferência e de desativação de escrita da instalação antiga precisa ser projetado e testado antes da v2.
-- A preservação automática da proteção entre instalações depende do navegador, armazenamento e origem. Não prometer reaproveitamento universal de credenciais nem incluir PIN/credenciais nos backups.
-- O botão Atualizar controla a atualização do app; nome/ícone no sistema dependem do navegador e podem não acompanhar imediatamente. A v1 mantém a identidade instalada; a v2 pode rompê-la explicitamente.
-- FunTime será a marca atual. Referências antigas indispensáveis à leitura de formatos e migrações ficarão isoladas e documentadas; histórico documental e Git não serão reescritos para fingir que a marca antiga nunca existiu. A palavra “intervalo” como duração permanece.
-- A primeira fase foi solicitada após o registro do plano. Essa implementação local não implica autorização de commit, push, renomeação remota ou publicação; as fases seguintes continuam planejadas.
-
-### Referências técnicas
-
-- [Identidade da PWA](https://developer.chrome.com/docs/capabilities/pwa-manifest-id): preservar o identificador efetivo mantém a identidade instalada; alterá-lo pode criar outro app.
-- [Atualização de PWA e metadados](https://web.dev/learn/pwa/update): atualização do Service Worker e dos metadados da instalação são processos distintos e dependem da plataforma.
-- [Web Storage](https://developer.mozilla.org/en-US/docs/Web/API/Web_Storage_API): localStorage pertence à origem, não ao caminho; mudar somente `/intervalo/` para `/funtime/` não cria, por si só, outro armazenamento.
-- [Renomeação de repositório](https://docs.github.com/en/repositories/creating-and-managing-repositories/renaming-a-repository): planejar separadamente o endereço do GitHub Pages.
+A identidade mudou de "Intervalo" para "FunTime" em três fases (v1.15.0 → v1.16.0 → v2.0.0): novo repositório (`funtime`), novo ícone, nova URL (`/funtime/`) e uma ponte temporária em `/intervalo/` para transferir instalações antigas. O usuário confirmou os testes no celular e a v2.0.0 foi estabilizada; a ponte e todo o protocolo de transferência (`migration.js`/`transition.js`/`receiver.js`) foram removidos do código quando o suporte à v1 deixou de ser necessário (spec 0018). Registro histórico completo em [docs/history/](docs/history/) (`MIGRATION-FUNTIME.md`, `TRANSITION-V2.md`, `V2-PREPARATION.md`, `RELEASE-V2.md`).
 
 ## Próximos estudos
-
-### Reordenar ícones por arrastar e soltar
-
-V2.0.5: pressão longa substitui menu/alça, com rolagem nativa antes da ativação. Lixeira vermelha aparece durante o arraste para exclusão por soltura, com Desfazer. A caneta permanece como alternativa explícita de exclusão. Implementação e publicação autorizadas pelo usuário após os testes.
-
-V2.0.4: refinamento solicitado e autorizado para publicação. Caneta abre menu com Reordenar/Excluir, modos separados, cards compactos com alça no canto e prévia animada em tempo real. Soltar grava; Desfazer recupera a ordem anterior. Mouse, toque simulado e catálogo longo verificados; validação em celular real permanece pendente.
-
-Implementado na V2.0.3, com publicação autorizada em 08/09/2026 e validação em aparelho ainda pendente: no modo de edição, alças específicas permitem arrastar até outra posição, com rolagem automática nas bordas e destaque do destino. A área do emoji mantém seleção e rolagem. Setas e Home/End oferecem alternativa por teclado; Escape cancela o arraste. A ordem usa o catálogo já persistido e incluído no backup, sem mudar o schema.
-
 
 ### Mesclar bebidas
 
@@ -135,16 +101,22 @@ Recurso separado da transferência de bebidas.
 - arquivo é validado integralmente antes da gravação;
 - erro de validação/gravação mantém os dados atuais.
 
-## Padronização de formulários — auditoria de 09/09/2026
+### Reordenar ícones por arrastar e soltar — V2.0.3 a V2.0.5
 
-O editor de registros usava selects próprios para horário; foi alinhado às roletas createWheelPicker/setWheelPickerValue e às classes interval-fieldset/duration-field. ui.js passa a centralizar o rascunho e a visibilidade da conclusão em cadastro/edição de bebida, anotação, edição de registro e criação de PIN. Reverter os campos oculta a conclusão novamente. Ações imediatas, autenticação, aceite, prévias de importação/restauração e confirmações destrutivas não são rascunhos e preservam suas ações explícitas. Preferências são salvas imediatamente.
+No modo de edição do catálogo, pressão longa arrasta o ícone até outra posição, com rolagem automática nas bordas, alternativa por teclado (setas/Home/End, Escape cancela) e lixeira vermelha para exclusão por soltura, com Desfazer. A caneta continua como alternativa explícita de exclusão. Ordem persistida no catálogo e incluída no backup, sem mudar o schema.
 
-Correção futura identificada no código: o HTML das roletas ainda se repete em index.html; extrair um template/fábrica compartilhado com rótulos e limites configuráveis. styles.css acumula regras específicas de #drink-dialog e #log-dialog, além do layout comum app-dialog; consolidar medidas em classes/tokens e auditar todas as larguras antes de remover overrides. A abertura e limpeza de formulários ainda são específicas em app.js; expandir o contrato de rascunho em ui.js quando esses fluxos forem unificados. Catálogo de ícones persiste imediatamente, independente de Cancelar, e deve continuar separado do rascunho da bebida.
+### Eventos/ocasiões e agenda — V2.1.0 em diante
 
-## Em estudo — eventos e contexto dos cards
+Cards distinguem "consumido nesta ocasião" de "possui histórico"; eventos são opcionais, com no máximo um em andamento. A aba Evento é uma agenda compacta (Próximos/Anteriores) com agendamento manual/automático, aviso na Home antes do início e recuperação de eventos esquecidos após 48h sem registro. Detalhe técnico e histórico de versões em DEVELOPMENT.md; os documentos de planejamento originais (comparação de alternativas, casos de borda considerados) estão arquivados em [docs/history/EVENTOS-PLANEJAMENTO.md](docs/history/EVENTOS-PLANEJAMENTO.md) e [docs/history/EVENTOS-AGENDA-UX.md](docs/history/EVENTOS-AGENDA-UX.md).
 
-Desenvolvimento local autorizado após avaliar e rejeitar a neutralização manual. Eventos e menu inferior em avaliação; sem publicação. Planejamento original: [Eventos no FunTime](EVENTOS-PLANEJAMENTO.md). Compara neutralização dos cards, dia civil, agrupamento automático e eventos explícitos; recomenda provisoriamente eventos opcionais. Inclui estados, início/encerramento/esquecimento, edição, histórico, dados, migração e critérios de validação. Abrir/encerrar um evento nunca reinicia intervalos entre doses. Decisões ainda pendentes de avaliação do usuário.
+## Débito técnico
 
-### Agenda, automações e lista compacta de eventos
+Itens identificados durante auditorias/refactors anteriores, sem correção própria agendada ainda.
 
-Proposta em [EVENTOS-AGENDA-UX.md](EVENTOS-AGENDA-UX.md): lista mensal compacta e detalhes separados, agendamentos manuais/automáticos, aviso na Home e recuperação após 48h. Implementado localmente para avaliação: agenda compacta, início manual/automático, fim programado e recuperação após 48h. Commit e push da versão 2.1.0 autorizados em 09/09/2026.
+- **HTML das roletas duplicado em `index.html`** (auditoria de formulários, 09/09/2026): a lógica JS já foi unificada em `src/ui/wheel-picker.js` (specs 0011 e 0020/9.2.1), mas o markup de cada roleta ainda se repete; falta extrair um template/fábrica compartilhado com rótulos e limites configuráveis.
+- **`styles.css` acumula regras específicas** de `#drink-dialog`/`#log-dialog` além do layout comum `app-dialog`; consolidar medidas em classes/tokens e auditar as larguras antes de remover overrides.
+- **Abertura/limpeza de formulário ainda específica em `app.js`**; expandir o contrato de rascunho de `ui.js` quando esses fluxos forem unificados. Catálogo de ícones persiste imediatamente, independente de Cancelar — deve continuar separado do rascunho da bebida.
+- **`loadAppData()` sem caminho de recuperação para dado ilegível** (auditoria de 06/09/2026, arquivada em [docs/history/AUDIT.md](docs/history/AUDIT.md)): hoje é falha-fechada por design (`validateStoredShape()` lança erro em vez de resetar silenciosamente) — o que falta é uma via de inspecionar/recuperar o conteúdo bruto quando isso acontece, não abrandar a validação.
+- **Histórico sem paginação/virtualização**: o cap de 200 mil eventos não é garantia de performance de renderização em aparelhos modestos; é trabalho de algoritmo de lista, não decorre de nenhum refactor de arquitetura já feito.
+- **Cache de share-target sem expiração** (`sw.js`): um arquivo pendente de compartilhamento fica em cache até ser lido; um novo recebimento simplesmente substitui o anterior, sem prazo automático.
+- **Lock/unlock ainda em `app.js`** (spec 0020, Fase 9.2.5): `lockApp`/`unlockApp`/`showLockScreen`/`handlePinUnlock`/`handleDeviceUnlock`, os diálogos de configurar método/PIN e os 3 listeners inline de auto-lock ficaram de fora da extração de segurança porque `reset.js:184-192` duplica a lógica de bloqueio (reimplementa a contagem de tentativas em vez de chamar `handlePinUnlock`) e há zero teste cobrindo hoje o fluxo real de lock/unlock. Resolver a duplicação e escrever esses testes antes de extrair.

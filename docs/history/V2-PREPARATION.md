@@ -1,5 +1,10 @@
 # Preparação FunTime 2.0
 
+> **Arquivado** — o protocolo de migração/transição V1→V2 descrito aqui (`receiver.js`
+> e a ponte v1.16) foi removido do código na spec 0018. Preservado sem edição de
+> conteúdo, só como registro histórico; veja [README.md](../../README.md) e
+> [DEVELOPMENT.md](../../DEVELOPMENT.md) para o app atual.
+
 Registro histórico da preparação. O usuário confirmou os testes no celular e a entrega passa a 2.0.0 estável. Estado de publicação e ativação do convite em [RELEASE-V2.md](RELEASE-V2.md). As pendências de testes abaixo registram a situação na entrega da dev.2, antes dessa confirmação.
 
 ## Estado

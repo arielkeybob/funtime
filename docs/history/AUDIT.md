@@ -1,5 +1,11 @@
 # Auditoria · Intervalo
 
+> **Arquivado** — auditoria pré-rebranding (o app ainda se chamava "Intervalo").
+> Preservado sem edição de conteúdo. Os itens que continuavam em aberto foram
+> transportados para a seção "Débito técnico" de [ROADMAP.md](../../ROADMAP.md); os
+> demais achados já foram endereçados pelas specs 0001-0020 (ver
+> [docs/specs/README.md](../specs/README.md)).
+
 Base: versão local 1.10.6, em 06/09/2026, branch `main` limpa antes das alterações; remote `https://github.com/arielkeybob/intervalo.git`. Não foi feito fetch nem verificada a implantação pública. Resultado implementado: 1.11.0, dados versão 8.
 
 O projeto tem como finalidade principal estudo de programação e fins acadêmicos e didáticos, além do uso pessoal e testes com conhecidos. A avaliação é técnica e proporcional a esse contexto; não é certificação de segurança ou parecer jurídico.

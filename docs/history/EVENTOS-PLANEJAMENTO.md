@@ -1,5 +1,9 @@
 # Eventos no FunTime — proposta para discussão
 
+> **Arquivado** — proposta de design; o recurso de eventos/ocasiões já foi implementado.
+> Preservado sem edição de conteúdo, como registro da análise que levou ao desenho
+> atual; veja [DEVELOPMENT.md](../../DEVELOPMENT.md) para o que de fato foi construído.
+
 Data: 09/09/2026. Base conferida: v2.0.12, DATA_VERSION 9. Planejamento original preservado abaixo. O usuário autorizou depois o desenvolvimento de eventos e menu inferior; implementação local em avaliação, sem commit ou publicação. Escopo atual e diferenças: DEVELOPMENT.md, seção Desenvolvimento local — eventos e navegação inferior. Propostas restantes não equivalem a recursos implementados.
 
 ## Problema e objetivo

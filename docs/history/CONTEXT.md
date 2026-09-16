@@ -1,5 +1,9 @@
 # Contexto de continuidade
 
+> **Arquivado** — registro histórico de uma tarefa pontual, preservado sem edição de
+> conteúdo. Não descreve o app atual; veja [README.md](../../README.md) e
+> [DEVELOPMENT.md](../../DEVELOPMENT.md).
+
 Recuperação realizada em 05/09/2026 para continuar o projeto local no Codex. Este arquivo registra procedência e decisões; arquitetura, funcionalidades e planejamento permanecem em [README.md](README.md), [DEVELOPMENT.md](DEVELOPMENT.md) e [ROADMAP.md](ROADMAP.md).
 
 ## Base conferida
