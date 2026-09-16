@@ -46,6 +46,20 @@ test('worker anuncia a versão e libera a preparação depois de garantir as jan
   handlers.message({data:{type:'FUNTIME_PREPARE'},ports:[{postMessage:value=>ready=value}],waitUntil:value=>work=value});await work;
   assert.equal(ready.ready,true);assert.equal(ready.protocol,2);
 });
+test('compartilhamento recebido grava X-FunTime-Shared-At para permitir expirar depois',async()=>{
+  const entries=new Map();
+  const cache={put:async(url,response)=>entries.set(String(url),response),match:async url=>entries.get(String(url))};
+  const {handlers}=worker({caches:{open:async()=>cache}});
+  const formData=new FormData();
+  formData.append('drinksFile',new File(['{"drinks":[]}'],'FunTime-Bebidas.json',{type:'application/json'}));
+  const request=new Request('https://example.test/funtime/share-target',{method:'POST',body:formData});
+  const before=Date.now();
+  let response;handlers.fetch({request,respondWith:p=>response=p});
+  assert.equal((await response).status,303);
+  const stored=[...entries.values()][0];
+  const sharedAt=Number(stored.headers.get('X-FunTime-Shared-At'));
+  assert.ok(Number.isFinite(sharedAt)&&sharedAt>=before&&sharedAt<=Date.now(),`esperava timestamp recente, veio ${sharedAt}`);
+});
 test('SW v2 não intercepta navegação nem compartilhamento fora do próprio escopo',()=>{
   const {handlers}=worker();
   handlers.fetch({request:new Request('https://example.test/other-app/'),respondWith(){assert.fail('fora do escopo');}});

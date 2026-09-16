@@ -140,7 +140,8 @@ async function handleShareTargetRequest(request) {
       new Response(text, {
         headers: {
           "Content-Type": "application/json;charset=utf-8",
-          "X-FunTime-Filename": encodeURIComponent(file.name || "FunTime-Bebidas.json")
+          "X-FunTime-Filename": encodeURIComponent(file.name || "FunTime-Bebidas.json"),
+          "X-FunTime-Shared-At": String(Date.now())
         }
       })
     );

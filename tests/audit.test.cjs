@@ -390,3 +390,40 @@ test('loadAppData: falha ao acessar o localStorage em si não usa o erro de dado
     return true;
   });
 });
+
+// readPendingSharedDrinkFile(): um compartilhamento recebido pelo share target
+// (sw.js) e nunca retomado não pode ficar em cache indefinidamente, nem
+// surpreender com uma prévia de importação esquecida meses depois (débito
+// técnico do ROADMAP.md). X-FunTime-Shared-At (gravado por sw.js) é a base da
+// expiração; uma entrada velha é descartada silenciosamente, sem virar erro.
+const SHARE_REQUEST_URL = 'https://example.test/funtime/__shared-drinks-import__';
+function sharedImportContext(entries) {
+  // No browser real, `caches` solto e `window.caches` são a mesma coisa
+  // (window é o objeto global) - readPendingSharedDrinkFile() lê os dois jeitos.
+  const fakeCaches = { has: async () => true, open: async () => ({
+    match: async url => entries.get(String(url)),
+    delete: async url => entries.delete(String(url)),
+  }) };
+  const ctx = vm.createContext({
+    console, File, URL, caches: fakeCaches,
+    window: { caches: fakeCaches, location: { href: 'https://example.test/funtime/' } },
+  });
+  vm.runInContext(`const SHARE_IMPORT_CACHE_NAME='funtime-share-target-v1', SHARE_IMPORT_REQUEST_PATH='./__shared-drinks-import__', SHARE_IMPORT_MAX_AGE_MS=${24 * 60 * 60 * 1000};`, ctx);
+  vm.runInContext(extract('isSharedFileExpired'), ctx);
+  vm.runInContext('async ' + extract('readPendingSharedDrinkFile'), ctx);
+  return ctx;
+}
+test('readPendingSharedDrinkFile: compartilhamento recente é lido e consumido do cache', async () => {
+  const entries = new Map([[SHARE_REQUEST_URL, new Response('{"drinks":[]}', { headers: { 'X-FunTime-Filename': 'FunTime-Bebidas.json', 'X-FunTime-Shared-At': String(Date.now() - 1000) } })]]);
+  const c = sharedImportContext(entries);
+  const file = await c.readPendingSharedDrinkFile();
+  assert.equal(file.name, 'FunTime-Bebidas.json');
+  assert.equal(await file.text(), '{"drinks":[]}');
+  assert.equal(entries.has(SHARE_REQUEST_URL), false, 'consumida do cache após a leitura');
+});
+test('readPendingSharedDrinkFile: compartilhamento com mais de 24h é descartado sem virar erro', async () => {
+  const entries = new Map([[SHARE_REQUEST_URL, new Response('{"drinks":[]}', { headers: { 'X-FunTime-Filename': 'X.json', 'X-FunTime-Shared-At': String(Date.now() - 25 * 60 * 60 * 1000) } })]]);
+  const c = sharedImportContext(entries);
+  assert.equal(await c.readPendingSharedDrinkFile(), null);
+  assert.equal(entries.has(SHARE_REQUEST_URL), false, 'entrada expirada também é removida do cache');
+});

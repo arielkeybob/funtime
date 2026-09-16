@@ -309,6 +309,7 @@ const DRINK_FILE_MAX_BYTES = 1500000;
 const BACKUP_FILE_MAX_BYTES = 20000000;
 const SHARE_IMPORT_CACHE_NAME = "funtime-share-target-v1";
 const SHARE_IMPORT_REQUEST_PATH = "./__shared-drinks-import__";
+const SHARE_IMPORT_MAX_AGE_MS = 24 * 60 * 60 * 1000;
 const SECURITY_STORAGE_KEY = "funtime-security-v1";
 const SECURITY_SESSION_KEY = "funtime-security-session-v1";
 const PIN_LOCKOUT_ATTEMPTS = 5;
@@ -1801,6 +1802,14 @@ function confirmBackupRestore() {
   }
 }
 
+// Um compartilhamento nunca retomado (app fechado logo em seguida e nunca
+// reaberto) não pode ficar em cache indefinidamente nem, meses depois,
+// surpreender o usuário com uma prévia de importação de um arquivo esquecido.
+function isSharedFileExpired(response) {
+  const sharedAt = Number(response.headers.get("X-FunTime-Shared-At"));
+  return Number.isFinite(sharedAt) && Date.now() - sharedAt > SHARE_IMPORT_MAX_AGE_MS;
+}
+
 async function readPendingSharedDrinkFile() {
   if (!("caches" in window)) return null;
 
@@ -1810,6 +1819,10 @@ async function readPendingSharedDrinkFile() {
     const requestUrl = new URL(SHARE_IMPORT_REQUEST_PATH, window.location.href).href;
     const response = await cache.match(requestUrl);
     if (!response) return null;
+    if (isSharedFileExpired(response)) {
+      await cache.delete(requestUrl);
+      return null;
+    }
     const filename = decodeURIComponent(response.headers.get("X-FunTime-Filename") || "FunTime-Bebidas.json");
     const text = await response.text();
     const file = new File([text], filename, { type: "application/json" });
@@ -1832,10 +1845,16 @@ function cleanSharedImportUrl() {
 async function maybeHandleSharedDrinkImport() {
   const url = new URL(window.location.href);
   let pending = url.searchParams.has("import-shared");
-  if (!pending && "caches" in window && (await caches.has(SHARE_IMPORT_CACHE_NAME))) {
+  if ("caches" in window && (await caches.has(SHARE_IMPORT_CACHE_NAME))) {
     const cache = await caches.open(SHARE_IMPORT_CACHE_NAME);
     const requestUrl = new URL(SHARE_IMPORT_REQUEST_PATH, window.location.href).href;
-    pending = Boolean(await cache.match(requestUrl));
+    const response = await cache.match(requestUrl);
+    if (response && isSharedFileExpired(response)) {
+      await cache.delete(requestUrl);
+      cleanSharedImportUrl();
+      return;
+    }
+    if (!pending) pending = Boolean(response);
   }
   if (!pending) return;
 
