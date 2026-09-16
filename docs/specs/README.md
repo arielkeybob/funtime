@@ -33,6 +33,7 @@ Contexto geral do refactor: ver o plano aprovado em
 | [0018](0018-remove-v1-support.md) | Remover suporte à V1 ("Intervalo"): ponte, transferência e coexistência | implementada |
 | [0019](0019-remaining-classic-scripts.md) | Converter os scripts clássicos restantes para módulos ES (Fase 8) | implementada |
 | [0020](0020-app-js-domains.md) | Extrair domínios remanescentes de `app.js`: roleta, catálogo de ícones, evento, bebida/dose, segurança parcial (Fase 9.2) | implementada |
+| [0021](0021-security-lock.md) | Resolver duplicação de lockout de PIN em `reset.js` e extrair bloqueio/desbloqueio para `src/security/lock.js` (Fase 9.3) | proposta |
 
 Status possíveis: `proposta` (escrita, aguardando aprovação) · `aprovada` (pode
 implementar) · `implementada` (já no código, commit referenciado).
