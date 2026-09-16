@@ -1,4 +1,12 @@
-# FunTime — V2.1.40
+# FunTime — V2.1.41
+
+## V2.1.41 — recuperação quando os dados não podem ser lidos
+
+Se os dados salvos ficarem corrompidos, a tela de erro que aparece na abertura ganha um
+botão **Baixar cópia dos dados**, além de Tentar novamente. Antes, recarregar batia no
+mesmo problema de novo, sem nenhuma forma de salvar o conteúdo. Os dados nunca são
+apagados nem alterados por essa tela. App, boot, rodapés e cache alinhados a 2.1.41;
+DATA_VERSION 11 preservado.
 
 ## V2.1.40 — mais uma etapa de reorganização interna, sem mudança de comportamento
 

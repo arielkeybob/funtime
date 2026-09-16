@@ -1,5 +1,41 @@
 # FunTime — documentação de desenvolvimento
 
+## V2.1.41 — recuperação de dado corrompido no boot
+
+Item de débito técnico do ROADMAP.md (achado original em `docs/history/AUDIT.md`):
+`loadAppData()` já era falha-fechada (lança erro em vez de resetar silenciosamente em
+dado corrompido), mas a única saída era "Tentar novamente" - que recarrega a página e
+bate no mesmo dado de novo, em loop, sem nenhuma forma de ver ou salvar o conteúdo
+bruto.
+
+Como a leitura de dados roda no topo do módulo `app.js`, antes de qualquer UI dele
+existir, um erro ali impede o módulo inteiro de carregar - a única tela que sobrevive é
+a de `boot.js`. É por isso que a recuperação mora lá, e não em `app.js`, apesar de
+`boot.js` normalmente ficar fora de rodadas de refactor (é o único lugar que roda
+sempre, mesmo quando o resto do app falha).
+
+Mecanismo: `loadAppData()` marca o erro com `error.name = 'FunTimeDataCorruptedError'`
+só quando o problema é forma/conteúdo dos dados (`validateStoredShape`, `JSON.parse` ou
+`normalizeData` falhando) - uma falha ao acessar o próprio `localStorage` (ex.:
+`SecurityError`) continua com o erro genérico de antes. `boot.js`'s `loadScript()` já
+escuta o evento global `error` de scripts com falha; passou a inspecionar
+`event.error?.name` e, quando é esse erro específico, `showError()` exibe um botão
+extra **Baixar cópia dos dados**, que lê `localStorage.getItem('funtime-v1-data')`
+diretamente e baixa como arquivo, sem tentar corrigir ou apagar nada.
+
+Escopo deliberadamente estreito, decidido com o usuário: só `funtime-v1-data`
+(bebidas/histórico), não `funtime-security-v1` (PIN); só baixar cópia, sem oferecer
+"apagar e recomeçar" nesta rodada.
+
+Nenhuma mudança de comportamento para quem não tem dado corrompido. Validado:
+`node --check` em `app.js`/`boot.js`; 4 testes novos de `loadAppData()` em
+`tests/audit.test.cjs` (leitura válida, JSON inválido, formato incompatível, falha de
+acesso ao `localStorage` não usa o nome novo); `tests/data-recovery-browser.test.cjs`
+(2 cenários reais em Playwright: dado corrompido mostra o botão e o download baixa
+exatamente o conteúdo bruto sem alterar o `localStorage`; dado válido nunca mostra o
+botão); suíte completa (158/159, única falha conhecida e pré-existente). App, boot,
+rodapés e cache alinhados a 2.1.41; DATA_VERSION 11 preservado.
+
 ## V2.1.40 — Fase 9.2: últimos domínios de `app.js` viram módulos
 
 Implementa a spec 0020 em 5 sub-fases/commits: `src/ui/wheel-picker.js` (unifica o
