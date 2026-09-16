@@ -1,5 +1,37 @@
 # FunTime — documentação de desenvolvimento
 
+## V2.1.42 — histórico paginado em blocos de 20
+
+Item de débito técnico do ROADMAP.md. `renderHistory()` reconstruía o DOM inteiro para
+todos os eventos filtrados de uma vez - com até 200 mil eventos permitidos no schema,
+isso travaria aparelhos modestos, e rodava a cada `refreshDataViews()` (depois de quase
+toda ação: anotar, editar, excluir, importar).
+
+Decisão de abordagem, discutida com o usuário: paginação incremental em vez de
+virtualização de janela de scroll. Virtualização de verdade exigiria reciclar nós de
+DOM e arrisca acessibilidade e testes que hoje esperam os registros presentes no DOM;
+paginação é bem mais simples e já é um padrão aprovado neste app (`occasions-ui.js`:
+`agendaLimit`/"Mostrar mais" na agenda de eventos, mesma técnica espelhada aqui).
+
+`state.historyLimit` (novo campo, começa em 20) limita quantos dos registros já
+ordenados/filtrados viram nós de DOM. Um botão novo, **Mostrar mais**
+(`#history-show-more`), incrementa o limite em 20 e re-renderiza; some quando não há
+mais nada a mostrar. `state.historyLimit` volta a 20 em `openHistoryView()` e ao trocar
+o filtro por evento - mas outra ação que só atualiza a mesma visão (editar/excluir um
+registro) preserva a página já expandida. `updateHistoryElapsedLabels()` (o "tick" que
+atualiza o texto de tempo decorrido) já usa `document.querySelectorAll()` sobre o que
+está no DOM - herda o ganho de performance automaticamente.
+
+Nenhuma mudança de comportamento para quem tem poucos registros (a lista continua
+idêntica até o vigésimo item). Validado: `node --input-type=module --check` em
+`app.js`; `tests/history-pagination-browser.test.cjs` (novo, Playwright real: só a
+primeira página vira DOM, contagem mostra o total, "Mostrar mais" revela o resto e
+some, editar um registro não recolhe a página expandida, reabrir o histórico volta ao
+limite inicial); suíte completa (159/160, única falha conhecida e pré-existente) - os
+testes existentes de `occasions-browser`/`upside-down-browser` que tocam histórico usam
+poucos eventos e continuam passando sem ajuste. App, boot, rodapés e cache alinhados a
+2.1.42; DATA_VERSION 11 preservado.
+
 ## V2.1.41 — recuperação de dado corrompido no boot
 
 Item de débito técnico do ROADMAP.md (achado original em `docs/history/AUDIT.md`):

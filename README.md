@@ -1,4 +1,11 @@
-# FunTime — V2.1.41
+# FunTime — V2.1.42
+
+## V2.1.42 — histórico carrega em blocos, com "Mostrar mais"
+
+Quem tem muitos registros deixa de esperar o histórico inteiro renderizar de uma vez.
+A tela mostra os 20 mais recentes e um botão **Mostrar mais** revela o restante sob
+demanda. A contagem no topo continua mostrando o total de registros. App, boot, rodapés
+e cache alinhados a 2.1.42; DATA_VERSION 11 preservado.
 
 ## V2.1.41 — recuperação quando os dados não podem ser lidos
 
