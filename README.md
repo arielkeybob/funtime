@@ -1,4 +1,11 @@
-# FunTime — V2.1.43
+# FunTime — V2.1.44
+
+## V2.1.44 — reorganização interna do bloqueio/PIN, sem mudança de comportamento
+
+Mais uma etapa de organização de código: a tela de bloqueio, desbloqueio por PIN/
+dispositivo e a contagem de tentativas erradas saem de `app.js` para um módulo próprio.
+Nenhuma tela, texto ou fluxo muda para quem usa o app. App, boot, rodapés e cache
+alinhados a 2.1.44; DATA_VERSION 11 preservado.
 
 ## V2.1.43 — compartilhamento esquecido some sozinho em 24h
 

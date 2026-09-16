@@ -1,6 +1,6 @@
 # 0021 — Bloqueio/desbloqueio de segurança: resolver a duplicação e extrair
 
-Status: aprovada (implementação em andamento, por sub-fase)
+Status: implementada
 
 ## Contexto
 
@@ -168,3 +168,22 @@ em `state`, não persistido, lido/incrementado tanto pelo módulo novo
   voltar (privacy shield + relock por tempo), autenticação por dispositivo (se
   disponível), "Apagar tudo" com PIN errado até bloquear.
 - Fora desta rodada: qualquer teste de biometria real em aparelho.
+
+## Nota pós-implementação
+
+As duas sub-fases foram commitadas separadamente (9.3.1 unifica a contagem de
+tentativas; 9.3.2 escreve testes antes e depois extrai lock/unlock), cada uma com
+`npm test` completo antes do commit seguinte.
+
+Achado real durante a 9.3.2 (registrado no commit): os testes "PIN/dispositivo correto
+desbloqueia" verificavam, antes da extração, uma chamada a `unlockApp()` substituída de
+fora — isso só funcionava porque a versão em `app.js` lia `unlockApp` como identificador
+solto de um `vm.Context`. No módulo real, `unlockApp` é uma closure interna do factory,
+não interceptável de fora; os testes passaram a verificar os efeitos observáveis reais
+de `unlockApp` ter rodado (`state.securityLocked`/`lockScreen.hidden`), sem perder
+cobertura do comportamento.
+
+Teste manual completo (configurar PIN, bloquear manualmente, desbloquear certo/errado
+até o limite de tentativas, aguardar o bloqueio passar, trocar de app e voltar,
+autenticação por dispositivo se disponível, "Apagar tudo" com PIN errado até bloquear)
+pendente de confirmação do usuário para fechar a spec.

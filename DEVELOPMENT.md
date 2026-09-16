@@ -1,5 +1,40 @@
 # FunTime — documentação de desenvolvimento
 
+## V2.1.44 — Fase 9.3: bloqueio/desbloqueio vira src/security/lock.js
+
+Fecha a spec 0021 (débito técnico do ROADMAP.md, adiado desde a spec 0020/9.2.5),
+implementada em duas sub-fases já commitadas separadamente:
+
+- **9.3.1**: `app.js:handlePinUnlock` e `reset.js:submitDataReset` reimplementavam
+  cada um a seu modo a lógica de somar uma tentativa errada de PIN e acionar o
+  bloqueio temporário. `registerFailedPinAttempt()` (novo, em
+  `src/security/config.js`) é o único ponto que soma `state.pinFailedAttempts` e
+  decide `state.pinLockoutUntil`; cada chamador continua livre para reagir à sua
+  maneira ao retorno. Não unificado de propósito: a lógica de "limpar contadores
+  quando o bloqueio já expirou" continua diferente entre os dois fluxos (um mostra
+  contagem regressiva visível, o outro não).
+- **9.3.2**: `closeSensitiveDialogs`, `showLockScreen`, `lockApp`, `unlockApp`,
+  `showPrivacyShield`, `hidePrivacyShield`, `updatePinLockoutMessage`,
+  `handlePinUnlock` e `handleDeviceUnlock` saem de `app.js` para
+  `src/security/lock.js`, com testes escritos antes da extração (18 testes ao todo
+  entre os dois módulos). `state.securitySetupGeneration` substitui um `let` privado
+  de `app.js`, para os diálogos de configurar método/PIN (que ficam de fora, de
+  propósito - concern diferente) continuarem compartilhando o mesmo contador.
+
+Achado real durante a 9.3.2: os testes de "PIN/dispositivo correto desbloqueia"
+verificavam, antes da extração, uma chamada a `unlockApp()` substituída de fora - só
+funcionava porque a versão em `app.js` lia `unlockApp` como identificador solto de um
+`vm.Context`. No módulo real, `unlockApp` é uma closure interna do factory, não
+interceptável de fora; os testes passaram a verificar os efeitos observáveis reais de
+`unlockApp` ter rodado, sem perder cobertura do comportamento.
+
+Nenhuma mudança de comportamento visível. Validado: `node --input-type=module --check`
+em `app.js` e nos dois módulos tocados; `node --check` em `reset.js`; suíte completa
+(179/180, única falha conhecida e pré-existente) rodada após cada sub-fase;
+`navigation-browser`/`occasions-browser` (que exercitam PIN/bloqueio de ponta a ponta)
+passaram sem ajuste. App, boot, rodapés e cache alinhados a 2.1.44; DATA_VERSION 11
+preservado.
+
 ## V2.1.43 — expira compartilhamento recebido não retomado em 24h
 
 Item de débito técnico do ROADMAP.md. Quando outro app compartilha um arquivo com o
