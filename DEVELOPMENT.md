@@ -42,8 +42,11 @@ Nenhuma mudança de comportamento visível, de formato de dados ou `DATA_VERSION
 Validado: `node --check`/`node --input-type=module --check` em cada arquivo tocado;
 suíte completa (152/153, única falha conhecida e pré-existente) rodada após cada uma
 das 5 sub-fases; testes de navegador deste domínio (`drink-tap`, `countdown-menu`,
-`drink-reorder`, `icon-reorder`, `dev-preview`, `navigation`, `occasions`) sem ajuste.
-App, boot, rodapés e cache alinhados a 2.1.40; DATA_VERSION 11 preservado.
+`drink-reorder`, `icon-reorder`, `dev-preview`, `navigation`, `occasions`) sem ajuste;
+teste manual completo confirmado pelo usuário no PWA real (cadastro/edição/exclusão de
+bebida, dose meia/inteira, "há quanto tempo", cancelar contagem, editar/excluir
+registro do histórico, configurar e usar PIN, travar/destravar o app). App, boot,
+rodapés e cache alinhados a 2.1.40; DATA_VERSION 11 preservado.
 
 ## V2.1.39 — Fase 8: últimos scripts clássicos viram módulos ES
 

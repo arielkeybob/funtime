@@ -220,4 +220,4 @@ parâmetro do factory, em vez de abrir uma segunda exceção não documentada à
 
 Teste manual completo (cadastrar/editar/excluir bebida, dose meia/inteira, "há quanto
 tempo", cancelar contagem, editar/excluir registro do histórico, configurar e usar PIN,
-travar/destravar o app) pendente de confirmação do usuário para fechar a spec.
+travar/destravar o app) confirmado pelo usuário no PWA real após o push da v2.1.40.
