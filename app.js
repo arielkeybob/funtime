@@ -2,7 +2,7 @@ import { formatTime, formatClock, formatHistoryElapsed, formatInterval } from ".
 import { resolveCountingMode } from "./src/format/counting-mode.js";
 import { derEcdsaSignatureToRaw } from "./src/security/webauthn-signature.js";
 import { derivePinHash, PIN_PBKDF2_ITERATIONS } from "./src/security/pin-crypto.js";
-import { createSecurityConfig, PIN_LENGTH } from "./src/security/config.js";
+import { createSecurityConfig, PIN_LENGTH, PIN_LOCKOUT_ATTEMPTS, PIN_LOCKOUT_MS } from "./src/security/config.js";
 import { commit as commitAppData } from "./src/data/store.js";
 import { wireDialogDismissal } from "./src/ui/dialogs.js";
 import { createDurationPicker, createWheelPicker, setWheelPickerValue } from "./src/ui/wheel-picker.js";
@@ -312,8 +312,6 @@ const SHARE_IMPORT_REQUEST_PATH = "./__shared-drinks-import__";
 const SHARE_IMPORT_MAX_AGE_MS = 24 * 60 * 60 * 1000;
 const SECURITY_STORAGE_KEY = "funtime-security-v1";
 const SECURITY_SESSION_KEY = "funtime-security-session-v1";
-const PIN_LOCKOUT_ATTEMPTS = 5;
-const PIN_LOCKOUT_MS = 30000;
 
 const PICKER_ICONS = [
   "🍬", "💊", "🍍", "🍭", "🥃", "🍺", "🍷", "🥂",
@@ -380,6 +378,7 @@ const securityConfig = createSecurityConfig({
 const {
   getDefaultSecurityConfig, loadSecurityConfig, saveSecurityConfig,
   getConfiguredPinLength, normalizePinInput, getPinLockoutRemainingMs, verifyPin,
+  registerFailedPinAttempt,
 } = securityConfig;
 state.securityConfig = IS_STANDALONE_APP ? loadSecurityConfig() : getDefaultSecurityConfig();
 
@@ -1019,10 +1018,8 @@ async function handlePinUnlock(event) {
     console.warn("Falha ao verificar PIN.", error);
   }
 
-  state.pinFailedAttempts += 1;
   pinUnlockValue.value = "";
-  if (state.pinFailedAttempts >= PIN_LOCKOUT_ATTEMPTS) {
-    state.pinLockoutUntil = Date.now() + PIN_LOCKOUT_MS;
+  if (registerFailedPinAttempt()) {
     updatePinLockoutMessage();
   } else {
     lockError.hidden = false;
@@ -3218,7 +3215,7 @@ Object.assign(globalThis, {
   updateDataSettingsUI, LEGACY_DRINKS_STORAGE_KEY, SHARE_IMPORT_CACHE_NAME,
   SECURITY_SESSION_KEY, getDefaultSecurityConfig, getConfiguredPinLength,
   getPinLockoutRemainingMs, normalizePinInput, verifyPin, PIN_LOCKOUT_ATTEMPTS,
-  PIN_LOCKOUT_MS, verifyDeviceCredential, openSecurityMethodDialog, closeDrinkDialog,
+  PIN_LOCKOUT_MS, registerFailedPinAttempt, verifyDeviceCredential, openSecurityMethodDialog, closeDrinkDialog,
   closeDeleteDrinkDialog, closeDrinkMenuDialog, closeStopCountdownDialog,
   closeIntervalWarningDialog, closeLogDialog, closeDoseSizeDialog, closeEventDialog,
   closeDrinkImportDialog, closeBackupRestoreDialog, closeSecurityMethodDialog,

@@ -3,6 +3,8 @@ import { derivePinHash, PIN_PBKDF2_ITERATIONS } from "./pin-crypto.js";
 export const SECURITY_CONFIG_VERSION = 3;
 export const PIN_LENGTH = 4;
 export const LEGACY_PIN_LENGTH = 6;
+export const PIN_LOCKOUT_ATTEMPTS = 5;
+export const PIN_LOCKOUT_MS = 30000;
 
 export function createSecurityConfig({
   state, localStorage, securityStorageKey, validateStoredShape, base64UrlToBytes, equalBytes,
@@ -86,8 +88,21 @@ export function createSecurityConfig({
     return equalBytes(derived, base64UrlToBytes(stored.hash));
   }
 
+  // Único ponto que soma uma tentativa errada e decide o bloqueio temporário -
+  // app.js (tela de bloqueio) e reset.js (reautenticar para APAGAR TUDO)
+  // reimplementavam isso cada um a seu modo antes desta extração (spec 0021).
+  // Cada chamador continua livre para reagir à sua maneira ao retorno (mostrar
+  // contagem regressiva, lançar erro, etc.) - só a contagem em si é única.
+  function registerFailedPinAttempt() {
+    state.pinFailedAttempts += 1;
+    const lockedOut = state.pinFailedAttempts >= PIN_LOCKOUT_ATTEMPTS;
+    if (lockedOut) state.pinLockoutUntil = Date.now() + PIN_LOCKOUT_MS;
+    return lockedOut;
+  }
+
   return {
     getDefaultSecurityConfig, loadSecurityConfig, saveSecurityConfig,
     getConfiguredPinLength, normalizePinInput, getPinLockoutRemainingMs, verifyPin,
+    registerFailedPinAttempt,
   };
 }

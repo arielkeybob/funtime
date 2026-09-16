@@ -130,3 +130,30 @@ test('verifyPin: PIN incorreto retorna false', async () => {
   });
   assert.equal(await sc.verifyPin('9999'), false);
 });
+
+// registerFailedPinAttempt(): único ponto que soma uma tentativa errada e decide
+// o bloqueio temporário - app.js (tela de bloqueio) e reset.js (reautenticar
+// para APAGAR TUDO) reimplementavam isso cada um a seu modo antes (spec 0021).
+test('registerFailedPinAttempt: soma tentativas e só bloqueia ao atingir o limite (5)', () => {
+  const state = { pinFailedAttempts: 0, pinLockoutUntil: 0 };
+  const sc = securityConfigInstance({ state });
+  for (let i = 1; i <= 4; i++) {
+    assert.equal(sc.registerFailedPinAttempt(), false, `tentativa ${i} não deveria bloquear`);
+    assert.equal(state.pinFailedAttempts, i);
+    assert.equal(state.pinLockoutUntil, 0);
+  }
+  const before = Date.now();
+  assert.equal(sc.registerFailedPinAttempt(), true, 'a 5ª tentativa bloqueia');
+  assert.equal(state.pinFailedAttempts, 5);
+  assert.ok(state.pinLockoutUntil >= before + 29000 && state.pinLockoutUntil <= Date.now() + 30000, 'bloqueio de ~30s a partir de agora');
+});
+test('registerFailedPinAttempt: tentativas de fluxos diferentes somam no mesmo contador', () => {
+  // Comportamento existente e intencional: um único contador de tentativas
+  // erradas por sessão (state.pinFailedAttempts), não um contador por fluxo -
+  // errar na tela de bloqueio e depois tentar "Apagar tudo" (ou vice-versa) soma.
+  const state = { pinFailedAttempts: 3, pinLockoutUntil: 0 };
+  const sc = securityConfigInstance({ state });
+  assert.equal(sc.registerFailedPinAttempt(), false);
+  assert.equal(sc.registerFailedPinAttempt(), true);
+  assert.equal(state.pinFailedAttempts, 5);
+});

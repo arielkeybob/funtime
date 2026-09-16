@@ -180,9 +180,8 @@ async function submitDataReset(event) {
       if (pin.length !== getConfiguredPinLength()) throw new Error(`Digite os ${getConfiguredPinLength()} dígitos do PIN.`);
       ok = await verifyPin(pin);
       if (!ok) {
-        state.pinFailedAttempts += 1;
-        if (state.pinFailedAttempts >= PIN_LOCKOUT_ATTEMPTS) state.pinLockoutUntil = Date.now() + PIN_LOCKOUT_MS;
-        throw new Error(state.pinFailedAttempts >= PIN_LOCKOUT_ATTEMPTS ? 'Muitas tentativas. Aguarde 30 segundos.' : 'PIN incorreto. Nenhum dado foi alterado.');
+        const lockedOut = registerFailedPinAttempt();
+        throw new Error(lockedOut ? 'Muitas tentativas. Aguarde 30 segundos.' : 'PIN incorreto. Nenhum dado foi alterado.');
       }
     } else if (state.securityConfig.method === 'device') ok = await verifyDeviceCredential();
     if (!ok) throw new Error('Autenticação não confirmada. Nenhum dado foi alterado.');

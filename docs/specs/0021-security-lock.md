@@ -1,6 +1,6 @@
 # 0021 — Bloqueio/desbloqueio de segurança: resolver a duplicação e extrair
 
-Status: proposta
+Status: aprovada (implementação em andamento, por sub-fase)
 
 ## Contexto
 
