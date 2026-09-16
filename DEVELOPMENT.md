@@ -1,5 +1,33 @@
 # FunTime — documentação de desenvolvimento
 
+## V2.1.43 — expira compartilhamento recebido não retomado em 24h
+
+Item de débito técnico do ROADMAP.md. Quando outro app compartilha um arquivo com o
+FunTime (`share_target` no manifest), `sw.js` grava o conteúdo em cache sob uma chave
+fixa; a próxima abertura do app lê e apaga. Se o usuário nunca reabrir o app depois de
+compartilhar, o arquivo ficava em cache indefinidamente - e meses depois, ao abrir o
+app por outro motivo qualquer, uma prévia de importação de um compartilhamento
+esquecido surgia do nada.
+
+`sw.js` passa a gravar `X-FunTime-Shared-At` (timestamp) junto com o
+`X-FunTime-Filename` que já existia. `app.js` ganha `isSharedFileExpired(response)` e
+`SHARE_IMPORT_MAX_AGE_MS` (24h); `readPendingSharedDrinkFile()` descarta (apaga do
+cache) uma entrada expirada e retorna `null`, sem lançar. `maybeHandleSharedDrinkImport()`
+também checa a expiração antes de decidir se há algo pendente, para não cair no branch
+de erro "Não foi possível recuperar o arquivo recebido" quando na verdade o
+compartilhamento só ficou velho demais - esse aviso continua reservado para uma falha
+de leitura de verdade.
+
+Validado: `node --check` em `sw.js`, `node --input-type=module --check` em `app.js`;
+`tests/sw-boot.test.cjs` (novo: `handleShareTargetRequest` grava o timestamp
+corretamente, rodando o `sw.js` real num `vm.Context`); `tests/audit.test.cjs` (2
+novos: compartilhamento recente é lido e consumido normalmente; compartilhamento com
+mais de 24h é descartado sem virar erro - achado durante o teste: a função lê `caches`
+como identificador solto, não só `window.caches`, então o contexto de teste precisou
+dos dois apontando pro mesmo objeto, como acontece de verdade no navegador); suíte
+completa (162/163, única falha conhecida e pré-existente). App, boot, rodapés e cache
+alinhados a 2.1.43; DATA_VERSION 11 preservado.
+
 ## V2.1.42 — histórico paginado em blocos de 20
 
 Item de débito técnico do ROADMAP.md. `renderHistory()` reconstruía o DOM inteiro para

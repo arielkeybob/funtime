@@ -1,4 +1,12 @@
-# FunTime — V2.1.42
+# FunTime — V2.1.43
+
+## V2.1.43 — compartilhamento esquecido some sozinho em 24h
+
+Se você compartilhar um arquivo de bebidas com o FunTime e não abrir o app logo em
+seguida, esse compartilhamento deixa de ficar esperando indefinidamente. Depois de 24h
+sem ser retomado, ele é descartado sozinho, em vez de aparecer como uma importação
+pendente meses depois. App, boot, rodapés e cache alinhados a 2.1.43; DATA_VERSION 11
+preservado.
 
 ## V2.1.42 — histórico carrega em blocos, com "Mostrar mais"
 
