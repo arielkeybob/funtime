@@ -1,4 +1,11 @@
-# FunTime — V2.1.39
+# FunTime — V2.1.40
+
+## V2.1.40 — mais uma etapa de reorganização interna, sem mudança de comportamento
+
+Editor de bebida, anotação de dose/log/menu da bebida e a configuração/verificação de
+PIN saem de `app.js` para módulos próprios — mesmo trabalho de organização das versões
+anteriores, sem nenhuma mudança de tela ou fluxo para quem usa o app. App, boot,
+rodapés e cache alinhados a 2.1.40; DATA_VERSION 11 preservado.
 
 ## V2.1.39 — reorganização interna concluída, sem mudança de comportamento
 

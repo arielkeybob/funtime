@@ -1,6 +1,6 @@
 # 0020 — Extrair domínios remanescentes de `app.js` (Fase 9.2)
 
-Status: aprovada (implementação em andamento, por sub-fase)
+Status: implementada
 
 ## Contexto
 
@@ -187,3 +187,37 @@ depois" da 9.2.3.
   usar PIN, travar/destravar o app.
 - Fora desta rodada, registrado de propósito: lock/unlock e os 3 listeners de auto-lock
   (ver 9.2.5), e a duplicação de lockout em `reset.js:184-192`.
+
+## Nota pós-implementação
+
+As 5 sub-fases foram commitadas separadamente (wheel-picker, catálogo de ícones,
+diálogo de evento, editor de bebida + registro de consumo, config/verificação de
+segurança), cada uma com `npm test` completo antes do commit seguinte, confirmando a
+lição da Fase 8. Três achados reais, além do previsto nesta spec:
+
+1. **Bug de regressão real** (9.2.2): `closeDrinkDialog()` chamava `iconReorder.cancel()`
+   como identificador solto depois que `iconReorder` virou variável interna do módulo -
+   travava `#drink-dialog` aberto. Confirmado como regressão (não pré-existente) via
+   worktree comparando com o commit anterior.
+2. **Dependência circular** (9.2.5): o literal de `state` calculava seu próprio
+   `securityConfig` inicial chamando `loadSecurityConfig()`/`getDefaultSecurityConfig()`
+   - mas o factory novo precisa de `state` por referência como parâmetro. Resolvido
+   construindo `state` com `securityConfig: null`, criando o factory logo em seguida, e
+   só então preenchendo `state.securityConfig`.
+3. **Teste quebrado por corte de string** (9.2.4): `tests/ui.test.cjs` fatiava `app.js`
+   até `'function openDrinkDialog('` para isolar `showAppNotification`/`showToast`/
+   `hideToast` - com `openDrinkDialog` movido para `src/drinks/interactions.js`, o
+   `indexOf` passou a devolver -1 e o corte silenciosamente incluiu quase todo o resto
+   do arquivo. Exatamente o risco que a seção "Testes: parar de depender de slice de
+   string" do plano original já apontava; corrigido apontando o corte para o próximo
+   marcador estável (`'const iconCatalog = createIconCatalog('`).
+
+`src/README.md` também ganhou reforço na prática: `localStorage` só era tocado
+diretamente por `src/data/store.js` até aqui; `src/security/config.js` precisou dele
+também (para `loadSecurityConfig`/`saveSecurityConfig`) e passou a recebê-lo por
+parâmetro do factory, em vez de abrir uma segunda exceção não documentada à regra de
+"módulos aqui não tocam `localStorage` diretamente".
+
+Teste manual completo (cadastrar/editar/excluir bebida, dose meia/inteira, "há quanto
+tempo", cancelar contagem, editar/excluir registro do histórico, configurar e usar PIN,
+travar/destravar o app) pendente de confirmação do usuário para fechar a spec.

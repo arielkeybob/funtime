@@ -1,5 +1,50 @@
 # FunTime — documentação de desenvolvimento
 
+## V2.1.40 — Fase 9.2: últimos domínios de `app.js` viram módulos
+
+Implementa a spec 0020 em 5 sub-fases/commits: `src/ui/wheel-picker.js` (unifica o
+motor de roleta, antes duplicado entre `createWheelPicker`/`setWheelPickerValue` soltos
+e a versão injetada em `createDurationPicker`), `src/ui/icon-catalog.js` (catálogo de
+ícones/emoji do diálogo de bebida), `src/history/event-dialog.js` (abrir/editar/excluir
+um registro do histórico), `src/drinks/interactions.js` (o maior módulo: CRUD do editor
+de bebida e todo o fluxo de registro de consumo — dose meia/inteira, log manual de "há
+quanto tempo", menu da bebida, cancelar contagem, aviso de intervalo) e
+`src/security/config.js` (só a fatia de configuração/verificação de segurança:
+`loadSecurityConfig`/`saveSecurityConfig`/`verifyPin`/etc. — lock/unlock, os diálogos de
+configuração de método/PIN e os 3 listeners de auto-lock ficam para uma spec futura, por
+dependerem de resolver antes uma duplicação de lockout em `reset.js`). Todos seguem o
+padrão de factory já estabelecido pela spec 0013 (`state` e os elementos de DOM
+recebidos por parâmetro, não fechados sobre `const` de módulo).
+
+Dois bugs de regressão real encontrados e corrigidos durante a extração (nenhum chegou
+a ser publicado): em `src/ui/icon-catalog.js`, `closeDrinkDialog()` chamava
+`iconReorder.cancel()` como identificador solto depois que a variável virou interna do
+módulo novo — travava o diálogo de bebida aberto, confirmado como regressão via
+comparação num worktree temporário com o commit anterior. Em `src/security/config.js`,
+o literal de `state` calculava seu próprio `securityConfig` inicial chamando
+`loadSecurityConfig()`/`getDefaultSecurityConfig()`, mas o factory novo precisa de
+`state` por referência como parâmetro — resolvido construindo `state` com
+`securityConfig: null`, criando o factory logo em seguida, e só então preenchendo o
+campo com o resultado real.
+
+`tests/drinks-mutations.test.cjs` teve 12 testes adaptados de `extract()`+
+`vm.runInContext` direto no texto de `app.js` para `require()` real dos módulos novos
+(a técnica antiga para de achar as funções assim que elas mudam de arquivo).
+`tests/ui.test.cjs` também quebrou de um jeito instrutivo: fatiava `app.js` até
+`'function openDrinkDialog('` para isolar `showAppNotification`/`showToast`/
+`hideToast` — com a função movida, o corte de string parou de achar o marcador e
+silenciosamente incluiu quase todo o resto do arquivo. `tests/security-config.test.cjs`
+é novo, escrito **antes** da extração (mesma lógica "testa antes, move depois" da spec
+0019), cobrindo `loadSecurityConfig`/`verifyPin`/`getPinLockoutRemainingMs` — sem
+nenhum teste unitário até então.
+
+Nenhuma mudança de comportamento visível, de formato de dados ou `DATA_VERSION`.
+Validado: `node --check`/`node --input-type=module --check` em cada arquivo tocado;
+suíte completa (152/153, única falha conhecida e pré-existente) rodada após cada uma
+das 5 sub-fases; testes de navegador deste domínio (`drink-tap`, `countdown-menu`,
+`drink-reorder`, `icon-reorder`, `dev-preview`, `navigation`, `occasions`) sem ajuste.
+App, boot, rodapés e cache alinhados a 2.1.40; DATA_VERSION 11 preservado.
+
 ## V2.1.39 — Fase 8: últimos scripts clássicos viram módulos ES
 
 `policies.js`, `ui.js`, `emoji-data.js`, `touch-debug.js`, `reset.js`, `occasions-ui.js`
