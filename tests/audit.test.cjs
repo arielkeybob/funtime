@@ -16,6 +16,18 @@ function context(extra = {}) {
   vm.runInContext('async ' + extract('readJsonFile'), ctx);
   return ctx;
 }
+// src/ui/icon-catalog.js lê `document` como global solto (convenção de módulos em src/ui/,
+// ver src/README.md) — testado via require() real, não extract(), então precisa de um
+// document de mentira no processo Node por fora da duração da chamada.
+function fakeDocument(overrides = {}) {
+  const stub = () => ({ addEventListener() {}, hidden: true, classList: { toggle() {}, add() {}, remove() {}, contains: () => false }, style: {}, setAttribute() {}, focus() {}, querySelector: () => null, querySelectorAll: () => [] });
+  return { querySelector: (selector) => overrides[selector] || stub(), querySelectorAll: () => [] };
+}
+function withDocument(doc, run) {
+  const previous = global.document;
+  global.document = doc;
+  try { return run(); } finally { global.document = previous; }
+}
 const drink = {id:'d1', name:'Água', icon:'💧', intervalMinutes:60, askDoseSize:false};
 test('backup preserva contagem encerrada e rejeita marca inválida sem mudar snapshots', () => {
   const c = context(), b = backup();
@@ -35,17 +47,21 @@ test('reordenar catálogo preserva seleção de dados, backup e ordem em falha d
   let saved;
   const state = { drinks: [drink], events: backup().data.events, preferences: { cleanInterface: true, iconCatalog: ['🍺', '💧', '⭐'] } };
   const c = context({ state, localStorage: { setItem: (key, value) => { saved = JSON.parse(value); } } });
-  vm.runInContext(extract('moveCatalogIcon'), c);
-  assert.equal(c.moveCatalogIcon('🍺', 2), true);
+  const { createIconCatalog } = require('../src/ui/icon-catalog.js');
+  const iconCatalog = withDocument(fakeDocument(), () => createIconCatalog({
+    state, persistIconCatalog: c.persistIconCatalog, iconOptions: {}, drinkDialog: {},
+    clearDrinkFieldError: () => {}, emojiGroups: [],
+  }));
+  assert.equal(iconCatalog.moveCatalogIcon('🍺', 2), true);
   assert.deepEqual(Array.from(state.preferences.iconCatalog), ['💧', '⭐', '🍺']);
   assert.deepEqual(saved.drinks, state.drinks);
   assert.deepEqual(saved.events, state.events);
   assert.deepEqual(Array.from(c.validateBackupPayload({ type: 'funtime-backup', formatVersion: 1, data: saved }).preferences.iconCatalog), ['💧', '⭐', '🍺']);
-  for (const index of [-1, 3, 0.5, NaN]) assert.equal(c.moveCatalogIcon('🍺', index), false);
-  assert.equal(c.moveCatalogIcon('❌', 0), false);
-  assert.equal(c.moveCatalogIcon('🍺', 2), false);
+  for (const index of [-1, 3, 0.5, NaN]) assert.equal(iconCatalog.moveCatalogIcon('🍺', index), false);
+  assert.equal(iconCatalog.moveCatalogIcon('❌', 0), false);
+  assert.equal(iconCatalog.moveCatalogIcon('🍺', 2), false);
   c.localStorage.setItem = () => { throw new Error('quota'); };
-  assert.throws(() => c.moveCatalogIcon('🍺', 0), /quota/);
+  assert.throws(() => iconCatalog.moveCatalogIcon('🍺', 0), /quota/);
   assert.deepEqual(Array.from(state.preferences.iconCatalog), ['💧', '⭐', '🍺']);
 });
 function backup() { return {type:'intervalo-backup',formatVersion:1,data:{version:8,drinks:[{...drink}],events:[{id:'e1',drinkId:'d1',drinkName:'Água',drinkIcon:'💧',consumedAt:1700000000000,intervalMinutes:60,doseSize:null}],preferences:{cleanInterface:true}}}; }
@@ -226,17 +242,22 @@ test('salvar catálogo preserva bebidas e snapshots e só muda estado após grav
 
 
 test('rolagem sincroniza categoria; dropdown salta sem rolar o formulário', () => {
- const category={value:'0'};
- const grid={scrollTop:0,clientHeight:216,scrollHeight:1200,getBoundingClientRect:()=>({top:100})};
+ const category={value:'0',addEventListener(){}};
+ const grid={scrollTop:0,clientHeight:216,scrollHeight:1200,getBoundingClientRect:()=>({top:100}),addEventListener(){}};
  grid.children=[0,400,800].map((offset,index)=>({dataset:{category:String(index)},getBoundingClientRect:()=>({top:100+offset-grid.scrollTop})}));
- const c=vm.createContext({document:{querySelector:selector=>selector==='#emoji-menu'?grid:category}});
- vm.runInContext(extract('syncEmojiCategory')+'\n'+extract('scrollToEmojiCategory'),c);
- grid.scrollTop=450;c.syncEmojiCategory();assert.equal(category.value,'1');
- grid.scrollTop=50;c.syncEmojiCategory();assert.equal(category.value,'0');
- category.value='2';c.scrollToEmojiCategory();assert.equal(grid.scrollTop,800);
- c.syncEmojiCategory();assert.equal(category.value,'2');
- grid.scrollTop=984;c.syncEmojiCategory();assert.equal(category.value,'2');
- category.value='0';c.scrollToEmojiCategory();assert.equal(grid.scrollTop,0);
+ const { createIconCatalog } = require('../src/ui/icon-catalog.js');
+ withDocument(fakeDocument({'#emoji-menu':grid,'#emoji-category':category}), () => {
+   const iconCatalog = createIconCatalog({
+     state:{preferences:{iconCatalog:[]}}, persistIconCatalog:()=>{}, iconOptions:{}, drinkDialog:{},
+     clearDrinkFieldError:()=>{}, emojiGroups:[],
+   });
+   grid.scrollTop=450;iconCatalog.syncEmojiCategory();assert.equal(category.value,'1');
+   grid.scrollTop=50;iconCatalog.syncEmojiCategory();assert.equal(category.value,'0');
+   category.value='2';iconCatalog.scrollToEmojiCategory();assert.equal(grid.scrollTop,800);
+   iconCatalog.syncEmojiCategory();assert.equal(category.value,'2');
+   grid.scrollTop=984;iconCatalog.syncEmojiCategory();assert.equal(category.value,'2');
+   category.value='0';iconCatalog.scrollToEmojiCategory();assert.equal(grid.scrollTop,0);
+ });
 });
 
 
