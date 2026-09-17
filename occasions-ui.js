@@ -220,9 +220,9 @@ function openOccasionDetails(id) {
   if (explanations[item.endReason]) { const note = document.createElement('p'); note.className = 'settings-description'; note.textContent = explanations[item.endReason] + ' Processado em ' + occasionDate(item.closedAt) + '.'; content.append(note); }
   if (FunTimeOccasions.pending(item) && item.autoStart && item.scheduledStartAt <= Date.now()) { const note = document.createElement('p'); note.className = 'active-warning'; note.textContent = 'O início automático encontrou outro evento no período. Revise as datas ou inicie manualmente.'; content.append(note); }
   const records = state.events.filter(record => record.occasionId === id);
-  const summary = document.createElement('p'); summary.textContent = records.length + (records.length === 1 ? ' registro' : ' registros'); content.append(summary);
-  const totals = new Map(); records.forEach(record => { const label = getEventDrinkIdentity(record).name; totals.set(label, (totals.get(label) || 0) + 1); });
-  for (const [name, count] of totals) { const line = document.createElement('p'); line.className = 'occasion-count'; line.textContent = name + ' · ' + count + ' registro(s)'; content.append(line); }
+  const { count, totals } = globalThis.summarizeOccasionDoses(records, getEventDrinkIdentity);
+  const summary = document.createElement('p'); summary.textContent = count + (count === 1 ? ' registro' : ' registros'); content.append(summary);
+  for (const entry of totals) { const line = document.createElement('p'); line.className = 'occasion-count'; line.textContent = entry.name + ' · ' + entry.count + ' registro(s)'; content.append(line); }
   const actions = document.createElement('div'); actions.className = 'occasion-actions';
   if (item.startedAt !== null && item.endedAt === null) { actions.classList.add('is-active'); actions.append(occasionButton('Encerrar evento', () => changeOccasion(id, 'end'), 'primary-button')); }
   else if (FunTimeOccasions.pending(item)) actions.append(occasionButton('Iniciar agora', () => changeOccasion(id, 'start'), 'primary-button'));

@@ -81,6 +81,10 @@ test('Voltar percorre telas, diálogos, subetapas e não acumula entradas vazias
     }); await depth(3);
     await page.locator('#pin-setup-value').fill('1234');
     await page.locator('#pin-setup-confirm').fill('1234');
+    // Sob carga, a abertura do diálogo limpava os campos depois do preenchimento e o
+    // submit caía em "Os PINs não coincidem" — falha intermitente, não do app.
+    await page.waitForFunction(() => document.querySelector('#pin-setup-value').value === '1234'
+      && document.querySelector('#pin-setup-confirm').value === '1234');
     await page.locator('#pin-setup-dialog button[type=submit]').click();
     assert.equal(await page.evaluate(() => typeof finishPinHash), 'function', await page.locator('#pin-setup-error').textContent());
     await page.waitForFunction(() => typeof finishPinHash === 'function');

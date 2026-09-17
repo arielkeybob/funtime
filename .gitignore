@@ -1,2 +1,6 @@
 /.worktrees/
 /node_modules/
+# Artefatos do emulador do Firestore (npm run test:rules)
+/firestore-debug.log
+/ui-debug.log
+/.firebase/

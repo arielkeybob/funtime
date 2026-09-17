@@ -2,12 +2,17 @@
   "name": "funtime",
   "private": true,
   "type": "commonjs",
-  "description": "Metadado de ferramental de desenvolvimento do FunTime (testes). O app publicado continua HTML/CSS/JS puro, sem build e sem backend — este arquivo não introduz nenhum dos dois. Os arquivos .js existentes na raiz continuam CommonJS-compatíveis (require() nos testes); só o código novo em src/ é ES Module, escopado por src/package.json.",
+  "description": "Metadado de ferramental de desenvolvimento do FunTime (testes e regras do Firestore). O app publicado continua HTML/CSS/JS puro, sem build e sem backend — este arquivo não introduz nenhum dos dois; o SDK do Firebase é carregado do CDN em runtime, não empacotado. Os arquivos .js existentes na raiz continuam CommonJS-compatíveis (require() nos testes); só o código novo em src/ é ES Module, escopado por src/package.json.",
   "scripts": {
     "test": "node --test --test-concurrency=1",
-    "test:browser": "node --test --test-concurrency=1 \"tests/*-browser.test.cjs\""
+    "test:browser": "node --test --test-concurrency=1 \"tests/*-browser.test.cjs\"",
+    "test:rules": "firebase emulators:exec --only firestore \"node --test tests/firestore-rules.test.cjs\"",
+    "rules:deploy": "firebase deploy --only firestore:rules"
   },
   "devDependencies": {
+    "@firebase/rules-unit-testing": "^5.0.2",
+    "firebase": "^12.19.0",
+    "firebase-tools": "^15.30.1",
     "playwright": "^1.63.0"
   }
 }

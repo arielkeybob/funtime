@@ -1,22 +1,14 @@
 import { diffAppData, isEmptyDiff, mergeRemote } from "./sync-merge.js";
+import { BATCH_LIMIT, chunk, loadFirestore } from "./firestore-db.js";
 
-const SDK_BASE = "https://www.gstatic.com/firebasejs/12.19.0";
 const PUSH_DEBOUNCE_MS = 800;
-const BATCH_LIMIT = 450; // o Firestore aceita 500 operações por lote; sobra folga.
 const COLLECTIONS = ["drinks", "events", "occasions"];
-
-function chunk(items, size) {
-  const chunks = [];
-  for (let index = 0; index < items.length; index += size) chunks.push(items.slice(index, index + size));
-  return chunks;
-}
 
 export function createFirestoreSync({
   app, uid, account, onRemoteUpdate, onStatusChange,
   importModule = (url) => import(url),
   schedule = setTimeout, cancel = clearTimeout,
 }) {
-  let ready = null;
   let latest = null;
   let lastPushed = null;
   let timer = null;
@@ -25,29 +17,8 @@ export function createFirestoreSync({
   const seeded = new Set();
   const remote = { drinks: [], events: [], occasions: [], preferences: null, drinkOrder: null };
 
-  // Cache persistente para a fila de escritas sobreviver ao fechamento do app: sem
-  // ele, uma exclusão feita offline se perderia e o registro voltaria da nuvem na
-  // próxima sincronização. Navegação privada e armazenamento bloqueado fazem isso
-  // falhar — aí sincroniza sem fila persistente, que é melhor do que não sincronizar.
-  function openDatabase(firestore) {
-    try {
-      return firestore.initializeFirestore(app, {
-        localCache: firestore.persistentLocalCache({ tabManager: firestore.persistentMultipleTabManager() }),
-      });
-    } catch {
-      return firestore.getFirestore(app);
-    }
-  }
-
   function load() {
-    if (!ready) {
-      ready = (async () => {
-        const firestore = await importModule(`${SDK_BASE}/firebase-firestore.js`);
-        return { firestore, db: openDatabase(firestore) };
-      })();
-    }
-
-    return ready;
+    return loadFirestore({ app, importModule });
   }
 
   function report(error) {

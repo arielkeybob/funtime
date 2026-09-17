@@ -292,6 +292,23 @@
         </div>
       </section>
 
+      <section id="settings-sharing-card" class="settings-card settings-data-card" hidden>
+        <div class="settings-section-heading">
+          <div>
+            <p class="eyebrow">Pessoas de confiança</p>
+            <h2>Compartilhar eventos</h2>
+          </div>
+        </div>
+
+        <p class="settings-description">Conecte-se a alguém por um código, para poder mostrar seu consumo durante um evento. Ninguém encontra você por nome ou e-mail, e estar conectado não mostra nada: compartilhar é sempre uma escolha sua, evento a evento.</p>
+
+        <div id="sharing-people" class="sharing-people"></div>
+
+        <div class="settings-action-stack">
+          <button id="sharing-connect" class="settings-primary-action" type="button">Conectar com alguém</button>
+        </div>
+      </section>
+
       <section class="settings-card">
         <div class="settings-section-heading">
           <div>
@@ -357,6 +374,71 @@
       <span class="app-footer-meta">v2.2.3 · By: arielkeybob</span>
     </footer>
   </div>
+
+  <dialog id="pairing-dialog" class="dialog data-dialog">
+    <form method="dialog">
+      <div class="dialog-header">
+        <div>
+          <p class="eyebrow">Pessoas de confiança</p>
+          <h2>Conectar com alguém</h2>
+        </div>
+        <button id="close-pairing" class="icon-button secondary" type="button" aria-label="Fechar">×</button>
+      </div>
+
+      <p class="settings-description">Uma pessoa mostra o código, a outra digita. Vocês precisam estar juntos: o código vale por 5 minutos e não há busca por nome ou e-mail.</p>
+
+      <label class="settings-field" for="pairing-alias">
+        <span>Como você aparece para essa pessoa</span>
+        <input id="pairing-alias" type="text" maxlength="40" autocomplete="off" placeholder="Seu apelido">
+      </label>
+
+      <div class="pairing-panels">
+        <div class="pairing-panel">
+          <strong>Mostrar meu código</strong>
+          <p id="pairing-code-display" class="pairing-code">— — —</p>
+          <p id="pairing-code-countdown" class="settings-description"></p>
+          <button id="pairing-generate" class="settings-secondary-button" type="button">Gerar código</button>
+        </div>
+
+        <div class="pairing-panel">
+          <strong>Digitar o código de alguém</strong>
+          <label class="settings-field" for="pairing-code-input">
+            <span>Código recebido</span>
+            <input id="pairing-code-input" type="text" maxlength="9" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="AB7-K29">
+          </label>
+          <button id="pairing-redeem" class="settings-secondary-button" type="button">Conectar</button>
+        </div>
+      </div>
+
+      <p id="pairing-error" class="form-error" role="alert" hidden></p>
+
+      <div class="dialog-actions">
+        <button id="pairing-done" class="secondary-button" type="button">Fechar</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="pairing-confirm-dialog" class="dialog data-dialog">
+    <form method="dialog">
+      <div class="dialog-header">
+        <div>
+          <p class="eyebrow">Confirmação</p>
+          <h2>É mesmo essa pessoa?</h2>
+        </div>
+        <button id="close-pairing-confirm" class="icon-button secondary" type="button" aria-label="Fechar">×</button>
+      </div>
+
+      <p class="settings-description">Confira em voz alta: o número abaixo precisa ser igual nos dois aparelhos. Se for diferente, recuse — pode ser outra pessoa.</p>
+
+      <p id="pairing-confirm-number" class="pairing-code">— — — —</p>
+      <p id="pairing-confirm-who" class="settings-description"></p>
+
+      <div class="dialog-actions">
+        <button id="pairing-confirm-reject" class="secondary-button" type="button">Recusar</button>
+        <button id="pairing-confirm-accept" class="primary-button" type="button">Confere, aceitar</button>
+      </div>
+    </form>
+  </dialog>
 
   <dialog id="occasion-detail-dialog" class="dialog"><form method="dialog"><div class="dialog-header"><h2>Evento</h2><button id="occasion-detail-close" class="icon-button secondary" type="button" aria-label="Fechar detalhes">×</button></div><div id="occasion-detail-content"></div><div class="dialog-actions"><button id="occasion-detail-back" class="secondary-button" type="button">Voltar</button></div></form></dialog>
 

@@ -6,7 +6,10 @@ import { createSecurityConfig, PIN_LENGTH, PIN_LOCKOUT_ATTEMPTS, PIN_LOCKOUT_MS 
 import { createSecurityLock } from "./src/security/lock.js";
 import { commit as commitToStorage } from "./src/data/store.js";
 import { createFirebaseAuth } from "./src/auth/firebase-auth.js";
+import { summarizeOccasionDoses } from "./src/occasions/summary.js";
 import { createFirestoreSync } from "./src/data/firestore-sync.js";
+import { createShareWriter } from "./src/data/share-writer.js";
+import { createShareUI } from "./src/sharing/share-ui.js";
 import { getFirebaseConfig, isFirebaseConfigured } from "./src/data/firestore-config.js";
 import { wireDialogDismissal } from "./src/ui/dialogs.js";
 import { createDurationPicker, createWheelPicker, setWheelPickerValue } from "./src/ui/wheel-picker.js";
@@ -381,6 +384,8 @@ const state = {
 // `updateSyncSettingsUI` leem estas variáveis e podem rodar antes daquele bloco.
 let cloudSync = null;
 let firebaseAuth = null;
+let shareWriter = null;
+let shareUI = null;
 
 // Envolve o núcleo de persistência (src/data/store.js) para que toda gravação de dados
 // do app também agende o envio para a nuvem. Como as fábricas de src/drinks e
@@ -508,6 +513,27 @@ const syncDeleteCloudButton = document.querySelector("#sync-delete-cloud");
 const syncStatusRow = document.querySelector("#sync-status-row");
 const syncAccountLabel = document.querySelector("#sync-account-label");
 const syncUnavailableNotice = document.querySelector("#sync-unavailable");
+const sharingNodes = {
+  sharingCard: document.querySelector("#settings-sharing-card"),
+  sharingPeople: document.querySelector("#sharing-people"),
+  sharingConnect: document.querySelector("#sharing-connect"),
+  pairingDialog: document.querySelector("#pairing-dialog"),
+  pairingAlias: document.querySelector("#pairing-alias"),
+  pairingCodeDisplay: document.querySelector("#pairing-code-display"),
+  pairingCodeCountdown: document.querySelector("#pairing-code-countdown"),
+  pairingGenerate: document.querySelector("#pairing-generate"),
+  pairingCodeInput: document.querySelector("#pairing-code-input"),
+  pairingRedeem: document.querySelector("#pairing-redeem"),
+  pairingError: document.querySelector("#pairing-error"),
+  pairingClose: document.querySelector("#close-pairing"),
+  pairingDone: document.querySelector("#pairing-done"),
+  pairingConfirmDialog: document.querySelector("#pairing-confirm-dialog"),
+  pairingConfirmNumber: document.querySelector("#pairing-confirm-number"),
+  pairingConfirmWho: document.querySelector("#pairing-confirm-who"),
+  pairingConfirmAccept: document.querySelector("#pairing-confirm-accept"),
+  pairingConfirmReject: document.querySelector("#pairing-confirm-reject"),
+  pairingConfirmClose: document.querySelector("#close-pairing-confirm"),
+};
 
 const drinkImportDialog = document.querySelector("#drink-import-dialog");
 const drinkImportFileName = document.querySelector("#drink-import-file-name");
@@ -3146,6 +3172,8 @@ function updateSyncSettingsUI() {
   syncDeleteCloudButton.hidden = !user;
   syncStatusRow.hidden = !user;
   if (user) syncAccountLabel.textContent = user.email || user.displayName || "Conectado";
+  // Compartilhar exige conta: sem login não há com quem nem como.
+  if (sharingNodes.sharingCard) sharingNodes.sharingCard.hidden = !user;
 }
 
 // Aplica em memória o que chegou de outro aparelho. Grava pelo núcleo cru
@@ -3194,6 +3222,13 @@ firebaseAuth = IS_STANDALONE_APP && isFirebaseConfigured() ? createFirebaseAuth(
         if (status === "error") console.error("Falha ao sincronizar.", error);
       },
     });
+    shareWriter = createShareWriter({
+      app, uid: user.uid,
+      onPairingsChange: (lista) => shareUI?.setPairings(lista),
+      onStatusChange: ({ state: status, error }) => {
+        if (status === "error") console.error("Falha no compartilhamento.", error);
+      },
+    });
     updateSyncSettingsUI();
     try {
       await cloudSync.start(buildCurrentAppData());
@@ -3201,10 +3236,18 @@ firebaseAuth = IS_STANDALONE_APP && isFirebaseConfigured() ? createFirebaseAuth(
       console.error("Não foi possível iniciar a sincronização.", error);
       showToast("Não foi possível sincronizar agora.");
     }
+    try {
+      await shareWriter.start();
+    } catch (error) {
+      console.error("Não foi possível iniciar o compartilhamento.", error);
+    }
   },
   onSignedOut: () => {
     cloudSync?.stop();
     cloudSync = null;
+    shareWriter?.stop();
+    shareWriter = null;
+    shareUI?.setPairings([]);
     rememberSyncConnection(false);
     updateSyncSettingsUI();
   },
@@ -3272,6 +3315,16 @@ window.addEventListener("beforeunload", () => {
   cloudSync?.flushPendingWrites().catch(() => { /* melhor esforço */ });
 });
 
+if (sharingNodes.sharingConnect) {
+  shareUI = createShareUI({
+    nodes: sharingNodes,
+    getShareWriter: () => shareWriter,
+    showToast,
+  });
+  shareUI.wire();
+  shareUI.setPairings([]);
+}
+
 if (firebaseAuth && isSyncConnected()) {
   firebaseAuth.init().catch((error) => console.error("Falha ao retomar a sincronização.", error));
 }
@@ -3287,7 +3340,7 @@ updateSyncSettingsUI();
 // saveData ter virado um shim de teste na spec 0009) — por isso a lista
 // abaixo é mais ampla do que só o que os 4 scripts clássicos leem.
 Object.assign(globalThis, {
-  notifyLocalDataChanged,
+  notifyLocalDataChanged, summarizeOccasionDoses,
   render, saveData, effectiveCountingMode, registerDrinkAt, tickDrinkCards,
   closeSettingsView, openDrinkMenuDialog, openEventDialog, saveSecurityConfig,
   editDrinkFromDrinkMenu, getDrinkActivity, persistIconCatalog, unlockApp,

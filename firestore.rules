@@ -1,0 +1,155 @@
+rules_version = '2';
+
+// Regras do FunTime. Ver docs/specs/0022 (sincronização) e 0023 (compartilhamento).
+//
+// Estas regras são a única coisa separando os dados de duas pessoas: não há servidor
+// nem código de backend. Toda mudança aqui precisa passar por tests/firestore-rules.test.cjs
+// antes de ser publicada com `npm run rules:deploy`.
+//
+// Princípio que atravessa tudo: compartilhar é sempre iniciado por quem é dono do
+// dado. Não existe caminho para alguém PEDIR acesso — ninguém tem permissão de
+// escrita em documento que outra pessoa leia como pedido.
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() { return request.auth != null; }
+    function me() { return request.auth.uid; }
+
+    function pairIdFor(a, b) { return a < b ? a + '_' + b : b + '_' + a; }
+    function codePath(code) { return /databases/$(database)/documents/pairingCodes/$(code); }
+    function pairPath(other) { return /databases/$(database)/documents/pairings/$(pairIdFor(me(), other)); }
+
+    // O código existe, pertence a quem se diz dono, e ainda não venceu.
+    function validCode(code, uid) {
+      return exists(codePath(code))
+        && get(codePath(code)).data.ownerUid == uid
+        && get(codePath(code)).data.expiresAt > request.time;
+    }
+
+    // Existe pareamento entre mim e `other`, aceito pelos DOIS lados.
+    function acceptedPair(other) {
+      return exists(pairPath(other))
+        && get(pairPath(other)).data.acceptedBy.hasAll([me(), other]);
+    }
+
+    // ----------------------------------------------------------------------
+    // 1. Dados do próprio usuário (spec 0022) — INALTERADO.
+    // ----------------------------------------------------------------------
+    match /users/{uid}/{document=**} {
+      allow read, write: if signedIn() && me() == uid;
+    }
+
+    // ----------------------------------------------------------------------
+    // 2. Códigos de pareamento (spec 0023)
+    // Documento mínimo de propósito: só uid e validade. Nunca e-mail, nome ou
+    // foto — é o que impede procurar alguém por identidade.
+    // ----------------------------------------------------------------------
+    match /pairingCodes/{code} {
+      // Ler um código exige conhecê-lo (foi mostrado numa tela e digitado).
+      // Vencido é ilegível mesmo que o documento ainda exista.
+      allow get: if signedIn() && resource.data.expiresAt > request.time;
+
+      // `list` serve só ao dono, para limpar os próprios códigos vencidos.
+      allow list: if signedIn() && resource.data.ownerUid == me();
+
+      allow create: if signedIn()
+        && request.resource.data.keys().hasOnly(['ownerUid', 'createdAt', 'expiresAt'])
+        && request.resource.data.ownerUid == me()
+        && request.resource.data.expiresAt is timestamp
+        && request.resource.data.expiresAt > request.time
+        && request.resource.data.expiresAt < request.time + duration.value(10, 'm');
+
+      allow delete: if signedIn() && resource.data.ownerUid == me();
+      allow update: if false; // gerar outro código cria outro documento
+    }
+
+    // ----------------------------------------------------------------------
+    // 3. Pareamentos (spec 0023)
+    // pairId determinístico: um par de pessoas, um documento, sem duplicata.
+    // Estar pareado NÃO dá acesso a dado nenhum — este documento não carrega
+    // registro de consumo, só identificadores, apelidos e consentimento.
+    // ----------------------------------------------------------------------
+    match /pairings/{pairId} {
+      function isMember() { return signedIn() && me() in resource.data.uids; }
+
+      allow get: if isMember();
+      // Consulta obrigatória: where('uids', 'array-contains', <meu uid>).
+      allow list: if isMember();
+
+      // Quem cria é quem DIGITOU o código; a posse é verificada aqui.
+      allow create: if signedIn()
+        && request.resource.data.keys().hasOnly(
+             ['uids', 'createdBy', 'createdAt', 'viaCode', 'acceptedBy', 'aliases', 'sharing'])
+        && request.resource.data.uids.size() == 2
+        && request.resource.data.uids[0] < request.resource.data.uids[1]
+        && pairId == request.resource.data.uids[0] + '_' + request.resource.data.uids[1]
+        && me() in request.resource.data.uids
+        && request.resource.data.createdBy == me()
+        && request.resource.data.acceptedBy.size() == 1
+        && me() in request.resource.data.acceptedBy
+        && request.resource.data.aliases.keys().hasOnly([me()])
+        && request.resource.data.sharing.size() == 0
+        && validCode(
+             request.resource.data.viaCode,
+             request.resource.data.uids[0] == me()
+               ? request.resource.data.uids[1]
+               : request.resource.data.uids[0]);
+
+      // Só três coisas são possíveis, e sempre sobre si mesmo: acrescentar-se a
+      // acceptedBy, mudar o próprio apelido, publicar o próprio ponteiro de
+      // compartilhamento. Ninguém aceita pelo outro nem mexe no apelido alheio.
+      allow update: if isMember()
+        && request.resource.data.diff(resource.data).affectedKeys()
+             .hasOnly(['acceptedBy', 'aliases', 'sharing'])
+        && request.resource.data.acceptedBy.hasAll(resource.data.acceptedBy)
+        && request.resource.data.acceptedBy.hasOnly(resource.data.acceptedBy.concat([me()]))
+        && request.resource.data.aliases.diff(resource.data.aliases)
+             .affectedKeys().hasOnly([me()])
+        && request.resource.data.sharing.diff(resource.data.sharing)
+             .affectedKeys().hasOnly([me()]);
+
+      // Qualquer um dos dois desfaz o pareamento, a qualquer momento.
+      allow delete: if isMember();
+    }
+
+    // ----------------------------------------------------------------------
+    // 4. Compartilhamentos (spec 0023)
+    // Um documento por (dono, convidado), com a cópia das doses de UM evento.
+    // Escritor único: o dono. Por isso não existe conflito de escrita.
+    //
+    // O convidado NÃO tem `list`: ele só faz `get` do id que o dono publicou no
+    // pareamento. É isso que permite cobrar o vencimento contra o documento
+    // real — numa consulta, a regra seria avaliada contra a consulta, e o
+    // vencimento viraria decoração.
+    // ----------------------------------------------------------------------
+    match /shares/{shareId} {
+      function isOwner() { return signedIn() && resource.data.ownerUid == me(); }
+
+      allow get: if isOwner()
+        || (signedIn()
+            && resource.data.viewerUid == me()
+            && resource.data.expiresAt > request.time);
+
+      // Consulta obrigatória: where('ownerUid', '==', <meu uid>).
+      allow list: if isOwner();
+
+      allow create: if signedIn()
+        && request.resource.data.ownerUid == me()
+        && request.resource.data.viewerUid is string
+        && request.resource.data.viewerUid != me()
+        && request.resource.data.expiresAt is timestamp
+        && request.resource.data.expiresAt > request.time
+        && request.resource.data.expiresAt < request.time + duration.value(96, 'h')
+        && acceptedPair(request.resource.data.viewerUid);
+
+      allow update: if isOwner()
+        && request.resource.data.ownerUid == resource.data.ownerUid
+        && request.resource.data.viewerUid == resource.data.viewerUid
+        && request.resource.data.expiresAt is timestamp
+        && request.resource.data.expiresAt < request.time + duration.value(96, 'h');
+
+      allow delete: if isOwner();
+    }
+  }
+}
