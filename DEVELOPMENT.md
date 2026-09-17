@@ -1,5 +1,26 @@
 # FunTime — documentação de desenvolvimento
 
+## V2.1.45 — pede armazenamento persistente (navigator.storage.persist)
+
+Reduz o risco de o próprio navegador apagar os dados do app silenciosamente sob
+pressão de espaço em disco (ele prioriza limpar origens que considera "menos usadas").
+Não protege contra o usuário limpar dados de propósito - nenhuma API da web permite um
+site evitar isso; a proteção real contra isso continua sendo o backup manual que o app
+já oferece.
+
+`requestPersistentStorage()` roda uma vez, no fim de `bootstrapApp()` (só para o app
+instalado/standalone, não para a prévia no navegador comum), sem bloquear o boot nem
+pedir confirmação visível na maioria dos casos (navegadores tendem a conceder
+automaticamente para PWAs instalados com uso real). Feature-detection
+(`navigator.storage?.persist`) e `try`/`catch` tornam a chamada seguras em navegadores
+sem suporte (ex.: Safari não implementa esta API) ou que negarem/falharem o pedido.
+
+Validado: `node --input-type=module --check` em `app.js`; 4 testes novos em
+`tests/audit.test.cjs` (concede quando suportado; navegador sem `navigator.storage`;
+sem `persist()`; falha ao pedir - nenhum dos três últimos propaga erro); suíte completa
+(183/184, única falha conhecida e pré-existente). App, boot, rodapés e cache alinhados
+a 2.1.45; DATA_VERSION 11 preservado.
+
 ## V2.1.44 — Fase 9.3: bloqueio/desbloqueio vira src/security/lock.js
 
 Fecha a spec 0021 (débito técnico do ROADMAP.md, adiado desde a spec 0020/9.2.5),

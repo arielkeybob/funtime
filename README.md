@@ -1,4 +1,12 @@
-# FunTime — V2.1.44
+# FunTime — V2.1.45
+
+## V2.1.45 — pede armazenamento persistente ao navegador
+
+O app passa a pedir ao navegador para tratar seus dados como persistentes, reduzindo o
+risco de o próprio navegador apagá-los sozinho quando o aparelho fica sem espaço. Não
+protege contra limpar dados de propósito — para isso, a recomendação continua sendo
+usar **Fazer backup** periodicamente. App, boot, rodapés e cache alinhados a 2.1.45;
+DATA_VERSION 11 preservado.
 
 ## V2.1.44 — reorganização interna do bloqueio/PIN, sem mudança de comportamento
 
