@@ -3046,6 +3046,19 @@ if ("serviceWorker" in navigator) {
 applyUpdateButton.addEventListener("click", applyPendingAppUpdate);
 dismissUpdateButton.addEventListener("click", hideUpdateAvailable);
 
+// Pede ao navegador para não apagar o armazenamento deste app sozinho sob
+// pressão de espaço em disco. Não protege contra o usuário limpar dados de
+// propósito (nenhuma API da web permite isso) - só contra a limpeza
+// automática e silenciosa que o navegador faz do que considera "menos usado".
+async function requestPersistentStorage() {
+  if (!navigator.storage?.persist) return;
+  try {
+    await navigator.storage.persist();
+  } catch (error) {
+    console.warn("Não foi possível solicitar armazenamento persistente.", error);
+  }
+}
+
 async function bootstrapApp() {
   await requireTermsAcceptance();
   applyInterfacePreferences();
@@ -3059,6 +3072,7 @@ async function bootstrapApp() {
   await initializeSecurity();
   showRestoreSuccessIfNeeded();
   await maybeHandleSharedDrinkImport();
+  requestPersistentStorage();
 }
 
 const shouldBootstrapInstalledApp = initializeRuntimeMode();

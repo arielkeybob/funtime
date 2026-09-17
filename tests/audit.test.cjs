@@ -427,3 +427,31 @@ test('readPendingSharedDrinkFile: compartilhamento com mais de 24h é descartado
   assert.equal(await c.readPendingSharedDrinkFile(), null);
   assert.equal(entries.has(SHARE_REQUEST_URL), false, 'entrada expirada também é removida do cache');
 });
+
+// requestPersistentStorage(): protege só contra o navegador apagar dados
+// sozinho sob pressão de espaço (não contra o usuário limpar de propósito -
+// nenhuma API da web permite isso). Precisa sobreviver a navegadores sem
+// suporte e a uma negativa/falha do próprio navigator.storage.persist().
+function persistentStorageContext(storage) {
+  const ctx = vm.createContext({ console, navigator: { storage } });
+  vm.runInContext('async ' + extract('requestPersistentStorage'), ctx);
+  return ctx;
+}
+test('requestPersistentStorage: pede persistência quando o navegador suporta', async () => {
+  let called = false;
+  const c = persistentStorageContext({ persist: async () => { called = true; return true; } });
+  await c.requestPersistentStorage();
+  assert.equal(called, true);
+});
+test('requestPersistentStorage: navegador sem navigator.storage não lança erro', async () => {
+  const c = persistentStorageContext(undefined);
+  await assert.doesNotReject(() => c.requestPersistentStorage());
+});
+test('requestPersistentStorage: navegador sem persist() não lança erro', async () => {
+  const c = persistentStorageContext({});
+  await assert.doesNotReject(() => c.requestPersistentStorage());
+});
+test('requestPersistentStorage: falha ao pedir não propaga erro', async () => {
+  const c = persistentStorageContext({ persist: async () => { throw new Error('boom'); } });
+  await assert.doesNotReject(() => c.requestPersistentStorage());
+});
