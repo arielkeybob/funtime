@@ -51,6 +51,9 @@ export function createFirebaseAuth({
   async function signIn() {
     const { auth, authModule } = await load();
     const provider = new authModule.GoogleAuthProvider();
+    // Sem isto, o Google entra direto na única sessão ativa do navegador e não há como
+    // escolher outra conta — nem trocar de conta depois de sair.
+    provider.setCustomParameters({ prompt: "select_account" });
 
     try {
       await authModule.signInWithPopup(auth, provider);

@@ -12,7 +12,7 @@ function chunk(items, size) {
 }
 
 export function createFirestoreSync({
-  app, uid, onRemoteUpdate, onStatusChange,
+  app, uid, account, onRemoteUpdate, onStatusChange,
   importModule = (url) => import(url),
   schedule = setTimeout, cancel = clearTimeout,
 }) {
@@ -125,11 +125,27 @@ export function createFirestoreSync({
     onStatusChange?.({ state: "synced", lastSyncedAt: Date.now() });
   }
 
+  // Identidade da conta num documento à parte, fora do fluxo de dados do app: serve
+  // para reconhecer de quem é cada `uid` no console. Gravado com `merge` de propósito,
+  // para anotações feitas à mão ali (um apelido, por exemplo) não serem apagadas.
+  // Roda a cada abertura, então contas conectadas antes disto também são preenchidas.
+  async function recordAccount(firestore, db) {
+    if (!account) return;
+
+    await firestore.setDoc(firestore.doc(db, "users", uid, "meta", "account"), {
+      email: account.email ?? null,
+      displayName: account.displayName ?? null,
+      updatedAt: firestore.serverTimestamp(),
+    }, { merge: true });
+  }
+
   async function start(localData) {
     latest = localData;
     stopped = false;
 
     const { firestore, db } = await load();
+    // Identificar a conta é secundário: falhar aqui não pode impedir a sincronização.
+    await recordAccount(firestore, db).catch(report);
 
     for (const name of COLLECTIONS) {
       const reference = firestore.collection(db, "users", uid, name);

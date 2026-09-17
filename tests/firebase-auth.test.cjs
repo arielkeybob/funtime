@@ -4,12 +4,15 @@ const { createFirebaseAuth } = require('../src/auth/firebase-auth.js');
 
 function setup({ popupError = null, onSignedIn = () => {}, onSignedOut = () => {}, onRedirectStart = () => {} } = {}) {
   const calls = { popup: 0, redirect: 0, signOut: 0 };
+  const parametros = [];
   let notifyAuthState = null;
 
   const appModule = { initializeApp: () => ({ name: 'app-falso' }) };
   const authModule = {
     getAuth: () => ({ name: 'auth-falsa' }),
-    GoogleAuthProvider: class {},
+    GoogleAuthProvider: class {
+      setCustomParameters(valores) { parametros.push(valores); }
+    },
     onAuthStateChanged: (auth, callback) => { notifyAuthState = callback; },
     getRedirectResult: async () => null,
     signInWithPopup: async () => { calls.popup += 1; if (popupError) throw popupError; },
@@ -22,10 +25,18 @@ function setup({ popupError = null, onSignedIn = () => {}, onSignedOut = () => {
     importModule: async (url) => (url.includes('firebase-app.js') ? appModule : authModule),
   });
 
-  return { auth, calls, notify: (user) => notifyAuthState(user) };
+  return { auth, calls, parametros, notify: (user) => notifyAuthState(user) };
 }
 
 const errorWithCode = (code) => Object.assign(new Error(code), { code });
+
+// Sem pedir o seletor, o Google entra direto na sessão já ativa e fica impossível
+// escolher ou trocar de conta no navegador.
+test('pede o seletor de contas do Google em vez de entrar na sessão ativa', async () => {
+  const { auth, parametros } = setup();
+  await auth.signIn();
+  assert.deepEqual(parametros, [{ prompt: 'select_account' }]);
+});
 
 test('login usa o popup e não recorre ao redirect quando dá certo', async () => {
   const { auth, calls } = setup();

@@ -6,6 +6,7 @@ function fakeFirestore({ persistenciaIndisponivel = false } = {}) {
   const commits = [];
   const listeners = new Map();
   const aberturas = [];
+  const gravacoes = [];
 
   const module = {
     aberturas,
@@ -21,6 +22,7 @@ function fakeFirestore({ persistenciaIndisponivel = false } = {}) {
     doc: (db, ...path) => ({ path: path.join('/') }),
     serverTimestamp: () => '__serverTimestamp__',
     getDocs: async () => ({ docs: [] }),
+    setDoc: async (reference, data, options) => { gravacoes.push({ path: reference.path, data, options }); },
     onSnapshot: (reference, next) => {
       listeners.set(reference.path, next);
       return () => listeners.delete(reference.path);
@@ -35,15 +37,15 @@ function fakeFirestore({ persistenciaIndisponivel = false } = {}) {
     },
   };
 
-  return { module, commits, listeners };
+  return { module, commits, listeners, gravacoes };
 }
 
-function setup({ onRemoteUpdate = () => {}, persistenciaIndisponivel = false } = {}) {
+function setup({ onRemoteUpdate = () => {}, persistenciaIndisponivel = false, account } = {}) {
   const firestore = fakeFirestore({ persistenciaIndisponivel });
   const timers = { scheduled: null, scheduleCalls: 0, cancelCalls: 0 };
 
   const sync = createFirestoreSync({
-    app: {}, uid: 'u1', onRemoteUpdate,
+    app: {}, uid: 'u1', account, onRemoteUpdate,
     importModule: async () => firestore.module,
     schedule: (callback) => { timers.scheduled = callback; timers.scheduleCalls += 1; return 1; },
     cancel: () => { timers.cancelCalls += 1; timers.scheduled = null; },
@@ -84,6 +86,37 @@ test('se o navegador recusar a persistência, ainda sincroniza sem ela', async (
 
   assert.deepEqual(firestore.module.aberturas.map((abertura) => abertura.modo), ['memoria']);
   assert.equal(firestore.listeners.size, 4, 'os listeners continuam ativos');
+});
+
+test('registra a identidade da conta para dar nome ao uid no console', async () => {
+  const { sync, firestore } = setup({ account: { email: 'a@b.c', displayName: 'Ariel' } });
+
+  await sync.start(data());
+
+  const gravacao = firestore.gravacoes.find((item) => item.path === 'users/u1/meta/account');
+  assert.equal(gravacao.data.email, 'a@b.c');
+  assert.equal(gravacao.data.displayName, 'Ariel');
+  // Sem merge, um apelido anotado à mão nesse documento sumiria a cada abertura.
+  assert.deepEqual(gravacao.options, { merge: true });
+});
+
+test('a identidade não vai para o documento de dados do app', async () => {
+  const { sync, firestore } = setup({ account: { email: 'a@b.c', displayName: 'Ariel' } });
+
+  await sync.start(data());
+  sync.scheduleSyncPush(data(), data({ drinks: [{ id: 'a' }] }));
+  await sync.flushPendingWrites();
+
+  const meta = firestore.commits.flat().find((op) => op.path === 'users/u1/meta/app');
+  assert.equal(meta.data.email, undefined, 'meta/app é reescrito inteiro e não guarda identidade');
+});
+
+test('sem conta informada, não grava identidade nenhuma', async () => {
+  const { sync, firestore } = setup();
+
+  await sync.start(data());
+
+  assert.deepEqual(firestore.gravacoes, []);
 });
 
 test('agrupa várias mudanças seguidas numa única escrita', async () => {

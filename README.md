@@ -1,4 +1,20 @@
-# FunTime — V2.2.1
+# FunTime — V2.2.2
+
+## V2.2.2 — seletor de contas do Google e identificação da conta no banco
+
+Duas correções na sincronização. O login passa a pedir explicitamente o seletor de
+contas (`prompt: select_account`): antes, o Google entrava direto na única sessão
+ativa do navegador, e não havia como escolher outra conta nem trocar de conta depois
+de sair. E a identidade da conta (nome e e-mail) passa a ser gravada em
+`users/{uid}/meta/account`, para reconhecer de quem é cada `uid` no console do
+Firebase — gravada a cada abertura, então contas conectadas antes disto também são
+preenchidas, e com mesclagem, para anotações feitas à mão nesse documento (um
+apelido, por exemplo) não serem apagadas. Fica fora de `meta/app`, que é reescrito
+inteiro a cada sincronização. Políticas atualizadas para 1.0.4 (novo aceite), por
+passar a guardar nome e e-mail junto dos dados. App, boot, rodapés e cache alinhados
+a 2.2.2; DATA_VERSION 11 preservado.
+
+## V2.2.1
 
 ## V2.2.1 — fila de sincronização sobrevive ao fechamento do app
 

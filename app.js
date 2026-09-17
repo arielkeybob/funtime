@@ -304,7 +304,7 @@ document.addEventListener("visibilitychange", () => {
 const DATA_STORAGE_KEY = "funtime-v1-data";
 const LEGACY_DRINKS_STORAGE_KEY = "balada-v1-drinks";
 const DATA_VERSION = 11;
-const APP_VERSION = "2.2.1";
+const APP_VERSION = "2.2.2";
 const DRINK_EXPORT_TYPE = "funtime-drinks";
 const DRINK_EXPORT_FORMAT_VERSION = 1;
 const BACKUP_EXPORT_TYPE = "funtime-backup";
@@ -3188,6 +3188,7 @@ firebaseAuth = IS_STANDALONE_APP && isFirebaseConfigured() ? createFirebaseAuth(
     if (cloudSync) return;
     cloudSync = createFirestoreSync({
       app, uid: user.uid,
+      account: { email: user.email, displayName: user.displayName },
       onRemoteUpdate: applyRemoteSyncData,
       onStatusChange: ({ state: status, error }) => {
         if (status === "error") console.error("Falha ao sincronizar.", error);
