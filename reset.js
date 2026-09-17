@@ -101,11 +101,14 @@ function resetAuthorizationIsCurrent(pending) {
 
 async function executeDataReset(pending) {
   if (!resetAuthorizationIsCurrent(pending)) throw new Error('Os dados ou a sessão mudaram. Feche e confirme uma nova prévia.');
-  const next = applyDataReset(buildCurrentAppData(), pending.plan);
+  const previous = buildCurrentAppData();
+  const next = applyDataReset(previous, pending.plan);
   // Uma gravação para o estado restaurável, antes de alterar memória ou interface.
   localStorage.setItem(DATA_STORAGE_KEY, JSON.stringify(next));
   pending.applied = true;
   state.drinks = next.drinks; state.events = next.events; state.occasions = next.occasions || []; state.preferences = next.preferences;
+  // Depois de `state` mudar: a sincronização monta o novo retrato a partir dele.
+  globalThis.notifyLocalDataChanged?.(previous);
   state.undo = null; hideToast();
   state.pendingBackupRestore = null; state.pendingDrinkImport = null;
   applyInterfacePreferences(); refreshDataViews(); updateDataSettingsUI();

@@ -1,5 +1,5 @@
-const APP_VERSION = "2.1.47";
-const CACHE_NAME = "funtime-v2-1-45";
+const APP_VERSION = "2.2.0";
+const CACHE_NAME = "funtime-v2-2-0";
 const BACKGROUND_CACHE_NAME = "funtime-bg-v1";
 const SHARE_IMPORT_CACHE_NAME = "funtime-share-target-v1";
 const SHARE_IMPORT_REQUEST_PATH = "./__shared-drinks-import__";
@@ -16,6 +16,10 @@ const APP_SHELL = [
   "./src/security/config.js",
   "./src/security/lock.js",
   "./src/data/store.js",
+  "./src/data/sync-merge.js",
+  "./src/data/firestore-sync.js",
+  "./src/data/firestore-config.js",
+  "./src/auth/firebase-auth.js",
   "./src/ui/dialogs.js",
   "./src/ui/wheel-picker.js",
   "./src/ui/field-errors.js",

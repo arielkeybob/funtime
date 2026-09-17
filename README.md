@@ -1,4 +1,18 @@
-# FunTime — V2.1.47
+# FunTime — V2.2.0
+
+## V2.2.0 — sincronização opcional entre aparelhos com Conta Google
+
+Nas Configurações, **Sincronizar entre aparelhos** passa a permitir entrar com a Conta
+Google e manter bebidas, histórico, ocasiões e preferências iguais em todos os
+aparelhos conectados à mesma conta, usando Firebase Authentication e Cloud Firestore.
+É opcional e vem desligado: sem login, nada sai do aparelho e o app funciona como
+antes. PIN, biometria, bloqueio e sessão do aparelho nunca são enviados. Sair da conta
+interrompe o envio sem apagar o que já subiu; **Apagar dados na nuvem** remove a cópia
+remota sem tocar nos dados locais. A sincronização fica desligada fora do app
+instalado, porque ali o FunTime não carrega os dados reais. Backup/restauração manual
+continua existindo e independente disso. Políticas atualizadas para 1.0.3 (novo aceite).
+App, boot, rodapés e cache alinhados a 2.2.0; DATA_VERSION 11 preservado.
+Ver docs/specs/0022-cloud-sync-firebase.md.
 
 ## V2.1.47 — easter egg de BPM: 4 toques para o palpite, refina com 8 seguidos
 

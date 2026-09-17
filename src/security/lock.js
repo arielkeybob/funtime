@@ -8,6 +8,7 @@ export function createSecurityLock({
   getPinLockoutRemainingMs, registerFailedPinAttempt,
   clearSecuritySession, markSecurityActive,
   hideToast, hideUpdateAvailable, render, renderHistory, maybeHandleSharedDrinkImport,
+  applyPendingSyncData,
 }) {
   function closeSensitiveDialogs() {
     state.securitySetupGeneration++;
@@ -61,6 +62,11 @@ export function createSecurityLock({
     if (state.pendingSharedImportCheck) {
       state.pendingSharedImportCheck = false;
       setTimeout(() => maybeHandleSharedDrinkImport(), 80);
+    }
+    if (state.pendingSyncApply) {
+      const pending = state.pendingSyncApply;
+      state.pendingSyncApply = null;
+      applyPendingSyncData?.(pending);
     }
   }
 

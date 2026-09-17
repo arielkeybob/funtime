@@ -58,7 +58,7 @@
     <footer class="browser-gate-footer">
       <span>App para estudo · não é controle de segurança</span>
       <a class="policies-link" href="./policies.html">Políticas e informações</a>
-      <span>v2.1.47 · By: arielkeybob</span>
+      <span>v2.2.0 · By: arielkeybob</span>
     </footer>
   </section>
 
@@ -268,6 +268,30 @@
         <input id="backup-restore-file" class="visually-hidden-file" type="file" accept=".json,application/json">
       </section>
 
+      <section class="settings-card settings-data-card settings-sync-data-card">
+        <div class="settings-section-heading">
+          <div>
+            <p class="eyebrow">Backup e restauração</p>
+            <h2>Sincronizar entre aparelhos</h2>
+          </div>
+        </div>
+
+        <p class="settings-description">Entre com sua Conta Google para manter bebidas, histórico e preferências iguais em todos os seus aparelhos. PIN, biometria e bloqueio deste aparelho nunca são enviados.</p>
+
+        <p id="sync-unavailable" class="settings-description" hidden>A sincronização não está configurada nesta instalação.</p>
+
+        <div class="settings-row" id="sync-status-row" hidden>
+          <span>Conta</span>
+          <strong id="sync-account-label">—</strong>
+        </div>
+
+        <div class="settings-action-stack">
+          <button id="sync-sign-in" class="settings-primary-action" type="button">Entrar com Google</button>
+          <button id="sync-sign-out" class="settings-secondary-button" type="button" hidden>Sair e parar de sincronizar</button>
+          <button id="sync-delete-cloud" class="settings-secondary-button" type="button" hidden>Apagar dados na nuvem</button>
+        </div>
+      </section>
+
       <section class="settings-card">
         <div class="settings-section-heading">
           <div>
@@ -276,7 +300,7 @@
           </div>
         </div>
 
-        <p class="settings-description">Versão instalada: <strong>v2.1.47</strong></p>
+        <p class="settings-description">Versão instalada: <strong>v2.2.0</strong></p>
         <button id="check-app-update" class="settings-secondary-button" type="button">Verificar atualizações</button>
       </section>
 
@@ -330,7 +354,7 @@
     <footer class="app-footer">
       <span class="app-footer-disclaimer">App para estudo · não é controle de segurança</span>
       <a class="policies-link" href="./policies.html">Políticas e informações</a>
-      <span class="app-footer-meta">v2.1.47 · By: arielkeybob</span>
+      <span class="app-footer-meta">v2.2.0 · By: arielkeybob</span>
     </footer>
   </div>
 

@@ -4,7 +4,10 @@ import { derEcdsaSignatureToRaw } from "./src/security/webauthn-signature.js";
 import { derivePinHash, PIN_PBKDF2_ITERATIONS } from "./src/security/pin-crypto.js";
 import { createSecurityConfig, PIN_LENGTH, PIN_LOCKOUT_ATTEMPTS, PIN_LOCKOUT_MS } from "./src/security/config.js";
 import { createSecurityLock } from "./src/security/lock.js";
-import { commit as commitAppData } from "./src/data/store.js";
+import { commit as commitToStorage } from "./src/data/store.js";
+import { createFirebaseAuth } from "./src/auth/firebase-auth.js";
+import { createFirestoreSync } from "./src/data/firestore-sync.js";
+import { getFirebaseConfig, isFirebaseConfigured } from "./src/data/firestore-config.js";
 import { wireDialogDismissal } from "./src/ui/dialogs.js";
 import { createDurationPicker, createWheelPicker, setWheelPickerValue } from "./src/ui/wheel-picker.js";
 import { createFieldErrorController, createFormErrorController } from "./src/ui/field-errors.js";
@@ -301,7 +304,7 @@ document.addEventListener("visibilitychange", () => {
 const DATA_STORAGE_KEY = "funtime-v1-data";
 const LEGACY_DRINKS_STORAGE_KEY = "balada-v1-drinks";
 const DATA_VERSION = 11;
-const APP_VERSION = "2.1.47";
+const APP_VERSION = "2.2.0";
 const DRINK_EXPORT_TYPE = "funtime-drinks";
 const DRINK_EXPORT_FORMAT_VERSION = 1;
 const BACKUP_EXPORT_TYPE = "funtime-backup";
@@ -371,7 +374,23 @@ const state = {
   pendingDrinkImport: null,
   pendingBackupRestore: null,
   pendingSharedImportCheck: false,
+  pendingSyncApply: null,
 };
+
+// Declarados aqui, longe do bloco de sincronização lá embaixo, porque `commitAppData` e
+// `updateSyncSettingsUI` leem estas variáveis e podem rodar antes daquele bloco.
+let cloudSync = null;
+let firebaseAuth = null;
+
+// Envolve o núcleo de persistência (src/data/store.js) para que toda gravação de dados
+// do app também agende o envio para a nuvem. Como as fábricas de src/drinks e
+// src/history recebem `commitAppData` por parâmetro, os 18 pontos de mutação passam
+// por aqui sem precisar ser alterados um a um.
+function commitAppData(storageKey, current, patch) {
+  const next = commitToStorage(storageKey, current, patch);
+  if (storageKey === DATA_STORAGE_KEY) cloudSync?.scheduleSyncPush(current, next);
+  return next;
+}
 
 const securityConfig = createSecurityConfig({
   state, localStorage, securityStorageKey: SECURITY_STORAGE_KEY,
@@ -483,6 +502,12 @@ const createBackupButton = document.querySelector("#create-backup");
 const restoreBackupButton = document.querySelector("#restore-backup");
 const backupRestoreFileInput = document.querySelector("#backup-restore-file");
 const checkAppUpdateButton = document.querySelector("#check-app-update");
+const syncSignInButton = document.querySelector("#sync-sign-in");
+const syncSignOutButton = document.querySelector("#sync-sign-out");
+const syncDeleteCloudButton = document.querySelector("#sync-delete-cloud");
+const syncStatusRow = document.querySelector("#sync-status-row");
+const syncAccountLabel = document.querySelector("#sync-account-label");
+const syncUnavailableNotice = document.querySelector("#sync-unavailable");
 
 const drinkImportDialog = document.querySelector("#drink-import-dialog");
 const drinkImportFileName = document.querySelector("#drink-import-file-name");
@@ -534,6 +559,7 @@ function updateInterfaceSettingsUI() {
 
 function updateDataSettingsUI() {
   if (exportDrinksButton) exportDrinksButton.disabled = state.drinks.length === 0;
+  updateSyncSettingsUI();
 }
 
 // Falha fechada em dado corrompido: nunca resetar silenciosamente proteção/dados reais.
@@ -922,6 +948,7 @@ const securityLock = createSecurityLock({
   getPinLockoutRemainingMs, registerFailedPinAttempt,
   clearSecuritySession, markSecurityActive,
   hideToast, hideUpdateAvailable, render, renderHistory, maybeHandleSharedDrinkImport,
+  applyPendingSyncData: applyRemoteSyncData,
 });
 const {
   closeSensitiveDialogs, showLockScreen, lockApp, unlockApp,
@@ -3093,6 +3120,163 @@ document.querySelector('#toast-dismiss').addEventListener('click', () => {
   onDismiss?.();
 });
 
+const SYNC_STORAGE_KEY = "funtime-sync-v1";
+
+function isSyncConnected() {
+  try { return JSON.parse(localStorage.getItem(SYNC_STORAGE_KEY))?.connected === true; }
+  catch { return false; }
+}
+
+function rememberSyncConnection(connected) {
+  try {
+    if (connected) localStorage.setItem(SYNC_STORAGE_KEY, JSON.stringify({ connected: true }));
+    else localStorage.removeItem(SYNC_STORAGE_KEY);
+  } catch { /* A preferência de sincronizar é secundária: nunca derruba o app. */ }
+}
+
+function updateSyncSettingsUI() {
+  if (!syncSignInButton) return;
+
+  const available = Boolean(firebaseAuth);
+  const user = firebaseAuth?.getCurrentUser() || null;
+
+  if (syncUnavailableNotice) syncUnavailableNotice.hidden = available;
+  syncSignInButton.hidden = !available || Boolean(user);
+  syncSignOutButton.hidden = !user;
+  syncDeleteCloudButton.hidden = !user;
+  syncStatusRow.hidden = !user;
+  if (user) syncAccountLabel.textContent = user.email || user.displayName || "Conectado";
+}
+
+// Aplica em memória o que chegou de outro aparelho. Grava pelo núcleo cru
+// (commitToStorage) de propósito: passar por commitAppData reenviaria à nuvem o que
+// acabou de vir dela.
+function applyRemoteSyncData(data) {
+  if (state.securityLocked) { state.pendingSyncApply = data; return; }
+
+  const normalized = normalizeData(data);
+  if (!normalized) return;
+
+  commitToStorage(DATA_STORAGE_KEY, normalized, {});
+  state.drinks = normalized.drinks;
+  state.events = normalized.events;
+  state.occasions = normalized.occasions;
+  state.preferences = normalized.preferences;
+
+  applyInterfacePreferences();
+  updateInterfaceSettingsUI();
+  updateDataSettingsUI();
+  globalThis.refreshOccasionFilters?.();
+  refreshDataViews();
+}
+
+function notifyLocalDataChanged(previous) {
+  cloudSync?.scheduleSyncPush(previous, buildCurrentAppData());
+}
+
+// Fora do app instalado, `initialData` é propositalmente vazio (ver a definição de
+// `initialData`): a tela de instalação não carrega os dados reais. Sincronizar nesse
+// estado enviaria um retrato vazio e apagaria o histórico de verdade, então a
+// sincronização inteira fica desligada aí — mesma razão do `state.securityConfig`.
+firebaseAuth = IS_STANDALONE_APP && isFirebaseConfigured() ? createFirebaseAuth({
+  firebaseConfig: getFirebaseConfig(),
+  onSignedIn: async ({ user, app }) => {
+    rememberSyncConnection(true);
+    updateSyncSettingsUI();
+    // onAuthStateChanged pode disparar de novo na mesma sessão; sem isto, os listeners
+    // do Firestore seriam duplicados.
+    if (cloudSync) return;
+    cloudSync = createFirestoreSync({
+      app, uid: user.uid,
+      onRemoteUpdate: applyRemoteSyncData,
+      onStatusChange: ({ state: status, error }) => {
+        if (status === "error") console.error("Falha ao sincronizar.", error);
+      },
+    });
+    updateSyncSettingsUI();
+    try {
+      await cloudSync.start(buildCurrentAppData());
+    } catch (error) {
+      console.error("Não foi possível iniciar a sincronização.", error);
+      showToast("Não foi possível sincronizar agora.");
+    }
+  },
+  onSignedOut: () => {
+    cloudSync?.stop();
+    cloudSync = null;
+    rememberSyncConnection(false);
+    updateSyncSettingsUI();
+  },
+  // Marca a intenção antes do redirect levar a página embora, para que o app volte
+  // reiniciando a autenticação. Se o login for abandonado lá, `onSignedOut` limpa.
+  onRedirectStart: () => rememberSyncConnection(true),
+}) : null;
+
+syncSignInButton?.addEventListener("click", async () => {
+  syncSignInButton.disabled = true;
+  try {
+    await firebaseAuth.signIn();
+  } catch (error) {
+    console.error("Falha ao entrar com a Conta Google.", error);
+    showToast("Não foi possível entrar. Tente de novo.");
+  } finally {
+    syncSignInButton.disabled = false;
+  }
+});
+
+syncSignOutButton?.addEventListener("click", async () => {
+  try {
+    await cloudSync?.flushPendingWrites();
+  } catch (error) {
+    console.error("Falha ao enviar as últimas mudanças antes de sair.", error);
+  }
+  try {
+    await firebaseAuth.signOut();
+    showToast("Sincronização desligada. Seus dados continuam neste aparelho.");
+  } catch (error) {
+    console.error("Falha ao sair da conta.", error);
+    showToast("Não foi possível sair agora.");
+  }
+});
+
+syncDeleteCloudButton?.addEventListener("click", async () => {
+  const confirmed = window.confirm(
+    "Apagar os dados guardados na nuvem? Os dados deste aparelho são mantidos, e a sincronização será desligada."
+  );
+  if (!confirmed) return;
+
+  syncDeleteCloudButton.disabled = true;
+  try {
+    await cloudSync?.deleteCloudData();
+    cloudSync = null;
+    await firebaseAuth.signOut();
+    showToast("Dados apagados da nuvem.");
+  } catch (error) {
+    console.error("Falha ao apagar os dados na nuvem.", error);
+    showToast("Não foi possível apagar os dados na nuvem.");
+  } finally {
+    syncDeleteCloudButton.disabled = false;
+  }
+});
+
+// Separado dos listeners de auto-bloqueio: aqueles só valem com o app instalado
+// (IS_STANDALONE_APP), e sincronizar dados não depende do modo de exibição.
+document.addEventListener("visibilitychange", () => {
+  if (document.body.classList.contains("terms-pending")) return;
+  if (document.hidden) cloudSync?.flushPendingWrites().catch(() => { /* melhor esforço */ });
+});
+
+window.addEventListener("beforeunload", () => {
+  if (document.body.classList.contains("terms-pending")) return;
+  cloudSync?.flushPendingWrites().catch(() => { /* melhor esforço */ });
+});
+
+if (firebaseAuth && isSyncConnected()) {
+  firebaseAuth.init().catch((error) => console.error("Falha ao retomar a sincronização.", error));
+}
+
+updateSyncSettingsUI();
+
 // app.js é o único script clássico que virou módulo ES nesta fase (ver
 // docs/specs/0017). occasions-ui.js, reset.js, navigation.js e ui.js
 // continuam scripts clássicos e leem estes identificadores via globalThis
@@ -3102,6 +3286,7 @@ document.querySelector('#toast-dismiss').addEventListener('click', () => {
 // saveData ter virado um shim de teste na spec 0009) — por isso a lista
 // abaixo é mais ampla do que só o que os 4 scripts clássicos leem.
 Object.assign(globalThis, {
+  notifyLocalDataChanged,
   render, saveData, effectiveCountingMode, registerDrinkAt, tickDrinkCards,
   closeSettingsView, openDrinkMenuDialog, openEventDialog, saveSecurityConfig,
   editDrinkFromDrinkMenu, getDrinkActivity, persistIconCatalog, unlockApp,

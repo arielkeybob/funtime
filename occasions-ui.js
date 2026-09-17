@@ -11,9 +11,11 @@ function occasionInput(timestamp) { return toLocalDateInputValue(timestamp) + 'T
 function occasionError(message) { const node = $occasion('occasion-form-error'); node.textContent = message; node.hidden = !message; }
 function commitOccasions(occasions, events = state.events, preferences = state.preferences) {
   const normalized = FunTimeOccasions.normalize({ occasions, events });
-  localStorage.setItem(DATA_STORAGE_KEY, JSON.stringify({ ...buildCurrentAppData(), occasions: normalized, events, preferences }));
+  const previous = buildCurrentAppData();
+  localStorage.setItem(DATA_STORAGE_KEY, JSON.stringify({ ...previous, occasions: normalized, events, preferences }));
   state.occasions = normalized; state.events = events; state.preferences = preferences;
   globalThis.syncSecurityEventUnlock?.();
+  globalThis.notifyLocalDataChanged?.(previous);
   refreshOccasionFilters(); refreshDataViews();
 }
 function reconcileOccasions() {
