@@ -1,4 +1,11 @@
-# FunTime — V2.1.45
+# FunTime — V2.1.46
+
+## V2.1.46 — trava o zoom por pinça no app, mantém liberado nas políticas
+
+A viewport do app (`index.html`) ganha `maximum-scale=1, user-scalable=no` para impedir
+o zoom por pinça, que quebrava a sensação de app nativo. A página de políticas
+(`policies.html`) não muda, então o zoom continua liberado lá para facilitar a leitura.
+App, boot, rodapés e cache alinhados a 2.1.46; DATA_VERSION 11 preservado.
 
 ## V2.1.45 — pede armazenamento persistente ao navegador
 
