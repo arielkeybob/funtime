@@ -1,12 +1,21 @@
 // Aceite específico deste navegador, separado dos dados transferíveis.
 const TERMS_VERSION = "1.0.4";
+// Aceites destas versões anteriores continuam valendo, sem pedir um novo. Liste aqui
+// só a mudança que não altera o que a pessoa consentiu — correção de texto, ajuste de
+// forma. Os dois erros não são simétricos: esquecer de listar apenas pede o aceite de
+// novo, enquanto listar indevidamente esconde dela uma mudança que deveria ver.
+const TERMS_VERSIONS_STILL_VALID = new Set(["1.0.3"]);
 const TERMS_STORAGE_KEY = "funtime-terms-v1";
 const TERMS_DRAFT_KEY = "funtime-terms-draft-v1";
+
+function acceptanceStillValid(version) {
+  return version === TERMS_VERSION || TERMS_VERSIONS_STILL_VALID.has(version);
+}
 
 export function hasCurrentTermsAcceptance() {
   try {
     const value = JSON.parse(localStorage.getItem(TERMS_STORAGE_KEY));
-    return value?.termsAccepted === true && value.termsVersion === TERMS_VERSION &&
+    return value?.termsAccepted === true && acceptanceStillValid(value.termsVersion) &&
       Number.isFinite(value.termsAcceptedAt) && value.termsAcceptedAt > 0;
   } catch { return false; }
 }

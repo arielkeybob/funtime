@@ -1,4 +1,19 @@
-# FunTime — V2.2.2
+# FunTime — V2.2.3
+
+## V2.2.3 — dispensa seletiva de novo aceite das políticas
+
+Até aqui, qualquer mudança em `TERMS_VERSION` pedia um novo aceite a todo mundo.
+Agora `policies.js` tem `TERMS_VERSIONS_STILL_VALID`: um aceite de versão listada ali
+continua valendo. Serve para mudança que não altera o que a pessoa consentiu —
+correção de texto, ajuste de forma. **Mudança de conteúdo material (dado novo
+coletado, novo destino dos dados) não entra na lista.** Os dois erros não são
+simétricos: esquecer de listar só pede o aceite de novo, enquanto listar
+indevidamente esconde da pessoa uma mudança que ela deveria ver. A 1.0.3 entra
+dispensada, a pedido: quem já aceitou não é perguntado outra vez pela 1.0.4.
+Políticas seguem em 1.0.4, sem mudança de texto. App, boot, rodapés e cache
+alinhados a 2.2.3; DATA_VERSION 11 preservado.
+
+## V2.2.2
 
 ## V2.2.2 — seletor de contas do Google e identificação da conta no banco
 
