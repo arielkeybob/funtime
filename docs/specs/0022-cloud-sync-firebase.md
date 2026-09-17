@@ -237,8 +237,18 @@ de boot (`boot.js` + gate de termos), então não serve como caminho principal.
 - Dado vindo da nuvem passa por `normalizeData()`/`FunTimeOccasions.normalize()`
   antes de tocar `state`, igual um backup restaurado — payload corrompido ou que viole
   invariante de ocasião não chega à interface.
-- Offline: `writeBatch()` enfileira no SDK e sobe sozinho ao reconectar; o
-  `localStorage` segue como fonte de verdade imediata da interface.
+- Offline, **com o app aberto**: `writeBatch()` enfileira no SDK e sobe sozinho ao
+  reconectar; o `localStorage` segue como fonte de verdade imediata da interface.
+- Offline, **fechando o app antes de reconectar**: a implementação usa
+  `getFirestore(app)`, cujo cache é só de memória, então a fila pendente do SDK se
+  perde. **Registros novos não se perdem** — continuam no `localStorage` e, no
+  próximo `start()` com conexão, entram no diff contra o remoto e sobem. Mas
+  **exclusões feitas offline voltam atrás**: o registro apagado não está no local, o
+  `lastPushed` recomeça nulo, e `mergeCollection` traz de volta tudo que existe só no
+  remoto — não há como distinguir "apagado aqui" de "criado em outro aparelho" sem
+  lápide ou baseline persistido. Aresta conhecida e aceita nesta versão; o caminho de
+  correção é `initializeFirestore(app, { localCache: persistentLocalCache() })`, que
+  faz a fila do SDK sobreviver ao fechamento.
 - Conflito real (mesmo registro editado em dois aparelhos offline): resolve por
   ordem de chegada no servidor do Firestore (last-write-wins), e os dois aparelhos
   convergem para o mesmo valor pelo `onSnapshot`. Aceito e documentado — mesclagem

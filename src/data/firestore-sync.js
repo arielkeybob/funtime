@@ -25,11 +25,25 @@ export function createFirestoreSync({
   const seeded = new Set();
   const remote = { drinks: [], events: [], occasions: [], preferences: null, drinkOrder: null };
 
+  // Cache persistente para a fila de escritas sobreviver ao fechamento do app: sem
+  // ele, uma exclusão feita offline se perderia e o registro voltaria da nuvem na
+  // próxima sincronização. Navegação privada e armazenamento bloqueado fazem isso
+  // falhar — aí sincroniza sem fila persistente, que é melhor do que não sincronizar.
+  function openDatabase(firestore) {
+    try {
+      return firestore.initializeFirestore(app, {
+        localCache: firestore.persistentLocalCache({ tabManager: firestore.persistentMultipleTabManager() }),
+      });
+    } catch {
+      return firestore.getFirestore(app);
+    }
+  }
+
   function load() {
     if (!ready) {
       ready = (async () => {
         const firestore = await importModule(`${SDK_BASE}/firebase-firestore.js`);
-        return { firestore, db: firestore.getFirestore(app) };
+        return { firestore, db: openDatabase(firestore) };
       })();
     }
 

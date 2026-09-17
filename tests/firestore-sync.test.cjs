@@ -2,12 +2,21 @@ const { test } = require('node:test');
 const assert = require('node:assert/strict');
 const { createFirestoreSync } = require('../src/data/firestore-sync.js');
 
-function fakeFirestore() {
+function fakeFirestore({ persistenciaIndisponivel = false } = {}) {
   const commits = [];
   const listeners = new Map();
+  const aberturas = [];
 
   const module = {
-    getFirestore: () => ({}),
+    aberturas,
+    initializeFirestore: (app, options) => {
+      if (persistenciaIndisponivel) throw new Error('armazenamento bloqueado');
+      aberturas.push({ modo: 'persistente', options });
+      return {};
+    },
+    persistentLocalCache: (options) => ({ tipo: 'persistente', ...options }),
+    persistentMultipleTabManager: () => ({ tipo: 'multiplas-abas' }),
+    getFirestore: () => { aberturas.push({ modo: 'memoria' }); return {}; },
     collection: (db, ...path) => ({ path: path.join('/') }),
     doc: (db, ...path) => ({ path: path.join('/') }),
     serverTimestamp: () => '__serverTimestamp__',
@@ -29,8 +38,8 @@ function fakeFirestore() {
   return { module, commits, listeners };
 }
 
-function setup({ onRemoteUpdate = () => {} } = {}) {
-  const firestore = fakeFirestore();
+function setup({ onRemoteUpdate = () => {}, persistenciaIndisponivel = false } = {}) {
+  const firestore = fakeFirestore({ persistenciaIndisponivel });
   const timers = { scheduled: null, scheduleCalls: 0, cancelCalls: 0 };
 
   const sync = createFirestoreSync({
@@ -54,6 +63,28 @@ function seedAllListeners(firestore, { drinks = [], events = [], occasions = [],
   firestore.listeners.get('users/u1/occasions')(asSnapshot(occasions));
   firestore.listeners.get('users/u1/meta/app')({ data: () => meta });
 }
+
+// Sem fila persistente, uma exclusão feita offline se perde ao fechar o app e o
+// registro volta da nuvem na sincronização seguinte.
+test('abre o banco com cache persistente, para a fila sobreviver ao fechamento', async () => {
+  const { sync, firestore } = setup();
+
+  await sync.start(data());
+
+  assert.deepEqual(firestore.module.aberturas.map((abertura) => abertura.modo), ['persistente']);
+  assert.equal(firestore.module.aberturas[0].options.localCache.tipo, 'persistente');
+  assert.equal(firestore.module.aberturas[0].options.localCache.tabManager.tipo, 'multiplas-abas');
+});
+
+test('se o navegador recusar a persistência, ainda sincroniza sem ela', async () => {
+  const { sync, firestore } = setup({ persistenciaIndisponivel: true });
+
+  await sync.start(data());
+  await sync.flushPendingWrites();
+
+  assert.deepEqual(firestore.module.aberturas.map((abertura) => abertura.modo), ['memoria']);
+  assert.equal(firestore.listeners.size, 4, 'os listeners continuam ativos');
+});
 
 test('agrupa várias mudanças seguidas numa única escrita', async () => {
   const { sync, firestore, timers } = setup();

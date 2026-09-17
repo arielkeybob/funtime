@@ -1,4 +1,16 @@
-# FunTime — V2.2.0
+# FunTime — V2.2.1
+
+## V2.2.1 — fila de sincronização sobrevive ao fechamento do app
+
+O Firestore passa a ser aberto com cache persistente
+(`persistentLocalCache`), em vez do cache só de memória do padrão. Sem isso, uma
+exclusão feita offline se perdia ao fechar o app antes de reconectar, e o registro
+apagado voltava da nuvem na sincronização seguinte. Registros novos já não se
+perdiam (o armazenamento local é a fonte da verdade e o que faltasse subia na
+abertura seguinte); o problema era só com exclusões. Se o navegador recusar a
+persistência — navegação privada, armazenamento bloqueado —, a sincronização
+continua funcionando sem a fila persistente. App, boot, rodapés e cache alinhados
+a 2.2.1; DATA_VERSION 11 preservado.
 
 ## V2.2.0 — sincronização opcional entre aparelhos com Conta Google
 
