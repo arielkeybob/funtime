@@ -291,9 +291,11 @@ export function initEasterEggs({ state, homeHeader, homeView, toast, updateToast
     const gap = tap.time - (taps.at(-1)?.time ?? 0);
     if (taps.length && (gap < 200 || gap > 2000)) taps = [];
     taps.push({ time: tap.time, notice: tap.notice });
-    if (taps.length < 8) return;
-    const bpm = Math.round(60000 * 7 / (taps[7].time - taps[0].time));
-    reset();
+    // Primeiro palpite com 4 toques; se a sequência continuar até 8 seguidos,
+    // um segundo palpite mais refinado (média dos 8) reinicia a contagem.
+    if (taps.length !== 4 && taps.length !== 8) return;
+    const bpm = Math.round(60000 * (taps.length - 1) / (taps.at(-1).time - taps[0].time));
+    if (taps.length === 8) taps = [];
     clearBalloon();
     balloon = document.createElement('div');
     balloon.className = 'tap-bpm-balloon';

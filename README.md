@@ -1,4 +1,12 @@
-# FunTime — V2.1.46
+# FunTime — V2.1.47
+
+## V2.1.47 — easter egg de BPM: 4 toques para o palpite, refina com 8 seguidos
+
+O easter egg que estima o BPM por toques mostra um primeiro palpite com 4 toques em vez
+de 8. Se a sequência continuar sem pausa até completar 8 toques seguidos, um segundo
+palpite mais refinado (média dos 8) substitui o primeiro; depois disso a contagem
+reinicia do zero. App, boot, rodapés e cache alinhados a 2.1.47; DATA_VERSION 11
+preservado.
 
 ## V2.1.46 — trava o zoom por pinça no app, mantém liberado nas políticas
 

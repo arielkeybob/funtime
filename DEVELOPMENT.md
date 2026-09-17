@@ -1,5 +1,24 @@
 # FunTime — documentação de desenvolvimento
 
+## V2.1.47 — easter egg de BPM: 4 toques para o palpite, refina com 8 seguidos
+
+`src/easter-eggs/index.js` (handler de `pointerup`): o primeiro palpite de BPM passa a
+disparar em 4 toques em vez de 8. O array `taps` deixa de ser limpo nesse ponto (antes o
+`reset()` zerava tudo a cada palpite); ele só é zerado ao chegar a 8 toques na mesma
+sequência, permitindo um segundo palpite mais refinado, calculado sobre os 8 toques (em
+vez dos 4 primeiros) antes de reiniciar a contagem. O cálculo de BPM foi generalizado
+para `60000 * (taps.length - 1) / (último - primeiro)`, válido tanto para 4 quanto para
+8 toques. As regras de pausa/interrupção (gap 200–2000ms, alvo, distância, duração do
+toque) não mudam.
+
+`tests/tap-bpm-browser.test.cjs` foi reescrito: o helper de disparo de toques passa a
+receber uma lista de intervalos (`gaps`) em vez de uma contagem com espaçamento fixo,
+permitindo testar continuidade entre bursts (ex.: 4 toques a 500ms seguidos de mais 4 a
+300ms, sem pausa, para provar que o segundo palpite recalcula sobre os 8 e não repete o
+primeiro) e o reinício exato após o oitavo toque. Suíte completa (183/184, única falha
+conhecida e pré-existente em `install-browser.test.cjs`). App, boot, rodapés e cache
+alinhados a 2.1.47; DATA_VERSION 11 preservado.
+
 ## V2.1.46 — trava o zoom por pinça no app, mantém liberado nas políticas
 
 A meta viewport de `index.html` ganha `maximum-scale=1, user-scalable=no`, impedindo o

@@ -3,7 +3,7 @@ const assert = require('node:assert/strict');
 const { chromium } = require('playwright');
 const { createDevServer } = require('../scripts/dev-server.cjs');
 
-test('BPM: oito toques, interrupções, isolamento e movimento reduzido', { timeout: 60000 }, async () => {
+test('BPM: quatro toques, refinamento em oito seguidos, reinício, interrupções, isolamento e movimento reduzido', { timeout: 60000 }, async () => {
   const server = createDevServer();
   await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
   const browser = await chromium.launch({ channel: 'msedge', headless: true });
@@ -20,49 +20,70 @@ test('BPM: oito toques, interrupções, isolamento e movimento reduzido', { time
     await page.locator('#terms-continue').click();
     await page.waitForFunction(() => typeof state !== 'undefined' && !document.body.classList.contains('boot-pending'));
     const before = await page.evaluate(() => JSON.stringify(localStorage));
-    const taps = (count, mode = 'normal') => page.evaluate(({ count, mode }) => {
-      window.tapTestTime = (window.tapTestTime || 10000) + 3000;
+    // `gaps`: um intervalo (ms) por toque, contado a partir do toque anterior enviado
+    // nesta sessão de testes. Um gap > 2000 (ou < 200) reproduz uma pausa/aproximação
+    // que a própria página usa para reiniciar a sequência — assim cada burst pode
+    // isolar-se do anterior (primeiro gap grande) ou continuar de onde parou.
+    const taps = (gaps, mode = 'normal') => page.evaluate(({ gaps, mode }) => {
       const target = document.querySelector(mode === 'button' ? '#empty-add-button' : mode === 'notice' ? '.notice' : '#home-view');
       const send = (type, time, x = 20, primary = true, id = 1) => {
         const event = new PointerEvent(type, { bubbles: true, pointerId: id, isPrimary: primary, button: 0, clientX: x, clientY: 250 });
         Object.defineProperty(event, 'timeStamp', { value: time });
         target.dispatchEvent(event);
       };
-      for (let i = 0; i < count; i++) {
-        const time = window.tapTestTime + i * 500;
+      for (const gap of gaps) {
+        window.tapTestTime = (window.tapTestTime ?? 10000) + gap;
+        const time = window.tapTestTime;
         send('pointerdown', time);
         if (mode === 'drag') send('pointermove', time + 20, 40);
         if (mode === 'multi') send('pointerdown', time + 10, 20, false, 2);
         if (mode === 'scroll') document.dispatchEvent(new Event('scroll'));
         send('pointerup', time + (mode === 'hold' ? 400 : 50));
       }
-      window.tapTestTime += count * 500;
-    }, { count, mode });
-    await taps(7);
+    }, { gaps, mode });
+    const burst = (count, mode = 'normal', spacing = 500) => taps([3000, ...Array(count - 1).fill(spacing)], mode);
+
+    // Três toques isolados: abaixo do novo limite de 4, não deve exibir nada.
+    await burst(3);
     assert.equal(await page.locator('.tap-bpm-balloon').count(), 0);
-    // A pausa entre chamadas deve reiniciar a sequência.
-    await taps(1);
+    // A pausa entre chamadas deve reiniciar a sequência (3 + 1 não vira 4).
+    await taps([3000]);
     assert.equal(await page.locator('.tap-bpm-balloon').count(), 0);
-    await taps(8);
+
+    // Sequência nova de 4 toques seguidos: primeiro palpite (mais grosseiro).
+    await burst(4);
     assert.equal(await page.locator('.tap-bpm-balloon').textContent(), '120 BPM');
     assert.equal(await page.locator('.tap-bpm-balloon').evaluate(el => getComputedStyle(el).pointerEvents), 'none');
     await page.waitForTimeout(350);
     await page.screenshot({ path: require('node:path').join(require('node:os').tmpdir(), 'funtime-tap-bpm.png') });
+
+    // Continuando a MESMA sequência (sem pausa) até 8 toques, com um ritmo mais
+    // acelerado no final: o segundo palpite deve recalcular sobre os 8, não repetir
+    // nem ignorar o novo ritmo.
+    await taps([500, 300, 300, 300]);
+    assert.equal(await page.locator('.tap-bpm-balloon').textContent(), '145 BPM');
     await page.waitForTimeout(2300);
     assert.equal(await page.locator('.tap-bpm-balloon').count(), 0);
-    await taps(8, 'notice');
+
+    // Após os 8 toques seguidos, a contagem reinicia: continuar tocando (mesmo sem
+    // pausa) só deve disparar de novo ao completar outros 4, não em 9/10/11.
+    await taps([500, 500, 500, 500]);
+    assert.equal(await page.locator('.tap-bpm-balloon').textContent(), '120 BPM');
+    await page.waitForTimeout(2300);
+
+    await burst(8, 'notice');
     assert.equal(await page.locator('.tap-bpm-balloon').textContent(), '120 BPM');
     assert.equal(await page.locator('.notice').evaluate(el => getComputedStyle(el).userSelect), 'none');
     await page.waitForTimeout(2300);
     for (const mode of ['button', 'drag', 'multi', 'scroll', 'hold']) {
-      await taps(8, mode);
+      await burst(8, mode);
       assert.equal(await page.locator('.tap-bpm-balloon').count(), 0, mode);
     }
     await page.emulateMedia({ reducedMotion: 'reduce' });
-    await taps(8);
+    await burst(8);
     assert.equal(await page.locator('.tap-bpm-balloon').evaluate(el => getComputedStyle(el).animationName), 'tap-bpm-fade');
     await page.locator('#empty-add-button').click();
-    await taps(8);
+    await burst(8);
     assert.equal(await page.locator('.tap-bpm-balloon').count(), 0);
     assert.equal(await page.evaluate(() => JSON.stringify(localStorage)), before);
     assert.deepEqual(errors, []);
