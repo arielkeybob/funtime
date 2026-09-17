@@ -33,6 +33,7 @@ test('página de instalação conclui por evento e mantém orientação ao volta
       prompt.prompt = async () => ({ outcome: 'accepted' });
       window.dispatchEvent(prompt);
     });
+    await page.locator('#browser-install-password').fill('SenhadoFunTime');
     await page.locator('#browser-install-button').click();
     assert.equal(await page.locator('#browser-install-status-title').textContent(), 'Instalação iniciada');
     await page.evaluate(() => window.dispatchEvent(new Event('appinstalled')));
