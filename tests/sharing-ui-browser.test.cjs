@@ -41,8 +41,8 @@ test('sem conta conectada, o compartilhamento não aparece', { timeout: 30000 },
     assert.equal(await page.locator('#settings-sharing-card').isVisible(), false,
       'o cartão só existe para quem conectou uma conta');
     assert.equal(await page.locator('#pairing-dialog').evaluate((node) => node.open), false);
-    assert.equal(await page.locator('#home-shared').isVisible(), false,
-      'sem ninguém compartilhando, o botão de "ver compartilhado" não aparece');
+    assert.equal(await page.locator('#home-friends-button').isVisible(), false,
+      'sem conta, o ícone de amigos no cabeçalho da Home não aparece');
     assert.equal(await page.locator('#shared-view').isVisible(), false);
     assert.deepEqual(erros, [], 'a interface nova não pode gerar erro no console');
   });
@@ -66,6 +66,13 @@ test('a tela de "compartilhado com você" abre e fecha sem erro', { timeout: 300
       /não indicam se essa pessoa está segura/,
       'o aviso de segurança precisa existir no diálogo, mesmo fechado'
     );
+    assert.equal(
+      await page.locator('#shared-detail-tabs').evaluate((node) => node.hidden),
+      false,
+      'as abas Vendo/Compartilhando ficam sempre visíveis, não só quando os dois lados estão ativos'
+    );
+    assert.equal(await page.locator('#friend-info-dialog').evaluate((node) => node.open), false,
+      '"Sobre o amigo" (onde mora Desfazer amizade) só abre pelo ícone de informação');
 
     await page.locator('#close-shared').click();
     assert.equal(await page.locator('#shared-view').isVisible(), false);

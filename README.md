@@ -1,4 +1,30 @@
-# FunTime — V2.5.0
+# FunTime — V2.6.0
+
+## V2.6.0 — compartilhar já ao criar o evento; ícone de amigos; "Desfazer amizade" numa tela própria
+
+Quatro ajustes pedidos depois de usar a v2.5.0 de verdade:
+
+- **Compartilhar já na criação do evento.** O formulário "Novo evento" ganha, para
+  "Iniciar agora", uma grade de amigos embutida logo abaixo do nome — escolher ali já
+  inicia o compartilhamento junto com o evento, sem precisar abrir o detalhe depois.
+  Não aparece ao editar um evento existente nem ao agendar para depois (compartilhar
+  exige o evento já ter começado).
+- **Ícone no lugar do cartão da Home.** O cartão "👀 Fulano está compartilhando ›",
+  que ocupava a largura toda, virou um ícone pequeno de amigos no canto superior
+  direito do cabeçalho — com uma bolinha verde quando pelo menos uma pessoa está
+  compartilhando com você agora.
+- **"Desfazer amizade" mudou de lugar.** Deixou de ser um botão vermelho fixo no
+  rodapé do diálogo de detalhe (onde podia ser confundido com "parar de
+  compartilhar") e passou a morar numa tela própria, "Sobre o amigo", aberta por um
+  ícone de informação — menos chamativa, e um lugar que pode crescer com mais
+  informações no futuro.
+- **Abas "Vendo"/"Compartilhando" sempre visíveis.** Antes só apareciam quando os
+  dois lados estavam ativos ao mesmo tempo; agora ficam sempre lá, cada uma com sua
+  própria mensagem quando não há nada daquele lado.
+
+Nenhuma mudança em `firestore.rules` nem em políticas — tudo aqui é reorganização de
+interface sobre dados que já existiam. App, boot, rodapés e cache alinhados a 2.6.0;
+DATA_VERSION 11 preservado.
 
 ## V2.5.0 — uma lista só de amigos, com indicadores em vez de duas listas
 

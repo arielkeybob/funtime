@@ -451,3 +451,71 @@ real da página (dados falsos, sem precisar de conta/Firebase de verdade) para
 conferir visualmente as bolinhas, as abas e os três corpos de detalhe antes
 de publicar — script e captura de tela apagados depois, não fazem parte do
 repositório.
+
+## Nota pós-implementação (v2.6.0) — quatro ajustes de uso real
+
+Depois de publicar e testar a v2.5.0, o usuário pediu mais quatro mudanças
+na mesma funcionalidade, todas de interface sobre dados que já existiam —
+nenhuma mudança em `firestore.rules` nem em políticas.
+
+**1. Compartilhar já ao criar o evento.** Antes só dava para escolher com
+quem compartilhar depois de o evento já existir. Perguntado se a escolha
+deveria ficar embutida no próprio formulário "Novo evento" ou abrir o
+diálogo já existente logo depois de criar, o usuário escolheu a primeira —
+menos telas. `renderShareOccasionPeople()` (o grid clicável do diálogo
+"Compartilhar evento") foi dividida em duas: um `renderFriendPicker()`
+comum (grid + alternar seleção num `Set` + estado vazio) e o wrapper fino
+que já existia, reaproveitados agora também por um `renderOccasionSharePicker()`
+novo, ligado ao formulário de criação por uma ponte em `app.js`
+(`globalThis.renderOccasionSharePicker`), no mesmo padrão que
+`openShareOccasionDialog` já usava — `occasions-ui.js` é um script clássico
+separado do módulo `share-ui.js` e só se comunica por essas pontes.
+`editorVisibility()` (occasions-ui.js) esconde o campo novo sempre que
+`current` (editando) ou `planned` (agendado) — compartilhar exige o evento
+já ter começado, e só a opção "Iniciar agora" satisfaz isso. No `submit`,
+depois de `commitOccasions(...)` criar o evento com `id` real, uma chamada a
+`startOccasionShares` (nova ponte, chama `shareWriter.startShare` para cada
+uid selecionado — sem "diferença" a calcular, já que o evento acabou de
+nascer sem share nenhum) inicia o compartilhamento com quem foi marcado.
+
+**2. Ícone no lugar do cartão da Home.** O cartão de largura total
+"👀 Fulano está compartilhando ›" virou um botão pequeno no cabeçalho da
+Home. Achado durante a exploração: `.home-header-actions`, o contêiner flex
+alinhado à direita que esse ícone precisava, **já existia no CSS**
+(`styles.css`) desde um redesenho anterior, sem nenhum elemento do HTML
+atual usando — só faltava o `<div class="home-header-actions">` com o botão
+dentro. A bolinha verde reaproveita `.share-status-dot--incoming`, a mesma
+classe já usada na grade de amigos. A visibilidade do ícone em si deixou de
+depender de `pairings.length` (só aparecia com pelo menos um amigo) e passou
+a acompanhar `sharingCard.hidden` (login) em `app.js` — agora ele também
+serve de atalho para "Adicionar amigo" quando ainda não há nenhum.
+
+**3 e 4 (juntas).** "Desfazer amizade" incomodava por ficar ao lado de
+"Fechar" no rodapé do diálogo de detalhe — perto o bastante das abas
+Vendo/Compartilhando para passar a impressão de que desfazia o
+compartilhamento em vista, não a amizade inteira. E as abas só apareciam
+quando os dois lados (vendo e compartilhando) estavam ativos ao mesmo
+tempo; nos outros casos o corpo pulava direto para um dos painéis ou para
+"amigos desde X" — um terceiro modo escondido. As duas coisas se resolveram
+juntas: as abas passaram a ficar **sempre visíveis** (cada painel já sabia
+virar "vazio" sozinho, ou ganhou esse caso —`renderVendoPanel(null)` agora
+retorna "Ela não está compartilhando nada com você agora."), e o antigo
+terceiro modo ("amigos desde X") deixou de existir dentro do diálogo
+principal: virou o conteúdo de uma tela nova, "Sobre o amigo"
+(`#friend-info-dialog`), aberta por um ícone "i" no cabeçalho do diálogo de
+detalhe. É lá que "Desfazer amizade" mora agora, com o botão
+`.settings-secondary-button` (não mais `.danger-button`) — deliberadamente
+menos chamativo, já que está numa tela dedicada, sem risco de ser confundido
+com um botão de parar compartilhamento. O usuário já apontou essa tela como
+um lugar que pode crescer com mais informações no futuro.
+
+Verificado com `npm test` (308 passando, sem nenhuma asserção quebrada) e
+com um segundo script Playwright descartável — confirmando visualmente o
+ícone da Home com e sem bolinha, as duas abas sempre visíveis com suas
+mensagens de vazio, a navegação até "Sobre o amigo" (com o botão antigo
+ausente do diálogo principal), e o campo de compartilhar aparecendo só no
+modo "Iniciar agora" do formulário de criar evento — script e capturas
+apagados depois, não fazem parte do repositório. Também confirmado por
+mutação: a asserção nova de "abas sempre visíveis" foi checada revertendo
+temporariamente o `hidden` estático no HTML e vendo o teste
+`tests/sharing-ui-browser.test.cjs` falhar, depois restaurado.

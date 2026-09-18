@@ -308,7 +308,7 @@ document.addEventListener("visibilitychange", () => {
 const DATA_STORAGE_KEY = "funtime-v1-data";
 const LEGACY_DRINKS_STORAGE_KEY = "balada-v1-drinks";
 const DATA_VERSION = 11;
-const APP_VERSION = "2.5.0";
+const APP_VERSION = "2.6.0";
 const DRINK_EXPORT_TYPE = "funtime-drinks";
 const DRINK_EXPORT_FORMAT_VERSION = 1;
 const BACKUP_EXPORT_TYPE = "funtime-backup";
@@ -541,18 +541,27 @@ const sharingNodes = {
   shareOccasionConfirm: document.querySelector("#share-occasion-confirm"),
   shareOccasionStopAll: document.querySelector("#share-occasion-stop-all"),
   closeShareOccasion: document.querySelector("#close-share-occasion"),
-  homeShared: document.querySelector("#home-shared"),
+  occasionShareGrid: document.querySelector("#occasion-share-grid"),
+  occasionShareEmpty: document.querySelector("#occasion-share-empty"),
+  homeFriendsButton: document.querySelector("#home-friends-button"),
+  homeFriendsDot: document.querySelector("#home-friends-dot"),
   friendsGrid: document.querySelector("#friends-grid"),
   friendsEmpty: document.querySelector("#friends-empty"),
   sharedDetailDialog: document.querySelector("#shared-detail-dialog"),
   sharedDetailTitle: document.querySelector("#shared-detail-title"),
+  sharedDetailInfo: document.querySelector("#shared-detail-info"),
   sharedDetailTabs: document.querySelector("#shared-detail-tabs"),
   sharedDetailTabVendo: document.querySelector("#shared-detail-tab-vendo"),
   sharedDetailTabCompartilhando: document.querySelector("#shared-detail-tab-compartilhando"),
   sharedDetailBody: document.querySelector("#shared-detail-body"),
-  sharedDetailUnfriend: document.querySelector("#shared-detail-unfriend"),
   sharedDetailClose: document.querySelector("#shared-detail-close"),
   closeSharedDetail: document.querySelector("#close-shared-detail"),
+  friendInfoDialog: document.querySelector("#friend-info-dialog"),
+  friendInfoTitle: document.querySelector("#friend-info-title"),
+  friendInfoBody: document.querySelector("#friend-info-body"),
+  friendInfoUnfriend: document.querySelector("#friend-info-unfriend"),
+  friendInfoClose: document.querySelector("#friend-info-close"),
+  closeFriendInfo: document.querySelector("#close-friend-info"),
 };
 const sharedHeader = document.querySelector("#shared-header");
 const sharedViewMain = document.querySelector("#shared-view");
@@ -3201,6 +3210,7 @@ function updateSyncSettingsUI() {
   if (user) syncAccountLabel.textContent = user.email || user.displayName || "Conectado";
   // Compartilhar exige conta: sem login não há com quem nem como.
   if (sharingNodes.sharingCard) sharingNodes.sharingCard.hidden = !user;
+  if (sharingNodes.homeFriendsButton) sharingNodes.homeFriendsButton.hidden = !user;
 }
 
 // Aplica em memória o que chegou de outro aparelho. Grava pelo núcleo cru
@@ -3235,6 +3245,16 @@ function notifyLocalDataChanged(previous) {
 // evento. `events` já vem filtrado para a ocasião — este módulo não tem `state`.
 function openShareOccasionDialog(item, events) {
   shareUI?.openShareOccasionDialog(item, events);
+}
+
+// As duas pontes seguintes servem o picker embutido no formulário de criar evento
+// (occasions-ui.js), mesmo padrão de ponte que openShareOccasionDialog já usa.
+function renderOccasionSharePicker(selecionados) {
+  shareUI?.renderOccasionSharePicker(selecionados);
+}
+
+function startOccasionShares(item, events, otherUids) {
+  shareUI?.startSharesFor(item, events, otherUids);
 }
 
 // O que chega aqui é exibido, nunca gravado: não passa por commitAppData nem
@@ -3411,7 +3431,7 @@ if (sharingNodes.sharingConnect) {
   shareUI.setPairings([]);
 }
 
-sharingNodes.homeShared?.addEventListener("click", openSharedView);
+sharingNodes.homeFriendsButton?.addEventListener("click", openSharedView);
 closeSharedButton?.addEventListener("click", closeSharedView);
 
 if (firebaseAuth && isSyncConnected()) {
@@ -3430,6 +3450,7 @@ updateSyncSettingsUI();
 // abaixo é mais ampla do que só o que os 4 scripts clássicos leem.
 Object.assign(globalThis, {
   notifyLocalDataChanged, summarizeOccasionDoses, openShareOccasionDialog,
+  renderOccasionSharePicker, startOccasionShares,
   openSharedView, closeSharedView,
   render, saveData, effectiveCountingMode, registerDrinkAt, tickDrinkCards,
   closeSettingsView, openDrinkMenuDialog, openEventDialog, saveSecurityConfig,

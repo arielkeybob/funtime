@@ -2,7 +2,7 @@
 const occasionDialog = document.getElementById('occasion-dialog');
 const occasionForm = document.getElementById('occasion-form');
 const occasionDetailDialog = document.getElementById('occasion-detail-dialog');
-let editingOccasionId = null, occasionOriginal = null, occasionSuggestedStart = null;
+let editingOccasionId = null, occasionOriginal = null, occasionSuggestedStart = null, occasionShareSelected = new Set();
 let agendaTab = null, agendaLimit = 20, detailOccasionId = null;
 let reconcilingOccasions = false, occasionRetryAt = 0, agendaStatusKey = "";
 const $occasion = id => document.getElementById(id);
@@ -62,6 +62,9 @@ function editorVisibility() {
   const planned = current ? current.startedAt === null : $occasion('occasion-mode').value === 'scheduled';
   const past = planned && new Date($occasion('occasion-start').value).getTime() < Date.now();
   $occasion('occasion-start').parentElement.hidden = !current && !planned;
+  // Compartilhar exige o evento já ter começado — só faz sentido criando um evento
+  // novo com "Iniciar agora", nunca editando ou agendando.
+  $occasion('occasion-share-field').hidden = Boolean(current) || planned;
   $occasion('occasion-past-notice').hidden = !past;
   $occasion('occasion-unlock-field').hidden = !state.securityConfig.enabled || planned || current?.endedAt != null;
   $occasion('occasion-end-toggle').querySelector('.setting-toggle-copy').textContent = past ? 'Informar data de término' : 'Encerrar automaticamente em uma data';
@@ -89,6 +92,8 @@ function openOccasionEditor(id = null) {
   $occasion('occasion-has-end').checked = current?.scheduledEndAt != null;
   $occasion('occasion-end').value = occasionInput(current?.endedAt ?? current?.scheduledEndAt ?? (occasionSuggestedStart + 4 * 3600000));
   for (const id of ['occasion-start', 'occasion-end']) { const input = $occasion(id); initializeDateTimeEditor(input); input._dateTimeEditor.collapse(); }
+  occasionShareSelected = new Set();
+  globalThis.renderOccasionSharePicker?.(occasionShareSelected);
   editorVisibility(); beginFormDraft(occasionForm); occasionDialog.showModal();
 }
 $occasion('occasion-mode').addEventListener('change', () => {
@@ -135,6 +140,9 @@ occasionForm.addEventListener('submit', event => {
     const records = !planned && (!current || retrospective || periodChanged) ? FunTimeOccasions.includeUnassigned(state.events, item) : state.events;
     const included = records.filter((record, i) => record !== state.events[i]).length;
     commitOccasions(current ? state.occasions.map(old => old.id === item.id ? item : old) : [...state.occasions, item], records);
+    if (!current && !planned && occasionShareSelected.size) {
+      globalThis.startOccasionShares?.(item, records.filter(record => record.occasionId === item.id), [...occasionShareSelected]);
+    }
     const wantsEventUnlock = !planned && item.endedAt === null && $occasion('occasion-unlock').checked;
     const hadEventUnlock = state.securityConfig.eventUnlockOccasionId === item.id;
     const unlockSaved = wantsEventUnlock === hadEventUnlock || globalThis.setSecurityEventUnlock?.(item.id, wantsEventUnlock) === true;

@@ -58,7 +58,7 @@
     <footer class="browser-gate-footer">
       <span>App para estudo · não é controle de segurança</span>
       <a class="policies-link" href="./policies.html">Políticas e informações</a>
-      <span>v2.5.0 · By: arielkeybob</span>
+      <span>v2.6.0 · By: arielkeybob</span>
     </footer>
   </section>
 
@@ -82,7 +82,12 @@
         <p class="eyebrow home-header-eyebrow">FunTime</p>
         <h1>Início</h1>
       </div>
-
+      <div class="home-header-actions">
+        <button id="home-friends-button" class="icon-button secondary" type="button" aria-label="Amigos" hidden>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/><path d="M16 8a2.5 2.5 0 1 0 0-5"/><path d="M15 14.2c2.3.4 4 2.4 4 5.8"/></svg>
+          <span id="home-friends-dot" class="share-status-dot share-status-dot--incoming" hidden></span>
+        </button>
+      </div>
     </header>
 
     <header id="history-header" class="app-header history-header" hidden>
@@ -110,7 +115,6 @@
     </header>
 
     <main id="home-view">
-      <button id="home-shared" class="occasion-context sharing-incoming" type="button" hidden></button>
       <div id="occasion-reminder" class="occasion-reminder" hidden></div>
       <button id="home-occasion" class="occasion-context" type="button"></button>
       <section id="empty-state" class="empty-state" hidden>
@@ -326,7 +330,7 @@
           </div>
         </div>
 
-        <p class="settings-description">Versão instalada: <strong>v2.5.0</strong></p>
+        <p class="settings-description">Versão instalada: <strong>v2.6.0</strong></p>
         <button id="check-app-update" class="settings-secondary-button" type="button">Verificar atualizações</button>
       </section>
 
@@ -387,10 +391,15 @@
             <p class="eyebrow">Amigos</p>
             <h2 id="shared-detail-title">—</h2>
           </div>
-          <button id="close-shared-detail" class="icon-button secondary" type="button" aria-label="Fechar">×</button>
+          <div class="dialog-header-actions">
+            <button id="shared-detail-info" class="icon-button secondary" type="button" aria-label="Sobre o amigo">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v6"/><circle cx="12" cy="7.5" r=".25" fill="currentColor"/></svg>
+            </button>
+            <button id="close-shared-detail" class="icon-button secondary" type="button" aria-label="Fechar">×</button>
+          </div>
         </div>
 
-        <div id="shared-detail-tabs" class="shared-detail-tabs" role="group" aria-label="Alternar visão" hidden>
+        <div id="shared-detail-tabs" class="shared-detail-tabs" role="group" aria-label="Alternar visão">
           <button id="shared-detail-tab-vendo" type="button" aria-pressed="true">Vendo</button>
           <button id="shared-detail-tab-compartilhando" type="button" aria-pressed="false">Compartilhando</button>
         </div>
@@ -400,8 +409,26 @@
         <div id="shared-detail-body"></div>
 
         <div class="dialog-actions">
-          <button id="shared-detail-unfriend" class="danger-button" type="button">Desfazer amizade</button>
           <button id="shared-detail-close" class="secondary-button" type="button">Fechar</button>
+        </div>
+      </form>
+    </dialog>
+
+    <dialog id="friend-info-dialog" class="dialog data-dialog">
+      <form method="dialog">
+        <div class="dialog-header">
+          <div>
+            <p class="eyebrow">Amigos</p>
+            <h2 id="friend-info-title">—</h2>
+          </div>
+          <button id="close-friend-info" class="icon-button secondary" type="button" aria-label="Fechar">×</button>
+        </div>
+
+        <div id="friend-info-body"></div>
+
+        <div class="dialog-actions">
+          <button id="friend-info-unfriend" class="settings-secondary-button" type="button">Desfazer amizade</button>
+          <button id="friend-info-close" class="secondary-button" type="button">Fechar</button>
         </div>
       </form>
     </dialog>
@@ -414,7 +441,7 @@
     <footer class="app-footer">
       <span class="app-footer-disclaimer">App para estudo · não é controle de segurança</span>
       <a class="policies-link" href="./policies.html">Políticas e informações</a>
-      <span class="app-footer-meta">v2.5.0 · By: arielkeybob</span>
+      <span class="app-footer-meta">v2.6.0 · By: arielkeybob</span>
     </footer>
   </div>
 
@@ -494,6 +521,11 @@
       <div class="dialog-header"><h2 id="occasion-form-title">Iniciar evento</h2><button id="occasion-close" class="icon-button secondary" type="button" aria-label="Fechar">×</button></div>
       <label id="occasion-mode-field" class="field"><span>Quando começar?</span><select id="occasion-mode" name="occasionMode"><option value="now">Iniciar agora</option><option value="scheduled">Escolher data</option></select></label>
       <label class="field"><span>Nome do evento</span><input id="occasion-name" name="occasionName" type="text" maxlength="80" placeholder="Aniversário do João" required></label>
+      <div id="occasion-share-field" class="field" hidden>
+        <span>Compartilhar com</span>
+        <p id="occasion-share-empty" class="sharing-empty" hidden>Adicione um amigo primeiro, nas Configurações.</p>
+        <div id="occasion-share-grid" class="share-grid"></div>
+      </div>
       <label id="occasion-unlock-field" class="setting-toggle" hidden><span class="occasion-unlock-copy"><strong>Manter app desbloqueado durante este evento</strong><small>Ao voltar ao app, não será necessário autenticar. A tela recente continua protegida.</small></span><span class="setting-toggle-control"><input id="occasion-unlock" name="occasionUnlock" type="checkbox"><span class="setting-toggle-track" aria-hidden="true"><span></span></span></span></label>
       <p id="occasion-past-notice" class="settings-description" role="status" hidden>Esta data já passou. Os registros sem evento nesse período serão incluídos automaticamente. Informe o término se o evento já acabou; sem término, ele ficará em andamento e seguirá a regra de encerramento após 48 horas.</p><label class="field"><span>Início</span><input id="occasion-start" name="occasionStart" type="datetime-local" required></label>
       <label id="occasion-auto-field" class="setting-toggle"><span class="setting-toggle-copy">Iniciar automaticamente</span><span class="setting-toggle-control"><input id="occasion-auto" name="occasionAuto" type="checkbox"><span class="setting-toggle-track" aria-hidden="true"><span></span></span></span></label>

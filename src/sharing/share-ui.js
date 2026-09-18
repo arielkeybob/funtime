@@ -25,6 +25,7 @@ export function createShareUI({ nodes, getShareWriter, showToast, now = () => Da
   let occasionAberta = null;
   let detalheAberto = null;
   let detalheAba = "vendo";
+  let friendInfoAberto = null;
   let codigoAtual = null;
   let contagem = null;
 
@@ -109,6 +110,7 @@ export function createShareUI({ nodes, getShareWriter, showToast, now = () => Da
       await shareWriter.removePairing(pairId);
       showToast("Amizade desfeita.");
       closeSharedDetail();
+      closeFriendInfo();
     } catch (falha) {
       console.error("Falha ao desfazer o pareamento.", falha);
       showToast("Não foi possível desfazer agora.");
@@ -189,6 +191,13 @@ export function createShareUI({ nodes, getShareWriter, showToast, now = () => Da
   // visível no cartão: período, carimbo de frescor, totais e a lista cronológica.
   function renderVendoPanel(entry) {
     const container = document.createElement("div");
+    if (!entry) {
+      const vazio = document.createElement("p");
+      vazio.className = "settings-description";
+      vazio.textContent = "Ela não está compartilhando nada com você agora.";
+      container.append(vazio);
+      return container;
+    }
     const { view } = entry;
 
     const estado = document.createElement("p");
@@ -253,7 +262,8 @@ export function createShareUI({ nodes, getShareWriter, showToast, now = () => Da
   }
 
   // Sem nenhum dos dois lados ativo: só quando viraram amigos, ou o estado bruto do
-  // pareamento para o raro caso legado que ainda não nasceu aceito pelos dois.
+  // pareamento para o raro caso legado que ainda não nasceu aceito pelos dois. Mora
+  // na tela "Sobre o amigo" (openFriendInfo), não no diálogo de detalhe principal.
   function renderDetailDefault(par) {
     const container = document.createElement("div");
     const info = document.createElement("p");
@@ -265,28 +275,19 @@ export function createShareUI({ nodes, getShareWriter, showToast, now = () => Da
     return container;
   }
 
-  // Só mostra abas quando os dois lados estão ativos ao mesmo tempo — senão, mostra
-  // direto o que houver (ou o estado default, sem nada ativo).
+  // As duas abas ficam sempre visíveis — cada painel já sabe virar "vazio" sozinho
+  // quando não há nada daquele lado.
   function renderDetailBody() {
     if (!nodes.sharedDetailBody || !detalheAberto) return;
     const par = pairings.find((item) => item.otherUid === detalheAberto);
     if (!par) return;
 
-    const vendo = vendoEntryFor(detalheAberto);
-    const compartilhando = compartilhandoSharesFor(detalheAberto).length > 0;
-    const ambos = Boolean(vendo) && compartilhando;
+    nodes.sharedDetailTabVendo?.setAttribute("aria-pressed", String(detalheAba === "vendo"));
+    nodes.sharedDetailTabCompartilhando?.setAttribute("aria-pressed", String(detalheAba === "compartilhando"));
 
-    if (nodes.sharedDetailTabs) nodes.sharedDetailTabs.hidden = !ambos;
-    if (ambos) {
-      nodes.sharedDetailTabVendo?.setAttribute("aria-pressed", String(detalheAba === "vendo"));
-      nodes.sharedDetailTabCompartilhando?.setAttribute("aria-pressed", String(detalheAba === "compartilhando"));
-    }
-
-    let conteudo;
-    if (ambos) conteudo = detalheAba === "compartilhando" ? renderCompartilhandoPanel(detalheAberto) : renderVendoPanel(vendo);
-    else if (vendo) conteudo = renderVendoPanel(vendo);
-    else if (compartilhando) conteudo = renderCompartilhandoPanel(detalheAberto);
-    else conteudo = renderDetailDefault(par);
+    const conteudo = detalheAba === "compartilhando"
+      ? renderCompartilhandoPanel(detalheAberto)
+      : renderVendoPanel(vendoEntryFor(detalheAberto));
 
     nodes.sharedDetailBody.replaceChildren(conteudo);
   }
@@ -316,9 +317,33 @@ export function createShareUI({ nodes, getShareWriter, showToast, now = () => Da
     }
   }
 
-  function unfriendFromDetail() {
+  // "Sobre o amigo": tela separada e menos chamativa, alcançada pelo ícone "i" no
+  // diálogo de detalhe — é onde "Desfazer amizade" mora agora, para não ser confundido
+  // com um botão de parar compartilhamento. Pode crescer com mais informações depois.
+  function renderFriendInfoBody(par) {
+    if (!nodes.friendInfoBody) return;
+    nodes.friendInfoBody.replaceChildren(renderDetailDefault(par));
+  }
+
+  function openFriendInfo() {
     if (!detalheAberto) return;
     const par = pairings.find((item) => item.otherUid === detalheAberto);
+    if (!par) return;
+    closeSharedDetail();
+    friendInfoAberto = par.otherUid;
+    if (nodes.friendInfoTitle) nodes.friendInfoTitle.textContent = par.alias || "Alguém";
+    renderFriendInfoBody(par);
+    if (!nodes.friendInfoDialog.open) nodes.friendInfoDialog.showModal();
+  }
+
+  function closeFriendInfo() {
+    friendInfoAberto = null;
+    if (nodes.friendInfoDialog?.open) nodes.friendInfoDialog.close();
+  }
+
+  function unfriendFromInfo() {
+    if (!friendInfoAberto) return;
+    const par = pairings.find((item) => item.otherUid === friendInfoAberto);
     if (par) desfazer(par.pairId, par.alias);
   }
 
@@ -369,26 +394,26 @@ export function createShareUI({ nodes, getShareWriter, showToast, now = () => Da
       nodes.friendsGrid.append(botaoPessoa);
     }
 
-    // O detalhe aberto também precisa refletir dado novo chegando, ou sumir se a
-    // amizade acabou enquanto a pessoa olhava.
+    // O detalhe aberto (e a tela "Sobre o amigo") também precisam refletir dado novo
+    // chegando, ou sumir se a amizade acabou enquanto a pessoa olhava.
     if (detalheAberto) {
       const aindaExiste = pairings.some((item) => item.otherUid === detalheAberto);
       if (aindaExiste) renderDetailBody();
       else { closeSharedDetail(); showToast("Essa amizade foi desfeita."); }
     }
+    if (friendInfoAberto) {
+      const par = pairings.find((item) => item.otherUid === friendInfoAberto);
+      if (par) renderFriendInfoBody(par);
+      else { closeFriendInfo(); showToast("Essa amizade foi desfeita."); }
+    }
   }
 
+  // A visibilidade do próprio botão (logado ou não) é responsabilidade de quem monta
+  // a tela (app.js, ao lado de sharingCard.hidden) — aqui só a bolinha, que depende
+  // de ter alguém compartilhando com você agora.
   function setSharedEntries(lista) {
     sharedEntries = Array.isArray(lista) ? lista : [];
-    if (nodes.homeShared) {
-      const conectado = pairings.some((par) => par.acceptedByMe && par.acceptedByOther);
-      nodes.homeShared.hidden = sharedEntries.length === 0 && !conectado;
-      nodes.homeShared.textContent = sharedEntries.length === 1
-        ? `👀 ${sharedEntries[0].view.ownerAlias || "Alguém"} está compartilhando ›`
-        : sharedEntries.length > 1
-          ? `👀 ${sharedEntries.length} pessoas compartilhando ›`
-          : "👥 Amigos ›";
-    }
+    if (nodes.homeFriendsDot) nodes.homeFriendsDot.hidden = sharedEntries.length === 0;
     renderFriends();
   }
 
@@ -417,33 +442,31 @@ export function createShareUI({ nodes, getShareWriter, showToast, now = () => Da
     return (primeiro || "?").toLocaleUpperCase("pt-BR");
   }
 
-  function renderShareOccasionPeople() {
-    if (!nodes.shareOccasionGrid || !occasionAberta) return;
-    nodes.shareOccasionGrid.replaceChildren();
+  // Grade de seleção reaproveitada em dois pontos: o diálogo "Compartilhar evento" e
+  // o formulário de criar evento. Só quem aceitou dos dois lados pode receber um
+  // compartilhamento — estar numa lista de pedidos pendentes não é a mesma coisa que
+  // estar conectado. Devolve `true` se não há ninguém para mostrar.
+  function renderFriendPicker(gridNode, emptyNode, selecionados, onToggle) {
+    if (!gridNode) return true;
+    gridNode.replaceChildren();
 
-    // Só quem aceitou dos dois lados pode receber um compartilhamento — estar numa
-    // lista de pedidos pendentes não é a mesma coisa que estar conectado.
     const conectados = [...pairings]
       .filter((par) => par.acceptedByMe && par.acceptedByOther)
       .sort((a, b) => (a.alias || "").localeCompare(b.alias || "", "pt-BR"));
 
     const semNinguem = conectados.length === 0;
-    if (nodes.shareOccasionEmpty) nodes.shareOccasionEmpty.hidden = !semNinguem;
-    nodes.shareOccasionGrid.hidden = semNinguem;
-    if (nodes.shareOccasionConfirm) nodes.shareOccasionConfirm.hidden = semNinguem;
-    if (nodes.shareOccasionStopAll) {
-      nodes.shareOccasionStopAll.hidden = activeViewersFor(occasionAberta.item.id).size === 0;
-    }
+    if (emptyNode) emptyNode.hidden = !semNinguem;
+    gridNode.hidden = semNinguem;
 
     for (const par of conectados) {
       const botaoPessoa = document.createElement("button");
       botaoPessoa.type = "button";
       botaoPessoa.className = "share-person";
-      botaoPessoa.setAttribute("aria-pressed", String(occasionAberta.selecionados.has(par.otherUid)));
+      botaoPessoa.setAttribute("aria-pressed", String(selecionados.has(par.otherUid)));
       botaoPessoa.addEventListener("click", () => {
-        if (occasionAberta.selecionados.has(par.otherUid)) occasionAberta.selecionados.delete(par.otherUid);
-        else occasionAberta.selecionados.add(par.otherUid);
-        renderShareOccasionPeople();
+        if (selecionados.has(par.otherUid)) selecionados.delete(par.otherUid);
+        else selecionados.add(par.otherUid);
+        onToggle();
       });
 
       const avatar = document.createElement("span");
@@ -456,7 +479,41 @@ export function createShareUI({ nodes, getShareWriter, showToast, now = () => Da
       nome.textContent = par.alias || "Sem apelido";
 
       botaoPessoa.append(avatar, nome);
-      nodes.shareOccasionGrid.append(botaoPessoa);
+      gridNode.append(botaoPessoa);
+    }
+
+    return semNinguem;
+  }
+
+  function renderShareOccasionPeople() {
+    if (!occasionAberta) return;
+    const semNinguem = renderFriendPicker(nodes.shareOccasionGrid, nodes.shareOccasionEmpty, occasionAberta.selecionados, renderShareOccasionPeople);
+    if (nodes.shareOccasionConfirm) nodes.shareOccasionConfirm.hidden = semNinguem;
+    if (nodes.shareOccasionStopAll) {
+      nodes.shareOccasionStopAll.hidden = activeViewersFor(occasionAberta.item.id).size === 0;
+    }
+  }
+
+  // Picker embutido no formulário de criar evento — `selecionados` é o Set que
+  // occasions-ui.js mantém e lê no submit; aqui só cuidamos da renderização.
+  function renderOccasionSharePicker(selecionados) {
+    renderFriendPicker(nodes.occasionShareGrid, nodes.occasionShareEmpty, selecionados, () => renderOccasionSharePicker(selecionados));
+  }
+
+  // Inicia compartilhamento com uma lista já pronta de pessoas — usado quando um
+  // evento acabou de nascer (não há "diferença" possível: ainda não tinha share
+  // nenhum). Mesmo laço de `confirmShareOccasion`, sem o lado de "parar".
+  async function startSharesFor(item, events, otherUids) {
+    if (!otherUids?.length) return;
+    try {
+      for (const otherUid of otherUids) {
+        const par = pairings.find((p) => p.otherUid === otherUid);
+        await shareWriter.startShare({ occasion: item, events, viewerUid: otherUid, ownerAlias: par?.myAlias || "Alguém" });
+      }
+      showToast(`Compartilhando com ${otherUids.length} pessoa(s).`);
+    } catch (falha) {
+      console.error("Falha ao iniciar o compartilhamento do evento novo.", falha);
+      showToast("Evento criado, mas não foi possível compartilhar agora. Tente pelo detalhe do evento.");
     }
   }
 
@@ -569,9 +626,12 @@ export function createShareUI({ nodes, getShareWriter, showToast, now = () => Da
     nodes.shareOccasionStopAll?.addEventListener("click", stopAllForOccasion);
     nodes.closeSharedDetail?.addEventListener("click", closeSharedDetail);
     nodes.sharedDetailClose?.addEventListener("click", closeSharedDetail);
-    nodes.sharedDetailUnfriend?.addEventListener("click", unfriendFromDetail);
+    nodes.sharedDetailInfo?.addEventListener("click", openFriendInfo);
     nodes.sharedDetailTabVendo?.addEventListener("click", () => { detalheAba = "vendo"; renderDetailBody(); });
     nodes.sharedDetailTabCompartilhando?.addEventListener("click", () => { detalheAba = "compartilhando"; renderDetailBody(); });
+    nodes.closeFriendInfo?.addEventListener("click", closeFriendInfo);
+    nodes.friendInfoClose?.addEventListener("click", closeFriendInfo);
+    nodes.friendInfoUnfriend?.addEventListener("click", unfriendFromInfo);
 
     // O carimbo de frescor ("atualizado agora" → "desatualizado") muda só com o
     // relógio passando, sem nenhum dado novo chegar — por isso reavalia sozinho.
@@ -582,6 +642,6 @@ export function createShareUI({ nodes, getShareWriter, showToast, now = () => Da
   return {
     wire, setPairings, openPairingDialog, closePairingDialog, renderPeople,
     setShares, openShareOccasionDialog, closeShareOccasionDialog,
-    setSharedEntries, renderFriends,
+    setSharedEntries, renderFriends, renderOccasionSharePicker, startSharesFor,
   };
 }

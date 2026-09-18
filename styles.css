@@ -183,6 +183,10 @@ h2 {
   color: var(--text);
 }
 
+.icon-button svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+
+.dialog-header-actions { display: flex; align-items: center; gap: 8px; }
+
 .notice {
   margin-top: 34px;
   margin-bottom: 0;
@@ -2808,6 +2812,8 @@ body {
   margin-left: auto;
   gap: 8px;
 }
+
+#home-friends-button { position: relative; }
 
 .home-add-zone {
   display: grid;
