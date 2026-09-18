@@ -308,7 +308,7 @@ document.addEventListener("visibilitychange", () => {
 const DATA_STORAGE_KEY = "funtime-v1-data";
 const LEGACY_DRINKS_STORAGE_KEY = "balada-v1-drinks";
 const DATA_VERSION = 11;
-const APP_VERSION = "2.9.2";
+const APP_VERSION = "2.10.0";
 const DRINK_EXPORT_TYPE = "funtime-drinks";
 const DRINK_EXPORT_FORMAT_VERSION = 1;
 const BACKUP_EXPORT_TYPE = "funtime-backup";
@@ -3267,6 +3267,27 @@ function applySharedViewEntries(entries) {
   shareUI?.setSharedEntries(entries);
 }
 
+// Situação dos eventos para a tela do amigo: compartilhar é sempre de um evento em
+// andamento, e sem "Usar eventos" ligado nem existe evento.
+function getShareEventsContext() {
+  const eventsEnabled = state.preferences.eventsEnabled === true;
+  const active = eventsEnabled ? FunTimeOccasions.active(state.occasions) : null;
+  return {
+    eventsEnabled,
+    active: active ? [{ item: active, events: state.events.filter((event) => event.occasionId === active.id) }] : [],
+  };
+}
+
+// Leva direto ao interruptor "Usar eventos" em Configurações, destacando a linha.
+function openEventsSetting() {
+  openSettingsView();
+  const row = document.querySelector("#events-enabled")?.closest(".settings-toggle-row");
+  if (!row) return;
+  row.scrollIntoView({ block: "center" });
+  row.classList.add("is-highlighted");
+  setTimeout(() => row.classList.remove("is-highlighted"), 2500);
+}
+
 function renderSharedView() {
   shareUI?.renderFriends();
 }
@@ -3428,6 +3449,9 @@ if (sharingNodes.pairingDialog) {
     nodes: sharingNodes,
     getShareWriter: () => shareWriter,
     showToast,
+    getEventsContext: getShareEventsContext,
+    startEventWith: (uid) => openOccasionEditor(null, [uid]),
+    openEventsSetting,
   });
   shareUI.wire();
   shareUI.setPairings([]);

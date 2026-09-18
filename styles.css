@@ -3776,3 +3776,10 @@ body {
 .tab-badge { display: inline-grid; place-items: center; width: 20px; height: 20px; border-radius: 999px; color: #06121c; flex-shrink: 0; }
 .tab-badge svg { width: 12px; height: 12px; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
 .tab-badge.share-badge--incoming, .tab-badge.share-badge--outgoing { position: static; }
+.share-panel { display: grid; gap: 8px; }
+.share-panel .share-active-row + .share-active-row { margin-top: 0; }
+.share-notice { display: grid; gap: 10px; justify-items: start; padding: 14px; border: 1px dashed var(--border); border-radius: 14px; }
+.share-notice p { margin: 0; }
+.share-start-button { flex-shrink: 0; min-height: 40px; padding: 0 16px; border: 0; border-radius: 12px; background: var(--accent); color: var(--accent-text); font-weight: 800; }
+.share-start-button:active { transform: scale(.97); }
+.settings-toggle-row.is-highlighted { outline: 2px solid var(--info); outline-offset: 3px; border-radius: 14px; }

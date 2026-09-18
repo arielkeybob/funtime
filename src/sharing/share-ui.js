@@ -12,7 +12,14 @@ const MOTIVOS = {
 // `state` nem `localStorage`. Ver docs/specs/0023.
 // `getShareWriter` em vez do escritor direto porque ele só existe enquanto há conta
 // conectada: a interface é montada uma vez, o escritor vai e volta com o login.
-export function createShareUI({ nodes, getShareWriter, showToast, now = () => Date.now() }) {
+export function createShareUI({
+  nodes, getShareWriter, showToast, now = () => Date.now(),
+  // Ponte com o app (que tem `state`): situação dos eventos, iniciar evento já com
+  // alguém marcado e levar até a configuração de eventos.
+  getEventsContext = () => ({ eventsEnabled: false, active: [] }),
+  startEventWith = () => {},
+  openEventsSetting = () => {},
+}) {
   const shareWriter = new Proxy({}, {
     get: (alvo, metodo) => (...args) => {
       const writer = getShareWriter();
@@ -312,33 +319,62 @@ export function createShareUI({ nodes, getShareWriter, showToast, now = () => Da
     return lista;
   }
 
-  // Corpo de "você compartilha com ela" — cada evento ativo, com um jeito de parar.
+  // Corpo de "você compartilha com ela": o que já está sendo enviado (com "Parar") e,
+  // logo abaixo, o que dá para começar a enviar. Compartilhar é sempre de um evento,
+  // então sem "Usar eventos" ligado só resta avisar e levar até a configuração.
   function renderCompartilhandoPanel(otherUid) {
     const container = document.createElement("div");
+    container.className = "share-panel";
     const ativos = compartilhandoSharesFor(otherUid);
 
-    if (!ativos.length) {
-      const vazio = document.createElement("p");
-      vazio.className = "settings-description";
-      vazio.textContent = "Nenhum compartilhamento ativo com essa pessoa agora.";
-      container.append(vazio);
+    for (const share of ativos) {
+      container.append(linhaEvento(share.occasionName || "Evento", "Ao vivo para essa pessoa",
+        botao("Parar", () => pararCompartilhamento(share.shareId), "share-stop-button")));
+    }
+
+    const contexto = getEventsContext();
+    if (!contexto.eventsEnabled) {
+      const aviso = document.createElement("div");
+      aviso.className = "share-notice";
+      const texto = document.createElement("p");
+      texto.className = "settings-description";
+      texto.textContent = "Para compartilhar, o recurso Eventos precisa estar ativo: o compartilhamento é sempre de um evento.";
+      aviso.append(texto, botao("Ativar em Configurações", () => { closeSharedDetail(); openEventsSetting(); }));
+      container.append(aviso);
       return container;
     }
 
-    for (const share of ativos) {
-      const linha = document.createElement("div");
-      linha.className = "share-active-row";
-      const texto = document.createElement("div");
-      texto.className = "share-active-text";
-      const nome = document.createElement("strong");
-      nome.textContent = share.occasionName || "Evento";
-      const estado = document.createElement("span");
-      estado.textContent = "Ao vivo para essa pessoa";
-      texto.append(nome, estado);
-      linha.append(texto, botao("Parar", () => pararCompartilhamento(share.shareId), "share-stop-button"));
-      container.append(linha);
+    const jaEnviando = new Set(ativos.map((share) => share.occasionId));
+    const disponiveis = contexto.active.filter(({ item }) => !jaEnviando.has(item.id));
+    for (const { item, events } of disponiveis) {
+      container.append(linhaEvento(item.name || "Evento", "Em andamento · não compartilhado",
+        botao("Compartilhar", () => startSharesFor(item, events, [otherUid]), "share-start-button")));
+    }
+
+    if (!contexto.active.length) {
+      const semEvento = document.createElement("div");
+      semEvento.className = "share-notice";
+      const texto = document.createElement("p");
+      texto.className = "settings-description";
+      texto.textContent = "Nenhum evento em andamento.";
+      semEvento.append(texto, botao("Iniciar evento e compartilhar", () => { closeSharedDetail(); startEventWith(otherUid); }, "share-start-button"));
+      container.append(semEvento);
     }
     return container;
+  }
+
+  function linhaEvento(titulo, subtitulo, acao) {
+    const linha = document.createElement("div");
+    linha.className = "share-active-row";
+    const texto = document.createElement("div");
+    texto.className = "share-active-text";
+    const nome = document.createElement("strong");
+    nome.textContent = titulo;
+    const estado = document.createElement("span");
+    estado.textContent = subtitulo;
+    texto.append(nome, estado);
+    linha.append(texto, acao);
+    return linha;
   }
 
   // Sem nenhum dos dois lados ativo: só quando viraram amigos, ou o estado bruto do
@@ -556,6 +592,12 @@ export function createShareUI({ nodes, getShareWriter, showToast, now = () => Da
       avatar.className = "share-avatar";
       avatar.setAttribute("aria-hidden", "true");
       avatar.textContent = initial(par.alias);
+      if (selecionados.has(par.otherUid)) {
+        const selo = document.createElement("span");
+        selo.className = "share-badge share-badge--outgoing";
+        selo.innerHTML = '<svg viewBox="0 0 24 24"><path d="M7 17 17 7M9 7h8v8"/></svg>';
+        avatar.append(selo);
+      }
 
       const nome = document.createElement("span");
       nome.className = "share-person-name";

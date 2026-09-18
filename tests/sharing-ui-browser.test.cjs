@@ -148,3 +148,53 @@ test('digitar os 6 caracteres conecta sozinho, sem botão', { timeout: 30000 }, 
     assert.ok(erros.every((erro) => /pareamento|conta conectada/i.test(String(erro))), `erros inesperados: ${erros}`);
   });
 });
+
+// Aba "Compartilhando": compartilhar é sempre de um evento. Sem "Usar eventos" avisa e
+// leva à configuração; com evento em andamento oferece compartilhar; sem evento oferece
+// iniciar um já com a pessoa marcada. A aba "Vendo" não depende disso.
+test('a aba Compartilhando oferece o que dá para fazer conforme os eventos', { timeout: 30000 }, async () => {
+  await withPage(async (page, erros) => {
+    const textos = await page.evaluate(async () => {
+      const { createShareUI } = await import('/funtime/src/sharing/share-ui.js');
+      const n = (s) => document.querySelector(s);
+      let contexto = { eventsEnabled: false, active: [] };
+      const chamadas = [];
+      const nodes = {
+        friendsGrid: n('#friends-grid'), friendsEmpty: n('#friends-empty'), sharedDetailDialog: n('#shared-detail-dialog'),
+        sharedDetailTitle: n('#shared-detail-title'), sharedDetailTabs: n('#shared-detail-tabs'),
+        sharedDetailTabVendo: n('#shared-detail-tab-vendo'), sharedDetailTabCompartilhando: n('#shared-detail-tab-compartilhando'),
+        sharedDetailBody: n('#shared-detail-body'), homeFriendsDot: n('#home-friends-dot'), pairingError: n('#pairing-error'),
+      };
+      const ui = createShareUI({
+        nodes, getShareWriter: () => null, showToast() {},
+        getEventsContext: () => contexto,
+        startEventWith: (uid) => chamadas.push(['novo', uid]),
+        openEventsSetting: () => chamadas.push(['config']),
+      });
+      ui.wire();
+      ui.setPairings([{ pairId: 'p', otherUid: 'u', alias: 'Su', myAlias: 'Eu', acceptedByMe: true, acceptedByOther: true, createdAt: Date.now() }]);
+      const corpo = () => n('#shared-detail-body').innerText.replace(/\s+/g, ' ').trim();
+      const abrir = () => { if (!n('#shared-detail-dialog').open) n('#friends-grid .share-person').click(); n('#shared-detail-tab-compartilhando').click(); };
+      const saida = {};
+      abrir(); saida.desligado = corpo();
+      [...n('#shared-detail-body').querySelectorAll('button')].find((b) => /Ativar/.test(b.textContent)).click();
+      saida.aposConfig = { chamadas: [...chamadas], aberto: n('#shared-detail-dialog').open };
+      chamadas.length = 0;
+      contexto = { eventsEnabled: true, active: [] };
+      abrir(); saida.semEvento = corpo();
+      [...n('#shared-detail-body').querySelectorAll('button')].find((b) => /Iniciar evento/.test(b.textContent)).click();
+      saida.aposNovo = [...chamadas];
+      contexto = { eventsEnabled: true, active: [{ item: { id: 'o1', name: 'Festa' }, events: [] }] };
+      abrir(); saida.comEvento = corpo();
+      n('#shared-detail-tab-vendo').click(); saida.vendo = corpo();
+      return saida;
+    });
+    assert.match(textos.desligado, /Eventos precisa estar ativo/);
+    assert.deepEqual(textos.aposConfig, { chamadas: [['config']], aberto: false });
+    assert.match(textos.semEvento, /Nenhum evento em andamento.*Iniciar evento e compartilhar/);
+    assert.deepEqual(textos.aposNovo, [['novo', 'u']]);
+    assert.match(textos.comEvento, /Festa.*Compartilhar/);
+    assert.match(textos.vendo, /não está compartilhando nada com você/, 'Vendo não depende dos eventos');
+    assert.deepEqual(erros, []);
+  });
+});

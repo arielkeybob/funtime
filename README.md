@@ -1,4 +1,12 @@
-# FunTime — V2.9.2
+# FunTime — V2.10.0
+
+## V2.10.0 — compartilhar direto da tela do amigo
+
+Na aba **Compartilhando** do amigo:
+- Evento em andamento ainda não compartilhado com a pessoa: botão **Compartilhar**; os já compartilhados seguem com **Parar**.
+- Sem evento em andamento: **Iniciar evento e compartilhar** abre o formulário de novo evento já com a pessoa marcada.
+- Com "Usar eventos" desligado: aviso curto e botão que leva direto ao interruptor em Configurações (a linha fica destacada). A aba **Vendo** não depende dessa opção.
+- Quem está marcado para receber (formulário de evento e diálogo de compartilhar) agora fica com o avatar claro **e** o selo azul ↗.
 
 ## V2.9.2 — ícones nas abas da tela do amigo
 

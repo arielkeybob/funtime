@@ -73,7 +73,7 @@ function editorVisibility() {
   $occasion('occasion-end-field').hidden = !(current?.endedAt != null || $occasion('occasion-has-end').checked);
   $occasion('occasion-submit').textContent = current ? 'Salvar alterações' : past ? 'Cadastrar evento' : planned ? 'Agendar evento' : 'Iniciar evento';
 }
-function openOccasionEditor(id = null) {
+function openOccasionEditor(id = null, shareWith = []) {
   if (!state.preferences.eventsEnabled) return;
   const current = id ? state.occasions.find(item => item.id === id) : null;
   editingOccasionId = id; occasionOriginal = current ? JSON.stringify(current) : null;
@@ -92,7 +92,7 @@ function openOccasionEditor(id = null) {
   $occasion('occasion-has-end').checked = current?.scheduledEndAt != null;
   $occasion('occasion-end').value = occasionInput(current?.endedAt ?? current?.scheduledEndAt ?? (occasionSuggestedStart + 4 * 3600000));
   for (const id of ['occasion-start', 'occasion-end']) { const input = $occasion(id); initializeDateTimeEditor(input); input._dateTimeEditor.collapse(); }
-  occasionShareSelected = new Set();
+  occasionShareSelected = new Set(shareWith);
   globalThis.renderOccasionSharePicker?.(occasionShareSelected);
   editorVisibility(); beginFormDraft(occasionForm); occasionDialog.showModal();
 }
@@ -391,6 +391,7 @@ globalThis.refreshOccasionContext = refreshOccasionContext;
 globalThis.refreshOccasionFilters = refreshOccasionFilters;
 globalThis.refreshOccasionReminder = refreshOccasionReminder;
 globalThis.commitOccasions = commitOccasions;
+globalThis.openOccasionEditor = openOccasionEditor;
 globalThis.occasionInput = occasionInput;
 globalThis.openOccasionDetails = openOccasionDetails;
 globalThis.populateRecordOccasions = populateRecordOccasions;
