@@ -1,5 +1,5 @@
 import { formatPairingCode, normalizePairingCode, liveFormatPairingCode } from "../data/share-codes.js";
-import { formatClock, formatHistoryElapsed } from "../format/datetime.js";
+import { formatClock, formatDate, formatHistoryElapsed } from "../format/datetime.js";
 
 const MOTIVOS = {
   "not-found": "Código não encontrado ou já vencido. Peça um novo.",
@@ -24,6 +24,7 @@ export function createShareUI({ nodes, getShareWriter, showToast, now = () => Da
   let sharedEntries = [];
   let occasionAberta = null;
   let detalheAberto = null;
+  let detalheAba = "vendo";
   let codigoAtual = null;
   let contagem = null;
 
@@ -90,7 +91,7 @@ export function createShareUI({ nodes, getShareWriter, showToast, now = () => Da
       if (!resultado.ok) { erro(MOTIVOS[resultado.reason] || MOTIVOS.invalid); return; }
 
       nodes.pairingCodeInput.value = "";
-      showToast("Conectado! Estar conectado não mostra nada — compartilhar é por evento.");
+      showToast("Agora vocês são amigos! Isso não mostra nada — compartilhar é por evento.");
       closePairingDialog();
     } catch (falha) {
       console.error("Falha ao usar o código de pareamento.", falha);
@@ -101,12 +102,13 @@ export function createShareUI({ nodes, getShareWriter, showToast, now = () => Da
   }
 
   async function desfazer(pairId, alias) {
-    const certeza = window.confirm(`Desfazer a conexão com ${alias || "essa pessoa"}? Qualquer compartilhamento em andamento com ela é encerrado.`);
+    const certeza = window.confirm(`Desfazer amizade com ${alias || "essa pessoa"}? Qualquer compartilhamento em andamento com ela é encerrado.`);
     if (!certeza) return;
 
     try {
       await shareWriter.removePairing(pairId);
-      showToast("Conexão desfeita.");
+      showToast("Amizade desfeita.");
+      closeSharedDetail();
     } catch (falha) {
       console.error("Falha ao desfazer o pareamento.", falha);
       showToast("Não foi possível desfazer agora.");
@@ -138,7 +140,7 @@ export function createShareUI({ nodes, getShareWriter, showToast, now = () => Da
     if (!pairings.length) {
       const vazio = document.createElement("p");
       vazio.className = "sharing-empty";
-      vazio.textContent = "Ninguém conectado ainda.";
+      vazio.textContent = "Nenhum amigo ainda.";
       nodes.sharingPeople.append(vazio);
       return;
     }
@@ -158,7 +160,7 @@ export function createShareUI({ nodes, getShareWriter, showToast, now = () => Da
 
       const acoes = document.createElement("div");
       acoes.className = "sharing-person-actions";
-      acoes.append(botao("Desfazer conexão", () => desfazer(par.pairId, par.alias)));
+      acoes.append(botao("Desfazer amizade", () => desfazer(par.pairId, par.alias)));
 
       item.append(cabecalho, acoes);
       nodes.sharingPeople.append(item);
@@ -175,36 +177,43 @@ export function createShareUI({ nodes, getShareWriter, showToast, now = () => Da
     return "Atualizado agora";
   }
 
-  // Preenche o corpo do diálogo de detalhe com o que antes ficava sempre visível
-  // no cartão: período, carimbo de frescor, totais e a lista cronológica de doses.
-  function renderSharedDetailBody(entry) {
-    if (!nodes.sharedDetailBody) return;
-    nodes.sharedDetailBody.replaceChildren();
+  function vendoEntryFor(otherUid) {
+    return sharedEntries.find((item) => item.ownerUid === otherUid) ?? null;
+  }
+
+  function compartilhandoSharesFor(otherUid) {
+    return shares.filter((share) => share.viewerUid === otherUid);
+  }
+
+  // Corpo de "ela compartilha com você" — o mesmo conteúdo que antes ficava sempre
+  // visível no cartão: período, carimbo de frescor, totais e a lista cronológica.
+  function renderVendoPanel(entry) {
+    const container = document.createElement("div");
     const { view } = entry;
 
     const estado = document.createElement("p");
     estado.className = "sharing-person-state";
     estado.textContent = freshnessLabel(entry);
-    nodes.sharedDetailBody.append(estado);
+    container.append(estado);
 
     const periodo = document.createElement("p");
     periodo.className = "settings-description";
     periodo.textContent = `${view.occasion.name} · desde ${formatClock(view.occasion.startedAt)}`;
     if (view.occasion.endedAt != null) periodo.textContent += ` até ${formatClock(view.occasion.endedAt)}`;
-    nodes.sharedDetailBody.append(periodo);
+    container.append(periodo);
 
     for (const total of view.totals) {
       const linha = document.createElement("p");
       linha.className = "occasion-count";
       linha.textContent = `${total.icon} ${total.name} · ${total.count} registro(s)`;
-      nodes.sharedDetailBody.append(linha);
+      container.append(linha);
     }
 
     if (view.truncated) {
       const aviso = document.createElement("p");
       aviso.className = "settings-description";
       aviso.textContent = `Mostrando os registros mais recentes de ${view.eventCount} no total.`;
-      nodes.sharedDetailBody.append(aviso);
+      container.append(aviso);
     }
 
     const lista = document.createElement("div");
@@ -215,15 +224,80 @@ export function createShareUI({ nodes, getShareWriter, showToast, now = () => Da
       linha.textContent = `${formatClock(dose.consumedAt)} · ${dose.drinkIcon} ${dose.drinkName} · ${formatHistoryElapsed(dose.consumedAt, now())}`;
       lista.append(linha);
     }
-    nodes.sharedDetailBody.append(lista);
+    container.append(lista);
+    return container;
   }
 
-  function openSharedDetail(ownerUid) {
-    const entry = sharedEntries.find((item) => item.ownerUid === ownerUid);
-    if (!entry) return;
-    detalheAberto = ownerUid;
-    if (nodes.sharedDetailTitle) nodes.sharedDetailTitle.textContent = entry.view.ownerAlias || "Alguém";
-    renderSharedDetailBody(entry);
+  // Corpo de "você compartilha com ela" — cada evento ativo, com um jeito de parar.
+  function renderCompartilhandoPanel(otherUid) {
+    const container = document.createElement("div");
+    const ativos = compartilhandoSharesFor(otherUid);
+
+    if (!ativos.length) {
+      const vazio = document.createElement("p");
+      vazio.className = "settings-description";
+      vazio.textContent = "Nenhum compartilhamento ativo com essa pessoa agora.";
+      container.append(vazio);
+      return container;
+    }
+
+    for (const share of ativos) {
+      const linha = document.createElement("div");
+      linha.className = "sharing-person-head";
+      const nome = document.createElement("strong");
+      nome.textContent = share.occasionName || "Evento";
+      linha.append(nome, botao("Parar de compartilhar", () => pararCompartilhamento(share.shareId), "danger-button"));
+      container.append(linha);
+    }
+    return container;
+  }
+
+  // Sem nenhum dos dois lados ativo: só quando viraram amigos, ou o estado bruto do
+  // pareamento para o raro caso legado que ainda não nasceu aceito pelos dois.
+  function renderDetailDefault(par) {
+    const container = document.createElement("div");
+    const info = document.createElement("p");
+    info.className = "settings-description";
+    info.textContent = par.acceptedByMe && par.acceptedByOther
+      ? (par.createdAt != null ? `Amigos desde ${formatDate(par.createdAt)}.` : "Vocês são amigos.")
+      : estadoDe(par);
+    container.append(info);
+    return container;
+  }
+
+  // Só mostra abas quando os dois lados estão ativos ao mesmo tempo — senão, mostra
+  // direto o que houver (ou o estado default, sem nada ativo).
+  function renderDetailBody() {
+    if (!nodes.sharedDetailBody || !detalheAberto) return;
+    const par = pairings.find((item) => item.otherUid === detalheAberto);
+    if (!par) return;
+
+    const vendo = vendoEntryFor(detalheAberto);
+    const compartilhando = compartilhandoSharesFor(detalheAberto).length > 0;
+    const ambos = Boolean(vendo) && compartilhando;
+
+    if (nodes.sharedDetailTabs) nodes.sharedDetailTabs.hidden = !ambos;
+    if (ambos) {
+      nodes.sharedDetailTabVendo?.setAttribute("aria-pressed", String(detalheAba === "vendo"));
+      nodes.sharedDetailTabCompartilhando?.setAttribute("aria-pressed", String(detalheAba === "compartilhando"));
+    }
+
+    let conteudo;
+    if (ambos) conteudo = detalheAba === "compartilhando" ? renderCompartilhandoPanel(detalheAberto) : renderVendoPanel(vendo);
+    else if (vendo) conteudo = renderVendoPanel(vendo);
+    else if (compartilhando) conteudo = renderCompartilhandoPanel(detalheAberto);
+    else conteudo = renderDetailDefault(par);
+
+    nodes.sharedDetailBody.replaceChildren(conteudo);
+  }
+
+  function openFriendDetail(pairId) {
+    const par = pairings.find((item) => item.pairId === pairId);
+    if (!par) return;
+    detalheAberto = par.otherUid;
+    detalheAba = "vendo";
+    if (nodes.sharedDetailTitle) nodes.sharedDetailTitle.textContent = par.alias || "Alguém";
+    renderDetailBody();
     if (!nodes.sharedDetailDialog.open) nodes.sharedDetailDialog.showModal();
   }
 
@@ -232,67 +306,75 @@ export function createShareUI({ nodes, getShareWriter, showToast, now = () => Da
     if (nodes.sharedDetailDialog?.open) nodes.sharedDetailDialog.close();
   }
 
-  // Grade compacta em vez de cartões cheios: cada pessoa é só um avatar com a
-  // inicial e o nome; o histórico completo só aparece ao tocar (openSharedDetail).
-  function renderSharedEntries() {
-    if (!nodes.sharedEntriesGrid) return;
-    nodes.sharedEntriesGrid.replaceChildren();
-    if (nodes.sharedEmptyState) nodes.sharedEmptyState.hidden = sharedEntries.length > 0;
-
-    for (const entry of [...sharedEntries].sort((a, b) => (a.view.ownerAlias || "").localeCompare(b.view.ownerAlias || "", "pt-BR"))) {
-      const botaoPessoa = document.createElement("button");
-      botaoPessoa.type = "button";
-      botaoPessoa.className = "share-person is-live";
-      botaoPessoa.addEventListener("click", () => openSharedDetail(entry.ownerUid));
-
-      const avatar = document.createElement("span");
-      avatar.className = "share-avatar";
-      avatar.setAttribute("aria-hidden", "true");
-      avatar.textContent = initial(entry.view.ownerAlias);
-
-      const nome = document.createElement("span");
-      nome.className = "share-person-name";
-      nome.textContent = entry.view.ownerAlias || "Alguém";
-
-      botaoPessoa.append(avatar, nome);
-      nodes.sharedEntriesGrid.append(botaoPessoa);
-    }
-
-    // O detalhe aberto também precisa refletir dado novo chegando, ou sumir se o
-    // compartilhamento acabou enquanto a pessoa olhava.
-    if (detalheAberto) {
-      const aberto = sharedEntries.find((item) => item.ownerUid === detalheAberto);
-      if (aberto) renderSharedDetailBody(aberto);
-      else { closeSharedDetail(); showToast("Esse compartilhamento foi encerrado."); }
+  async function pararCompartilhamento(shareId) {
+    try {
+      await shareWriter.stopShare(shareId);
+      showToast("Compartilhamento encerrado.");
+    } catch (falha) {
+      console.error("Falha ao parar o compartilhamento.", falha);
+      showToast("Não foi possível parar agora.");
     }
   }
 
-  // Lista informativa de conexões — sem ações aqui (gerenciar continua em
-  // Configurações); é só para responder "com quem estou conectado", compacta.
-  function renderSharedPairings() {
-    if (!nodes.sharedPairingsGrid) return;
-    nodes.sharedPairingsGrid.replaceChildren();
-    if (nodes.sharedPairingsEmpty) nodes.sharedPairingsEmpty.hidden = pairings.length > 0;
+  function unfriendFromDetail() {
+    if (!detalheAberto) return;
+    const par = pairings.find((item) => item.otherUid === detalheAberto);
+    if (par) desfazer(par.pairId, par.alias);
+  }
+
+  // Grade única: cada amigo é um avatar com a inicial e o nome, mais até duas
+  // bolinhas no canto — verde quando ela compartilha com você agora, azul quando
+  // você compartilha com ela agora (as duas podem aparecer juntas). O histórico
+  // completo só aparece ao tocar (openFriendDetail).
+  function renderFriends() {
+    if (!nodes.friendsGrid) return;
+    nodes.friendsGrid.replaceChildren();
+    if (nodes.friendsEmpty) nodes.friendsEmpty.hidden = pairings.length > 0;
 
     for (const par of [...pairings].sort((a, b) => (a.alias || "").localeCompare(b.alias || "", "pt-BR"))) {
-      const item = document.createElement("div");
-      item.className = "share-person";
+      const vendo = Boolean(vendoEntryFor(par.otherUid));
+      const compartilhando = compartilhandoSharesFor(par.otherUid).length > 0;
+
+      const botaoPessoa = document.createElement("button");
+      botaoPessoa.type = "button";
+      botaoPessoa.className = "share-person";
+      botaoPessoa.addEventListener("click", () => openFriendDetail(par.pairId));
+
+      const partesEstado = [];
+      if (vendo) partesEstado.push("compartilhando com você agora");
+      if (compartilhando) partesEstado.push("você está compartilhando com essa pessoa");
+      botaoPessoa.setAttribute("aria-label", `${par.alias || "Amigo"}${partesEstado.length ? " · " + partesEstado.join(" · ") : ""}`);
 
       const avatar = document.createElement("span");
       avatar.className = "share-avatar";
       avatar.setAttribute("aria-hidden", "true");
       avatar.textContent = initial(par.alias);
 
+      if (vendo) {
+        const dot = document.createElement("span");
+        dot.className = "share-status-dot share-status-dot--incoming";
+        avatar.append(dot);
+      }
+      if (compartilhando) {
+        const dot = document.createElement("span");
+        dot.className = "share-status-dot share-status-dot--outgoing";
+        avatar.append(dot);
+      }
+
       const nome = document.createElement("span");
       nome.className = "share-person-name";
       nome.textContent = par.alias || "Sem apelido";
 
-      const estado = document.createElement("span");
-      estado.className = "share-person-state-badge";
-      estado.textContent = estadoDe(par);
+      botaoPessoa.append(avatar, nome);
+      nodes.friendsGrid.append(botaoPessoa);
+    }
 
-      item.append(avatar, nome, estado);
-      nodes.sharedPairingsGrid.append(item);
+    // O detalhe aberto também precisa refletir dado novo chegando, ou sumir se a
+    // amizade acabou enquanto a pessoa olhava.
+    if (detalheAberto) {
+      const aindaExiste = pairings.some((item) => item.otherUid === detalheAberto);
+      if (aindaExiste) renderDetailBody();
+      else { closeSharedDetail(); showToast("Essa amizade foi desfeita."); }
     }
   }
 
@@ -305,23 +387,23 @@ export function createShareUI({ nodes, getShareWriter, showToast, now = () => Da
         ? `👀 ${sharedEntries[0].view.ownerAlias || "Alguém"} está compartilhando ›`
         : sharedEntries.length > 1
           ? `👀 ${sharedEntries.length} pessoas compartilhando ›`
-          : "👥 Pessoas conectadas ›";
+          : "👥 Amigos ›";
     }
-    renderSharedEntries();
+    renderFriends();
   }
 
   function setPairings(lista) {
     pairings = Array.isArray(lista) ? lista : [];
     renderPeople();
-    renderSharedPairings();
     if (nodes.shareOccasionDialog?.open) renderShareOccasionPeople();
-    // O botão da Home também depende de haver conexão, não só de share ativo.
+    // O botão da Home também depende de haver amigo, não só de share ativo.
     setSharedEntries(sharedEntries);
   }
 
   function setShares(lista) {
     shares = Array.isArray(lista) ? lista : [];
     if (nodes.shareOccasionDialog?.open) renderShareOccasionPeople();
+    renderFriends();
   }
 
   // Quem já está vendo este evento, agora — é o ponto de partida da seleção: abrir
@@ -454,7 +536,7 @@ export function createShareUI({ nodes, getShareWriter, showToast, now = () => Da
   async function salvarApelido() {
     try {
       await shareWriter.setGlobalAlias(nodes.pairingAlias.value);
-      showToast("Apelido atualizado para quem você já conectou.");
+      showToast("Apelido atualizado para quem você já adicionou.");
     } catch (falha) {
       console.error("Falha ao salvar o apelido.", falha);
       showToast("Não foi possível salvar agora.");
@@ -487,16 +569,19 @@ export function createShareUI({ nodes, getShareWriter, showToast, now = () => Da
     nodes.shareOccasionStopAll?.addEventListener("click", stopAllForOccasion);
     nodes.closeSharedDetail?.addEventListener("click", closeSharedDetail);
     nodes.sharedDetailClose?.addEventListener("click", closeSharedDetail);
+    nodes.sharedDetailUnfriend?.addEventListener("click", unfriendFromDetail);
+    nodes.sharedDetailTabVendo?.addEventListener("click", () => { detalheAba = "vendo"; renderDetailBody(); });
+    nodes.sharedDetailTabCompartilhando?.addEventListener("click", () => { detalheAba = "compartilhando"; renderDetailBody(); });
 
     // O carimbo de frescor ("atualizado agora" → "desatualizado") muda só com o
     // relógio passando, sem nenhum dado novo chegar — por isso reavalia sozinho.
     // Reescrever com os mesmos nós é barato; sem entradas, não faz nada.
-    setInterval(() => { if (sharedEntries.length) renderSharedEntries(); }, 30000);
+    setInterval(() => { if (sharedEntries.length) renderFriends(); }, 30000);
   }
 
   return {
     wire, setPairings, openPairingDialog, closePairingDialog, renderPeople,
     setShares, openShareOccasionDialog, closeShareOccasionDialog,
-    setSharedEntries, renderSharedEntries,
+    setSharedEntries, renderFriends,
   };
 }

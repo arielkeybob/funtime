@@ -372,3 +372,82 @@ usuário, apesar de esta ser, pelo critério já registrado em
 `feedback_politicas_aceite` (memória), uma mudança material no modelo de
 consentimento — não uma de forma. Ver comentário em `policies.js` junto de
 `TERMS_VERSIONS_STILL_VALID`.
+
+## Nota pós-implementação (v2.5.0) — uma lista só, com indicadores
+
+Depois de testar a v2.4.0 com as duas contas reais e aprovar o funcionamento,
+o usuário achou a tela "Acompanhando" (renomeada aqui para "Amigos")
+desnecessariamente complexa: duas listas separadas — "Pessoas conectadas" e
+"Compartilhando com você" — e nenhuma visão de "com quem eu estou
+compartilhando" em lugar nenhum. Pedido: uma lista só, com até dois
+indicadores pequenos por pessoa (bolinha no canto do avatar, não um anel em
+volta do círculo inteiro), e um detalhe que se adapta ao estado ao tocar.
+
+**Terminologia.** "Conectar"/"conexão"/"pessoas conectadas" viram
+"amigo"/"adicionar amigo"/"amigos" em todo texto visível (cartão de
+Configurações, diálogo de parear, tela de amigos, toasts, confirmações).
+Decisão explícita de não tocar em `policies.html`/`policies.js`: o texto
+legal descreve o mecanismo (código, prazo, aceite), que não muda de
+substância com o apelido da função — mudar ali reabriria a pergunta sobre
+forçar novo aceite (já feita duas vezes nesta spec) sem necessidade.
+
+**Uma grade só, dois indicadores independentes.** `renderSharedPairings()` e
+`renderSharedEntries()` (duas funções, dois grids) viram `renderFriends()`
+(uma função, um grid `#friends-grid`), com dois booleanos calculados por
+pessoa: `vendo` (ela compartilha um evento com você agora — computado batendo
+`otherUid` contra os `sharedEntries` recebidos) e `compartilhando` (você
+compartilha com ela agora — batendo contra os `shares` ativos que você
+está enviando). Os dois podem ser verdadeiros ao mesmo tempo. O anel
+`.share-person.is-live` em volta do avatar inteiro foi substituído por duas
+bolinhas absolutamente posicionadas dentro do avatar (que ganhou
+`position: relative`): verde no canto inferior direito para `vendo`, azul
+(`--info`, cor nova) no canto superior direito para `compartilhando`. Como o
+indicador visual sozinho não é acessível, o botão de cada pessoa leva um
+`aria-label` descrevendo o estado por extenso.
+
+**Diálogo de detalhe adaptável.** O mesmo `#shared-detail-dialog` de antes
+passa a ter até duas abas (`Vendo` / `Compartilhando`, reaproveitando o
+padrão visual de `.agenda-tabs` sob uma classe própria `.shared-detail-tabs`
+— usar a mesma classe quebrava um teste de navegador não relacionado, que
+lista `.agenda-tabs button` da página inteira sem escopo), escondidas quando
+só um lado se aplica. Corpo mostrado, por caso:
+- nenhum ativo: "Amigos desde {data}" (ou "Vocês são amigos." sem
+  `createdAt`, caso legado) — ou o `estadoDe(par)` de fallback se o
+  pareamento nunca chegou a ser aceito pelos dois lados;
+- só `vendo`: o mesmo conteúdo que já existia (frescor, período, totais,
+  lista de doses, aviso de segurança);
+- só `compartilhando`: cada compartilhamento ativo com essa pessoa, nome da
+  ocasião e um botão "Parar de compartilhar" por linha;
+- os dois: abas alternando entre os dois corpos acima, "Vendo" como padrão
+  ao abrir.
+
+Um botão "Desfazer amizade" fica sempre visível no rodapé do diálogo,
+qualquer que seja o estado — chama o mesmo `removePairing` de sempre, que já
+revoga os compartilhamentos ativos antes de desfazer.
+
+**Dois campos novos, sem mudança de regra.** `pairingsOf()` passou a expor
+`createdAt` (convertido de `Timestamp` para milissegundos) — necessário para
+"amigos desde X" e que não existia antes porque nada precisava dele.
+`startShare()` e `rehydrateShares()` passaram a guardar também
+`occasionName` em `activeShares` — necessário para nomear cada
+compartilhamento ativo no painel "Compartilhando", e disponível de graça
+porque o nome da ocasião já é gravado no próprio documento `shares/{id}`
+desde a v2.3.0 (`buildSharePayload`). Nenhum dos dois é um dado novo indo
+para o Firestore nem exige mudança em `firestore.rules` — são campos já
+existentes, só passando a ser lidos no mapeamento do cliente. Sem
+necessidade de novo deploy de regras.
+
+**Fora do escopo, por decisão e não por pergunta:** "prorrogar" um
+compartilhamento (citado pelo usuário como exemplo, não como requisito
+firme) não tem mecanismo hoje — o prazo é recalculado sozinho enquanto o
+evento está aberto — e não foi criado agora; a lista simples de amigos
+dentro de Configurações (`#sharing-people`) continua existindo como estava,
+só com o texto renomeado, como forma de gerenciar sem precisar ter nada
+compartilhado ativo.
+
+Verificado com `npm test` (308 passando) e com um script Playwright
+descartável que montou uma segunda instância de `createShareUI` sobre o DOM
+real da página (dados falsos, sem precisar de conta/Firebase de verdade) para
+conferir visualmente as bolinhas, as abas e os três corpos de detalhe antes
+de publicar — script e captura de tela apagados depois, não fazem parte do
+repositório.

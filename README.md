@@ -1,4 +1,27 @@
-# FunTime — V2.4.0
+# FunTime — V2.5.0
+
+## V2.5.0 — uma lista só de amigos, com indicadores em vez de duas listas
+
+Simplificação de interface pedida depois de testar a v2.4.0 com duas contas reais: a
+tela "Acompanhando" tinha duas listas separadas — "Pessoas conectadas" e
+"Compartilhando com você" — e não existia em lugar nenhum uma visão de "com quem eu
+estou compartilhando". Vira uma tela só, "Amigos" (termo que substitui
+"conectado"/"conexão" na interface: "Conectar com alguém" agora é "Adicionar amigo"),
+com uma grade única onde cada pessoa mostra até duas bolinhas pequenas no canto do
+avatar — verde quando ela está compartilhando com você agora, azul quando você está
+compartilhando com ela — em vez do anel em volta do círculo inteiro que existia antes.
+
+Tocar num amigo abre um detalhe que se adapta ao que está ativo: só "amigos desde tal
+data" e "Desfazer amizade" quando nada está ativo; o histórico que ela compartilha com
+você quando só isso está ativo; os eventos que você compartilha com ela, com um botão
+para parar cada um, quando só isso está ativo; e duas abas (Vendo / Compartilhando)
+quando os dois lados estão ativos ao mesmo tempo. "Desfazer amizade" fica sempre
+disponível, em qualquer estado.
+
+Nenhuma mudança nas regras do Firestore nem nas políticas — só a interface e três
+campos novos, já existentes nos documentos, passando a ser lidos pelo cliente
+(`createdAt` do pareamento, nome da ocasião em cada compartilhamento ativo). App,
+boot, rodapés e cache alinhados a 2.5.0; DATA_VERSION 11 preservado.
 
 ## V2.4.0 — conexão em uma etapa só, sem tela de confirmação
 

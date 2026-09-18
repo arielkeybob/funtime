@@ -45,6 +45,7 @@ export function createShareWriter({
         acceptedByMe: (data.acceptedBy || []).includes(uid),
         acceptedByOther: (data.acceptedBy || []).includes(other),
         createdByMe: data.createdBy === uid,
+        createdAt: typeof data.createdAt?.toMillis === "function" ? data.createdAt.toMillis() : null,
         // Ponteiro publicado por quem compartilha: é assim que o outro lado
         // descobre o documento, sem precisar adivinhar nem varrer a coleção.
         sharedWithMe: data.sharing?.[other] ?? null,
@@ -275,7 +276,7 @@ export function createShareWriter({
       { [`sharing.${uid}`]: shareId }
     );
 
-    activeShares.set(shareId, { occasionId: occasion.id, viewerUid, ownerAlias });
+    activeShares.set(shareId, { occasionId: occasion.id, occasionName: occasion.name, viewerUid, ownerAlias });
     await saveShareBookkeeping();
     onSharesChange?.(sharesSnapshot());
     return { shareId };
@@ -377,7 +378,7 @@ export function createShareWriter({
       // do que compartilhar sem saber o que está sendo enviado.
       if (!tracked) { await firestore.deleteDoc(entry.ref).catch(report); if (data?.viewerUid) await clearSharingPointer(data.viewerUid); continue; }
 
-      activeShares.set(entry.id, { occasionId: tracked.occasionId, viewerUid: data.viewerUid, ownerAlias: data.ownerAlias });
+      activeShares.set(entry.id, { occasionId: tracked.occasionId, occasionName: data.occasion?.name ?? null, viewerUid: data.viewerUid, ownerAlias: data.ownerAlias });
     }
 
     await saveShareBookkeeping().catch(report);

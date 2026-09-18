@@ -308,7 +308,7 @@ document.addEventListener("visibilitychange", () => {
 const DATA_STORAGE_KEY = "funtime-v1-data";
 const LEGACY_DRINKS_STORAGE_KEY = "balada-v1-drinks";
 const DATA_VERSION = 11;
-const APP_VERSION = "2.4.0";
+const APP_VERSION = "2.5.0";
 const DRINK_EXPORT_TYPE = "funtime-drinks";
 const DRINK_EXPORT_FORMAT_VERSION = 1;
 const BACKUP_EXPORT_TYPE = "funtime-backup";
@@ -542,13 +542,15 @@ const sharingNodes = {
   shareOccasionStopAll: document.querySelector("#share-occasion-stop-all"),
   closeShareOccasion: document.querySelector("#close-share-occasion"),
   homeShared: document.querySelector("#home-shared"),
-  sharedPairingsGrid: document.querySelector("#shared-pairings-grid"),
-  sharedPairingsEmpty: document.querySelector("#shared-pairings-empty"),
-  sharedEmptyState: document.querySelector("#shared-empty-state"),
-  sharedEntriesGrid: document.querySelector("#shared-entries-grid"),
+  friendsGrid: document.querySelector("#friends-grid"),
+  friendsEmpty: document.querySelector("#friends-empty"),
   sharedDetailDialog: document.querySelector("#shared-detail-dialog"),
   sharedDetailTitle: document.querySelector("#shared-detail-title"),
+  sharedDetailTabs: document.querySelector("#shared-detail-tabs"),
+  sharedDetailTabVendo: document.querySelector("#shared-detail-tab-vendo"),
+  sharedDetailTabCompartilhando: document.querySelector("#shared-detail-tab-compartilhando"),
   sharedDetailBody: document.querySelector("#shared-detail-body"),
+  sharedDetailUnfriend: document.querySelector("#shared-detail-unfriend"),
   sharedDetailClose: document.querySelector("#shared-detail-close"),
   closeSharedDetail: document.querySelector("#close-shared-detail"),
 };
@@ -3244,7 +3246,7 @@ function applySharedViewEntries(entries) {
 }
 
 function renderSharedView() {
-  shareUI?.renderSharedEntries();
+  shareUI?.renderFriends();
 }
 
 function openSharedView() {

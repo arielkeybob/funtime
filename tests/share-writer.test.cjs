@@ -289,9 +289,25 @@ test('a lista de pares distingue quem aceitou o quê', async () => {
 
   assert.deepEqual(pares.at(-1), [{
     pairId: PAR, otherUid: OUTRO, alias: 'Bia', myAlias: '',
-    acceptedByMe: false, acceptedByOther: true, createdByMe: false,
+    acceptedByMe: false, acceptedByOther: true, createdByMe: false, createdAt: null,
     sharedWithMe: null, sharingWithOther: null, viaCode: null,
   }]);
+});
+
+// `createdAt` alimenta o "amigos desde X" da tela de amigos — precisa vir em
+// milissegundos, não no Timestamp bruto do Firestore.
+test('a lista de pares converte createdAt para milissegundos', async () => {
+  const pares = [];
+  const { writer, firestore } = setup({ onPairingsChange: (lista) => pares.push(lista) });
+
+  await writer.start();
+  firestore.listeners.get('pairings')(snapshotDePares([{
+    __id: PAR, uids: [EU, OUTRO], createdBy: OUTRO,
+    createdAt: { toMillis: () => 1_500_000 },
+    acceptedBy: [EU, OUTRO], aliases: { [OUTRO]: 'Bia' }, sharing: {},
+  }]));
+
+  assert.equal(pares.at(-1)[0].createdAt, 1_500_000);
 });
 
 // Quem digita o código não tem permissão de ler o apelido de quem gerou (está sob
@@ -420,7 +436,7 @@ test('compartilhar avisa quem escuta, com a lista atualizada', async () => {
 
   const { shareId } = await writer.startShare({ occasion: ocasiao(), events: [], viewerUid: OUTRO, ownerAlias: 'Ana' });
 
-  assert.deepEqual(listas.at(-1), [{ shareId, occasionId: 'oc-1', viewerUid: OUTRO, ownerAlias: 'Ana' }]);
+  assert.deepEqual(listas.at(-1), [{ shareId, occasionId: 'oc-1', occasionName: 'Festa', viewerUid: OUTRO, ownerAlias: 'Ana' }]);
 });
 
 test('parar apaga o documento e limpa o ponteiro', async () => {
@@ -482,13 +498,13 @@ test('ao reabrir, reconstrói os compartilhamentos ativos a partir do bookkeepin
   const listas = [];
   const documentos = {
     [`users/${EU}/meta/shares`]: { active: { 's1': { occasionId: 'oc-1', viewerUid: OUTRO, ownerAlias: 'Ana' } } },
-    'shares/s1': { ownerUid: EU, viewerUid: OUTRO, ownerAlias: 'Ana', expiresAt: { toMillis: () => 2_000_000 } },
+    'shares/s1': { ownerUid: EU, viewerUid: OUTRO, ownerAlias: 'Ana', occasion: { name: 'Festa' }, expiresAt: { toMillis: () => 2_000_000 } },
   };
   const { writer } = setup({ documentos, onSharesChange: (lista) => listas.push(lista) });
 
   await writer.start();
 
-  assert.deepEqual(listas.at(-1), [{ shareId: 's1', occasionId: 'oc-1', viewerUid: OUTRO, ownerAlias: 'Ana' }]);
+  assert.deepEqual(listas.at(-1), [{ shareId: 's1', occasionId: 'oc-1', occasionName: 'Festa', viewerUid: OUTRO, ownerAlias: 'Ana' }]);
 });
 
 test('ao reabrir, compartilhamento vencido é apagado e o ponteiro limpo', async () => {

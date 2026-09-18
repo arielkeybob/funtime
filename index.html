@@ -58,7 +58,7 @@
     <footer class="browser-gate-footer">
       <span>App para estudo · não é controle de segurança</span>
       <a class="policies-link" href="./policies.html">Políticas e informações</a>
-      <span>v2.4.0 · By: arielkeybob</span>
+      <span>v2.5.0 · By: arielkeybob</span>
     </footer>
   </section>
 
@@ -104,8 +104,8 @@
     <header id="shared-header" class="app-header history-header" hidden>
       <button id="close-shared" class="back-button" type="button" aria-label="Voltar para a tela principal">←</button>
       <div class="history-header-copy">
-        <p class="eyebrow">Compartilhado com você</p>
-        <h1>Acompanhando</h1>
+        <p class="eyebrow">Pessoas de confiança</p>
+        <h1>Amigos</h1>
       </div>
     </header>
 
@@ -309,12 +309,12 @@
           </div>
         </div>
 
-        <p class="settings-description">Conecte-se a alguém por um código, para poder mostrar seu consumo durante um evento. Ninguém encontra você por nome ou e-mail, e estar conectado não mostra nada: compartilhar é sempre uma escolha sua, evento a evento.</p>
+        <p class="settings-description">Adicione um amigo por um código, para poder mostrar seu consumo durante um evento. Ninguém encontra você por nome ou e-mail, e ter um amigo não mostra nada: compartilhar é sempre uma escolha sua, evento a evento.</p>
 
         <div id="sharing-people" class="sharing-people"></div>
 
         <div class="settings-action-stack">
-          <button id="sharing-connect" class="settings-primary-action" type="button">Conectar com alguém</button>
+          <button id="sharing-connect" class="settings-primary-action" type="button">Adicionar amigo</button>
         </div>
       </section>
 
@@ -326,7 +326,7 @@
           </div>
         </div>
 
-        <p class="settings-description">Versão instalada: <strong>v2.4.0</strong></p>
+        <p class="settings-description">Versão instalada: <strong>v2.5.0</strong></p>
         <button id="check-app-update" class="settings-secondary-button" type="button">Verificar atualizações</button>
       </section>
 
@@ -374,19 +374,9 @@
 
     <main id="shared-view" hidden>
       <section class="shared-view-section">
-        <h2 class="agenda-month-heading">Pessoas conectadas</h2>
-        <p id="shared-pairings-empty" class="sharing-empty" hidden>Ninguém conectado ainda. Use "Conectar com alguém" nas Configurações.</p>
-        <div id="shared-pairings-grid" class="share-grid"></div>
-      </section>
-
-      <section class="shared-view-section">
-        <h2 class="agenda-month-heading">Compartilhando com você</h2>
-        <section id="shared-empty-state" class="empty-state" hidden>
-          <div class="empty-icon">👀</div>
-          <h2>Ninguém está compartilhando com você agora</h2>
-          <p>Quando alguém compartilhar um evento, ele aparece aqui enquanto durar.</p>
-        </section>
-        <div id="shared-entries-grid" class="share-grid"></div>
+        <h2 class="agenda-month-heading">Amigos</h2>
+        <p id="friends-empty" class="sharing-empty" hidden>Nenhum amigo ainda. Use "Adicionar amigo" nas Configurações.</p>
+        <div id="friends-grid" class="share-grid"></div>
       </section>
     </main>
 
@@ -394,10 +384,15 @@
       <form method="dialog">
         <div class="dialog-header">
           <div>
-            <p class="eyebrow">Compartilhado com você</p>
+            <p class="eyebrow">Amigos</p>
             <h2 id="shared-detail-title">—</h2>
           </div>
           <button id="close-shared-detail" class="icon-button secondary" type="button" aria-label="Fechar">×</button>
+        </div>
+
+        <div id="shared-detail-tabs" class="shared-detail-tabs" role="group" aria-label="Alternar visão" hidden>
+          <button id="shared-detail-tab-vendo" type="button" aria-pressed="true">Vendo</button>
+          <button id="shared-detail-tab-compartilhando" type="button" aria-pressed="false">Compartilhando</button>
         </div>
 
         <p class="settings-description shared-view-disclaimer">Os registros compartilhados mostram apenas os intervalos configurados. Eles não indicam se essa pessoa está segura para consumir mais.</p>
@@ -405,6 +400,7 @@
         <div id="shared-detail-body"></div>
 
         <div class="dialog-actions">
+          <button id="shared-detail-unfriend" class="danger-button" type="button">Desfazer amizade</button>
           <button id="shared-detail-close" class="secondary-button" type="button">Fechar</button>
         </div>
       </form>
@@ -418,7 +414,7 @@
     <footer class="app-footer">
       <span class="app-footer-disclaimer">App para estudo · não é controle de segurança</span>
       <a class="policies-link" href="./policies.html">Políticas e informações</a>
-      <span class="app-footer-meta">v2.4.0 · By: arielkeybob</span>
+      <span class="app-footer-meta">v2.5.0 · By: arielkeybob</span>
     </footer>
   </div>
 
@@ -427,7 +423,7 @@
       <div class="dialog-header">
         <div>
           <p class="eyebrow">Pessoas de confiança</p>
-          <h2>Conectar com alguém</h2>
+          <h2>Adicionar amigo</h2>
         </div>
         <button id="close-pairing" class="icon-button secondary" type="button" aria-label="Fechar">×</button>
       </div>
@@ -457,7 +453,7 @@
             <span>Código recebido</span>
             <input id="pairing-code-input" type="text" inputmode="text" maxlength="7" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="AB7-K29">
           </label>
-          <button id="pairing-redeem" class="settings-secondary-button" type="button">Conectar</button>
+          <button id="pairing-redeem" class="settings-secondary-button" type="button">Adicionar amigo</button>
         </div>
       </div>
 
@@ -482,7 +478,7 @@
       <p class="settings-description">Toque para selecionar quem vê horários e bebidas deste evento em tempo real. O acesso de quem for selecionado termina sozinho 24h depois de o evento encerrar, e você pode parar quando quiser.</p>
 
       <div id="share-occasion-grid" class="share-grid"></div>
-      <p id="share-occasion-empty" class="sharing-empty" hidden>Conecte-se com alguém primeiro, nas Configurações.</p>
+      <p id="share-occasion-empty" class="sharing-empty" hidden>Adicione um amigo primeiro, nas Configurações.</p>
 
       <div class="dialog-actions">
         <button id="share-occasion-stop-all" class="danger-button" type="button" hidden>Parar com todos</button>

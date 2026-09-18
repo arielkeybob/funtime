@@ -16,6 +16,14 @@ export function formatClock(timestamp) {
   }).format(new Date(timestamp));
 }
 
+export function formatDate(timestamp) {
+  return new Intl.DateTimeFormat("pt-BR", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  }).format(new Date(timestamp));
+}
+
 export function formatHistoryElapsed(timestamp, now = Date.now()) {
   const elapsedMs = Math.max(0, now - Number(timestamp));
   const totalMinutes = Math.floor(elapsedMs / 60000);

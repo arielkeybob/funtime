@@ -44,6 +44,7 @@
   --danger-strong-soft: rgb(255 67 77 / 0.18);
   --success: #5ee99b;
   --success-soft: rgb(94 233 155 / 0.08);
+  --info: #5eb4e9;
   --neutral-action: #e4e4e7;
 }
 
@@ -3569,7 +3570,7 @@ body {
    como um "enviar para" de mensageiro. */
 .share-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(72px, 1fr)); gap: 14px 8px; margin: 4px 0 8px; max-height: 45vh; overflow-y: auto; }
 .share-person { display: grid; justify-items: center; gap: 6px; background: none; border: none; padding: 2px; color: inherit; font: inherit; cursor: pointer; }
-.share-avatar { display: grid; place-items: center; width: 52px; height: 52px; border-radius: 999px; background: var(--surface-2); border: 2px solid var(--border); font-size: 1.1rem; font-weight: 700; transition: border-color .15s, background .15s; }
+.share-avatar { position: relative; display: grid; place-items: center; width: 52px; height: 52px; border-radius: 999px; background: var(--surface-2); border: 2px solid var(--border); font-size: 1.1rem; font-weight: 700; transition: border-color .15s, background .15s; }
 .share-person[aria-pressed="true"] .share-avatar { border-color: var(--text); background: var(--accent); color: var(--accent-text); }
 .share-person-name { font-size: .74rem; color: var(--muted); text-align: center; max-width: 76px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .share-person[aria-pressed="true"] .share-person-name { color: var(--text); }
@@ -3577,7 +3578,12 @@ body {
 .shared-view-section { margin-bottom: 28px; }
 .shared-view-section > .agenda-month-heading { margin: 0 0 10px; }
 .share-person-state-badge { font-size: .62rem; color: var(--muted); }
-.share-person.is-live .share-avatar { border-color: var(--success); }
+/* Bolinhas pequenas no canto do avatar em vez de um anel em volta do círculo
+   inteiro — verde para "ela compartilha com você agora", azul para "você
+   compartilha com ela agora". As duas podem aparecer juntas. */
+.share-status-dot { position: absolute; width: 14px; height: 14px; border-radius: 999px; border: 2px solid var(--bg); }
+.share-status-dot--incoming { bottom: -2px; right: -2px; background: var(--success); }
+.share-status-dot--outgoing { top: -2px; right: -2px; background: var(--info); }
 #shared-entries { display: grid; gap: 14px; }
 .shared-entry-events { display: grid; gap: 4px; margin-top: 6px; max-height: 260px; overflow-y: auto; }
 .shared-entry-event { margin: 0; font-size: .8rem; color: var(--muted); }
@@ -3598,9 +3604,9 @@ body {
 .date-time-editor { border: 1px solid var(--border); border-radius: 12px; background: #09090b; }
 .date-time-editor > summary { padding: 15px; cursor: pointer; font-size: .9rem; }
 .date-time-editor-body { padding: 0 14px 14px; display: grid; gap: 16px; }
-.agenda-tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; padding: 4px; border: 1px solid var(--border); border-radius: 14px; margin: 20px 0 12px; }
-.agenda-tabs button { border: 0; background: transparent; color: var(--muted); padding: 12px; border-radius: 10px; font: inherit; font-size: .85rem; }
-.agenda-tabs button[aria-pressed="true"] { background: #303036; color: white; }
+.agenda-tabs, .shared-detail-tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; padding: 4px; border: 1px solid var(--border); border-radius: 14px; margin: 20px 0 12px; }
+.agenda-tabs button, .shared-detail-tabs button { border: 0; background: transparent; color: var(--muted); padding: 12px; border-radius: 10px; font: inherit; font-size: .85rem; }
+.agenda-tabs button[aria-pressed="true"], .shared-detail-tabs button[aria-pressed="true"] { background: #303036; color: white; }
 .agenda-row { display: grid; gap: 6px; width: 100%; border: 1px solid var(--border); border-radius: 14px; background: var(--surface); color: var(--text); text-align: left; padding: 15px; margin: 8px 0; font: inherit; }
 .agenda-row strong { overflow-wrap: anywhere; }
 .agenda-row span, .agenda-row small { color: var(--muted); font-size: .78rem; line-height: 1.5; }
