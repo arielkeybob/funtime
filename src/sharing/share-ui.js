@@ -275,78 +275,108 @@ export function createShareUI({ nodes, getShareWriter, showToast, now = () => Da
     if (nodes.shareOccasionDialog?.open) renderShareOccasionPeople();
   }
 
-  async function startShareWith(pairing) {
-    if (!occasionAberta) return;
-    try {
-      await shareWriter.startShare({
-        occasion: occasionAberta.item,
-        events: occasionAberta.events,
-        viewerUid: pairing.otherUid,
-        ownerAlias: pairing.myAlias || "Alguém",
-      });
-      showToast(`Compartilhando com ${pairing.alias || "essa pessoa"}.`);
-    } catch (falha) {
-      console.error("Falha ao compartilhar o evento.", falha);
-      showToast("Não foi possível compartilhar agora.");
-    }
+  // Quem já está vendo este evento, agora — é o ponto de partida da seleção: abrir
+  // o diálogo já mostra marcado quem já recebe, como um "enviar para" já preenchido.
+  function activeViewersFor(occasionId) {
+    return new Set(shares.filter((share) => share.occasionId === occasionId).map((share) => share.viewerUid));
   }
 
-  async function stopShareWith(shareId, alias) {
-    try {
-      await shareWriter.stopShare(shareId);
-      showToast(`Parou de compartilhar com ${alias || "essa pessoa"}.`);
-    } catch (falha) {
-      console.error("Falha ao parar o compartilhamento.", falha);
-      showToast("Não foi possível parar agora.");
-    }
+  function initial(alias) {
+    const primeiro = [...String(alias || "")].find((char) => char.trim());
+    return (primeiro || "?").toLocaleUpperCase("pt-BR");
   }
 
   function renderShareOccasionPeople() {
-    if (!nodes.shareOccasionPeople || !occasionAberta) return;
-    nodes.shareOccasionPeople.replaceChildren();
+    if (!nodes.shareOccasionGrid || !occasionAberta) return;
+    nodes.shareOccasionGrid.replaceChildren();
 
     // Só quem aceitou dos dois lados pode receber um compartilhamento — estar numa
     // lista de pedidos pendentes não é a mesma coisa que estar conectado.
-    const conectados = pairings.filter((par) => par.acceptedByMe && par.acceptedByOther);
+    const conectados = [...pairings]
+      .filter((par) => par.acceptedByMe && par.acceptedByOther)
+      .sort((a, b) => (a.alias || "").localeCompare(b.alias || "", "pt-BR"));
 
-    if (!conectados.length) {
-      const vazio = document.createElement("p");
-      vazio.className = "sharing-empty";
-      vazio.textContent = "Conecte-se com alguém primeiro, nas Configurações.";
-      nodes.shareOccasionPeople.append(vazio);
-      return;
+    const semNinguem = conectados.length === 0;
+    if (nodes.shareOccasionEmpty) nodes.shareOccasionEmpty.hidden = !semNinguem;
+    nodes.shareOccasionGrid.hidden = semNinguem;
+    if (nodes.shareOccasionConfirm) nodes.shareOccasionConfirm.hidden = semNinguem;
+    if (nodes.shareOccasionStopAll) {
+      nodes.shareOccasionStopAll.hidden = activeViewersFor(occasionAberta.item.id).size === 0;
     }
 
     for (const par of conectados) {
-      const ativo = shares.find((share) => share.viewerUid === par.otherUid && share.occasionId === occasionAberta.item.id);
+      const botaoPessoa = document.createElement("button");
+      botaoPessoa.type = "button";
+      botaoPessoa.className = "share-person";
+      botaoPessoa.setAttribute("aria-pressed", String(occasionAberta.selecionados.has(par.otherUid)));
+      botaoPessoa.addEventListener("click", () => {
+        if (occasionAberta.selecionados.has(par.otherUid)) occasionAberta.selecionados.delete(par.otherUid);
+        else occasionAberta.selecionados.add(par.otherUid);
+        renderShareOccasionPeople();
+      });
 
-      const item = document.createElement("div");
-      item.className = "sharing-person";
+      const avatar = document.createElement("span");
+      avatar.className = "share-avatar";
+      avatar.setAttribute("aria-hidden", "true");
+      avatar.textContent = initial(par.alias);
 
-      const cabecalho = document.createElement("div");
-      cabecalho.className = "sharing-person-head";
-      const nome = document.createElement("strong");
+      const nome = document.createElement("span");
+      nome.className = "share-person-name";
       nome.textContent = par.alias || "Sem apelido";
-      const estado = document.createElement("span");
-      estado.className = "sharing-person-state";
-      estado.textContent = ativo ? "Vendo agora" : "";
-      cabecalho.append(nome, estado);
 
-      const acoes = document.createElement("div");
-      acoes.className = "sharing-person-actions";
-      acoes.append(ativo
-        ? botao("Parar de compartilhar", () => stopShareWith(ativo.shareId, par.alias), "settings-secondary-button")
-        : botao("Compartilhar", () => startShareWith(par), "settings-primary-action"));
+      botaoPessoa.append(avatar, nome);
+      nodes.shareOccasionGrid.append(botaoPessoa);
+    }
+  }
 
-      item.append(cabecalho, acoes);
-      nodes.shareOccasionPeople.append(item);
+  // Aplica de uma vez a diferença entre quem estava vendo e quem foi selecionado —
+  // como um "enviar" de mensageiro, não um botão por pessoa.
+  async function confirmShareOccasion() {
+    if (!occasionAberta) return;
+    const { item, events, selecionados } = occasionAberta;
+    const antes = activeViewersFor(item.id);
+    const paraComecar = [...selecionados].filter((otherUid) => !antes.has(otherUid));
+    const paraParar = [...antes].filter((otherUid) => !selecionados.has(otherUid));
+
+    if (!paraComecar.length && !paraParar.length) { closeShareOccasionDialog(); return; }
+
+    try {
+      for (const otherUid of paraComecar) {
+        const par = pairings.find((item) => item.otherUid === otherUid);
+        await shareWriter.startShare({ occasion: item, events, viewerUid: otherUid, ownerAlias: par?.myAlias || "Alguém" });
+      }
+      for (const otherUid of paraParar) {
+        const ativo = shares.find((share) => share.viewerUid === otherUid && share.occasionId === item.id);
+        if (ativo) await shareWriter.stopShare(ativo.shareId);
+      }
+      showToast(selecionados.size ? `Compartilhando com ${selecionados.size} pessoa(s).` : "Compartilhamento encerrado.");
+      closeShareOccasionDialog();
+    } catch (falha) {
+      console.error("Falha ao atualizar o compartilhamento do evento.", falha);
+      showToast("Não foi possível atualizar agora. Tente de novo.");
+    }
+  }
+
+  async function stopAllForOccasion() {
+    if (!occasionAberta) return;
+    const ativos = shares.filter((share) => share.occasionId === occasionAberta.item.id);
+    if (!ativos.length) return;
+    if (!window.confirm(`Parar de compartilhar este evento com todo mundo (${ativos.length})?`)) return;
+
+    try {
+      for (const share of ativos) await shareWriter.stopShare(share.shareId);
+      showToast("Compartilhamento encerrado com todos.");
+      closeShareOccasionDialog();
+    } catch (falha) {
+      console.error("Falha ao parar todos os compartilhamentos do evento.", falha);
+      showToast("Não foi possível parar agora.");
     }
   }
 
   // `item` é a ocasião (state.occasions), `events` já vem filtrado para ela — quem
   // chama (occasions-ui.js) tem `state`, este módulo não.
   function openShareOccasionDialog(item, events) {
-    occasionAberta = { item, events };
+    occasionAberta = { item, events, selecionados: activeViewersFor(item.id) };
     if (nodes.shareOccasionTitle) nodes.shareOccasionTitle.textContent = `Compartilhar "${item.name}"`;
     renderShareOccasionPeople();
     if (!nodes.shareOccasionDialog.open) nodes.shareOccasionDialog.showModal();
@@ -385,8 +415,9 @@ export function createShareUI({ nodes, getShareWriter, showToast, now = () => Da
     nodes.pairingConfirmAccept?.addEventListener("click", aceitarConfirmacao);
     nodes.pairingConfirmReject?.addEventListener("click", () => { confirmando = null; nodes.pairingConfirmDialog.close(); });
     nodes.pairingConfirmClose?.addEventListener("click", () => { confirmando = null; nodes.pairingConfirmDialog.close(); });
-    nodes.shareOccasionClose?.addEventListener("click", closeShareOccasionDialog);
     nodes.closeShareOccasion?.addEventListener("click", closeShareOccasionDialog);
+    nodes.shareOccasionConfirm?.addEventListener("click", confirmShareOccasion);
+    nodes.shareOccasionStopAll?.addEventListener("click", stopAllForOccasion);
 
     // O carimbo de frescor ("atualizado agora" → "desatualizado") muda só com o
     // relógio passando, sem nenhum dado novo chegar — por isso reavalia sozinho.

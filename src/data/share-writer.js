@@ -122,6 +122,14 @@ export function createShareWriter({
   }
 
   async function removePairing(pairId) {
+    // Revoga antes de desfazer: a regra de leitura do share não depende do
+    // pareamento continuar existindo, então só apagar o pareamento deixaria a
+    // pessoa enxergando o evento até o prazo natural de 24h — o oposto de
+    // "revogação imediata". stopShare já apaga o documento e limpa o ponteiro.
+    for (const [shareId, info] of [...activeShares]) {
+      if (buildPairId(uid, info.viewerUid) === pairId) await stopShare(shareId);
+    }
+
     const { firestore, db } = await load();
     await firestore.deleteDoc(firestore.doc(db, "pairings", pairId));
   }

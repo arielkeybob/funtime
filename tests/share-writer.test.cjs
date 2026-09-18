@@ -150,6 +150,34 @@ test('desfazer pareamento apaga o documento do par', async () => {
   assert.deepEqual(firestore.exclusoes, [`pairings/${PAR}`]);
 });
 
+// A regra de leitura do share não depende do pareamento continuar existindo — se
+// isto não revogasse antes, a pessoa continuaria vendo até o prazo natural de 24h
+// mesmo depois de desconectada. "Revogação imediata" é o roadmap, não só um texto.
+test('desfazer pareamento revoga os compartilhamentos ativos com aquela pessoa antes de apagar o par', async () => {
+  const { writer, firestore } = setup();
+
+  const { shareId } = await writer.startShare({ occasion: ocasiao(), events: [], viewerUid: OUTRO, ownerAlias: 'Ana' });
+  firestore.exclusoes.length = 0;
+
+  await writer.removePairing(PAR);
+
+  assert.ok(firestore.exclusoes.includes(`shares/${shareId}`), 'o share precisa ser apagado');
+  const indiceShare = firestore.exclusoes.indexOf(`shares/${shareId}`);
+  const indicePareamento = firestore.exclusoes.indexOf(`pairings/${PAR}`);
+  assert.ok(indiceShare < indicePareamento, 'o share tem que ser revogado antes do pareamento sumir');
+});
+
+test('desfazer pareamento sem compartilhamento ativo só apaga o par, sem tocar em shares', async () => {
+  const { writer, firestore } = setup();
+
+  await writer.startShare({ occasion: ocasiao({ id: 'oc-2' }), events: [], viewerUid: 'uid-caio', ownerAlias: 'Ana' });
+  firestore.exclusoes.length = 0;
+
+  await writer.removePairing(PAR); // pareamento com OUTRO, sem share ativo — o de uid-caio não deve ser tocado
+
+  assert.deepEqual(firestore.exclusoes, [`pairings/${PAR}`]);
+});
+
 test('a lista de pares distingue quem aceitou o quê', async () => {
   const pares = [];
   const { writer, firestore } = setup({ onPairingsChange: (lista) => pares.push(lista) });

@@ -469,12 +469,14 @@
         <button id="close-share-occasion" class="icon-button secondary" type="button" aria-label="Fechar">×</button>
       </div>
 
-      <p class="settings-description">A pessoa vê horários e bebidas deste evento em tempo real. O acesso termina sozinho 24h depois de o evento encerrar, e você pode parar quando quiser.</p>
+      <p class="settings-description">Toque para selecionar quem vê horários e bebidas deste evento em tempo real. O acesso de quem for selecionado termina sozinho 24h depois de o evento encerrar, e você pode parar quando quiser.</p>
 
-      <div id="share-occasion-people" class="sharing-people"></div>
+      <div id="share-occasion-grid" class="share-grid"></div>
+      <p id="share-occasion-empty" class="sharing-empty" hidden>Conecte-se com alguém primeiro, nas Configurações.</p>
 
       <div class="dialog-actions">
-        <button id="share-occasion-close" class="secondary-button" type="button">Fechar</button>
+        <button id="share-occasion-stop-all" class="danger-button" type="button" hidden>Parar com todos</button>
+        <button id="share-occasion-confirm" class="primary-button" type="button">Compartilhar</button>
       </div>
     </form>
   </dialog>
