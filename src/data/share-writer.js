@@ -1,16 +1,28 @@
 import { loadFirestore } from "./firestore-db.js";
 import { buildPairId, generatePairingCode, otherUidOf } from "./share-codes.js";
+import { buildSharePayload } from "./share-payload.js";
 
 export const PAIRING_CODE_TTL_MS = 5 * 60 * 1000;
+const SHARE_PUSH_DEBOUNCE_MS = 800;
 
 // Lado de quem convida e de quem compartilha. Escreve; o lado que só lê é
 // src/data/shared-view.js. Ver docs/specs/0023.
 export function createShareWriter({
-  app, uid, importModule, onPairingsChange, onStatusChange,
+  app, uid, importModule, onPairingsChange, onSharesChange, onStatusChange,
   now = () => Date.now(), generateCode = generatePairingCode,
+  createShareId = () => crypto.randomUUID(),
+  schedule = setTimeout, cancel = clearTimeout,
 }) {
   let stopped = false;
   const unsubscribers = [];
+  // shareId -> { occasionId, viewerUid, ownerAlias }. Nunca dado à nuvem tal qual —
+  // é reconstruído de users/{uid}/meta/shares (área exclusiva do dono, já coberta
+  // pela regra existente de spec 0022, sem precisar de regra nova) e da coleção
+  // shares filtrada por ownerUid. O id da ocasião só existe aqui e naquele
+  // documento próprio; nunca no documento que o convidado lê.
+  const activeShares = new Map();
+  let latestAppData = null;
+  let sharePushTimer = null;
 
   function load() {
     return loadFirestore({ app, importModule });
@@ -114,6 +126,96 @@ export function createShareWriter({
     await firestore.deleteDoc(firestore.doc(db, "pairings", pairId));
   }
 
+  function sharesSnapshot() {
+    return [...activeShares].map(([shareId, info]) => ({ shareId, ...info }));
+  }
+
+  async function saveShareBookkeeping() {
+    const { firestore, db } = await load();
+    const active = Object.fromEntries([...activeShares]);
+    await firestore.setDoc(firestore.doc(db, "users", uid, "meta", "shares"), { active }, { merge: true });
+  }
+
+  async function clearSharingPointer(viewerUid) {
+    const { firestore, db } = await load();
+    await firestore.updateDoc(
+      firestore.doc(db, "pairings", buildPairId(uid, viewerUid)),
+      { [`sharing.${uid}`]: null }
+    ).catch(() => { /* o pareamento pode já ter sido desfeito */ });
+  }
+
+  // Começa a compartilhar um evento com alguém. `events` é só o retrato inicial —
+  // atualizações seguintes vêm de scheduleSharePush, reconstruindo o payload a
+  // partir do estado local corrente.
+  async function startShare({ occasion, events, viewerUid, ownerAlias }) {
+    const { firestore, db } = await load();
+    const shareId = createShareId();
+    const payload = buildSharePayload({ occasion, events, ownerUid: uid, viewerUid, ownerAlias, now: now() });
+
+    await firestore.setDoc(firestore.doc(db, "shares", shareId), {
+      ...payload,
+      expiresAt: firestore.Timestamp.fromMillis(payload.expiresAtMs),
+      updatedAt: firestore.serverTimestamp(),
+    });
+
+    await firestore.updateDoc(
+      firestore.doc(db, "pairings", buildPairId(uid, viewerUid)),
+      { [`sharing.${uid}`]: shareId }
+    );
+
+    activeShares.set(shareId, { occasionId: occasion.id, viewerUid, ownerAlias });
+    await saveShareBookkeeping();
+    onSharesChange?.(sharesSnapshot());
+    return { shareId };
+  }
+
+  async function stopShare(shareId) {
+    const info = activeShares.get(shareId);
+    activeShares.delete(shareId);
+    await saveShareBookkeeping();
+    onSharesChange?.(sharesSnapshot());
+
+    const { firestore, db } = await load();
+    await firestore.deleteDoc(firestore.doc(db, "shares", shareId)).catch(report);
+    if (info) await clearSharingPointer(info.viewerUid);
+  }
+
+  async function stopAllShares() {
+    for (const shareId of [...activeShares.keys()]) await stopShare(shareId);
+  }
+
+  function scheduleSharePush(appData) {
+    latestAppData = appData;
+    if (!activeShares.size) return;
+    if (sharePushTimer) cancel(sharePushTimer);
+    sharePushTimer = schedule(() => { sharePushTimer = null; flushSharePushes().catch(report); }, SHARE_PUSH_DEBOUNCE_MS);
+  }
+
+  // Reconstrói o payload de cada compartilhamento ativo a partir do estado local
+  // mais recente. Se a ocasião foi apagada, para de compartilhar em vez de mandar
+  // um payload vazio ou desatualizado.
+  async function flushSharePushes() {
+    if (sharePushTimer) { cancel(sharePushTimer); sharePushTimer = null; }
+    if (!latestAppData || !activeShares.size) return;
+
+    const { firestore, db } = await load();
+    for (const [shareId, info] of [...activeShares]) {
+      const occasion = (latestAppData.occasions || []).find((item) => item.id === info.occasionId);
+      if (!occasion) { await stopShare(shareId); continue; }
+
+      const payload = buildSharePayload({
+        occasion, events: latestAppData.events, ownerUid: uid,
+        viewerUid: info.viewerUid, ownerAlias: info.ownerAlias, now: now(),
+      });
+
+      await firestore.setDoc(firestore.doc(db, "shares", shareId), {
+        ...payload,
+        expiresAt: firestore.Timestamp.fromMillis(payload.expiresAtMs),
+        updatedAt: firestore.serverTimestamp(),
+      }).catch(report);
+    }
+  }
+
   // Os códigos vencidos já são ilegíveis pela regra; apagar é só higiene, e é a
   // única limpeza sob nosso controle — o plano gratuito não tem Cloud Functions.
   async function cleanupExpiredCodes() {
@@ -131,6 +233,45 @@ export function createShareWriter({
     }
   }
 
+  // Reconstrói activeShares a cada abertura: apaga o que venceu (e limpa o
+  // ponteiro no pareamento), e recupera o occasionId — que só existe em
+  // users/{uid}/meta/shares — do que sobrou.
+  async function rehydrateShares() {
+    const { firestore, db } = await load();
+    const bookkeepingSnap = await firestore.getDoc(firestore.doc(db, "users", uid, "meta", "shares"));
+    const bookkeeping = bookkeepingSnap.exists() ? (bookkeepingSnap.data()?.active || {}) : {};
+
+    const mine = await firestore.getDocs(firestore.query(
+      firestore.collection(db, "shares"),
+      firestore.where("ownerUid", "==", uid)
+    ));
+
+    const limit = now();
+    activeShares.clear();
+
+    for (const entry of mine.docs) {
+      const data = entry.data();
+      const expiresAtMs = typeof data?.expiresAt?.toMillis === "function" ? data.expiresAt.toMillis() : 0;
+
+      if (expiresAtMs <= limit) {
+        await firestore.deleteDoc(entry.ref).catch(report);
+        if (data?.viewerUid) await clearSharingPointer(data.viewerUid);
+        continue;
+      }
+
+      const tracked = bookkeeping[entry.id];
+      // Sem bookkeeping não há como saber a qual ocasião local isto pertence —
+      // acontece só se o documento de bookkeeping se perdeu; mais seguro encerrar
+      // do que compartilhar sem saber o que está sendo enviado.
+      if (!tracked) { await firestore.deleteDoc(entry.ref).catch(report); if (data?.viewerUid) await clearSharingPointer(data.viewerUid); continue; }
+
+      activeShares.set(entry.id, { occasionId: tracked.occasionId, viewerUid: data.viewerUid, ownerAlias: data.ownerAlias });
+    }
+
+    await saveShareBookkeeping().catch(report);
+    onSharesChange?.(sharesSnapshot());
+  }
+
   async function start() {
     stopped = false;
     const { firestore, db } = await load();
@@ -141,17 +282,39 @@ export function createShareWriter({
       report
     ));
 
+    await rehydrateShares().catch(report);
     await cleanupExpiredCodes().catch(report);
+  }
+
+  // Usado por "apagar dados na nuvem": revoga cada compartilhamento ativo (apaga o
+  // documento, não só para de escutar) e desfaz todos os pareamentos. Sem isto,
+  // apagar os dados sincronizados deixaria em silêncio as doses do usuário
+  // legíveis por quem estiver com um compartilhamento aberto.
+  async function deleteAllSharingData() {
+    await stopAllShares();
+
+    const { firestore, db } = await load();
+    const meus = await firestore.getDocs(firestore.query(
+      firestore.collection(db, "pairings"),
+      firestore.where("uids", "array-contains", uid)
+    ));
+
+    for (const entry of meus.docs) await firestore.deleteDoc(entry.ref).catch(report);
   }
 
   function stop() {
     stopped = true;
     while (unsubscribers.length) unsubscribers.pop()?.();
+    if (sharePushTimer) { cancel(sharePushTimer); sharePushTimer = null; }
+    activeShares.clear();
+    latestAppData = null;
   }
 
   return {
     start, stop,
     createPairingCode, cancelPairingCode, redeemPairingCode,
     acceptPairing, setAlias, removePairing,
+    startShare, stopShare, stopAllShares, scheduleSharePush, flushSharePushes,
+    deleteAllSharingData,
   };
 }

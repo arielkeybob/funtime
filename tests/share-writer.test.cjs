@@ -46,16 +46,25 @@ function fakeFirestore({ documentos = {} } = {}) {
   return { module, escritas, exclusoes, listeners, documentos };
 }
 
-function setup({ documentos, generateCode = () => 'AB7K29', onPairingsChange = () => {} } = {}) {
+function setup({
+  documentos, generateCode = () => 'AB7K29', onPairingsChange = () => {}, onSharesChange = () => {},
+  createShareId, timers,
+} = {}) {
   const firestore = fakeFirestore({ documentos });
+  let proximoId = 0;
   const writer = createShareWriter({
-    app: {}, uid: EU, onPairingsChange, generateCode,
+    app: {}, uid: EU, onPairingsChange, onSharesChange, generateCode,
+    createShareId: createShareId || (() => `share-${++proximoId}`),
     importModule: async () => firestore.module,
     now: () => 1_000_000,
+    schedule: timers?.schedule, cancel: timers?.cancel,
   });
 
   return { writer, firestore };
 }
+
+const ocasiao = (extra = {}) => ({ id: 'oc-1', name: 'Festa', startedAt: 500_000, endedAt: null, ...extra });
+const dose = (id) => ({ id, drinkId: 'drink-1', drinkName: 'Cerveja', drinkIcon: '🍺', consumedAt: 600_000, occasionId: 'oc-1', intervalMinutes: 60, doseSize: null });
 
 const snapshotDePares = (docs) => ({ docs: docs.map((data, index) => ({ id: data.__id ?? `par-${index}`, data: () => data })) });
 
@@ -198,4 +207,138 @@ test('stop desconecta e silencia', async () => {
   assert.equal(firestore.listeners.size, 0);
   notificar(snapshotDePares([]));
   assert.equal(pares.length, 0);
+});
+
+// --- Compartilhamento (Fase 3) -------------------------------------------------
+
+test('PRIVACIDADE: o documento que o convidado lê não carrega o id da ocasião', async () => {
+  const { writer, firestore } = setup();
+
+  await writer.startShare({ occasion: ocasiao(), events: [dose('e1')], viewerUid: OUTRO, ownerAlias: 'Ana' });
+
+  const compartilhado = firestore.escritas.find((item) => item.path.startsWith('shares/'));
+  assert.equal('occasionId' in compartilhado.data, false);
+  assert.equal('occasionId' in compartilhado.data.occasion, false);
+  assert.deepEqual(Object.keys(compartilhado.data.occasion).sort(), ['endedAt', 'name', 'startedAt']);
+});
+
+// O id da ocasião só existe aqui, na área exclusiva do dono — nunca no documento
+// que o convidado consegue ler.
+test('o id da ocasião fica só no bookkeeping próprio do dono', async () => {
+  const { writer, firestore } = setup();
+
+  await writer.startShare({ occasion: ocasiao(), events: [dose('e1')], viewerUid: OUTRO, ownerAlias: 'Ana' });
+
+  const bookkeeping = firestore.escritas.find((item) => item.path === `users/${EU}/meta/shares`);
+  assert.equal(Object.values(bookkeeping.data.active)[0].occasionId, 'oc-1');
+});
+
+test('compartilhar publica o ponteiro no pareamento', async () => {
+  const { writer, firestore } = setup();
+
+  const { shareId } = await writer.startShare({ occasion: ocasiao(), events: [], viewerUid: OUTRO, ownerAlias: 'Ana' });
+
+  const gravacao = firestore.escritas.find((item) => item.path === `pairings/${PAR}` && item.update);
+  assert.deepEqual(gravacao.data, { [`sharing.${EU}`]: shareId });
+});
+
+test('compartilhar avisa quem escuta, com a lista atualizada', async () => {
+  const listas = [];
+  const { writer } = setup({ onSharesChange: (lista) => listas.push(lista) });
+
+  const { shareId } = await writer.startShare({ occasion: ocasiao(), events: [], viewerUid: OUTRO, ownerAlias: 'Ana' });
+
+  assert.deepEqual(listas.at(-1), [{ shareId, occasionId: 'oc-1', viewerUid: OUTRO, ownerAlias: 'Ana' }]);
+});
+
+test('parar apaga o documento e limpa o ponteiro', async () => {
+  const { writer, firestore } = setup();
+
+  const { shareId } = await writer.startShare({ occasion: ocasiao(), events: [], viewerUid: OUTRO, ownerAlias: 'Ana' });
+  await writer.stopShare(shareId);
+
+  assert.ok(firestore.exclusoes.includes(`shares/${shareId}`));
+  const limpezaPonteiro = firestore.escritas.find((item) => item.path === `pairings/${PAR}` && item.data[`sharing.${EU}`] === null);
+  assert.ok(limpezaPonteiro, 'o ponteiro precisa voltar a null, senão o convidado tenta ler um share apagado');
+});
+
+test('parar todos encerra cada compartilhamento ativo', async () => {
+  const { writer, firestore } = setup();
+
+  await writer.startShare({ occasion: ocasiao(), events: [], viewerUid: OUTRO, ownerAlias: 'Ana' });
+  await writer.startShare({ occasion: ocasiao({ id: 'oc-2' }), events: [], viewerUid: 'uid-caio', ownerAlias: 'Ana' });
+  await writer.stopAllShares();
+
+  assert.equal(firestore.exclusoes.filter((path) => path.startsWith('shares/')).length, 2);
+});
+
+test('agrupa envios seguidos e reconstrói o payload do estado mais recente', async () => {
+  const timers = {};
+  const fila = [];
+  timers.schedule = (fn) => { fila.push(fn); return fila.length; };
+  timers.cancel = () => { fila.length = 0; };
+  const { writer, firestore } = setup({ timers });
+
+  await writer.startShare({ occasion: ocasiao(), events: [dose('e1')], viewerUid: OUTRO, ownerAlias: 'Ana' });
+  firestore.escritas.length = 0; // só interessa o que vem depois do envio inicial
+
+  writer.scheduleSharePush({ occasions: [ocasiao()], events: [dose('e1'), dose('e2')] });
+  writer.scheduleSharePush({ occasions: [ocasiao()], events: [dose('e1'), dose('e2'), dose('e3')] });
+
+  assert.equal(fila.length, 1, 'a segunda chamada reagenda em vez de disparar outro envio');
+  await fila[0]();
+
+  const gravacao = firestore.escritas.find((item) => item.path.startsWith('shares/'));
+  assert.equal(gravacao.data.eventCount, 3, 'usa o estado mais recente, não o do momento do agendamento');
+});
+
+test('se a ocasião compartilhada foi apagada, para de compartilhar em vez de mandar payload vazio', async () => {
+  const listas = [];
+  const { writer, firestore } = setup({ onSharesChange: (lista) => listas.push(lista) });
+
+  await writer.startShare({ occasion: ocasiao(), events: [], viewerUid: OUTRO, ownerAlias: 'Ana' });
+  const antesDoFlush = firestore.exclusoes.length;
+
+  writer.scheduleSharePush({ occasions: [], events: [] });
+  await writer.flushSharePushes();
+
+  assert.ok(firestore.exclusoes.length > antesDoFlush, 'apagou o share em vez de reenviar um payload vazio');
+  assert.deepEqual(listas.at(-1), []);
+});
+
+test('ao reabrir, reconstrói os compartilhamentos ativos a partir do bookkeeping', async () => {
+  const listas = [];
+  const documentos = {
+    [`users/${EU}/meta/shares`]: { active: { 's1': { occasionId: 'oc-1', viewerUid: OUTRO, ownerAlias: 'Ana' } } },
+    'shares/s1': { ownerUid: EU, viewerUid: OUTRO, ownerAlias: 'Ana', expiresAt: { toMillis: () => 2_000_000 } },
+  };
+  const { writer } = setup({ documentos, onSharesChange: (lista) => listas.push(lista) });
+
+  await writer.start();
+
+  assert.deepEqual(listas.at(-1), [{ shareId: 's1', occasionId: 'oc-1', viewerUid: OUTRO, ownerAlias: 'Ana' }]);
+});
+
+test('ao reabrir, compartilhamento vencido é apagado e o ponteiro limpo', async () => {
+  const documentos = {
+    [`users/${EU}/meta/shares`]: { active: { 's1': { occasionId: 'oc-1', viewerUid: OUTRO, ownerAlias: 'Ana' } } },
+    'shares/s1': { ownerUid: EU, viewerUid: OUTRO, ownerAlias: 'Ana', expiresAt: { toMillis: () => 999_999 } },
+  };
+  const { writer, firestore } = setup({ documentos });
+
+  await writer.start();
+
+  assert.ok(firestore.exclusoes.includes('shares/s1'));
+  const limpezaPonteiro = firestore.escritas.find((item) => item.path === `pairings/${PAR}` && item.data[`sharing.${EU}`] === null);
+  assert.ok(limpezaPonteiro);
+});
+
+test('stop também interrompe os compartilhamentos em memória, sem apagar nada', async () => {
+  const { writer, firestore } = setup();
+
+  await writer.startShare({ occasion: ocasiao(), events: [], viewerUid: OUTRO, ownerAlias: 'Ana' });
+  firestore.exclusoes.length = 0;
+  writer.stop();
+
+  assert.deepEqual(firestore.exclusoes, [], 'stop não é revogação — é só parar de rodar neste aparelho');
 });

@@ -227,6 +227,8 @@ function openOccasionDetails(id) {
   if (item.startedAt !== null && item.endedAt === null) { actions.classList.add('is-active'); actions.append(occasionButton('Encerrar evento', () => changeOccasion(id, 'end'), 'primary-button')); }
   else if (FunTimeOccasions.pending(item)) actions.append(occasionButton('Iniciar agora', () => changeOccasion(id, 'start'), 'primary-button'));
   if (item.startedAt !== null) actions.append(occasionButton('Ver registros', () => openOccasionHistory(id)));
+  // Só evento já iniciado tem o que mostrar; agendamento futuro ainda não tem dose.
+  if (item.startedAt !== null) actions.append(occasionButton('Compartilhar com amigos', () => globalThis.openShareOccasionDialog?.(item, records)));
   content.append(actions);
   const more = document.createElement('div'); more.className = 'agenda-options';
   more.append(occasionButton(item.startedAt === null && item.closedAt != null ? 'Reagendar' : 'Editar', () => openOccasionEditor(id)));

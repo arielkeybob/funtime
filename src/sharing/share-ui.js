@@ -19,6 +19,8 @@ export function createShareUI({ nodes, getShareWriter, showToast, now = () => Da
     },
   });
   let pairings = [];
+  let shares = [];
+  let occasionAberta = null;
   let codigoAtual = null;
   let contagem = null;
   let confirmando = null;
@@ -187,6 +189,94 @@ export function createShareUI({ nodes, getShareWriter, showToast, now = () => Da
   function setPairings(lista) {
     pairings = Array.isArray(lista) ? lista : [];
     renderPeople();
+    if (nodes.shareOccasionDialog?.open) renderShareOccasionPeople();
+  }
+
+  function setShares(lista) {
+    shares = Array.isArray(lista) ? lista : [];
+    if (nodes.shareOccasionDialog?.open) renderShareOccasionPeople();
+  }
+
+  async function startShareWith(pairing) {
+    if (!occasionAberta) return;
+    try {
+      await shareWriter.startShare({
+        occasion: occasionAberta.item,
+        events: occasionAberta.events,
+        viewerUid: pairing.otherUid,
+        ownerAlias: pairing.myAlias || "Alguém",
+      });
+      showToast(`Compartilhando com ${pairing.alias || "essa pessoa"}.`);
+    } catch (falha) {
+      console.error("Falha ao compartilhar o evento.", falha);
+      showToast("Não foi possível compartilhar agora.");
+    }
+  }
+
+  async function stopShareWith(shareId, alias) {
+    try {
+      await shareWriter.stopShare(shareId);
+      showToast(`Parou de compartilhar com ${alias || "essa pessoa"}.`);
+    } catch (falha) {
+      console.error("Falha ao parar o compartilhamento.", falha);
+      showToast("Não foi possível parar agora.");
+    }
+  }
+
+  function renderShareOccasionPeople() {
+    if (!nodes.shareOccasionPeople || !occasionAberta) return;
+    nodes.shareOccasionPeople.replaceChildren();
+
+    // Só quem aceitou dos dois lados pode receber um compartilhamento — estar numa
+    // lista de pedidos pendentes não é a mesma coisa que estar conectado.
+    const conectados = pairings.filter((par) => par.acceptedByMe && par.acceptedByOther);
+
+    if (!conectados.length) {
+      const vazio = document.createElement("p");
+      vazio.className = "sharing-empty";
+      vazio.textContent = "Conecte-se com alguém primeiro, nas Configurações.";
+      nodes.shareOccasionPeople.append(vazio);
+      return;
+    }
+
+    for (const par of conectados) {
+      const ativo = shares.find((share) => share.viewerUid === par.otherUid && share.occasionId === occasionAberta.item.id);
+
+      const item = document.createElement("div");
+      item.className = "sharing-person";
+
+      const cabecalho = document.createElement("div");
+      cabecalho.className = "sharing-person-head";
+      const nome = document.createElement("strong");
+      nome.textContent = par.alias || "Sem apelido";
+      const estado = document.createElement("span");
+      estado.className = "sharing-person-state";
+      estado.textContent = ativo ? "Vendo agora" : "";
+      cabecalho.append(nome, estado);
+
+      const acoes = document.createElement("div");
+      acoes.className = "sharing-person-actions";
+      acoes.append(ativo
+        ? botao("Parar de compartilhar", () => stopShareWith(ativo.shareId, par.alias), "settings-secondary-button")
+        : botao("Compartilhar", () => startShareWith(par), "settings-primary-action"));
+
+      item.append(cabecalho, acoes);
+      nodes.shareOccasionPeople.append(item);
+    }
+  }
+
+  // `item` é a ocasião (state.occasions), `events` já vem filtrado para ela — quem
+  // chama (occasions-ui.js) tem `state`, este módulo não.
+  function openShareOccasionDialog(item, events) {
+    occasionAberta = { item, events };
+    if (nodes.shareOccasionTitle) nodes.shareOccasionTitle.textContent = `Compartilhar "${item.name}"`;
+    renderShareOccasionPeople();
+    if (!nodes.shareOccasionDialog.open) nodes.shareOccasionDialog.showModal();
+  }
+
+  function closeShareOccasionDialog() {
+    occasionAberta = null;
+    if (nodes.shareOccasionDialog?.open) nodes.shareOccasionDialog.close();
   }
 
   function openPairingDialog() {
@@ -217,7 +307,12 @@ export function createShareUI({ nodes, getShareWriter, showToast, now = () => Da
     nodes.pairingConfirmAccept?.addEventListener("click", aceitarConfirmacao);
     nodes.pairingConfirmReject?.addEventListener("click", () => { confirmando = null; nodes.pairingConfirmDialog.close(); });
     nodes.pairingConfirmClose?.addEventListener("click", () => { confirmando = null; nodes.pairingConfirmDialog.close(); });
+    nodes.shareOccasionClose?.addEventListener("click", closeShareOccasionDialog);
+    nodes.closeShareOccasion?.addEventListener("click", closeShareOccasionDialog);
   }
 
-  return { wire, setPairings, openPairingDialog, closePairingDialog, renderPeople };
+  return {
+    wire, setPairings, openPairingDialog, closePairingDialog, renderPeople,
+    setShares, openShareOccasionDialog, closeShareOccasionDialog,
+  };
 }

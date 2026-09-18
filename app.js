@@ -393,7 +393,10 @@ let shareUI = null;
 // por aqui sem precisar ser alterados um a um.
 function commitAppData(storageKey, current, patch) {
   const next = commitToStorage(storageKey, current, patch);
-  if (storageKey === DATA_STORAGE_KEY) cloudSync?.scheduleSyncPush(current, next);
+  if (storageKey === DATA_STORAGE_KEY) {
+    cloudSync?.scheduleSyncPush(current, next);
+    shareWriter?.scheduleSharePush(next);
+  }
   return next;
 }
 
@@ -533,6 +536,11 @@ const sharingNodes = {
   pairingConfirmAccept: document.querySelector("#pairing-confirm-accept"),
   pairingConfirmReject: document.querySelector("#pairing-confirm-reject"),
   pairingConfirmClose: document.querySelector("#close-pairing-confirm"),
+  shareOccasionDialog: document.querySelector("#share-occasion-dialog"),
+  shareOccasionTitle: document.querySelector("#share-occasion-title"),
+  shareOccasionPeople: document.querySelector("#share-occasion-people"),
+  shareOccasionClose: document.querySelector("#share-occasion-close"),
+  closeShareOccasion: document.querySelector("#close-share-occasion"),
 };
 
 const drinkImportDialog = document.querySelector("#drink-import-dialog");
@@ -3199,7 +3207,15 @@ function applyRemoteSyncData(data) {
 }
 
 function notifyLocalDataChanged(previous) {
-  cloudSync?.scheduleSyncPush(previous, buildCurrentAppData());
+  const next = buildCurrentAppData();
+  cloudSync?.scheduleSyncPush(previous, next);
+  shareWriter?.scheduleSharePush(next);
+}
+
+// Chamado por occasions-ui.js (script clássico, sem import) a partir do detalhe do
+// evento. `events` já vem filtrado para a ocasião — este módulo não tem `state`.
+function openShareOccasionDialog(item, events) {
+  shareUI?.openShareOccasionDialog(item, events);
 }
 
 // Fora do app instalado, `initialData` é propositalmente vazio (ver a definição de
@@ -3225,6 +3241,7 @@ firebaseAuth = IS_STANDALONE_APP && isFirebaseConfigured() ? createFirebaseAuth(
     shareWriter = createShareWriter({
       app, uid: user.uid,
       onPairingsChange: (lista) => shareUI?.setPairings(lista),
+      onSharesChange: (lista) => shareUI?.setShares(lista),
       onStatusChange: ({ state: status, error }) => {
         if (status === "error") console.error("Falha no compartilhamento.", error);
       },
@@ -3248,6 +3265,8 @@ firebaseAuth = IS_STANDALONE_APP && isFirebaseConfigured() ? createFirebaseAuth(
     shareWriter?.stop();
     shareWriter = null;
     shareUI?.setPairings([]);
+    shareUI?.setShares([]);
+    shareUI?.closeShareOccasionDialog();
     rememberSyncConnection(false);
     updateSyncSettingsUI();
   },
@@ -3275,6 +3294,14 @@ syncSignOutButton?.addEventListener("click", async () => {
     console.error("Falha ao enviar as últimas mudanças antes de sair.", error);
   }
   try {
+    // Revoga de verdade, não só para de escutar: sem sessão, este aparelho não
+    // conseguiria mais revogar depois, e quem está vendo ficaria com uma tela
+    // congelada em vez de saber que acabou.
+    await shareWriter?.stopAllShares();
+  } catch (error) {
+    console.error("Falha ao encerrar compartilhamentos antes de sair.", error);
+  }
+  try {
     await firebaseAuth.signOut();
     showToast("Sincronização desligada. Seus dados continuam neste aparelho.");
   } catch (error) {
@@ -3285,12 +3312,13 @@ syncSignOutButton?.addEventListener("click", async () => {
 
 syncDeleteCloudButton?.addEventListener("click", async () => {
   const confirmed = window.confirm(
-    "Apagar os dados guardados na nuvem? Os dados deste aparelho são mantidos, e a sincronização será desligada."
+    "Apagar os dados guardados na nuvem? Isso também encerra suas conexões e compartilhamentos com outras pessoas. Os dados deste aparelho são mantidos, e a sincronização será desligada."
   );
   if (!confirmed) return;
 
   syncDeleteCloudButton.disabled = true;
   try {
+    await shareWriter?.deleteAllSharingData();
     await cloudSync?.deleteCloudData();
     cloudSync = null;
     await firebaseAuth.signOut();
@@ -3340,7 +3368,7 @@ updateSyncSettingsUI();
 // saveData ter virado um shim de teste na spec 0009) — por isso a lista
 // abaixo é mais ampla do que só o que os 4 scripts clássicos leem.
 Object.assign(globalThis, {
-  notifyLocalDataChanged, summarizeOccasionDoses,
+  notifyLocalDataChanged, summarizeOccasionDoses, openShareOccasionDialog,
   render, saveData, effectiveCountingMode, registerDrinkAt, tickDrinkCards,
   closeSettingsView, openDrinkMenuDialog, openEventDialog, saveSecurityConfig,
   editDrinkFromDrinkMenu, getDrinkActivity, persistIconCatalog, unlockApp,
