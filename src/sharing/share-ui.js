@@ -1,4 +1,4 @@
-import { formatPairingCode, normalizePairingCode, pairingConfirmationCode } from "../data/share-codes.js";
+import { formatPairingCode, normalizePairingCode, liveFormatPairingCode, pairingConfirmationCode } from "../data/share-codes.js";
 import { formatClock, formatHistoryElapsed } from "../format/datetime.js";
 
 const MOTIVOS = {
@@ -504,6 +504,11 @@ export function createShareUI({ nodes, getShareWriter, showToast, now = () => Da
     nodes.pairingAliasSave?.addEventListener("click", salvarApelido);
     nodes.pairingGenerate?.addEventListener("click", gerarCodigo);
     nodes.pairingRedeem?.addEventListener("click", usarCodigo);
+    // Formata enquanto digita: acaba com a dúvida de precisar ou não do traço — o
+    // campo já mostra o formato certo a cada tecla.
+    nodes.pairingCodeInput?.addEventListener("input", () => {
+      nodes.pairingCodeInput.value = liveFormatPairingCode(nodes.pairingCodeInput.value);
+    });
     nodes.pairingClose?.addEventListener("click", closePairingDialog);
     nodes.pairingDone?.addEventListener("click", closePairingDialog);
     nodes.pairingConfirmAccept?.addEventListener("click", aceitarConfirmacao);

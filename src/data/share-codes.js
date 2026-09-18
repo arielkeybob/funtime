@@ -40,6 +40,18 @@ export function normalizePairingCode(input) {
   return clean;
 }
 
+// Reformata o que a pessoa está digitando, tecla a tecla: maiúsculas, descarta o que
+// não pertence ao alfabeto, corta em 6 e insere o traço sozinho depois dos 3
+// primeiros — assim nunca fica a dúvida de "precisa do traço ou não" na hora de
+// digitar, o campo já mostra o formato certo.
+export function liveFormatPairingCode(input) {
+  const clean = [...String(input ?? "").toUpperCase()]
+    .filter((character) => PAIRING_CODE_ALPHABET.includes(character))
+    .slice(0, PAIRING_CODE_LENGTH)
+    .join("");
+  return clean.length > 3 ? `${clean.slice(0, 3)}-${clean.slice(3)}` : clean;
+}
+
 // Determinístico e independente de ordem: um par de pessoas tem um documento só, e
 // os dois lados calculam o mesmo id sem combinar nada.
 export function buildPairId(uidA, uidB) {

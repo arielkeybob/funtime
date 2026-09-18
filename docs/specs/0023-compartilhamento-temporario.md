@@ -265,3 +265,41 @@ que só aparece no uso real:
 Nenhuma mudança nas regras de segurança: as escritas novas (`setDoc` com
 merge em `meta/account`, `update` em `aliases.{uid}` de pareamentos
 existentes) já eram permitidas pela regra publicada em v2.3.0.
+
+## Nota pós-implementação (v2.3.2) — bug crítico em uso real
+
+Relatado pelo usuário testando com duas contas reais pela primeira vez:
+conectar sempre falhava com "Não foi possível conectar agora". Nenhum teste
+unitário pegou isso (o Firestore falso dos testes resolvia `getDoc` de um
+documento inexistente com `exists()==false`, nunca lançando), e os testes de
+regra também não — eles testam se a regra *nega* corretamente, não como o SDK
+do cliente reage a essa negação.
+
+**Causa raiz, confirmada contra o emulador antes de corrigir**: as regras de
+`pairingCodes` e `pairings` leem `resource.data` (`expiresAt`, `uids`) para
+decidir se deixam ler. Quando o documento não existe, `resource` é nulo na
+avaliação da regra — acessar `.data` nessas condições é um erro de avaliação,
+que o Firestore trata como negação. O cliente recebe `permission-denied` e
+`getDoc()` **rejeita a promessa**, não resolve com um retrato vazio. Testado
+diretamente: `getDoc` num `pairingCodes/{código}` ou `pairings/{par}` que
+nunca existiu lança; o mesmo caminho sob `users/{uid}/**` (regra que não olha
+o conteúdo) resolve normalmente com `exists()==false`.
+
+`redeemPairingCode` tinha duas leituras dessa forma: o código em si, e —
+mais grave — a checagem de "esse pareamento já existe?", que na primeira
+conexão entre duas pessoas nunca existe. Ou seja, **toda primeira conexão**
+caía nessa exceção não tratada, subia até `usarCodigo()` e virava a mensagem
+genérica. Corrigido envolvendo as duas leituras em try/catch, tratando a
+negação como "não encontrado"/"ainda não existe" (comportamento correto de
+qualquer forma — código inexistente e vencido já deviam ser indistinguíveis
+para quem tenta usar um). O Firestore falso dos testes de `share-writer.js`
+foi corrigido para lançar nesse mesmo cenário (qualquer caminho fora de
+`users/` que não esteja pré-semeado), tornando os testes existentes capazes
+de pegar isso — confirmado revertendo cada correção isoladamente e vendo os
+testes já existentes quebrarem, sem precisar escrever nenhum teste novo.
+
+Corrigido junto, a partir de feedback do mesmo teste real: o campo de código
+tinha `maxlength` maior que o código formatado, e nada formatava o traço
+automaticamente — daí a dúvida relatada de "precisa do traço?". Ganhou
+formatação ao vivo (`liveFormatPairingCode`) e o `maxlength` foi ajustado
+para bater exatamente com o formato exibido.

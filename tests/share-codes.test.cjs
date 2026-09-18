@@ -1,7 +1,7 @@
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
 const {
-  generatePairingCode, formatPairingCode, normalizePairingCode, buildPairId,
+  generatePairingCode, formatPairingCode, normalizePairingCode, liveFormatPairingCode, buildPairId,
   otherUidOf, pairingConfirmationCode, PAIRING_CODE_ALPHABET, PAIRING_CODE_LENGTH,
 } = require('../src/data/share-codes.js');
 
@@ -47,6 +47,26 @@ test('recusa o que não dá para aproveitar, sem lançar', () => {
 test('formata para exibição sem alterar o valor', () => {
   assert.equal(formatPairingCode('AB7K29'), 'AB7-K29');
   assert.equal(normalizePairingCode(formatPairingCode('AB7K29')), 'AB7K29');
+});
+
+// É o que elimina a dúvida "precisa do traço?" relatada por um usuário real: o
+// campo já mostra o formato certo enquanto a pessoa digita.
+test('formata em tempo real, tecla a tecla, sem esperar o código completo', () => {
+  assert.equal(liveFormatPairingCode('A'), 'A');
+  assert.equal(liveFormatPairingCode('AB7'), 'AB7');
+  assert.equal(liveFormatPairingCode('AB7K'), 'AB7-K');
+  assert.equal(liveFormatPairingCode('AB7K29'), 'AB7-K29');
+});
+
+test('formatação ao vivo aceita minúsculas e ignora traço/espaço já digitados', () => {
+  assert.equal(liveFormatPairingCode('ab7k29'), 'AB7-K29');
+  assert.equal(liveFormatPairingCode('AB7-K29'), 'AB7-K29');
+  assert.equal(liveFormatPairingCode('AB7 K29'), 'AB7-K29');
+});
+
+test('formatação ao vivo descarta letras fora do alfabeto e para em 6', () => {
+  assert.equal(liveFormatPairingCode('AB7O K29'), 'AB7-K29', 'O não existe no alfabeto');
+  assert.equal(liveFormatPairingCode('AB7K29XYZ'), 'AB7-K29', 'nunca deixa passar de 6 caracteres reais');
 });
 
 test('o id do par não depende da ordem', () => {

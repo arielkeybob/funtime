@@ -36,7 +36,7 @@
       return false;
     }
     const version = await request(worker, "GET_VERSION");
-    if (version?.version !== "2.3.1") {
+    if (version?.version !== "2.3.2") {
       // Não ativar uma atualização sem a ação explícita do usuário.
       await registration.update();
       show("Há uma atualização necessária para abrir o FunTime.");

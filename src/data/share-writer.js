@@ -92,8 +92,19 @@ export function createShareWriter({
   // a regra verifica. Aceitar é ato separado do outro lado.
   async function redeemPairingCode(code, myAlias) {
     const { firestore, db } = await load();
-    const codeSnapshot = await firestore.getDoc(firestore.doc(db, "pairingCodes", code));
 
+    // A regra de `pairingCodes` lê `resource.data.expiresAt` para decidir se deixa
+    // ler. Quando o documento não existe, `resource` é nulo e a regra nem consegue
+    // avaliar essa condição — o Firestore nega o pedido inteiro em vez de responder
+    // "não existe". Na prática, `getDoc` REJEITA (não resolve com exists()==false)
+    // tanto para código inexistente quanto vencido, e os dois casos são o mesmo
+    // "não encontrado" para quem está tentando usar o código.
+    let codeSnapshot;
+    try {
+      codeSnapshot = await firestore.getDoc(firestore.doc(db, "pairingCodes", code));
+    } catch {
+      return { ok: false, reason: "not-found" };
+    }
     if (!codeSnapshot.exists()) return { ok: false, reason: "not-found" };
 
     const ownerUid = codeSnapshot.data()?.ownerUid;
@@ -103,8 +114,17 @@ export function createShareWriter({
     const pairId = buildPairId(uid, ownerUid);
     const pairRef = firestore.doc(db, "pairings", pairId);
 
+    // Mesma situação aqui: um pareamento novo — o caso mais comum, a primeira vez
+    // que duas pessoas se conectam — ainda não existe, e a regra de `pairings`
+    // também lê `resource.data.uids`, então nega pelo mesmo motivo. Isso não é uma
+    // falha real: é exatamente o sinal de que precisa criar o pareamento agora.
+    let jaExiste = false;
+    try {
+      jaExiste = (await firestore.getDoc(pairRef)).exists();
+    } catch { /* ainda não existe: segue para criar */ }
+
     // Já existir é normal: refazer o pareamento com alguém conhecido só reaceita.
-    if ((await firestore.getDoc(pairRef)).exists()) {
+    if (jaExiste) {
       await acceptPairing(pairId, myAlias);
       return { ok: true, pairId, otherUid: ownerUid };
     }

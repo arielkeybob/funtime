@@ -1,4 +1,21 @@
-# FunTime — V2.3.1
+# FunTime — V2.3.2
+
+## V2.3.2 — corrige "Não foi possível conectar agora" ao parear pela primeira vez
+
+Bug crítico relatado em uso real: conectar duas contas pela primeira vez falhava com
+"Não foi possível conectar agora". Causa: as regras de segurança de `pairingCodes` e
+`pairings` verificam o conteúdo do documento para decidir se deixam ler — e quando o
+documento não existe, o Firestore nega o pedido inteiro em vez de responder "não
+existe" (não há como avaliar uma condição sobre um documento que não existe). O app
+assumia que ler um documento inexistente sempre devolveria uma resposta vazia; na
+prática, o SDK lança um erro. Isso acontecia bem no meio do fluxo de parear, ao
+checar se o pareamento já existia — que na primeira conexão entre duas pessoas nunca
+existe, então **toda primeira conexão** caía nesse erro. Confirmado contra o
+emulador antes de corrigir. Também corrigido: o campo de código aceitava digitar mais
+caracteres do que o código tem, e agora formata sozinho enquanto a pessoa digita (com
+o traço no lugar certo), acabando com a dúvida de precisar dele ou não. Nenhuma
+mudança nas regras do Firestore. App, boot, rodapés e cache alinhados a 2.3.2;
+DATA_VERSION 11 preservado.
 
 ## V2.3.1 — apelido único para todas as conexões; clareza sobre vários códigos
 

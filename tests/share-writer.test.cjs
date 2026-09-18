@@ -23,11 +23,21 @@ function fakeFirestore({ documentos = {} } = {}) {
     collection: (db, ...path) => ({ path: path.join('/') }),
     query: (reference, ...restricoes) => ({ path: reference.path, restricoes }),
     where: (campo, operador, valor) => ({ campo, operador, valor }),
-    getDoc: async (reference) => ({
-      exists: () => reference.path in documentos,
-      data: () => documentos[reference.path],
-      ref: reference,
-    }),
+    // Espelha o Firestore real, não só o feliz: as regras de pairingCodes/pairings
+    // leem resource.data, então um documento inexistente faz a regra negar o
+    // pedido inteiro (resource é nulo) — o SDK rejeita, não resolve com
+    // exists()==false. users/** não tem esse problema (a regra não olha o
+    // conteúdo), por isso fica de fora — é o mesmo motivo que faz getGlobalAlias
+    // continuar simples.
+    getDoc: async (reference) => {
+      if (reference.path in documentos) {
+        return { exists: () => true, data: () => documentos[reference.path], ref: reference };
+      }
+      if (!reference.path.startsWith('users/')) {
+        const erro = new Error('permission-denied'); erro.code = 'permission-denied'; throw erro;
+      }
+      return { exists: () => false, data: () => undefined, ref: reference };
+    },
     getDocs: async (consulta) => ({
       docs: Object.entries(documentos)
         .filter(([path]) => path.startsWith(consulta.path + '/'))
