@@ -1,4 +1,17 @@
-# FunTime — V2.3.0
+# FunTime — V2.3.1
+
+## V2.3.1 — apelido único para todas as conexões; clareza sobre vários códigos
+
+Duas correções na experiência de compartilhamento, encontradas ao revisar o fluxo
+para várias pessoas. O apelido deixa de ser digitado a cada pareamento e guardado só
+naquele par: agora é um valor único, salvo em `users/{uid}/meta/account`, pré-preenchido
+ao abrir o diálogo de conectar. Mudá-lo (e salvar, com o botão novo ao lado do campo,
+ou ao conectar/aceitar alguém) propaga para todas as conexões já feitas de uma vez —
+não fica um apelido diferente por pessoa. Também ficou explícito na tela que um código
+serve para uma pessoa: gerar um novo código a qualquer momento (mesmo com um anterior
+ainda válido) é o caminho normal para convidar a próxima pessoa, e o anterior continua
+funcionando até ser usado ou vencer. App, boot, rodapés e cache alinhados a 2.3.1;
+DATA_VERSION 11 preservado. Nenhuma mudança nas regras do Firestore.
 
 ## V2.3.0 — compartilhar o consumo de um evento com pessoa de confiança
 

@@ -239,7 +239,29 @@ usuário, apesar de esta ser, pelo critério já registrado em
 `feedback_politicas_aceite` (memória), uma mudança material — não uma de
 forma. Ver comentário em `policies.js` junto de `TERMS_VERSIONS_STILL_VALID`.
 
-**Pendente nesta revisão**: código implementado e testado (unitário + regras
-no emulador), mas as regras de `firestore.rules` ainda não foram publicadas no
-projeto real, e nada foi enviado ao repositório remoto. Até isso acontecer,
-esta funcionalidade não existe fora do ambiente local.
+**Publicado (v2.3.0)**: `firestore.rules` publicadas no projeto real e
+verificadas contra acesso sem autenticação nas três coleções novas; código
+enviado ao repositório remoto (`funtime/main`).
+
+## Nota pós-implementação (v2.3.1)
+
+Dois ajustes pedidos pelo usuário após usar a versão publicada de verdade —
+não achados durante a implementação original, mas exatamente o tipo de coisa
+que só aparece no uso real:
+
+- **Apelido por pareamento, não fixo.** O apelido era digitado a cada conexão
+  nova e ficava só dentro daquele documento — conectar com duas pessoas podia
+  resultar em dois nomes diferentes para a mesma pessoa. Corrigido: o valor
+  canônico agora vive em `users/{uid}/meta/account` (área já exclusiva do
+  dono, nenhuma regra nova precisa disso), pré-preenchido ao abrir o diálogo
+  de conectar. Mudá-lo propaga, num lote, para `aliases.{uid}` de todo
+  pareamento existente — a mesma mudança que `removePairing` já fazia para
+  revogar shares em lote, aplicada aqui para atualizar em vez de apagar.
+- **Não ficava claro que dá para gerar vários códigos.** A capacidade sempre
+  existiu — cada clique em "Gerar código" já criava um documento novo e
+  independente, sem cancelar o anterior — mas nada na tela comunicava isso.
+  Texto explicativo adicionado; nenhuma mudança de comportamento.
+
+Nenhuma mudança nas regras de segurança: as escritas novas (`setDoc` com
+merge em `meta/account`, `update` em `aliases.{uid}` de pareamentos
+existentes) já eram permitidas pela regra publicada em v2.3.0.

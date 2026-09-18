@@ -3548,6 +3548,9 @@ body {
 .occasion-history > h2 { font-size: 1rem; margin: 26px 0 16px; }
 
 /* Pareamento e compartilhamento entre pessoas (spec 0023). */
+.pairing-alias-row { display: flex; gap: 8px; align-items: center; }
+.pairing-alias-row input { flex: 1; min-width: 0; }
+.pairing-alias-row button { flex-shrink: 0; min-height: 44px; padding: 0 14px; }
 .pairing-panels { display: grid; gap: 14px; margin-top: 8px; }
 .pairing-panel { display: grid; gap: 10px; padding: 14px; border: 1px solid var(--border); border-radius: 12px; }
 .pairing-panel > strong { font-size: .84rem; }

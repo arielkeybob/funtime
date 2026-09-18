@@ -81,7 +81,11 @@ export function createShareUI({ nodes, getShareWriter, showToast, now = () => Da
 
     nodes.pairingRedeem.disabled = true;
     try {
-      const resultado = await shareWriter.redeemPairingCode(code, nodes.pairingAlias.value.trim());
+      // Salva e propaga antes: o apelido é único para todas as conexões, não um por
+      // pareamento — se o campo foi editado agora, todo mundo já conectado também
+      // recebe a mudança, não só esta pessoa nova.
+      const apelido = await shareWriter.setGlobalAlias(nodes.pairingAlias.value);
+      const resultado = await shareWriter.redeemPairingCode(code, apelido);
       if (!resultado.ok) { erro(MOTIVOS[resultado.reason] || MOTIVOS.invalid); return; }
 
       nodes.pairingCodeInput.value = "";
@@ -116,7 +120,8 @@ export function createShareUI({ nodes, getShareWriter, showToast, now = () => Da
     nodes.pairingConfirmDialog.close();
 
     try {
-      await shareWriter.acceptPairing(pairId, nodes.pairingAlias.value.trim());
+      const apelido = await shareWriter.setGlobalAlias(nodes.pairingAlias.value);
+      await shareWriter.acceptPairing(pairId, apelido);
       showToast("Conectado. Estar conectado não mostra nada — compartilhar é por evento.");
     } catch (falha) {
       console.error("Falha ao aceitar o pareamento.", falha);
@@ -460,7 +465,7 @@ export function createShareUI({ nodes, getShareWriter, showToast, now = () => Da
     if (nodes.shareOccasionDialog?.open) nodes.shareOccasionDialog.close();
   }
 
-  function openPairingDialog() {
+  async function openPairingDialog() {
     erro("");
     nodes.pairingCodeInput.value = "";
     nodes.pairingCodeDisplay.textContent = "— — —";
@@ -468,6 +473,21 @@ export function createShareUI({ nodes, getShareWriter, showToast, now = () => Da
     codigoAtual = null;
     pararContagem();
     if (!nodes.pairingDialog.open) nodes.pairingDialog.showModal();
+
+    // Pré-preenche com o apelido já salvo — o campo não pergunta de novo a cada
+    // pareamento, só permite trocar (e trocar propaga para quem já está conectado).
+    try { nodes.pairingAlias.value = await shareWriter.getGlobalAlias(); }
+    catch { /* sem apelido salvo ainda, ou falha ao buscar: campo fica em branco */ }
+  }
+
+  async function salvarApelido() {
+    try {
+      await shareWriter.setGlobalAlias(nodes.pairingAlias.value);
+      showToast("Apelido atualizado para quem você já conectou.");
+    } catch (falha) {
+      console.error("Falha ao salvar o apelido.", falha);
+      showToast("Não foi possível salvar agora.");
+    }
   }
 
   function closePairingDialog() {
@@ -481,6 +501,7 @@ export function createShareUI({ nodes, getShareWriter, showToast, now = () => Da
 
   function wire() {
     nodes.sharingConnect?.addEventListener("click", openPairingDialog);
+    nodes.pairingAliasSave?.addEventListener("click", salvarApelido);
     nodes.pairingGenerate?.addEventListener("click", gerarCodigo);
     nodes.pairingRedeem?.addEventListener("click", usarCodigo);
     nodes.pairingClose?.addEventListener("click", closePairingDialog);

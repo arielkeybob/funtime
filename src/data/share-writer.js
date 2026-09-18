@@ -1,4 +1,4 @@
-import { loadFirestore } from "./firestore-db.js";
+import { loadFirestore, chunk, BATCH_LIMIT } from "./firestore-db.js";
 import { buildPairId, generatePairingCode, otherUidOf } from "./share-codes.js";
 import { buildSharePayload } from "./share-payload.js";
 
@@ -135,6 +135,36 @@ export function createShareWriter({
     await firestore.updateDoc(firestore.doc(db, "pairings", pairId), {
       [`aliases.${uid}`]: String(myAlias ?? ""),
     });
+  }
+
+  async function getGlobalAlias() {
+    const { firestore, db } = await load();
+    const snapshot = await firestore.getDoc(firestore.doc(db, "users", uid, "meta", "account"));
+    return snapshot.exists() ? String(snapshot.data()?.shareAlias ?? "") : "";
+  }
+
+  // Um apelido só, não um por conexão: o valor canônico fica em users/{uid}/meta/account
+  // (área já exclusiva do dono, spec 0022 — nenhuma regra nova precisa disso) e mudá-lo
+  // aqui propaga para todo pareamento existente de uma vez, em vez de cada um guardar
+  // um nome diferente.
+  async function setGlobalAlias(alias) {
+    const clean = String(alias ?? "").trim();
+    const { firestore, db } = await load();
+
+    await firestore.setDoc(firestore.doc(db, "users", uid, "meta", "account"), { shareAlias: clean }, { merge: true });
+
+    const mine = await firestore.getDocs(firestore.query(
+      firestore.collection(db, "pairings"),
+      firestore.where("uids", "array-contains", uid)
+    ));
+
+    for (const group of chunk(mine.docs, BATCH_LIMIT)) {
+      const batch = firestore.writeBatch(db);
+      for (const entry of group) batch.update(entry.ref, { [`aliases.${uid}`]: clean });
+      await batch.commit();
+    }
+
+    return clean;
   }
 
   async function removePairing(pairId) {
@@ -342,7 +372,7 @@ export function createShareWriter({
   return {
     start, stop,
     createPairingCode, cancelPairingCode, redeemPairingCode,
-    acceptPairing, setAlias, removePairing,
+    acceptPairing, setAlias, removePairing, getGlobalAlias, setGlobalAlias,
     startShare, stopShare, stopAllShares, scheduleSharePush, flushSharePushes,
     deleteAllSharingData,
   };

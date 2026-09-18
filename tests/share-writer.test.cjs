@@ -40,7 +40,20 @@ function fakeFirestore({ documentos = {} } = {}) {
       listeners.set(reference.path, next);
       return () => listeners.delete(reference.path);
     },
-    writeBatch: () => { throw new Error('o lado do pareamento não usa lote'); },
+    writeBatch: () => {
+      const operacoes = [];
+      return {
+        set: (reference, data) => operacoes.push({ path: reference.path, data }),
+        update: (reference, data) => operacoes.push({ path: reference.path, data, update: true }),
+        delete: (reference) => operacoes.push({ path: reference.path, deleted: true }),
+        commit: async () => {
+          for (const operacao of operacoes) {
+            if (operacao.deleted) exclusoes.push(operacao.path);
+            else escritas.push(operacao);
+          }
+        },
+      };
+    },
   };
 
   return { module, escritas, exclusoes, listeners, documentos };
@@ -140,6 +153,51 @@ test('mudar apelido toca só a própria chave', async () => {
   await writer.setAlias(PAR, 'Aninha');
 
   assert.deepEqual(firestore.escritas[0].data, { [`aliases.${EU}`]: 'Aninha' });
+});
+
+test('sem apelido salvo, devolve vazio', async () => {
+  const { writer } = setup();
+  assert.equal(await writer.getGlobalAlias(), '');
+});
+
+test('apelido salvo é devolvido', async () => {
+  const { writer } = setup({ documentos: { [`users/${EU}/meta/account`]: { shareAlias: 'Ariel' } } });
+  assert.equal(await writer.getGlobalAlias(), 'Ariel');
+});
+
+// É isto que torna o apelido "fixo": um valor canônico, não um por conexão.
+test('mudar o apelido global grava o valor canônico', async () => {
+  const { writer, firestore } = setup();
+
+  await writer.setGlobalAlias('  Ariel  ');
+
+  const gravacao = firestore.escritas.find((item) => item.path === `users/${EU}/meta/account`);
+  assert.equal(gravacao.data.shareAlias, 'Ariel', 'espaços nas pontas não fazem parte do apelido');
+});
+
+test('mudar o apelido global propaga para todos os pareamentos existentes de uma vez', async () => {
+  const documentos = {
+    [`pairings/${PAR}`]: { uids: [EU, OUTRO] },
+    'pairings/uid-ana_uid-caio': { uids: [EU, 'uid-caio'] },
+  };
+  const { writer, firestore } = setup({ documentos });
+
+  await writer.setGlobalAlias('Novo Apelido');
+
+  const gravacoes = firestore.escritas.filter((item) => item.update && item.path.startsWith('pairings/'));
+  assert.equal(gravacoes.length, 2, 'os dois pareamentos existentes recebem a atualização');
+  for (const gravacao of gravacoes) assert.deepEqual(gravacao.data, { [`aliases.${EU}`]: 'Novo Apelido' });
+});
+
+test('sem pareamento nenhum, só salva o valor canônico', async () => {
+  const { writer, firestore } = setup();
+
+  await writer.setGlobalAlias('Ariel');
+
+  assert.deepEqual(
+    firestore.escritas.filter((item) => item.path.startsWith('pairings/')),
+    []
+  );
 });
 
 test('desfazer pareamento apaga o documento do par', async () => {

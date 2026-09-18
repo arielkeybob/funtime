@@ -58,7 +58,7 @@
     <footer class="browser-gate-footer">
       <span>App para estudo · não é controle de segurança</span>
       <a class="policies-link" href="./policies.html">Políticas e informações</a>
-      <span>v2.3.0 · By: arielkeybob</span>
+      <span>v2.3.1 · By: arielkeybob</span>
     </footer>
   </section>
 
@@ -326,7 +326,7 @@
           </div>
         </div>
 
-        <p class="settings-description">Versão instalada: <strong>v2.3.0</strong></p>
+        <p class="settings-description">Versão instalada: <strong>v2.3.1</strong></p>
         <button id="check-app-update" class="settings-secondary-button" type="button">Verificar atualizações</button>
       </section>
 
@@ -418,7 +418,7 @@
     <footer class="app-footer">
       <span class="app-footer-disclaimer">App para estudo · não é controle de segurança</span>
       <a class="policies-link" href="./policies.html">Políticas e informações</a>
-      <span class="app-footer-meta">v2.3.0 · By: arielkeybob</span>
+      <span class="app-footer-meta">v2.3.1 · By: arielkeybob</span>
     </footer>
   </div>
 
@@ -435,8 +435,11 @@
       <p class="settings-description">Uma pessoa mostra o código, a outra digita. Vocês precisam estar juntos: o código vale por 5 minutos e não há busca por nome ou e-mail.</p>
 
       <label class="settings-field" for="pairing-alias">
-        <span>Como você aparece para essa pessoa</span>
-        <input id="pairing-alias" type="text" maxlength="40" autocomplete="off" placeholder="Seu apelido">
+        <span>Seu apelido (o mesmo para todo mundo que você conectar)</span>
+        <div class="pairing-alias-row">
+          <input id="pairing-alias" type="text" maxlength="40" autocomplete="off" placeholder="Seu apelido">
+          <button id="pairing-alias-save" class="settings-secondary-button" type="button">Salvar</button>
+        </div>
       </label>
 
       <div class="pairing-panels">
@@ -445,6 +448,7 @@
           <p id="pairing-code-display" class="pairing-code">— — —</p>
           <p id="pairing-code-countdown" class="settings-description"></p>
           <button id="pairing-generate" class="settings-secondary-button" type="button">Gerar código</button>
+          <p class="settings-description">Um código por pessoa. Depois que alguém usar o código, gere outro para convidar a próxima.</p>
         </div>
 
         <div class="pairing-panel">
