@@ -103,6 +103,19 @@ test('leitura aceita um payload íntegro dentro do prazo', () => {
   assert.equal(resultado.view.events.length, 1);
 });
 
+// O carimbo de "atualizado" tem que vir do servidor, não do relógio de quem lê —
+// senão uma tela offline poderia se dizer "ao vivo" com base num relógio errado.
+test('o carimbo de atualização vem do servidor, nunca do relógio local', () => {
+  const payload = montar([dose()]);
+  const comCarimbo = readSharePayload(
+    { ...payload, expiresAt: { toMillis: () => 99999 }, updatedAt: { toMillis: () => 4200 } }, 5000
+  );
+  assert.equal(comCarimbo.view.updatedAtMs, 4200);
+
+  const semCarimbo = readSharePayload({ ...payload, expiresAt: { toMillis: () => 99999 } }, 5000);
+  assert.equal(semCarimbo.view.updatedAtMs, null, 'sem o campo do servidor, não inventa um valor');
+});
+
 test('leitura recusa payload vencido', () => {
   const payload = montar([dose()]);
   const resultado = readSharePayload({ ...payload, expiresAt: { toMillis: () => 1000 } }, 5000);

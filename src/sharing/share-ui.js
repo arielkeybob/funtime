@@ -1,4 +1,5 @@
 import { formatPairingCode, normalizePairingCode, pairingConfirmationCode } from "../data/share-codes.js";
+import { formatClock, formatHistoryElapsed } from "../format/datetime.js";
 
 const MOTIVOS = {
   "not-found": "Código não encontrado ou já vencido. Peça um novo.",
@@ -20,6 +21,7 @@ export function createShareUI({ nodes, getShareWriter, showToast, now = () => Da
   });
   let pairings = [];
   let shares = [];
+  let sharedEntries = [];
   let occasionAberta = null;
   let codigoAtual = null;
   let contagem = null;
@@ -186,6 +188,82 @@ export function createShareUI({ nodes, getShareWriter, showToast, now = () => Da
     }
   }
 
+  // Três estados, na ordem em que o roadmap pediu para não mentir sobre estar "ao
+  // vivo": cache offline > desatualizado (mais de 5 min sem confirmação do
+  // servidor) > atualizado. `fromCache` vem do metadata do SDK, não do relógio.
+  function freshnessLabel(entry) {
+    if (entry.fromCache) return `Sem conexão · mostrando o que chegou às ${formatClock(entry.receivedAtMs)}`;
+    if (entry.view.updatedAtMs == null) return "Atualizado agora";
+    if (now() - entry.view.updatedAtMs > 5 * 60 * 1000) return `Pode estar desatualizado · última atualização ${formatClock(entry.view.updatedAtMs)}`;
+    return "Atualizado agora";
+  }
+
+  function renderSharedEntries() {
+    if (!nodes.sharedEntries) return;
+    nodes.sharedEntries.replaceChildren();
+
+    if (nodes.sharedEmptyState) nodes.sharedEmptyState.hidden = sharedEntries.length > 0;
+
+    for (const entry of sharedEntries) {
+      const { view } = entry;
+      const card = document.createElement("section");
+      card.className = "sharing-person shared-entry";
+
+      const cabecalho = document.createElement("div");
+      cabecalho.className = "sharing-person-head";
+      const nome = document.createElement("strong");
+      nome.textContent = view.ownerAlias || "Alguém";
+      const estado = document.createElement("span");
+      estado.className = "sharing-person-state";
+      estado.textContent = freshnessLabel(entry);
+      cabecalho.append(nome, estado);
+
+      const periodo = document.createElement("p");
+      periodo.className = "settings-description";
+      periodo.textContent = `${view.occasion.name} · desde ${formatClock(view.occasion.startedAt)}`;
+      if (view.occasion.endedAt != null) periodo.textContent += ` até ${formatClock(view.occasion.endedAt)}`;
+
+      card.append(cabecalho, periodo);
+
+      for (const total of view.totals) {
+        const linha = document.createElement("p");
+        linha.className = "occasion-count";
+        linha.textContent = `${total.icon} ${total.name} · ${total.count} registro(s)`;
+        card.append(linha);
+      }
+
+      if (view.truncated) {
+        const aviso = document.createElement("p");
+        aviso.className = "settings-description";
+        aviso.textContent = `Mostrando os registros mais recentes de ${view.eventCount} no total.`;
+        card.append(aviso);
+      }
+
+      const lista = document.createElement("div");
+      lista.className = "shared-entry-events";
+      for (const dose of [...view.events].reverse()) {
+        const linha = document.createElement("p");
+        linha.className = "shared-entry-event";
+        linha.textContent = `${formatClock(dose.consumedAt)} · ${dose.drinkIcon} ${dose.drinkName} · ${formatHistoryElapsed(dose.consumedAt, now())}`;
+        lista.append(linha);
+      }
+      card.append(lista);
+
+      nodes.sharedEntries.append(card);
+    }
+  }
+
+  function setSharedEntries(lista) {
+    sharedEntries = Array.isArray(lista) ? lista : [];
+    if (nodes.homeShared) {
+      nodes.homeShared.hidden = sharedEntries.length === 0;
+      nodes.homeShared.textContent = sharedEntries.length === 1
+        ? `👀 ${sharedEntries[0].view.ownerAlias || "Alguém"} está compartilhando ›`
+        : `👀 ${sharedEntries.length} pessoas compartilhando ›`;
+    }
+    renderSharedEntries();
+  }
+
   function setPairings(lista) {
     pairings = Array.isArray(lista) ? lista : [];
     renderPeople();
@@ -309,10 +387,16 @@ export function createShareUI({ nodes, getShareWriter, showToast, now = () => Da
     nodes.pairingConfirmClose?.addEventListener("click", () => { confirmando = null; nodes.pairingConfirmDialog.close(); });
     nodes.shareOccasionClose?.addEventListener("click", closeShareOccasionDialog);
     nodes.closeShareOccasion?.addEventListener("click", closeShareOccasionDialog);
+
+    // O carimbo de frescor ("atualizado agora" → "desatualizado") muda só com o
+    // relógio passando, sem nenhum dado novo chegar — por isso reavalia sozinho.
+    // Reescrever com os mesmos nós é barato; sem entradas, não faz nada.
+    setInterval(() => { if (sharedEntries.length) renderSharedEntries(); }, 30000);
   }
 
   return {
     wire, setPairings, openPairingDialog, closePairingDialog, renderPeople,
     setShares, openShareOccasionDialog, closeShareOccasionDialog,
+    setSharedEntries, renderSharedEntries,
   };
 }

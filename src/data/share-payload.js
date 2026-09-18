@@ -81,6 +81,11 @@ export function readSharePayload(raw, now = Date.now()) {
   if (!finite(expiresAtMs)) return { ok: false, reason: "malformed" };
   if (expiresAtMs <= now) return { ok: false, reason: "expired" };
 
+  // Carimbo de servidor, não o relógio de quem lê: uma tela "ao vivo" que confia no
+  // próprio horário para se dizer atualizada pode mentir se o aparelho estiver
+  // errado ou o dado vier do cache offline.
+  const updatedAtMs = typeof raw.updatedAt?.toMillis === "function" ? raw.updatedAt.toMillis() : null;
+
   if (!raw.occasion || typeof raw.occasion !== "object") return { ok: false, reason: "malformed" };
   if (!Array.isArray(raw.events)) return { ok: false, reason: "malformed" };
 
@@ -102,6 +107,7 @@ export function readSharePayload(raw, now = Date.now()) {
       eventCount: finite(raw.eventCount) ? raw.eventCount : events.length,
       truncated: raw.truncated === true,
       expiresAtMs,
+      updatedAtMs,
     },
   };
 }

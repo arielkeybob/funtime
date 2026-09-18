@@ -21,6 +21,7 @@ const APP_SHELL = [
   "./src/data/share-codes.js",
   "./src/data/share-payload.js",
   "./src/data/share-writer.js",
+  "./src/data/shared-view.js",
   "./src/sharing/share-ui.js",
   "./src/occasions/summary.js",
   "./src/data/firestore-sync.js",

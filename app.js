@@ -9,6 +9,7 @@ import { createFirebaseAuth } from "./src/auth/firebase-auth.js";
 import { summarizeOccasionDoses } from "./src/occasions/summary.js";
 import { createFirestoreSync } from "./src/data/firestore-sync.js";
 import { createShareWriter } from "./src/data/share-writer.js";
+import { createSharedView } from "./src/data/shared-view.js";
 import { createShareUI } from "./src/sharing/share-ui.js";
 import { getFirebaseConfig, isFirebaseConfigured } from "./src/data/firestore-config.js";
 import { wireDialogDismissal } from "./src/ui/dialogs.js";
@@ -378,6 +379,7 @@ const state = {
   pendingBackupRestore: null,
   pendingSharedImportCheck: false,
   pendingSyncApply: null,
+  pendingSharedViewApply: null,
 };
 
 // Declarados aqui, longe do bloco de sincronização lá embaixo, porque `commitAppData` e
@@ -386,6 +388,7 @@ let cloudSync = null;
 let firebaseAuth = null;
 let shareWriter = null;
 let shareUI = null;
+let sharedViewReader = null;
 
 // Envolve o núcleo de persistência (src/data/store.js) para que toda gravação de dados
 // do app também agende o envio para a nuvem. Como as fábricas de src/drinks e
@@ -541,7 +544,13 @@ const sharingNodes = {
   shareOccasionPeople: document.querySelector("#share-occasion-people"),
   shareOccasionClose: document.querySelector("#share-occasion-close"),
   closeShareOccasion: document.querySelector("#close-share-occasion"),
+  homeShared: document.querySelector("#home-shared"),
+  sharedEmptyState: document.querySelector("#shared-empty-state"),
+  sharedEntries: document.querySelector("#shared-entries"),
 };
+const sharedHeader = document.querySelector("#shared-header");
+const sharedViewMain = document.querySelector("#shared-view");
+const closeSharedButton = document.querySelector("#close-shared");
 
 const drinkImportDialog = document.querySelector("#drink-import-dialog");
 const drinkImportFileName = document.querySelector("#drink-import-file-name");
@@ -883,6 +892,8 @@ function setCurrentView(view) {
   settingsView.hidden = view !== "settings";
   document.getElementById("occasion-header").hidden = view !== "occasion";
   document.getElementById("occasion-view").hidden = view !== "occasion";
+  if (sharedHeader) sharedHeader.hidden = view !== "shared";
+  if (sharedViewMain) sharedViewMain.hidden = view !== "shared";
   document.querySelectorAll("[data-nav-view]").forEach(button => {
     if (button.dataset.navView === view) button.setAttribute("aria-current", "page");
     else button.removeAttribute("aria-current");
@@ -983,6 +994,8 @@ const securityLock = createSecurityLock({
   clearSecuritySession, markSecurityActive,
   hideToast, hideUpdateAvailable, render, renderHistory, maybeHandleSharedDrinkImport,
   applyPendingSyncData: applyRemoteSyncData,
+  applyPendingSharedViewData: applySharedViewEntries,
+  renderSharedView,
 });
 const {
   closeSensitiveDialogs, showLockScreen, lockApp, unlockApp,
@@ -3218,6 +3231,30 @@ function openShareOccasionDialog(item, events) {
   shareUI?.openShareOccasionDialog(item, events);
 }
 
+// O que chega aqui é exibido, nunca gravado: não passa por commitAppData nem
+// commitToStorage, e não faz parte de buildCurrentAppData — histórico de outra
+// pessoa não pode se misturar com o dado do próprio aparelho em nenhuma hipótese.
+function applySharedViewEntries(entries) {
+  if (state.securityLocked) { state.pendingSharedViewApply = entries; return; }
+  shareUI?.setSharedEntries(entries);
+}
+
+function renderSharedView() {
+  shareUI?.renderSharedEntries();
+}
+
+function openSharedView() {
+  setCurrentView("shared");
+  renderSharedView();
+  window.scrollTo(0, 0);
+}
+
+function closeSharedView() {
+  setCurrentView("home");
+  render();
+  window.scrollTo(0, 0);
+}
+
 // Fora do app instalado, `initialData` é propositalmente vazio (ver a definição de
 // `initialData`): a tela de instalação não carrega os dados reais. Sincronizar nesse
 // estado enviaria um retrato vazio e apagaria o histórico de verdade, então a
@@ -3240,10 +3277,20 @@ firebaseAuth = IS_STANDALONE_APP && isFirebaseConfigured() ? createFirebaseAuth(
     });
     shareWriter = createShareWriter({
       app, uid: user.uid,
-      onPairingsChange: (lista) => shareUI?.setPairings(lista),
+      // A lista de pareamentos alimenta duas coisas ao mesmo tempo: quem aparece
+      // em "Pessoas de confiança" (shareUI) e, via o ponteiro sharedWithMe de
+      // cada uma, o que o leitor somente-leitura precisa escutar.
+      onPairingsChange: (lista) => { shareUI?.setPairings(lista); sharedViewReader?.setSources(lista); },
       onSharesChange: (lista) => shareUI?.setShares(lista),
       onStatusChange: ({ state: status, error }) => {
         if (status === "error") console.error("Falha no compartilhamento.", error);
+      },
+    });
+    sharedViewReader = createSharedView({
+      app,
+      onChange: applySharedViewEntries,
+      onStatusChange: ({ state: status, error }) => {
+        if (status === "error") console.error("Falha ao ver compartilhamento.", error);
       },
     });
     updateSyncSettingsUI();
@@ -3254,6 +3301,7 @@ firebaseAuth = IS_STANDALONE_APP && isFirebaseConfigured() ? createFirebaseAuth(
       showToast("Não foi possível sincronizar agora.");
     }
     try {
+      sharedViewReader.start();
       await shareWriter.start();
     } catch (error) {
       console.error("Não foi possível iniciar o compartilhamento.", error);
@@ -3264,9 +3312,13 @@ firebaseAuth = IS_STANDALONE_APP && isFirebaseConfigured() ? createFirebaseAuth(
     cloudSync = null;
     shareWriter?.stop();
     shareWriter = null;
+    sharedViewReader?.stop();
+    sharedViewReader = null;
     shareUI?.setPairings([]);
     shareUI?.setShares([]);
+    shareUI?.setSharedEntries([]);
     shareUI?.closeShareOccasionDialog();
+    if (state.currentView === "shared") closeSharedView();
     rememberSyncConnection(false);
     updateSyncSettingsUI();
   },
@@ -3353,6 +3405,9 @@ if (sharingNodes.sharingConnect) {
   shareUI.setPairings([]);
 }
 
+sharingNodes.homeShared?.addEventListener("click", openSharedView);
+closeSharedButton?.addEventListener("click", closeSharedView);
+
 if (firebaseAuth && isSyncConnected()) {
   firebaseAuth.init().catch((error) => console.error("Falha ao retomar a sincronização.", error));
 }
@@ -3369,6 +3424,7 @@ updateSyncSettingsUI();
 // abaixo é mais ampla do que só o que os 4 scripts clássicos leem.
 Object.assign(globalThis, {
   notifyLocalDataChanged, summarizeOccasionDoses, openShareOccasionDialog,
+  openSharedView, closeSharedView,
   render, saveData, effectiveCountingMode, registerDrinkAt, tickDrinkCards,
   closeSettingsView, openDrinkMenuDialog, openEventDialog, saveSecurityConfig,
   editDrinkFromDrinkMenu, getDrinkActivity, persistIconCatalog, unlockApp,

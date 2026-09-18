@@ -42,7 +42,31 @@ test('sem conta conectada, o compartilhamento não aparece', { timeout: 30000 },
       'o cartão só existe para quem conectou uma conta');
     assert.equal(await page.locator('#pairing-dialog').evaluate((node) => node.open), false);
     assert.equal(await page.locator('#pairing-confirm-dialog').evaluate((node) => node.open), false);
+    assert.equal(await page.locator('#home-shared').isVisible(), false,
+      'sem ninguém compartilhando, o botão de "ver compartilhado" não aparece');
+    assert.equal(await page.locator('#shared-view').isVisible(), false);
     assert.deepEqual(erros, [], 'a interface nova não pode gerar erro no console');
+  });
+});
+
+// A tela do convidado é acessível mesmo sem login (não tem dado nenhum pra mostrar
+// ainda, mas a navegação em si não pode quebrar) — cobre setCurrentView("shared").
+test('a tela de "compartilhado com você" abre e fecha sem erro', { timeout: 30000 }, async () => {
+  await withPage(async (page, erros) => {
+    await page.evaluate(() => openSharedView());
+    assert.equal(await page.locator('#shared-view').isVisible(), true);
+    assert.equal(await page.locator('#shared-empty-state').isVisible(), true,
+      'sem ninguém compartilhando, mostra o estado vazio');
+    assert.match(
+      await page.locator('.shared-view-disclaimer').textContent(),
+      /não indicam se essa pessoa está segura/,
+      'o aviso de segurança precisa estar sempre visível nesta tela, não só nas políticas'
+    );
+
+    await page.locator('#close-shared').click();
+    assert.equal(await page.locator('#shared-view').isVisible(), false);
+    assert.equal(await page.evaluate(() => state.currentView), 'home');
+    assert.deepEqual(erros, []);
   });
 });
 

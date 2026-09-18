@@ -8,7 +8,7 @@ export function createSecurityLock({
   getPinLockoutRemainingMs, registerFailedPinAttempt,
   clearSecuritySession, markSecurityActive,
   hideToast, hideUpdateAvailable, render, renderHistory, maybeHandleSharedDrinkImport,
-  applyPendingSyncData,
+  applyPendingSyncData, applyPendingSharedViewData, renderSharedView,
 }) {
   function closeSensitiveDialogs() {
     state.securitySetupGeneration++;
@@ -59,6 +59,7 @@ export function createSecurityLock({
     if (persistSession) markSecurityActive();
     if (state.currentView === "home") render();
     else if (state.currentView === "history") renderHistory();
+    else if (state.currentView === "shared") renderSharedView?.();
     if (state.pendingSharedImportCheck) {
       state.pendingSharedImportCheck = false;
       setTimeout(() => maybeHandleSharedDrinkImport(), 80);
@@ -67,6 +68,11 @@ export function createSecurityLock({
       const pending = state.pendingSyncApply;
       state.pendingSyncApply = null;
       applyPendingSyncData?.(pending);
+    }
+    if (state.pendingSharedViewApply) {
+      const pending = state.pendingSharedViewApply;
+      state.pendingSharedViewApply = null;
+      applyPendingSharedViewData?.(pending);
     }
   }
 

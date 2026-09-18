@@ -101,7 +101,16 @@
       </div>
     </header>
 
+    <header id="shared-header" class="app-header history-header" hidden>
+      <button id="close-shared" class="back-button" type="button" aria-label="Voltar para a tela principal">←</button>
+      <div class="history-header-copy">
+        <p class="eyebrow">Compartilhado com você</p>
+        <h1>Acompanhando</h1>
+      </div>
+    </header>
+
     <main id="home-view">
+      <button id="home-shared" class="occasion-context sharing-incoming" type="button" hidden></button>
       <div id="occasion-reminder" class="occasion-reminder" hidden></div>
       <button id="home-occasion" class="occasion-context" type="button"></button>
       <section id="empty-state" class="empty-state" hidden>
@@ -361,6 +370,16 @@
         <details class="agenda-filters"><summary>Buscar e filtrar</summary><label class="field"><span>Nome</span><input id="agenda-search" type="search" placeholder="Buscar evento"></label><label class="field"><span>Mês</span><input id="agenda-month" type="month"></label></details>
         <div id="occasion-list"></div><button id="agenda-more" class="secondary-button" type="button" hidden>Mostrar mais</button>
       </section>
+    </main>
+
+    <main id="shared-view" hidden>
+      <p class="settings-description shared-view-disclaimer">Os registros compartilhados mostram apenas os intervalos configurados. Eles não indicam se essa pessoa está segura para consumir mais.</p>
+      <section id="shared-empty-state" class="empty-state" hidden>
+        <div class="empty-icon">👀</div>
+        <h2>Ninguém está compartilhando com você agora</h2>
+        <p>Quando alguém compartilhar um evento, ele aparece aqui enquanto durar.</p>
+      </section>
+      <div id="shared-entries"></div>
     </main>
     <nav class="bottom-nav" aria-label="Navegação principal">
       <button id="nav-home" data-nav-view="home" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1Z"/></svg><span>Home</span></button>
