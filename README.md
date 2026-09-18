@@ -1,4 +1,8 @@
-# FunTime — V2.9.0
+# FunTime — V2.9.1
+
+## V2.9.1 — corrige exclusão de registro que voltava ao diálogo
+
+Depois de confirmar "Excluir registro", nada era excluído e o diálogo continuava aberto. O código comparava o registro por referência de objeto; se a sincronização recriasse os objetos enquanto a confirmação estava aberta, a exclusão abortava em silêncio. Agora compara por id. Teste de regressão adicionado (falha sem a correção).
 
 ## V2.9.0 — tela do amigo mais clara; selos com seta
 

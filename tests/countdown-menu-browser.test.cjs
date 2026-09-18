@@ -149,8 +149,12 @@ test('Menu de dose, contagem cancelada e editor de horário', { timeout: 90000 }
     await page.keyboard.press('Escape');
     assert.equal(await page.evaluate(() => state.events.some(e => e.id === 'other-event')), true);
     await page.locator('#delete-event').click();
+    // A sincronização pode recriar os objetos dos registros enquanto a confirmação
+    // está aberta: a exclusão precisa valer mesmo assim (regressão: voltava ao diálogo).
+    await page.evaluate(() => { state.events = state.events.map(e => ({ ...e })); });
     await page.locator('#app-confirm-accept').click();
     await page.waitForFunction(() => !state.events.some(e => e.id === 'other-event'));
+    assert.equal(await page.locator('#event-dialog').evaluate(node => node.open), false, 'o diálogo fecha depois de excluir');
     await page.evaluate(() => openSettingsView());
     await page.evaluate(() => { disableSecurity(); });
     assert.equal(await page.locator('#app-confirm-title').textContent(), 'Desativar bloqueio');

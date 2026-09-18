@@ -122,7 +122,12 @@ export function createEventDialog({
     const confirmed = await showAppConfirmation(`Excluir o registro de ${drinkName} das ${formatClock(selectedEvent.consumedAt)}? Os intervalos serão recalculados.`, { title: "Excluir registro", confirmLabel: "Excluir registro" });
     if (!confirmed) return;
 
-    if (state.securityLocked || state.selectedEventId !== selectedEvent.id || !state.events.includes(selectedEvent)) return;
+    // Compara por id, não por referência: enquanto a confirmação estava aberta, a
+    // sincronização ou uma nova leitura podem ter recriado os objetos de state.events
+    // (mesmo registro, outra instância) — checar a referência abortava a exclusão em
+    // silêncio e o diálogo continuava aberto.
+    if (state.securityLocked || state.selectedEventId !== selectedEvent.id) return;
+    if (!state.events.some((item) => item.id === selectedEvent.id)) { closeEventDialog(); return; }
     const nextEvents = state.events.filter((item) => item.id !== selectedEvent.id);
     try {
       state.events = commitAppData(dataStorageKey, buildCurrentAppData(), { events: nextEvents }).events;
