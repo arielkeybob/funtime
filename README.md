@@ -1,4 +1,10 @@
-# FunTime — V2.10.0
+# FunTime — V2.10.1
+
+## V2.10.1 — mensagens claras na aba Vendo
+
+- "Sem conexão · mostrando o que chegou às…" podia aparecer mesmo com internet (o Firestore marca "do cache" ao abrir a tela). Agora: "Atualizando…" enquanto a cópia local ainda não foi confirmada, "Sem internet neste aparelho" só se o aparelho estiver mesmo offline, e "Atualizado agora" quando em dia. Sem o aviso "pode estar desatualizado": quem não anota nada não envia nada.
+- O evento aparece como título, com "Começou hoje às 11:31".
+- Sem doses: "<apelido> ainda não registrou nada neste evento."
 
 ## V2.10.0 — compartilhar direto da tela do amigo
 

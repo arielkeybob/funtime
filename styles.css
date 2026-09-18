@@ -3783,3 +3783,4 @@ body {
 .share-start-button { flex-shrink: 0; min-height: 40px; padding: 0 16px; border: 0; border-radius: 12px; background: var(--accent); color: var(--accent-text); font-weight: 800; }
 .share-start-button:active { transform: scale(.97); }
 .settings-toggle-row.is-highlighted { outline: 2px solid var(--info); outline-offset: 3px; border-radius: 14px; }
+.share-vendo-title { display: block; font-size: 1.05rem; margin: 6px 0 2px; }

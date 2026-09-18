@@ -186,14 +186,17 @@ export function createShareUI({
     return "Quer se conectar com você";
   }
 
-  // Três estados, na ordem em que o roadmap pediu para não mentir sobre estar "ao
-  // vivo": cache offline > desatualizado (mais de 5 min sem confirmação do
-  // servidor) > atualizado. `fromCache` vem do metadata do SDK, não do relógio.
+  // Dois eixos honestos, sem alarme: se o aparelho está sem internet (navigator.onLine),
+  // se a leitura ainda é a cópia local (fromCache, típico ao abrir a tela, antes do
+  // servidor responder) e há quanto tempo a outra pessoa enviou algo. Quem não anotou
+  // nada não envia nada, então "última atualização" antiga não significa problema.
   function freshnessLabel(entry) {
-    if (entry.fromCache) return `Sem conexão · mostrando o que chegou às ${formatClock(entry.receivedAtMs)}`;
-    if (entry.view.updatedAtMs == null) return "Atualizado agora";
-    if (now() - entry.view.updatedAtMs > 5 * 60 * 1000) return `Pode estar desatualizado · última atualização ${formatClock(entry.view.updatedAtMs)}`;
-    return "Atualizado agora";
+    const enviado = entry.view.updatedAtMs;
+    const ultima = enviado != null ? ` · última atualização dela às ${formatClock(enviado)}` : "";
+    if (globalThis.navigator?.onLine === false) return `Sem internet neste aparelho${ultima}`;
+    if (entry.fromCache) return "Atualizando…";
+    if (enviado == null || now() - enviado <= 5 * 60 * 1000) return "Atualizado agora";
+    return `Atualizado agora${ultima}`;
   }
 
   function vendoEntryFor(otherUid) {
@@ -222,11 +225,17 @@ export function createShareUI({
     estado.textContent = freshnessLabel(entry);
     container.append(estado);
 
+    const titulo = document.createElement("strong");
+    titulo.className = "share-vendo-title";
+    titulo.textContent = view.occasion.name || "Evento";
     const periodo = document.createElement("p");
     periodo.className = "settings-description";
-    periodo.textContent = `${view.occasion.name} · desde ${formatClock(view.occasion.startedAt)}`;
-    if (view.occasion.endedAt != null) periodo.textContent += ` até ${formatClock(view.occasion.endedAt)}`;
-    container.append(periodo);
+    const inicio = new Date(view.occasion.startedAt);
+    const dia = dayLabel(view.occasion.startedAt);
+    const quando = dia === "Hoje" ? "hoje" : dia === "Ontem" ? "ontem" : `em ${dia}`;
+    periodo.textContent = `Começou ${quando} às ${formatClock(inicio)}`;
+    if (view.occasion.endedAt != null) periodo.textContent += ` · terminou às ${formatClock(view.occasion.endedAt)}`;
+    container.append(titulo, periodo);
 
     for (const total of view.totals) {
       const linha = document.createElement("p");
@@ -240,6 +249,14 @@ export function createShareUI({
       aviso.className = "settings-description";
       aviso.textContent = `Mostrando os registros mais recentes de ${view.eventCount} no total.`;
       container.append(aviso);
+    }
+
+    if (!view.events.length) {
+      const vazio = document.createElement("p");
+      vazio.className = "settings-description";
+      vazio.textContent = `${view.ownerAlias || "Essa pessoa"} ainda não registrou nada neste evento.`;
+      container.append(vazio);
+      return container;
     }
 
     container.append(renderDoseTimeline(view.events));
