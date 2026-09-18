@@ -1,6 +1,6 @@
 # 0023 — Compartilhar o consumo de um evento com pessoa de confiança
 
-Status: aprovada
+Status: implementada
 
 ## Contexto
 
@@ -192,3 +192,54 @@ que cheguem ao armazenamento local, a um backup ou à nuvem.
   na nuvem" removendo shares e pareamentos.
 - `node --input-type=module --check < app.js`, `node --check sw.js`,
   `node --check occasions-ui.js`, `npm test` a cada fase.
+
+## Nota pós-implementação
+
+Duas correções reais encontradas na implementação, nenhuma prevista no desenho original:
+
+- **`removePairing` não revogava compartilhamentos ativos antes de apagar o
+  pareamento.** A regra de leitura de `shares/{shareId}` não depende do
+  pareamento continuar existindo (só de `viewerUid` + `expiresAt`), então
+  desfazer uma conexão não tirava o acesso na hora — quem foi desconectado
+  continuaria vendo até o prazo natural de 24h. Contrariava a garantia de
+  "revogação imediata" que esta própria spec já listava. Corrigido: revoga
+  cada compartilhamento ativo com aquele uid antes de apagar o pareamento.
+  Verificado que o teste quebra sem a correção.
+- **Código de pareamento não era de uso único.** Válido por 5 minutos, mas
+  reutilizável por qualquer pessoa dentro da janela — bastava alguém ver a
+  tela ou receber o código encaminhado. Sem Cloud Functions não dá pra
+  invalidar atomicamente no instante do resgate, mas o aparelho de quem gerou
+  o código está sempre escutando os próprios pareamentos (`onPairingsChange`);
+  como ninguém redime o próprio código, um pareamento que o dono não criou só
+  pode ter nascido de alguém digitando o código dele — por eliminação, não por
+  o documento dizer isso. Ao ver isso, o próprio aparelho apaga o código.
+  Fecha a janela em segundos (tempo de propagação do `onSnapshot`) em vez dos
+  5 minutos inteiros; não é atômico, mas é o que dá para fazer no plano
+  gratuito, e reduz a janela real em duas ordens de grandeza.
+
+Uma mudança de desenho, pedida pelo usuário ao revisar a experiência para
+várias pessoas (mais de 10) de um lado ou de outro:
+
+- O diálogo de compartilhar um evento deixou de ser uma lista vertical com um
+  botão "Compartilhar"/"Parar" por pessoa e virou uma grade de avatares
+  (inicial do apelido, ordem alfabética) com seleção em lote — toca para
+  marcar quem vai ver, um botão "Compartilhar" no fim aplica a diferença de
+  uma vez. Abrir o diálogo já mostra marcado quem já está vendo. Um "Parar com
+  todos" encerra tudo daquele evento numa ação só.
+- A tela de quem recebe deixou de mostrar um cartão cheio (período, totais,
+  histórico inteiro) empilhado por pessoa, e virou duas grades compactas —
+  "Pessoas conectadas" (informativa) e "Compartilhando com você" (toca para
+  abrir o detalhe num diálogo). O aviso obrigatório de segurança se moveu do
+  topo da página (onde não fazia sentido, a grade não mostra consumo nenhum)
+  para dentro do diálogo de detalhe, que é onde o consumo de verdade aparece —
+  mais fiel ao "dentro da tela do convidado" original do que a primeira versão.
+
+O aceite das políticas (1.0.4 → 1.0.5) foi dispensado a pedido explícito do
+usuário, apesar de esta ser, pelo critério já registrado em
+`feedback_politicas_aceite` (memória), uma mudança material — não uma de
+forma. Ver comentário em `policies.js` junto de `TERMS_VERSIONS_STILL_VALID`.
+
+**Pendente nesta revisão**: código implementado e testado (unitário + regras
+no emulador), mas as regras de `firestore.rules` ainda não foram publicadas no
+projeto real, e nada foi enviado ao repositório remoto. Até isso acontecer,
+esta funcionalidade não existe fora do ambiente local.

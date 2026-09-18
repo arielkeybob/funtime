@@ -178,6 +178,35 @@ test('desfazer pareamento sem compartilhamento ativo só apaga o par, sem tocar 
   assert.deepEqual(firestore.exclusoes, [`pairings/${PAR}`]);
 });
 
+// Ninguém redime o próprio código, então um pareamento que EU não criei só pode
+// ter nascido de um código MEU sendo digitado por outra pessoa — o que torna o
+// código de uso único na prática, sem precisar de Cloud Functions.
+test('ao ver um pareamento criado com um código meu, apaga esse código', async () => {
+  const { writer, firestore } = setup();
+
+  await writer.start();
+  firestore.listeners.get('pairings')(snapshotDePares([{
+    __id: PAR, uids: [EU, OUTRO], createdBy: OUTRO, viaCode: 'AB7K29',
+    acceptedBy: [OUTRO], aliases: {}, sharing: {},
+  }]));
+  await new Promise((resolve) => setTimeout(resolve, 0));
+
+  assert.ok(firestore.exclusoes.includes('pairingCodes/AB7K29'));
+});
+
+test('pareamento que EU criei não apaga código nenhum (não usei código meu, usei o de alguém)', async () => {
+  const { writer, firestore } = setup();
+
+  await writer.start();
+  firestore.listeners.get('pairings')(snapshotDePares([{
+    __id: PAR, uids: [EU, OUTRO], createdBy: EU, viaCode: 'ZZ9999',
+    acceptedBy: [EU], aliases: {}, sharing: {},
+  }]));
+  await new Promise((resolve) => setTimeout(resolve, 0));
+
+  assert.ok(!firestore.exclusoes.includes('pairingCodes/ZZ9999'));
+});
+
 test('a lista de pares distingue quem aceitou o quê', async () => {
   const pares = [];
   const { writer, firestore } = setup({ onPairingsChange: (lista) => pares.push(lista) });
@@ -191,7 +220,7 @@ test('a lista de pares distingue quem aceitou o quê', async () => {
   assert.deepEqual(pares.at(-1), [{
     pairId: PAR, otherUid: OUTRO, alias: 'Bia', myAlias: '',
     acceptedByMe: false, acceptedByOther: true, createdByMe: false,
-    sharedWithMe: null, sharingWithOther: null,
+    sharedWithMe: null, sharingWithOther: null, viaCode: null,
   }]);
 });
 

@@ -48,25 +48,36 @@ A relação não precisa ser obrigatoriamente simétrica; `X → Y` pode existir
 
 ## Longo prazo / exige projeto específico
 
-### Compartilhamento temporário com pessoas autorizadas
-
-Estudar um modo opcional de permitir que duas pessoas conectadas compartilhem parte de seus registros por um período definido.
-
-Requisitos mínimos antes de implementação:
-
-- contas e autenticação;
-- backend e sincronização;
-- consentimento explícito;
-- escolha granular do que compartilhar;
-- duração limitada;
-- revogação imediata;
-- privacidade e segurança dos dados;
-- tratamento de conflitos/offline;
-- clareza de que os registros compartilhados não determinam se alguém está seguro para consumir mais.
-
-A proposta deve ser tratada como **compartilhamento entre pessoas de confiança**, e não como rede social pública.
-
 ## Implementado
+
+### Compartilhamento temporário com pessoas autorizadas — V2.3.0
+
+Ver `docs/specs/0023-compartilhamento-temporario.md`. Pareamento por código de 6
+caracteres (nunca por nome ou e-mail), aceite dos dois lados, compartilhamento
+por evento/pessoa iniciado só por quem é dono do dado, acesso que termina
+sozinho 24h após o fim do evento (verificado no servidor), e revogação
+imediata (detalhe do evento, "Parar com todos", desfazer conexão, sair da
+conta ou apagar dados na nuvem). Todos os requisitos mínimos listados aqui
+originalmente foram atendidos:
+
+- contas e autenticação — spec 0022;
+- backend e sincronização — Firestore, spec 0022;
+- consentimento explícito — código + aceite dos dois lados;
+- escolha granular do que compartilhar — por evento, por pessoa;
+- duração limitada — 24h após o fim do evento, cobrada pela regra de segurança;
+- revogação imediata — múltiplos caminhos, todos testados;
+- privacidade e segurança dos dados — regras de segurança viraram código
+  testado (`firestore.rules` + `tests/firestore-rules.test.cjs`), e só as
+  doses do evento compartilhado saem do aparelho de quem compartilha;
+- tratamento de conflitos/offline — cada documento compartilhado tem um único
+  escritor, então não há conflito por construção; quem vê é tratado como
+  online por natureza, com aviso quando o dado vem do cache;
+- clareza de que os registros compartilhados não determinam segurança para
+  consumo — frase obrigatória dentro da própria tela de quem recebe.
+
+Mantido o enquadramento original: **compartilhamento entre pessoas de
+confiança**, não rede social — sem busca por nome/e-mail, sem forma de pedir
+acesso ao dado de outra pessoa, só de oferecer o próprio.
 
 ### Interface limpa e compacta — V1.9.0
 

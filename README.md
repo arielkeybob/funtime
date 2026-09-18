@@ -1,4 +1,32 @@
-# FunTime — V2.2.3
+# FunTime — V2.3.0
+
+## V2.3.0 — compartilhar o consumo de um evento com pessoa de confiança
+
+Nas Configurações, **Compartilhar eventos** permite se conectar com alguém por um
+código de 6 caracteres (nunca por nome ou e-mail) — uma pessoa mostra, a outra
+digita, válido por 5 minutos e de uso único. Os dois lados precisam aceitar; um
+número de confirmação de 4 dígitos, igual nos dois aparelhos, ajuda a garantir que é
+a pessoa certa antes de aceitar.
+
+Estar conectado não mostra nada. Compartilhar é uma ação separada, evento a evento:
+no detalhe de um evento já iniciado, uma grade de avatares deixa escolher quem vê,
+com seleção em lote e "Parar com todos". Quem aceita vê horários e bebidas daquele
+evento em tempo real, numa tela com duas listas compactas — pessoas conectadas e
+quem está compartilhando agora — tocando para abrir o histórico completo de cada
+uma. O acesso termina sozinho 24h após o fim do evento (cobrado pelo servidor, não
+só escondido na interface); revogar é imediato, por vários caminhos, incluindo
+desfazer a conexão e "Apagar dados na nuvem".
+
+Só as doses do evento escolhido saem do aparelho de quem compartilha — nunca o
+cadastro de bebidas, outros eventos, preferências, e-mail ou nome da Conta Google.
+As regras de segurança do Firestore, que até aqui só existiam coladas no console,
+passam a ser código versionado (`firestore.rules`) com teste automático contra o
+emulador oficial (`npm run test:rules`). Políticas atualizadas com uma seção nova
+sobre o recurso; aceite dispensado para quem já aceitou a versão anterior, a pedido
+explícito do usuário. Ver `docs/specs/0023-compartilhamento-temporario.md` para o
+desenho completo e as descobertas durante a implementação. App, boot, rodapés e
+cache alinhados a 2.3.0; DATA_VERSION 11 preservado (nada muda no formato salvo
+localmente).
 
 ## V2.2.3 — dispensa seletiva de novo aceite das políticas
 

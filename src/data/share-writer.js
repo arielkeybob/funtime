@@ -49,8 +49,24 @@ export function createShareWriter({
         // descobre o documento, sem precisar adivinhar nem varrer a coleção.
         sharedWithMe: data.sharing?.[other] ?? null,
         sharingWithOther: data.sharing?.[uid] ?? null,
+        viaCode: data.viaCode ?? null,
       };
     });
+  }
+
+  // Ninguém redime o próprio código (a regra exige `ownerUid !== uid` na criação),
+  // então um pareamento que EU não criei só pode ter nascido de um código MEU sendo
+  // digitado por outra pessoa — por eliminação, não por o documento dizer isso.
+  // Apagar aqui é o que torna o código de uso único na prática: sem Cloud Functions
+  // não dá pra invalidar atomicamente no instante do resgate, mas isso fecha a
+  // janela assim que este aparelho perceber o pareamento novo (tipicamente
+  // segundos, via onSnapshot) — bem menor que os 5 minutos de validade do código.
+  async function invalidateUsedCodes(paresAtuais) {
+    const { firestore, db } = await load();
+    for (const par of paresAtuais) {
+      if (par.createdByMe || !par.viaCode) continue;
+      await firestore.deleteDoc(firestore.doc(db, "pairingCodes", par.viaCode)).catch(() => {});
+    }
   }
 
   async function createPairingCode() {
@@ -286,7 +302,12 @@ export function createShareWriter({
 
     unsubscribers.push(firestore.onSnapshot(
       firestore.query(firestore.collection(db, "pairings"), firestore.where("uids", "array-contains", uid)),
-      (snapshot) => { if (!stopped) onPairingsChange?.(pairingsOf(snapshot)); },
+      (snapshot) => {
+        if (stopped) return;
+        const pares = pairingsOf(snapshot);
+        onPairingsChange?.(pares);
+        invalidateUsedCodes(pares).catch(report);
+      },
       report
     ));
 

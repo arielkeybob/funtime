@@ -1,10 +1,16 @@
 // Aceite específico deste navegador, separado dos dados transferíveis.
-const TERMS_VERSION = "1.0.4";
+const TERMS_VERSION = "1.0.5";
 // Aceites destas versões anteriores continuam valendo, sem pedir um novo. Liste aqui
 // só a mudança que não altera o que a pessoa consentiu — correção de texto, ajuste de
 // forma. Os dois erros não são simétricos: esquecer de listar apenas pede o aceite de
 // novo, enquanto listar indevidamente esconde dela uma mudança que deveria ver.
-const TERMS_VERSIONS_STILL_VALID = new Set(["1.0.3"]);
+//
+// Exceção registrada: 1.0.4 → 1.0.5 (spec 0023) É mudança material pelo critério
+// acima — passa a existir a capacidade de enviar registros para a conta de outra
+// pessoa. Dispensada mesmo assim, a pedido explícito do usuário, atenuado por a
+// funcionalidade ser opt-in e sempre iniciada por quem compartilha (ninguém tem
+// dado movido sem um ato deliberado próprio).
+const TERMS_VERSIONS_STILL_VALID = new Set(["1.0.3", "1.0.4"]);
 const TERMS_STORAGE_KEY = "funtime-terms-v1";
 const TERMS_DRAFT_KEY = "funtime-terms-draft-v1";
 
