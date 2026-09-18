@@ -1,4 +1,8 @@
-# FunTime — V2.9.1
+# FunTime — V2.9.2
+
+## V2.9.2 — ícones nas abas da tela do amigo
+
+As abas "Vendo" (seta ↙ verde) e "Compartilhando" (seta ↗ azul) ganharam o mesmo selo usado na lista de amigos.
 
 ## V2.9.1 — corrige exclusão de registro que voltava ao diálogo
 

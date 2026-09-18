@@ -3772,3 +3772,7 @@ body {
 .share-badge svg { width: 12px; height: 12px; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
 .share-badge--outgoing { top: -5px; background: var(--info); }
 .share-badge--incoming { bottom: -5px; background: var(--success); }
+.shared-detail-tabs button { display: flex; align-items: center; justify-content: center; gap: 8px; }
+.tab-badge { display: inline-grid; place-items: center; width: 20px; height: 20px; border-radius: 999px; color: #06121c; flex-shrink: 0; }
+.tab-badge svg { width: 12px; height: 12px; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
+.tab-badge.share-badge--incoming, .tab-badge.share-badge--outgoing { position: static; }
