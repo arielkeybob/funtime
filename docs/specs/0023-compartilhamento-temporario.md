@@ -606,3 +606,7 @@ Perguntado o que acontece sem evento em andamento ou com eventos desligados (pad
 ## Nota pós-implementação (v2.10.1) — mensagens da aba Vendo
 
 O usuário estranhou "Sem conexão · mostrando o que chegou às 16:44" com o app online. Causa: o rótulo usava `snapshot.metadata.fromCache`, que o Firestore marca também na primeira leitura de um listener, antes de o servidor responder — não significa falta de internet. O rótulo agora separa os eixos: `navigator.onLine === false` → "Sem internet neste aparelho"; `fromCache` com internet → "Atualizando…"; senão "Atualizado agora". O aviso "pode estar desatualizado" (mais de 5 min sem envio) foi removido, porque quem não anota nada não envia nada e o silêncio não indica falha; fica só a hora da última atualização. Uma lista vazia de doses passou a dizer que a pessoa ainda não registrou nada no evento.
+
+## Nota pós-implementação (v2.10.2) — ao vivo × encerrado
+
+O acesso do convidado dura até 24h após o fim do evento (`expiresAt`), então a entrada continua na lista depois do fim e o app a mostrava como compartilhando agora. O critério de "ao vivo" passou a ser `view.occasion.endedAt == null`: só isso acende o selo verde e a bolinha da Home; encerrado mas ainda válido usa selo cinza e a aba Vendo mostra até quando dá para ver (`view.expiresAtMs`). No lado de quem compartilha, o bookkeeping de `shares` não guarda se o evento acabou; a tela compara com o evento em andamento (`getEventsContext`) para dizer "Evento encerrado · ainda visível para essa pessoa".

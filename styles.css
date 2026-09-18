@@ -3784,3 +3784,4 @@ body {
 .share-start-button:active { transform: scale(.97); }
 .settings-toggle-row.is-highlighted { outline: 2px solid var(--info); outline-offset: 3px; border-radius: 14px; }
 .share-vendo-title { display: block; font-size: 1.05rem; margin: 6px 0 2px; }
+.share-badge--ended { bottom: -5px; background: #8a8a94; }

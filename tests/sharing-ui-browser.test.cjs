@@ -232,3 +232,36 @@ test('a aba Vendo explica o estado em vez de mensagens técnicas', { timeout: 30
     assert.deepEqual(erros, []);
   });
 });
+
+// Depois que o evento dela termina o acesso continua (até 24h), mas ela não está mais
+// compartilhando "agora": sem selo verde nem bolinha na Home, e o texto diz isso.
+test('evento encerrado deixa de aparecer como ao vivo', { timeout: 30000 }, async () => {
+  await withPage(async (page, erros) => {
+    const r = await page.evaluate(async () => {
+      const { createShareUI } = await import('/funtime/src/sharing/share-ui.js');
+      const n = (s) => document.querySelector(s);
+      const nodes = {
+        friendsGrid: n('#friends-grid'), friendsEmpty: n('#friends-empty'), sharedDetailDialog: n('#shared-detail-dialog'),
+        sharedDetailTitle: n('#shared-detail-title'), sharedDetailTabs: n('#shared-detail-tabs'),
+        sharedDetailTabVendo: n('#shared-detail-tab-vendo'), sharedDetailTabCompartilhando: n('#shared-detail-tab-compartilhando'),
+        sharedDetailBody: n('#shared-detail-body'), homeFriendsDot: n('#home-friends-dot'), pairingError: n('#pairing-error'),
+      };
+      const t = Date.now();
+      const ui = createShareUI({ nodes, getShareWriter: () => null, showToast() {} });
+      ui.wire();
+      ui.setPairings([{ pairId: 'p', otherUid: 'u', alias: 'Su', myAlias: 'Eu', acceptedByMe: true, acceptedByOther: true, createdAt: t }]);
+      const entrada = (endedAt) => ({ ownerUid: 'u', fromCache: false, receivedAtMs: t, view: { ownerAlias: 'Su', occasion: { name: 'Festa', startedAt: t - 7200000, endedAt }, totals: [], truncated: false, eventCount: 0, updatedAtMs: t, expiresAtMs: t + 86400000, events: [] } });
+      const estado = () => ({ pontoHome: !n('#home-friends-dot').hidden, verde: !!n('#friends-grid .share-badge--incoming'), cinza: !!n('#friends-grid .share-badge--ended') });
+      ui.setSharedEntries([entrada(null)]);
+      const aoVivo = estado();
+      ui.setSharedEntries([entrada(t - 1000)]);
+      const encerrado = estado();
+      n('#friends-grid .share-person').click();
+      return { aoVivo, encerrado, texto: n('#shared-detail-body').innerText.replace(/\s+/g, ' ') };
+    });
+    assert.deepEqual(r.aoVivo, { pontoHome: true, verde: true, cinza: false });
+    assert.deepEqual(r.encerrado, { pontoHome: false, verde: false, cinza: true });
+    assert.match(r.texto, /Evento encerrado · você pode ver até/);
+    assert.deepEqual(erros, []);
+  });
+});

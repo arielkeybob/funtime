@@ -199,6 +199,12 @@ export function createShareUI({
     return `Atualizado agora${ultima}`;
   }
 
+  // "Ao vivo" só enquanto o evento dela não terminou; depois disso o acesso continua por
+  // até 24h (é o combinado), mas já não é ela compartilhando agora.
+  function entryAoVivo(entry) {
+    return entry.view.occasion.endedAt == null;
+  }
+
   function vendoEntryFor(otherUid) {
     return sharedEntries.find((item) => item.ownerUid === otherUid) ?? null;
   }
@@ -222,7 +228,9 @@ export function createShareUI({
 
     const estado = document.createElement("p");
     estado.className = "sharing-person-state";
-    estado.textContent = freshnessLabel(entry);
+    estado.textContent = entryAoVivo(entry)
+      ? freshnessLabel(entry)
+      : `Evento encerrado · você pode ver até ${formatDate(view.expiresAtMs)} às ${formatClock(view.expiresAtMs)}`;
     container.append(estado);
 
     const titulo = document.createElement("strong");
@@ -344,12 +352,14 @@ export function createShareUI({
     container.className = "share-panel";
     const ativos = compartilhandoSharesFor(otherUid);
 
+    const contexto = getEventsContext();
+    const emAndamento = new Set(contexto.active.map(({ item }) => item.id));
     for (const share of ativos) {
-      container.append(linhaEvento(share.occasionName || "Evento", "Ao vivo para essa pessoa",
+      const subtitulo = emAndamento.has(share.occasionId) ? "Ao vivo para essa pessoa" : "Evento encerrado · ainda visível para essa pessoa";
+      container.append(linhaEvento(share.occasionName || "Evento", subtitulo,
         botao("Parar", () => pararCompartilhamento(share.shareId), "share-stop-button")));
     }
 
-    const contexto = getEventsContext();
     if (!contexto.eventsEnabled) {
       const aviso = document.createElement("div");
       aviso.className = "share-notice";
@@ -490,7 +500,9 @@ export function createShareUI({
     if (nodes.friendsEmpty) nodes.friendsEmpty.hidden = pairings.length > 0;
 
     for (const par of [...pairings].sort((a, b) => (a.alias || "").localeCompare(b.alias || "", "pt-BR"))) {
-      const vendo = Boolean(vendoEntryFor(par.otherUid));
+      const entradaVendo = vendoEntryFor(par.otherUid);
+      const vendo = Boolean(entradaVendo);
+      const vendoAoVivo = vendo && entryAoVivo(entradaVendo);
       const compartilhando = compartilhandoSharesFor(par.otherUid).length > 0;
 
       const botaoPessoa = document.createElement("button");
@@ -499,7 +511,8 @@ export function createShareUI({
       botaoPessoa.addEventListener("click", () => openFriendDetail(par.pairId));
 
       const partesEstado = [];
-      if (vendo) partesEstado.push("compartilhando com você agora");
+      if (vendoAoVivo) partesEstado.push("compartilhando com você agora");
+      else if (vendo) partesEstado.push("evento encerrado, ainda disponível para ver");
       if (compartilhando) partesEstado.push("você está compartilhando com essa pessoa");
       botaoPessoa.setAttribute("aria-label", `${par.alias || "Amigo"}${partesEstado.length ? " · " + partesEstado.join(" · ") : ""}`);
 
@@ -512,7 +525,7 @@ export function createShareUI({
       // ela compartilhando com você, ↗ azul é você compartilhando com ela.
       if (vendo) {
         const selo = document.createElement("span");
-        selo.className = "share-badge share-badge--incoming";
+        selo.className = `share-badge ${vendoAoVivo ? "share-badge--incoming" : "share-badge--ended"}`;
         selo.innerHTML = '<svg viewBox="0 0 24 24"><path d="M17 7 7 17M15 17H7V9"/></svg>';
         avatar.append(selo);
       }
@@ -550,7 +563,7 @@ export function createShareUI({
   // depende de ter alguém compartilhando com você agora.
   function setSharedEntries(lista) {
     sharedEntries = Array.isArray(lista) ? lista : [];
-    if (nodes.homeFriendsDot) nodes.homeFriendsDot.hidden = sharedEntries.length === 0;
+    if (nodes.homeFriendsDot) nodes.homeFriendsDot.hidden = !sharedEntries.some(entryAoVivo);
     renderFriends();
   }
 

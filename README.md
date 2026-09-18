@@ -1,4 +1,8 @@
-# FunTime — V2.10.1
+# FunTime — V2.10.2
+
+## V2.10.2 — evento encerrado deixa de aparecer como "ao vivo"
+
+O acesso continua por até 24h depois do fim do evento (é o combinado), mas o app tratava isso como "compartilhando agora". Agora só é verde (selo ↙ e bolinha da Home) enquanto o evento dela não terminou. Depois do fim o selo fica cinza e a aba Vendo diz "Evento encerrado · você pode ver até dd/mm às hh:mm". Do seu lado, um compartilhamento seu de evento já encerrado diz "Evento encerrado · ainda visível para essa pessoa" (com "Parar").
 
 ## V2.10.1 — mensagens claras na aba Vendo
 
