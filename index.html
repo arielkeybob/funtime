@@ -373,14 +373,42 @@
     </main>
 
     <main id="shared-view" hidden>
-      <p class="settings-description shared-view-disclaimer">Os registros compartilhados mostram apenas os intervalos configurados. Eles não indicam se essa pessoa está segura para consumir mais.</p>
-      <section id="shared-empty-state" class="empty-state" hidden>
-        <div class="empty-icon">👀</div>
-        <h2>Ninguém está compartilhando com você agora</h2>
-        <p>Quando alguém compartilhar um evento, ele aparece aqui enquanto durar.</p>
+      <section class="shared-view-section">
+        <h2 class="agenda-month-heading">Pessoas conectadas</h2>
+        <p id="shared-pairings-empty" class="sharing-empty" hidden>Ninguém conectado ainda. Use "Conectar com alguém" nas Configurações.</p>
+        <div id="shared-pairings-grid" class="share-grid"></div>
       </section>
-      <div id="shared-entries"></div>
+
+      <section class="shared-view-section">
+        <h2 class="agenda-month-heading">Compartilhando com você</h2>
+        <section id="shared-empty-state" class="empty-state" hidden>
+          <div class="empty-icon">👀</div>
+          <h2>Ninguém está compartilhando com você agora</h2>
+          <p>Quando alguém compartilhar um evento, ele aparece aqui enquanto durar.</p>
+        </section>
+        <div id="shared-entries-grid" class="share-grid"></div>
+      </section>
     </main>
+
+    <dialog id="shared-detail-dialog" class="dialog data-dialog">
+      <form method="dialog">
+        <div class="dialog-header">
+          <div>
+            <p class="eyebrow">Compartilhado com você</p>
+            <h2 id="shared-detail-title">—</h2>
+          </div>
+          <button id="close-shared-detail" class="icon-button secondary" type="button" aria-label="Fechar">×</button>
+        </div>
+
+        <p class="settings-description shared-view-disclaimer">Os registros compartilhados mostram apenas os intervalos configurados. Eles não indicam se essa pessoa está segura para consumir mais.</p>
+
+        <div id="shared-detail-body"></div>
+
+        <div class="dialog-actions">
+          <button id="shared-detail-close" class="secondary-button" type="button">Fechar</button>
+        </div>
+      </form>
+    </dialog>
     <nav class="bottom-nav" aria-label="Navegação principal">
       <button id="nav-home" data-nav-view="home" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1Z"/></svg><span>Home</span></button>
       <button id="open-history" data-nav-view="history" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span>Histórico</span></button>

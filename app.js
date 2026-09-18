@@ -547,8 +547,15 @@ const sharingNodes = {
   shareOccasionStopAll: document.querySelector("#share-occasion-stop-all"),
   closeShareOccasion: document.querySelector("#close-share-occasion"),
   homeShared: document.querySelector("#home-shared"),
+  sharedPairingsGrid: document.querySelector("#shared-pairings-grid"),
+  sharedPairingsEmpty: document.querySelector("#shared-pairings-empty"),
   sharedEmptyState: document.querySelector("#shared-empty-state"),
-  sharedEntries: document.querySelector("#shared-entries"),
+  sharedEntriesGrid: document.querySelector("#shared-entries-grid"),
+  sharedDetailDialog: document.querySelector("#shared-detail-dialog"),
+  sharedDetailTitle: document.querySelector("#shared-detail-title"),
+  sharedDetailBody: document.querySelector("#shared-detail-body"),
+  sharedDetailClose: document.querySelector("#shared-detail-close"),
+  closeSharedDetail: document.querySelector("#close-shared-detail"),
 };
 const sharedHeader = document.querySelector("#shared-header");
 const sharedViewMain = document.querySelector("#shared-view");

@@ -3571,6 +3571,10 @@ body {
 .share-person-name { font-size: .74rem; color: var(--muted); text-align: center; max-width: 76px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .share-person[aria-pressed="true"] .share-person-name { color: var(--text); }
 .share-person-badge { font-size: .62rem; font-weight: 700; color: var(--success); }
+.shared-view-section { margin-bottom: 28px; }
+.shared-view-section > .agenda-month-heading { margin: 0 0 10px; }
+.share-person-state-badge { font-size: .62rem; color: var(--muted); }
+.share-person.is-live .share-avatar { border-color: var(--success); }
 #shared-entries { display: grid; gap: 14px; }
 .shared-entry-events { display: grid; gap: 4px; margin-top: 6px; max-height: 260px; overflow-y: auto; }
 .shared-entry-event { margin: 0; font-size: .8rem; color: var(--muted); }

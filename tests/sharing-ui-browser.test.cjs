@@ -51,16 +51,23 @@ test('sem conta conectada, o compartilhamento não aparece', { timeout: 30000 },
 
 // A tela do convidado é acessível mesmo sem login (não tem dado nenhum pra mostrar
 // ainda, mas a navegação em si não pode quebrar) — cobre setCurrentView("shared").
+// As duas listas (pareados / compartilhando com você) são compactas: sem entradas,
+// mostram só os estados vazios — o histórico de verdade só existe dentro do
+// diálogo de detalhe, aberto ao tocar em alguém que esteja compartilhando.
 test('a tela de "compartilhado com você" abre e fecha sem erro', { timeout: 30000 }, async () => {
   await withPage(async (page, erros) => {
     await page.evaluate(() => openSharedView());
     assert.equal(await page.locator('#shared-view').isVisible(), true);
+    assert.equal(await page.locator('#shared-pairings-empty').isVisible(), true,
+      'sem pareamento, mostra o estado vazio da lista de conectados');
     assert.equal(await page.locator('#shared-empty-state').isVisible(), true,
       'sem ninguém compartilhando, mostra o estado vazio');
+    assert.equal(await page.locator('#shared-detail-dialog').evaluate((node) => node.open), false,
+      'o detalhe (onde fica o aviso de segurança) só abre ao tocar em alguém');
     assert.match(
-      await page.locator('.shared-view-disclaimer').textContent(),
+      await page.locator('#shared-detail-dialog .shared-view-disclaimer').textContent(),
       /não indicam se essa pessoa está segura/,
-      'o aviso de segurança precisa estar sempre visível nesta tela, não só nas políticas'
+      'o aviso de segurança precisa existir no diálogo, mesmo fechado'
     );
 
     await page.locator('#close-shared').click();
