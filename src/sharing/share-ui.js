@@ -189,17 +189,13 @@ export function createShareUI({
     return "Quer se conectar com você";
   }
 
-  // Dois eixos honestos, sem alarme: se o aparelho está sem internet (navigator.onLine),
-  // se a leitura ainda é a cópia local (fromCache, típico ao abrir a tela, antes do
-  // servidor responder) e há quanto tempo a outra pessoa enviou algo. Quem não anotou
-  // nada não envia nada, então "última atualização" antiga não significa problema.
+  // Só o que ajuda de verdade: sem internet neste aparelho, ainda lendo a cópia local
+  // (antes de o servidor confirmar) ou em dia. Quem não anota nada não envia nada,
+  // então "última atualização" antiga não significa problema — não é mostrada.
   function freshnessLabel(entry) {
-    const enviado = entry.view.updatedAtMs;
-    const ultima = enviado != null ? ` · última atualização dela às ${formatClock(enviado)}` : "";
-    if (globalThis.navigator?.onLine === false) return `Sem internet neste aparelho${ultima}`;
+    if (globalThis.navigator?.onLine === false) return "Sem internet neste aparelho";
     if (entry.fromCache) return "Atualizando…";
-    if (enviado == null || now() - enviado <= 5 * 60 * 1000) return "Atualizado agora";
-    return `Atualizado agora${ultima}`;
+    return "Atualizado agora";
   }
 
   // Estado de um compartilhamento recebido (live / grace / none) — a mesma regra do

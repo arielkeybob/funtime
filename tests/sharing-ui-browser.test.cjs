@@ -227,8 +227,8 @@ test('a aba Vendo explica o estado em vez de mensagens técnicas', { timeout: 30
     });
     assert.match(r.cache, /^Atualizando…\s*Festa \(Em andamento\)\s*Começou hoje às \d\d:\d\d\s*Su ainda não registrou nada neste evento\.$/);
     assert.match(r.emDia, /^Atualizado agora\s*Festa \(Em andamento\)/);
-    assert.match(r.antigo, /Atualizado agora · última atualização dela às \d\d:\d\d/);
-    assert.doesNotMatch(r.cache + r.emDia + r.antigo, /Sem conexão|desatualizado/);
+    assert.match(r.antigo, /^Atualizado agora\s*Festa/, 'envio antigo não vira aviso nem mostra a hora da última atualização');
+    assert.doesNotMatch(r.cache + r.emDia + r.antigo, /Sem conexão|desatualizado|última atualização/);
     assert.deepEqual(erros, []);
   });
 });

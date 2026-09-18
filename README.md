@@ -1,4 +1,8 @@
-# FunTime — V2.11.1
+# FunTime — V2.11.2
+
+## V2.11.2 — sem "última atualização dela às…"
+
+A aba Vendo deixou de mostrar a hora da última atualização dela; fica só "Atualizado agora", "Atualizando…" ou "Sem internet neste aparelho".
 
 ## V2.11.1 — aba Vendo mais limpa e fiel
 
