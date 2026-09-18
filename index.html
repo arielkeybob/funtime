@@ -58,7 +58,7 @@
     <footer class="browser-gate-footer">
       <span>App para estudo · não é controle de segurança</span>
       <a class="policies-link" href="./policies.html">Políticas e informações</a>
-      <span>v2.7.0 · By: arielkeybob</span>
+      <span>v2.8.0 · By: arielkeybob</span>
     </footer>
   </section>
 
@@ -313,7 +313,7 @@
           </div>
         </div>
 
-        <p class="settings-description">Versão instalada: <strong>v2.7.0</strong></p>
+        <p class="settings-description">Versão instalada: <strong>v2.8.0</strong></p>
         <button id="check-app-update" class="settings-secondary-button" type="button">Verificar atualizações</button>
       </section>
 
@@ -427,7 +427,7 @@
     <footer class="app-footer">
       <span class="app-footer-disclaimer">App para estudo · não é controle de segurança</span>
       <a class="policies-link" href="./policies.html">Políticas e informações</a>
-      <span class="app-footer-meta">v2.7.0 · By: arielkeybob</span>
+      <span class="app-footer-meta">v2.8.0 · By: arielkeybob</span>
     </footer>
   </div>
 
@@ -454,6 +454,7 @@
       <div class="pairing-panels">
         <div class="pairing-panel">
           <strong>Mostrar meu código</strong>
+          <img id="pairing-qr" class="pairing-qr" alt="QR Code do seu código de amizade" hidden>
           <p id="pairing-code-display" class="pairing-code">— — —</p>
           <p id="pairing-code-countdown" class="settings-description"></p>
           <button id="pairing-generate" class="settings-secondary-button" type="button">Gerar código</button>
@@ -466,7 +467,11 @@
             <span>Código recebido</span>
             <input id="pairing-code-input" type="text" inputmode="text" maxlength="7" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="AB7-K29">
           </label>
-          <button id="pairing-redeem" class="settings-secondary-button" type="button">Adicionar amigo</button>
+          <button id="pairing-scan" class="settings-secondary-button" type="button" hidden>Ler código com a câmera</button>
+          <div id="pairing-scanner" class="pairing-scanner" hidden>
+            <video id="pairing-video" playsinline muted></video>
+            <button id="pairing-scan-cancel" class="settings-secondary-button" type="button">Cancelar leitura</button>
+          </div>
         </div>
       </div>
 

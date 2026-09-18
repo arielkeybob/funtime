@@ -112,3 +112,39 @@ test('o diálogo de pareamento abre e fecha pelos próprios controles', { timeou
     assert.deepEqual(erros, []);
   });
 });
+
+// Prova as duas bibliotecas embutidas e o payload ponta a ponta: o QR gerado pelo app
+// tem que ser lido de volta pelo leitor do app, com o mesmo código.
+test('o QR gerado é lido de volta pelo leitor embutido', { timeout: 30000 }, async () => {
+  await withPage(async (page, erros) => {
+    const lido = await page.evaluate(async () => {
+      const qr = await import('/funtime/src/sharing/qr.js');
+      const codes = await import('/funtime/src/data/share-codes.js');
+      const url = await qr.renderQrDataUrl(codes.buildPairingQrPayload('AB7K29'));
+      const img = new Image();
+      await new Promise((resolve, reject) => { img.onload = resolve; img.onerror = reject; img.src = url; });
+      const canvas = document.createElement('canvas');
+      canvas.width = img.width; canvas.height = img.height;
+      const context = canvas.getContext('2d');
+      context.drawImage(img, 0, 0);
+      const data = context.getImageData(0, 0, canvas.width, canvas.height);
+      return codes.parsePairingQrPayload(await qr.decodeImageData(data.data, data.width, data.height));
+    });
+    assert.equal(lido, 'AB7K29');
+    assert.deepEqual(erros, []);
+  });
+});
+
+test('digitar os 6 caracteres conecta sozinho, sem botão', { timeout: 30000 }, async () => {
+  await withPage(async (page, erros) => {
+    assert.equal(await page.locator('#pairing-redeem').count(), 0, 'o botão redundante foi removido');
+    await page.evaluate(() => document.querySelector('#friends-add').click());
+    await page.locator('#pairing-code-input').fill('AB7K29');
+    // Sem conta não há escritor: a tentativa automática falha, e a mensagem prova
+    // que o envio aconteceu sozinho.
+    await page.waitForFunction(() => !document.querySelector('#pairing-error').hidden);
+    assert.match(await page.locator('#pairing-error').textContent(), /Não foi possível conectar/);
+    assert.equal(await page.locator('#pairing-code-input').inputValue(), 'AB7-K29');
+    assert.ok(erros.every((erro) => /pareamento|conta conectada/i.test(String(erro))), `erros inesperados: ${erros}`);
+  });
+});

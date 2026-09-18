@@ -165,7 +165,7 @@ que cheguem ao armazenamento local, a um backup ou à nuvem.
 
 ## Fora de escopo
 
-- QR (ler pela câmera não funciona no iOS; exibir exigiria um codificador próprio).
+- QR (adiado na v1; entrou na v2.8.0 — ver a nota pós-implementação no fim).
 - Modo "só o total" — decisão do usuário por só histórico completo.
 - Qualquer caminho para B pedir acesso, presença ("está vendo agora", exigiria escrita
   de B), notificar B quando A inicia um evento (vazaria atividade de A sem ato de A), e
@@ -571,3 +571,26 @@ computado do campo de apelido (fundo `#09090b`, borda, `border-radius:
 12px` — igual aos outros campos do app) e o botão "Salvar"
 desabilitado→habilitado→desabilitado no ciclo abrir/editar/salvar — script e
 capturas apagados depois, não fazem parte do repositório.
+
+## Nota pós-implementação (v2.8.0) — QR e envio automático
+
+A justificativa original para não ter QR ("ler QR pela câmera não existe no Safari
+iOS") estava exagerada: o que o Safari não tem é a API nativa `BarcodeDetector`. A
+câmera (`getUserMedia`) funciona no iOS Safari e na PWA instalada, e uma biblioteca JS
+decodifica QR a partir dos quadros do vídeo em qualquer navegador. O custo real era o
+app não ter dependências de terceiros; ficou aceito, com as duas bibliotecas embutidas
+em `src/vendor/` (qrcode-generator, MIT; jsQR, Apache-2.0 — ver `LICENSES.md`), no
+pré-cache offline e carregadas só quando o diálogo de pareamento precisa.
+
+Quem convida vê o QR do código; quem entra toca "Ler código com a câmera", que lê
+dentro do app e conecta. O conteúdo do QR é `funtime:AB7K29` — de propósito **não** é
+link: a câmera nativa do iPhone abriria o Safari, com armazenamento separado da PWA
+instalada. Digitar continua como alternativa (câmera negada ou ausente) e agora conecta
+sozinho ao completar 6 caracteres válidos; o botão "Adicionar amigo" do diálogo foi
+removido. A câmera só liga por toque e apaga ao ler, cancelar, fechar o diálogo ou sair
+do app; nenhuma imagem é gravada ou enviada, então `policies.html` não mudou.
+
+Verificado com o round-trip gerador→leitor num teste de navegador, e com um script
+descartável que injetou uma câmera falsa (canvas com o QR) para exercitar o scanner de
+verdade, incluindo o fim das trilhas de vídeo. **Não validado num iPhone real** — esse é
+o teste que falta, no Safari e na PWA instalada.

@@ -2,7 +2,7 @@ const { test } = require('node:test');
 const assert = require('node:assert/strict');
 const {
   generatePairingCode, formatPairingCode, normalizePairingCode, liveFormatPairingCode, buildPairId,
-  otherUidOf, PAIRING_CODE_ALPHABET, PAIRING_CODE_LENGTH,
+  otherUidOf, PAIRING_CODE_ALPHABET, PAIRING_CODE_LENGTH, buildPairingQrPayload, parsePairingQrPayload,
 } = require('../src/data/share-codes.js');
 
 test('o alfabeto não tem glifos que se confundem', () => {
@@ -78,4 +78,19 @@ test('otherUidOf devolve o outro lado', () => {
   assert.equal(otherUidOf(['aaa', 'zzz'], 'aaa'), 'zzz');
   assert.equal(otherUidOf(['aaa', 'zzz'], 'zzz'), 'aaa');
   assert.equal(otherUidOf([], 'aaa'), null);
+});
+
+test('o QR leva o código com prefixo e volta ao mesmo código', () => {
+  const payload = buildPairingQrPayload('AB7K29');
+  assert.equal(payload, 'funtime:AB7K29');
+  assert.equal(parsePairingQrPayload(payload), 'AB7K29');
+  assert.equal(parsePairingQrPayload('  FUNTIME:ab7-k29 '), 'AB7K29');
+});
+
+test('QR alheio ou com código inválido é recusado', () => {
+  assert.equal(parsePairingQrPayload('AB7K29'), null, 'sem prefixo não vale');
+  assert.equal(parsePairingQrPayload('https://exemplo.com/AB7K29'), null);
+  assert.equal(parsePairingQrPayload('funtime:AB7K2'), null, 'curto demais');
+  assert.equal(parsePairingQrPayload('funtime:AB7K20'), null, 'caractere fora do alfabeto');
+  assert.equal(parsePairingQrPayload(null), null);
 });

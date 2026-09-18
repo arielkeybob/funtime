@@ -1,4 +1,11 @@
-# FunTime — V2.7.0
+# FunTime — V2.8.0
+
+## V2.8.0 — pareamento por QR e conexão automática ao digitar
+
+- **QR no lugar de ditar o código.** Quem convida mostra o QR; quem entra toca "Ler código com a câmera". Funciona em Android e iPhone (a leitura é feita dentro do app; câmera só liga por toque e nada da imagem é gravado ou enviado).
+- **Digitar conecta sozinho.** Ao completar os 6 caracteres o pareamento acontece, sem botão. O botão "Adicionar amigo" do diálogo foi removido.
+- Duas bibliotecas embutidas (`src/vendor/`, MIT e Apache-2.0), sem CDN, no pré-cache offline.
+- Corrige a justificativa antiga de que QR "não funciona no iOS" (só a API nativa falta). Ainda não testado num iPhone real.
 
 ## V2.7.0 — "Adicionar amigo" muda de Configurações para dentro de Amigos; diálogo mais limpo
 

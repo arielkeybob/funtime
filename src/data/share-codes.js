@@ -40,6 +40,21 @@ export function normalizePairingCode(input) {
   return clean;
 }
 
+// Conteúdo do QR: o prefixo evita aceitar por engano um QR qualquer que por acaso
+// tenha 6 caracteres válidos. Não é um link de propósito — a câmera nativa do iPhone
+// abriria o Safari, com armazenamento separado do app instalado.
+const PAIRING_QR_PREFIX = "funtime:";
+
+export function buildPairingQrPayload(code) {
+  return `${PAIRING_QR_PREFIX}${code}`;
+}
+
+export function parsePairingQrPayload(text) {
+  const value = String(text ?? "").trim();
+  if (!value.toLowerCase().startsWith(PAIRING_QR_PREFIX)) return null;
+  return normalizePairingCode(value.slice(PAIRING_QR_PREFIX.length));
+}
+
 // Reformata o que a pessoa está digitando, tecla a tecla: maiúsculas, descarta o que
 // não pertence ao alfabeto, corta em 6 e insere o traço sozinho depois dos 3
 // primeiros — assim nunca fica a dúvida de "precisa do traço ou não" na hora de

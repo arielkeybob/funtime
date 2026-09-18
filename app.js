@@ -308,7 +308,7 @@ document.addEventListener("visibilitychange", () => {
 const DATA_STORAGE_KEY = "funtime-v1-data";
 const LEGACY_DRINKS_STORAGE_KEY = "balada-v1-drinks";
 const DATA_VERSION = 11;
-const APP_VERSION = "2.7.0";
+const APP_VERSION = "2.8.0";
 const DRINK_EXPORT_TYPE = "funtime-drinks";
 const DRINK_EXPORT_FORMAT_VERSION = 1;
 const BACKUP_EXPORT_TYPE = "funtime-backup";
@@ -528,7 +528,11 @@ const sharingNodes = {
   pairingCodeCountdown: document.querySelector("#pairing-code-countdown"),
   pairingGenerate: document.querySelector("#pairing-generate"),
   pairingCodeInput: document.querySelector("#pairing-code-input"),
-  pairingRedeem: document.querySelector("#pairing-redeem"),
+  pairingQr: document.querySelector("#pairing-qr"),
+  pairingScan: document.querySelector("#pairing-scan"),
+  pairingScanner: document.querySelector("#pairing-scanner"),
+  pairingVideo: document.querySelector("#pairing-video"),
+  pairingScanCancel: document.querySelector("#pairing-scan-cancel"),
   pairingError: document.querySelector("#pairing-error"),
   pairingClose: document.querySelector("#close-pairing"),
   pairingDone: document.querySelector("#pairing-done"),

@@ -1,4 +1,5 @@
-import { formatPairingCode, normalizePairingCode, liveFormatPairingCode } from "../data/share-codes.js";
+import { formatPairingCode, normalizePairingCode, liveFormatPairingCode, buildPairingQrPayload, parsePairingQrPayload } from "../data/share-codes.js";
+import { renderQrDataUrl, cameraAvailable, startScanner } from "./qr.js";
 import { formatClock, formatDate, formatHistoryElapsed } from "../format/datetime.js";
 
 const MOTIVOS = {
@@ -29,10 +30,16 @@ export function createShareUI({ nodes, getShareWriter, showToast, now = () => Da
   let codigoAtual = null;
   let contagem = null;
   let apelidoSalvo = "";
+  let pararLeitura = null;
+  let resgatando = false;
 
   function erro(mensagem) {
     nodes.pairingError.textContent = mensagem || "";
     nodes.pairingError.hidden = !mensagem;
+  }
+
+  function limparQr() {
+    if (nodes.pairingQr) { nodes.pairingQr.hidden = true; nodes.pairingQr.removeAttribute("src"); }
   }
 
   function pararContagem() {
@@ -50,6 +57,7 @@ export function createShareUI({ nodes, getShareWriter, showToast, now = () => Da
       codigoAtual = null;
       pararContagem();
       nodes.pairingCodeDisplay.textContent = "— — —";
+      limparQr();
       nodes.pairingCodeCountdown.textContent = "O código venceu. Gere outro.";
       return;
     }
@@ -65,6 +73,9 @@ export function createShareUI({ nodes, getShareWriter, showToast, now = () => Da
     try {
       codigoAtual = await shareWriter.createPairingCode();
       nodes.pairingCodeDisplay.textContent = formatPairingCode(codigoAtual.code);
+      renderQrDataUrl(buildPairingQrPayload(codigoAtual.code)).then((url) => {
+        if (nodes.pairingQr && codigoAtual) { nodes.pairingQr.src = url; nodes.pairingQr.hidden = false; }
+      }).catch((falha) => console.error("Falha ao desenhar o QR.", falha));
       pararContagem();
       mostrarContagem();
       contagem = setInterval(mostrarContagem, 1000);
@@ -79,11 +90,13 @@ export function createShareUI({ nodes, getShareWriter, showToast, now = () => Da
   // Conecta na hora, sem segunda tela: mostrar o código já foi o consentimento de
   // quem gerou, digitá-lo é o de quem recebeu. Nenhum passo de aceite separado.
   async function usarCodigo() {
+    if (resgatando) return;
     erro("");
     const code = normalizePairingCode(nodes.pairingCodeInput.value);
     if (!code) { erro(MOTIVOS.invalid); return; }
 
-    nodes.pairingRedeem.disabled = true;
+    resgatando = true;
+    pararLeituraCamera();
     try {
       // Salva e propaga antes: o apelido é único para todas as conexões, não um por
       // pareamento — se o campo foi editado agora, todo mundo já conectado também
@@ -99,7 +112,37 @@ export function createShareUI({ nodes, getShareWriter, showToast, now = () => Da
       console.error("Falha ao usar o código de pareamento.", falha);
       erro("Não foi possível conectar agora.");
     } finally {
-      nodes.pairingRedeem.disabled = false;
+      resgatando = false;
+    }
+  }
+
+  // Câmera só liga por toque e apaga ao ler, cancelar, fechar o diálogo ou sair do app.
+  function pararLeituraCamera() {
+    if (pararLeitura) { pararLeitura(); pararLeitura = null; }
+    if (nodes.pairingScanner) nodes.pairingScanner.hidden = true;
+    if (nodes.pairingScan) nodes.pairingScan.hidden = !cameraAvailable();
+  }
+
+  async function lerComCamera() {
+    erro("");
+    if (!cameraAvailable() || pararLeitura) return;
+    nodes.pairingScan.hidden = true;
+    nodes.pairingScanner.hidden = false;
+    let encerrar = null;
+    try {
+      encerrar = await startScanner(nodes.pairingVideo, (texto) => {
+        const code = parsePairingQrPayload(texto);
+        if (!code) { erro("Esse QR não é de um código do FunTime."); return; }
+        nodes.pairingCodeInput.value = liveFormatPairingCode(code);
+        usarCodigo();
+      });
+      pararLeitura = encerrar;
+    } catch (falha) {
+      console.error("Falha ao abrir a câmera.", falha);
+      pararLeituraCamera();
+      erro(falha?.name === "NotAllowedError"
+        ? "Câmera bloqueada. Digite o código."
+        : "Não foi possível abrir a câmera. Digite o código.");
     }
   }
 
@@ -546,6 +589,8 @@ export function createShareUI({ nodes, getShareWriter, showToast, now = () => Da
     nodes.pairingCodeInput.value = "";
     nodes.pairingCodeDisplay.textContent = "— — —";
     nodes.pairingCodeCountdown.textContent = "";
+    limparQr();
+    pararLeituraCamera();
     codigoAtual = null;
     pararContagem();
     if (!nodes.pairingDialog.open) nodes.pairingDialog.showModal();
@@ -578,6 +623,8 @@ export function createShareUI({ nodes, getShareWriter, showToast, now = () => Da
 
   function closePairingDialog() {
     pararContagem();
+    pararLeituraCamera();
+    limparQr();
     // O código continua válido no servidor até vencer; cancelar aqui evita deixar
     // código ativo que ninguém mais vai usar.
     if (codigoAtual) shareWriter.cancelPairingCode(codigoAtual.code).catch(() => {});
@@ -590,11 +637,16 @@ export function createShareUI({ nodes, getShareWriter, showToast, now = () => Da
     nodes.pairingAliasSave?.addEventListener("click", salvarApelido);
     nodes.pairingAlias?.addEventListener("input", atualizarBotaoApelido);
     nodes.pairingGenerate?.addEventListener("click", gerarCodigo);
-    nodes.pairingRedeem?.addEventListener("click", usarCodigo);
+    nodes.pairingScan?.addEventListener("click", lerComCamera);
+    nodes.pairingScanCancel?.addEventListener("click", pararLeituraCamera);
+    if (nodes.pairingScan) nodes.pairingScan.hidden = !cameraAvailable();
+    document.addEventListener("visibilitychange", () => { if (document.hidden) pararLeituraCamera(); });
     // Formata enquanto digita: acaba com a dúvida de precisar ou não do traço — o
-    // campo já mostra o formato certo a cada tecla.
+    // campo já mostra o formato certo a cada tecla. Com os 6 caracteres válidos,
+    // conecta sozinho: não há mais botão para tocar depois de digitar.
     nodes.pairingCodeInput?.addEventListener("input", () => {
       nodes.pairingCodeInput.value = liveFormatPairingCode(nodes.pairingCodeInput.value);
+      if (normalizePairingCode(nodes.pairingCodeInput.value)) usarCodigo();
     });
     nodes.pairingClose?.addEventListener("click", closePairingDialog);
     nodes.pairingDone?.addEventListener("click", closePairingDialog);
