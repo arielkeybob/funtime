@@ -1,5 +1,5 @@
-const APP_VERSION = "2.10.2";
-const CACHE_NAME = "funtime-v2-10-2";
+const APP_VERSION = "2.11.0";
+const CACHE_NAME = "funtime-v2-11-0";
 const BACKGROUND_CACHE_NAME = "funtime-bg-v1";
 const SHARE_IMPORT_CACHE_NAME = "funtime-share-target-v1";
 const SHARE_IMPORT_REQUEST_PATH = "./__shared-drinks-import__";
@@ -24,6 +24,7 @@ const APP_SHELL = [
   "./src/data/shared-view.js",
   "./src/sharing/share-ui.js",
   "./src/sharing/qr.js",
+  "./src/sharing/share-state.js",
   "./src/vendor/qrcode-generator.js",
   "./src/vendor/jsqr.js",
   "./src/occasions/summary.js",

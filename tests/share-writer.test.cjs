@@ -71,7 +71,7 @@ function fakeFirestore({ documentos = {} } = {}) {
 
 function setup({
   documentos, generateCode = () => 'AB7K29', onPairingsChange = () => {}, onSharesChange = () => {},
-  createShareId, timers,
+  createShareId, timers, now = () => 1_000_000,
 } = {}) {
   const firestore = fakeFirestore({ documentos });
   let proximoId = 0;
@@ -79,7 +79,7 @@ function setup({
     app: {}, uid: EU, onPairingsChange, onSharesChange, generateCode,
     createShareId: createShareId || (() => `share-${++proximoId}`),
     importModule: async () => firestore.module,
-    now: () => 1_000_000,
+    now,
     schedule: timers?.schedule, cancel: timers?.cancel,
   });
 
@@ -290,7 +290,7 @@ test('a lista de pares distingue quem aceitou o quê', async () => {
   assert.deepEqual(pares.at(-1), [{
     pairId: PAR, otherUid: OUTRO, alias: 'Bia', myAlias: '',
     acceptedByMe: false, acceptedByOther: true, createdByMe: false, createdAt: null,
-    sharedWithMe: null, sharingWithOther: null, viaCode: null,
+    sharedWithMe: [], sharingWithOther: [], viaCode: null,
   }]);
 });
 
@@ -367,8 +367,8 @@ test('a lista de pares expõe o ponteiro de compartilhamento dos dois lados', as
     aliases: {}, sharing: { [OUTRO]: 'share-da-bia', [EU]: 'share-meu' },
   }]));
 
-  assert.equal(pares.at(-1)[0].sharedWithMe, 'share-da-bia');
-  assert.equal(pares.at(-1)[0].sharingWithOther, 'share-meu');
+  assert.deepEqual(pares.at(-1)[0].sharedWithMe, ['share-da-bia']);
+  assert.deepEqual(pares.at(-1)[0].sharingWithOther, ['share-meu']);
 });
 
 test('start limpa os códigos vencidos e preserva os válidos', async () => {
@@ -436,7 +436,8 @@ test('compartilhar avisa quem escuta, com a lista atualizada', async () => {
 
   const { shareId } = await writer.startShare({ occasion: ocasiao(), events: [], viewerUid: OUTRO, ownerAlias: 'Ana' });
 
-  assert.deepEqual(listas.at(-1), [{ shareId, occasionId: 'oc-1', occasionName: 'Festa', viewerUid: OUTRO, ownerAlias: 'Ana' }]);
+  assert.deepEqual(listas.at(-1), [{ shareId, occasionId: 'oc-1', occasionName: 'Festa', viewerUid: OUTRO, ownerAlias: 'Ana', expiresAtMs: listas.at(-1)[0].expiresAtMs }]);
+  assert.ok(Number.isFinite(listas.at(-1)[0].expiresAtMs), 'o prazo local acompanha cada compartilhamento');
 });
 
 test('parar apaga o documento e limpa o ponteiro', async () => {
@@ -504,7 +505,7 @@ test('ao reabrir, reconstrói os compartilhamentos ativos a partir do bookkeepin
 
   await writer.start();
 
-  assert.deepEqual(listas.at(-1), [{ shareId: 's1', occasionId: 'oc-1', occasionName: 'Festa', viewerUid: OUTRO, ownerAlias: 'Ana' }]);
+  assert.deepEqual(listas.at(-1), [{ shareId: 's1', occasionId: 'oc-1', occasionName: 'Festa', viewerUid: OUTRO, ownerAlias: 'Ana', expiresAtMs: 2_000_000 }]);
 });
 
 test('ao reabrir, compartilhamento vencido é apagado e o ponteiro limpo', async () => {
@@ -529,4 +530,67 @@ test('stop também interrompe os compartilhamentos em memória, sem apagar nada'
   writer.stop();
 
   assert.deepEqual(firestore.exclusoes, [], 'stop não é revogação — é só parar de rodar neste aparelho');
+});
+
+// Evento novo com a mesma pessoa dentro das 24h do anterior: os dois ficam, e o
+// ponteiro vira lista. Formato antigo (string) só enquanto houver um único share.
+test('dois eventos com a mesma pessoa mantêm os dois no ponteiro', async () => {
+  const { writer, firestore } = setup();
+
+  const um = await writer.startShare({ occasion: ocasiao(), events: [], viewerUid: OUTRO, ownerAlias: 'Ana' });
+  const dois = await writer.startShare({ occasion: ocasiao({ id: 'oc-2', name: 'Jantar' }), events: [], viewerUid: OUTRO, ownerAlias: 'Ana' });
+
+  const ponteiros = firestore.escritas.filter((item) => item.path === `pairings/${PAR}` && item.update).map((item) => item.data[`sharing.${EU}`]);
+  assert.equal(ponteiros[0], um.shareId, 'com um só, continua sendo o shareId (compatível com a versão anterior)');
+  assert.deepEqual(ponteiros[1], [um.shareId, dois.shareId]);
+});
+
+test('parar o evento antigo NÃO derruba o ponteiro do novo', async () => {
+  const { writer, firestore } = setup();
+
+  const antigo = await writer.startShare({ occasion: ocasiao(), events: [], viewerUid: OUTRO, ownerAlias: 'Ana' });
+  const novo = await writer.startShare({ occasion: ocasiao({ id: 'oc-2', name: 'Jantar' }), events: [], viewerUid: OUTRO, ownerAlias: 'Ana' });
+  await writer.stopShare(antigo.shareId);
+
+  const ultimo = firestore.escritas.filter((item) => item.path === `pairings/${PAR}` && item.update).at(-1);
+  assert.equal(ultimo.data[`sharing.${EU}`], novo.shareId, 'sobra só o novo — antes o ponteiro virava null e a pessoa perdia o evento ao vivo');
+});
+
+test('parar o último evento devolve o ponteiro a null', async () => {
+  const { writer, firestore } = setup();
+
+  const a = await writer.startShare({ occasion: ocasiao(), events: [], viewerUid: OUTRO, ownerAlias: 'Ana' });
+  const b = await writer.startShare({ occasion: ocasiao({ id: 'oc-2' }), events: [], viewerUid: OUTRO, ownerAlias: 'Ana' });
+  await writer.stopShare(a.shareId);
+  await writer.stopShare(b.shareId);
+
+  const ultimo = firestore.escritas.filter((item) => item.path === `pairings/${PAR}` && item.update).at(-1);
+  assert.equal(ultimo.data[`sharing.${EU}`], null);
+});
+
+test('lê o ponteiro tanto no formato antigo (texto) quanto no novo (lista)', async () => {
+  const pares = [];
+  const { writer, firestore } = setup({ onPairingsChange: (lista) => pares.push(lista) });
+  await writer.start();
+  const par = (sharing) => snapshotDePares([{ __id: PAR, uids: [EU, OUTRO], createdBy: EU, acceptedBy: [EU, OUTRO], aliases: {}, sharing }]);
+
+  firestore.listeners.get('pairings')(par({ [OUTRO]: 'a' }));
+  assert.deepEqual(pares.at(-1)[0].sharedWithMe, ['a']);
+  firestore.listeners.get('pairings')(par({ [OUTRO]: ['a', 'b'] }));
+  assert.deepEqual(pares.at(-1)[0].sharedWithMe, ['a', 'b']);
+  firestore.listeners.get('pairings')(par({ [OUTRO]: null }));
+  assert.deepEqual(pares.at(-1)[0].sharedWithMe, []);
+});
+
+test('o vencimento é aplicado na hora, sem esperar reabrir o app', async () => {
+  let agora = 1_000;
+  const { writer, firestore } = setup({ now: () => agora });
+
+  const { shareId } = await writer.startShare({ occasion: ocasiao({ endedAt: 500 }), events: [], viewerUid: OUTRO, ownerAlias: 'Ana' });
+  await writer.sweepExpiredShares();
+  assert.ok(!firestore.exclusoes.includes(`shares/${shareId}`), 'dentro do prazo, fica');
+
+  agora = 500 + 24 * 60 * 60 * 1000 + 1;
+  await writer.sweepExpiredShares();
+  assert.ok(firestore.exclusoes.includes(`shares/${shareId}`), 'passou o prazo: apagado');
 });

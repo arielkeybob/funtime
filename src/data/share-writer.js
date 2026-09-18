@@ -1,5 +1,5 @@
 import { loadFirestore, chunk, BATCH_LIMIT } from "./firestore-db.js";
-import { buildPairId, generatePairingCode, otherUidOf } from "./share-codes.js";
+import { buildPairId, generatePairingCode, otherUidOf, pointerToList, listToPointer } from "./share-codes.js";
 import { buildSharePayload } from "./share-payload.js";
 
 export const PAIRING_CODE_TTL_MS = 5 * 60 * 1000;
@@ -48,8 +48,10 @@ export function createShareWriter({
         createdAt: typeof data.createdAt?.toMillis === "function" ? data.createdAt.toMillis() : null,
         // Ponteiro publicado por quem compartilha: é assim que o outro lado
         // descobre o documento, sem precisar adivinhar nem varrer a coleção.
-        sharedWithMe: data.sharing?.[other] ?? null,
-        sharingWithOther: data.sharing?.[uid] ?? null,
+        // Listas: pode haver mais de um evento ao mesmo tempo. Lê também o formato
+        // antigo (um shareId ou null).
+        sharedWithMe: pointerToList(data.sharing?.[other]),
+        sharingWithOther: pointerToList(data.sharing?.[uid]),
         viaCode: data.viaCode ?? null,
       };
     });
@@ -249,12 +251,24 @@ export function createShareWriter({
     await firestore.setDoc(firestore.doc(db, "users", uid, "meta", "shares"), { active }, { merge: true });
   }
 
-  async function clearSharingPointer(viewerUid) {
+  function activeIdsFor(viewerUid) {
+    return [...activeShares].filter(([, info]) => info.viewerUid === viewerUid).map(([shareId]) => shareId);
+  }
+
+  // Republica o ponteiro com exatamente os compartilhamentos ativos com essa pessoa.
+  // O dono é o único escritor da própria chave e conhece todos os seus shares, então
+  // reescrever a lista inteira é mais simples e seguro do que somar/retirar um id —
+  // e parar UM evento nunca derruba os outros (antes zerava o ponteiro inteiro).
+  async function publishPointer(viewerUid, ids = activeIdsFor(viewerUid)) {
     const { firestore, db } = await load();
     await firestore.updateDoc(
       firestore.doc(db, "pairings", buildPairId(uid, viewerUid)),
-      { [`sharing.${uid}`]: null }
-    ).catch(() => { /* o pareamento pode já ter sido desfeito */ });
+      { [`sharing.${uid}`]: listToPointer(ids) }
+    );
+  }
+
+  async function republishPointer(viewerUid) {
+    await publishPointer(viewerUid).catch(() => { /* o pareamento pode já ter sido desfeito */ });
   }
 
   // Começa a compartilhar um evento com alguém. `events` é só o retrato inicial —
@@ -271,12 +285,9 @@ export function createShareWriter({
       updatedAt: firestore.serverTimestamp(),
     });
 
-    await firestore.updateDoc(
-      firestore.doc(db, "pairings", buildPairId(uid, viewerUid)),
-      { [`sharing.${uid}`]: shareId }
-    );
+    await publishPointer(viewerUid, [...activeIdsFor(viewerUid), shareId]);
 
-    activeShares.set(shareId, { occasionId: occasion.id, occasionName: occasion.name, viewerUid, ownerAlias });
+    activeShares.set(shareId, { occasionId: occasion.id, occasionName: occasion.name, viewerUid, ownerAlias, expiresAtMs: payload.expiresAtMs });
     await saveShareBookkeeping();
     onSharesChange?.(sharesSnapshot());
     return { shareId };
@@ -290,7 +301,7 @@ export function createShareWriter({
 
     const { firestore, db } = await load();
     await firestore.deleteDoc(firestore.doc(db, "shares", shareId)).catch(report);
-    if (info) await clearSharingPointer(info.viewerUid);
+    if (info) await republishPointer(info.viewerUid);
   }
 
   async function stopAllShares() {
@@ -326,6 +337,8 @@ export function createShareWriter({
         expiresAt: firestore.Timestamp.fromMillis(payload.expiresAtMs),
         updatedAt: firestore.serverTimestamp(),
       }).catch(report);
+      // O prazo anda junto do evento (fim + 24h): manter o valor local em dia.
+      info.expiresAtMs = payload.expiresAtMs;
     }
   }
 
@@ -361,6 +374,7 @@ export function createShareWriter({
 
     const limit = now();
     activeShares.clear();
+    const mexidas = new Set();
 
     for (const entry of mine.docs) {
       const data = entry.data();
@@ -368,7 +382,7 @@ export function createShareWriter({
 
       if (expiresAtMs <= limit) {
         await firestore.deleteDoc(entry.ref).catch(report);
-        if (data?.viewerUid) await clearSharingPointer(data.viewerUid);
+        if (data?.viewerUid) mexidas.add(data.viewerUid);
         continue;
       }
 
@@ -376,13 +390,25 @@ export function createShareWriter({
       // Sem bookkeeping não há como saber a qual ocasião local isto pertence —
       // acontece só se o documento de bookkeeping se perdeu; mais seguro encerrar
       // do que compartilhar sem saber o que está sendo enviado.
-      if (!tracked) { await firestore.deleteDoc(entry.ref).catch(report); if (data?.viewerUid) await clearSharingPointer(data.viewerUid); continue; }
+      if (!tracked) { await firestore.deleteDoc(entry.ref).catch(report); if (data?.viewerUid) mexidas.add(data.viewerUid); continue; }
 
-      activeShares.set(entry.id, { occasionId: tracked.occasionId, occasionName: data.occasion?.name ?? null, viewerUid: data.viewerUid, ownerAlias: data.ownerAlias });
+      activeShares.set(entry.id, { occasionId: tracked.occasionId, occasionName: data.occasion?.name ?? null, viewerUid: data.viewerUid, ownerAlias: data.ownerAlias, expiresAtMs });
     }
+
+    // Só depois de reconstruir tudo: o ponteiro de quem perdeu algum share passa a
+    // listar exatamente o que sobrou.
+    for (const viewerUid of mexidas) await republishPointer(viewerUid);
 
     await saveShareBookkeeping().catch(report);
     onSharesChange?.(sharesSnapshot());
+  }
+
+  // Vencimento na hora certa, sem esperar reabrir o app: apaga do servidor o que já
+  // passou do prazo e tira da lista local.
+  async function sweepExpiredShares() {
+    const limit = now();
+    const vencidos = [...activeShares].filter(([, info]) => Number.isFinite(info.expiresAtMs) && info.expiresAtMs <= limit);
+    for (const [shareId] of vencidos) await stopShare(shareId);
   }
 
   async function start() {
@@ -435,6 +461,6 @@ export function createShareWriter({
     createPairingCode, cancelPairingCode, redeemPairingCode,
     acceptPairing, setAlias, removePairing, getGlobalAlias, setGlobalAlias,
     startShare, stopShare, stopAllShares, scheduleSharePush, flushSharePushes,
-    deleteAllSharingData,
+    deleteAllSharingData, sweepExpiredShares,
   };
 }

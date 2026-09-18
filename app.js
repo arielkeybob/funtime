@@ -308,7 +308,7 @@ document.addEventListener("visibilitychange", () => {
 const DATA_STORAGE_KEY = "funtime-v1-data";
 const LEGACY_DRINKS_STORAGE_KEY = "balada-v1-drinks";
 const DATA_VERSION = 11;
-const APP_VERSION = "2.10.2";
+const APP_VERSION = "2.11.0";
 const DRINK_EXPORT_TYPE = "funtime-drinks";
 const DRINK_EXPORT_FORMAT_VERSION = 1;
 const BACKUP_EXPORT_TYPE = "funtime-backup";
@@ -3275,6 +3275,9 @@ function getShareEventsContext() {
   return {
     eventsEnabled,
     active: active ? [{ item: active, events: state.events.filter((event) => event.occasionId === active.id) }] : [],
+    // Fim de cada evento (null = em andamento): o estado exato de cada compartilhamento
+    // meu — ao vivo ou nas 24h depois — vem daqui, sem adivinhar.
+    endedAtById: Object.fromEntries((state.occasions || []).map((occasion) => [occasion.id, occasion.endedAt ?? null])),
   };
 }
 
@@ -3459,6 +3462,10 @@ if (sharingNodes.pairingDialog) {
 
 sharingNodes.homeFriendsButton?.addEventListener("click", openSharedView);
 closeSharedButton?.addEventListener("click", closeSharedView);
+
+// Vencimento na hora certa: apaga do servidor e da lista o que passou das 24h depois do
+// fim do evento, sem depender de reabrir o app.
+setInterval(() => { shareWriter?.sweepExpiredShares().catch(() => { /* melhor esforço */ }); }, 60000);
 
 if (firebaseAuth && isSyncConnected()) {
   firebaseAuth.init().catch((error) => console.error("Falha ao retomar a sincronização.", error));

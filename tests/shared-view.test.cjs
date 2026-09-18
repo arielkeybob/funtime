@@ -241,3 +241,25 @@ test('SOMENTE LEITURA: nada é escrito em todo o ciclo de vida', async () => {
   assert.deepEqual(firestore.gravacoes, []);
   assert.deepEqual(firestore.commits, []);
 });
+
+// Evento novo da mesma pessoa dentro das 24h do anterior: o ponteiro vira lista e os
+// dois aparecem (o novo não apaga o anterior). Tirar um da lista não derruba o outro.
+test('dois eventos da mesma pessoa aparecem como duas entradas', async () => {
+  const retratos = [];
+  const { view, firestore } = setup({ onChange: (lista) => retratos.push(lista) });
+
+  view.start();
+  view.setSources([{ otherUid: ANA, sharedWithMe: ['share-velho', 'share-novo'] }]);
+  await new Promise((resolve) => setTimeout(resolve, 10));
+  assert.deepEqual([...firestore.listeners.keys()].sort(), ['shares/share-novo', 'shares/share-velho']);
+
+  const nome = (n) => pagamentoValido({ occasion: { name: n, startedAt: 1000, endedAt: null } });
+  firestore.listeners.get('shares/share-velho').onNext(snapshotComDados(nome('Festa')));
+  firestore.listeners.get('shares/share-novo').onNext(snapshotComDados(nome('Jantar')));
+  assert.deepEqual(retratos.at(-1).map((item) => item.view.occasion.name).sort(), ['Festa', 'Jantar']);
+  assert.ok(retratos.at(-1).every((item) => item.ownerUid === ANA));
+
+  view.setSources([{ otherUid: ANA, sharedWithMe: 'share-novo' }]);
+  assert.deepEqual([...firestore.listeners.keys()], ['shares/share-novo']);
+  assert.deepEqual(retratos.at(-1).map((item) => item.view.occasion.name), ['Jantar']);
+});

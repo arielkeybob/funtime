@@ -76,3 +76,20 @@ export function buildPairId(uidA, uidB) {
 export function otherUidOf(uids, myUid) {
   return (Array.isArray(uids) ? uids : []).find((uid) => uid !== myUid) ?? null;
 }
+
+// O ponteiro que o dono publica no pareamento (`sharing.{dono}`) diz quais shares o
+// outro lado deve escutar. Formato antigo: um shareId (string) ou null. Agora pode
+// haver vários eventos ao mesmo tempo (o novo não apaga o anterior enquanto ele ainda
+// está no prazo de 24h), então a leitura normaliza tudo para lista.
+export function pointerToList(value) {
+  if (Array.isArray(value)) return value.filter((id) => typeof id === "string" && id);
+  return typeof value === "string" && value ? [value] : [];
+}
+
+// Na escrita, um só share continua sendo string e nenhum continua sendo null — assim
+// um aparelho ainda na versão anterior segue funcionando no caso comum; só a lista
+// (dois ou mais eventos ao mesmo tempo) exige a versão nova.
+export function listToPointer(ids) {
+  if (!ids.length) return null;
+  return ids.length === 1 ? ids[0] : [...ids];
+}

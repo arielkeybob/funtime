@@ -1,5 +1,6 @@
 import { formatPairingCode, normalizePairingCode, liveFormatPairingCode, buildPairingQrPayload, parsePairingQrPayload } from "../data/share-codes.js";
 import { renderQrDataUrl, cameraAvailable, startScanner } from "./qr.js";
+import { shareState, bestState } from "./share-state.js";
 import { formatClock, formatDate, formatHistoryElapsed } from "../format/datetime.js";
 
 const MOTIVOS = {
@@ -199,36 +200,77 @@ export function createShareUI({
     return `Atualizado agora${ultima}`;
   }
 
-  // "Ao vivo" só enquanto o evento dela não terminou; depois disso o acesso continua por
-  // até 24h (é o combinado), mas já não é ela compartilhando agora.
-  function entryAoVivo(entry) {
-    return entry.view.occasion.endedAt == null;
+  // Estado de um compartilhamento recebido (live / grace / none) — a mesma regra do
+  // resto do app, em share-state.js.
+  function entryState(entry) {
+    return shareState({ endedAt: entry.view.occasion.endedAt, expiresAtMs: entry.view.expiresAtMs }, now());
   }
 
-  function vendoEntryFor(otherUid) {
-    return sharedEntries.find((item) => item.ownerUid === otherUid) ?? null;
+  // Estado de um compartilhamento meu: o fim do evento vem das ocasiões locais.
+  function shareOutState(share) {
+    const contexto = getEventsContext();
+    const endedAt = Object.hasOwn(contexto.endedAtById ?? {}, share.occasionId) ? contexto.endedAtById[share.occasionId] : now();
+    return shareState({ endedAt, expiresAtMs: share.expiresAtMs }, now());
+  }
+
+  // Selo único do vocabulário: seta = direção (↙ recebo, ↗ envio), cor = estado
+  // (verde/azul ao vivo, cinza nas 24h depois). Sem estado "none" — nada a desenhar.
+  const SETA = { in: "M17 7 7 17M15 17H7V9", out: "M7 17 17 7M9 7h8v8" };
+  function renderShareBadge(direcao, estado) {
+    const selo = document.createElement("span");
+    const ao_vivo = estado === "live";
+    selo.className = `share-badge share-badge--${ao_vivo ? (direcao === "in" ? "incoming" : "outgoing") : (direcao === "in" ? "ended" : "ended-out")}`;
+    selo.innerHTML = `<svg viewBox="0 0 24 24"><path d="${SETA[direcao]}"/></svg>`;
+    return selo;
+  }
+
+  function vendoEntriesFor(otherUid) {
+    return sharedEntries
+      .filter((item) => item.ownerUid === otherUid && entryState(item) !== "none")
+      .sort((x, y) => (y.view.occasion.startedAt ?? 0) - (x.view.occasion.startedAt ?? 0));
   }
 
   function compartilhandoSharesFor(otherUid) {
     return shares.filter((share) => share.viewerUid === otherUid);
   }
 
-  // Corpo de "ela compartilha com você" — o mesmo conteúdo que antes ficava sempre
-  // visível no cartão: período, carimbo de frescor, totais e a lista cronológica.
-  function renderVendoPanel(entry) {
+  // Corpo de "ela compartilha com você": um bloco por evento — o ao vivo em cima, e os
+  // já encerrados (ainda dentro das 24h) sob "Anteriores".
+  function renderVendoPanel(entradas) {
     const container = document.createElement("div");
-    if (!entry) {
+    if (!entradas.length) {
       const vazio = document.createElement("p");
       vazio.className = "settings-description";
       vazio.textContent = "Ela não está compartilhando nada com você agora.";
       container.append(vazio);
       return container;
     }
+
+    const aoVivo = entradas.filter((entrada) => entryState(entrada) === "live");
+    const anteriores = entradas.filter((entrada) => entryState(entrada) === "grace");
+    for (const entrada of aoVivo) container.append(renderVendoEvento(entrada));
+
+    if (anteriores.length) {
+      const grupo = document.createElement("details");
+      grupo.className = "share-previous";
+      grupo.open = !aoVivo.length;
+      const resumo = document.createElement("summary");
+      resumo.textContent = `Anteriores (${anteriores.length}) · disponíveis por até 24h após o fim`;
+      grupo.append(resumo);
+      for (const entrada of anteriores) grupo.append(renderVendoEvento(entrada));
+      container.append(grupo);
+    }
+    return container;
+  }
+
+  function renderVendoEvento(entry) {
+    const container = document.createElement("section");
+    container.className = "share-vendo-event";
     const { view } = entry;
 
     const estado = document.createElement("p");
     estado.className = "sharing-person-state";
-    estado.textContent = entryAoVivo(entry)
+    estado.textContent = entryState(entry) === "live"
       ? freshnessLabel(entry)
       : `Evento encerrado · você pode ver até ${formatDate(view.expiresAtMs)} às ${formatClock(view.expiresAtMs)}`;
     container.append(estado);
@@ -353,9 +395,13 @@ export function createShareUI({
     const ativos = compartilhandoSharesFor(otherUid);
 
     const contexto = getEventsContext();
-    const emAndamento = new Set(contexto.active.map(({ item }) => item.id));
-    for (const share of ativos) {
-      const subtitulo = emAndamento.has(share.occasionId) ? "Ao vivo para essa pessoa" : "Evento encerrado · ainda visível para essa pessoa";
+    const ordenados = ativos.map((share) => ({ share, estado: shareOutState(share) }))
+      .filter(({ estado }) => estado !== "none")
+      .sort((x, y) => (x.estado === "live" ? 0 : 1) - (y.estado === "live" ? 0 : 1));
+    for (const { share, estado } of ordenados) {
+      const subtitulo = estado === "live"
+        ? "Ao vivo para essa pessoa"
+        : `Evento encerrado · ainda visível até ${formatDate(share.expiresAtMs)} às ${formatClock(share.expiresAtMs)}`;
       container.append(linhaEvento(share.occasionName || "Evento", subtitulo,
         botao("Parar", () => pararCompartilhamento(share.shareId), "share-stop-button")));
     }
@@ -430,7 +476,7 @@ export function createShareUI({
 
     const conteudo = detalheAba === "compartilhando"
       ? renderCompartilhandoPanel(detalheAberto)
-      : renderVendoPanel(vendoEntryFor(detalheAberto));
+      : renderVendoPanel(vendoEntriesFor(detalheAberto));
 
     nodes.sharedDetailBody.replaceChildren(conteudo);
   }
@@ -500,10 +546,8 @@ export function createShareUI({
     if (nodes.friendsEmpty) nodes.friendsEmpty.hidden = pairings.length > 0;
 
     for (const par of [...pairings].sort((a, b) => (a.alias || "").localeCompare(b.alias || "", "pt-BR"))) {
-      const entradaVendo = vendoEntryFor(par.otherUid);
-      const vendo = Boolean(entradaVendo);
-      const vendoAoVivo = vendo && entryAoVivo(entradaVendo);
-      const compartilhando = compartilhandoSharesFor(par.otherUid).length > 0;
+      const estadoIn = bestState(vendoEntriesFor(par.otherUid).map(entryState));
+      const estadoOut = bestState(compartilhandoSharesFor(par.otherUid).map(shareOutState));
 
       const botaoPessoa = document.createElement("button");
       botaoPessoa.type = "button";
@@ -511,9 +555,10 @@ export function createShareUI({
       botaoPessoa.addEventListener("click", () => openFriendDetail(par.pairId));
 
       const partesEstado = [];
-      if (vendoAoVivo) partesEstado.push("compartilhando com você agora");
-      else if (vendo) partesEstado.push("evento encerrado, ainda disponível para ver");
-      if (compartilhando) partesEstado.push("você está compartilhando com essa pessoa");
+      if (estadoIn === "live") partesEstado.push("compartilhando com você agora");
+      else if (estadoIn === "grace") partesEstado.push("evento dela encerrado, ainda disponível para ver");
+      if (estadoOut === "live") partesEstado.push("você está compartilhando com essa pessoa");
+      else if (estadoOut === "grace") partesEstado.push("seu evento encerrou, ainda visível para essa pessoa");
       botaoPessoa.setAttribute("aria-label", `${par.alias || "Amigo"}${partesEstado.length ? " · " + partesEstado.join(" · ") : ""}`);
 
       const avatar = document.createElement("span");
@@ -523,18 +568,8 @@ export function createShareUI({
 
       // Selos de mesma forma e tamanho, com a seta apontando o sentido: ↙ verde é
       // ela compartilhando com você, ↗ azul é você compartilhando com ela.
-      if (vendo) {
-        const selo = document.createElement("span");
-        selo.className = `share-badge ${vendoAoVivo ? "share-badge--incoming" : "share-badge--ended"}`;
-        selo.innerHTML = '<svg viewBox="0 0 24 24"><path d="M17 7 7 17M15 17H7V9"/></svg>';
-        avatar.append(selo);
-      }
-      if (compartilhando) {
-        const selo = document.createElement("span");
-        selo.className = "share-badge share-badge--outgoing";
-        selo.innerHTML = '<svg viewBox="0 0 24 24"><path d="M7 17 17 7M9 7h8v8"/></svg>';
-        avatar.append(selo);
-      }
+      if (estadoIn !== "none") avatar.append(renderShareBadge("in", estadoIn));
+      if (estadoOut !== "none") avatar.append(renderShareBadge("out", estadoOut));
 
       const nome = document.createElement("span");
       nome.className = "share-person-name";
@@ -562,8 +597,8 @@ export function createShareUI({
   // a tela (app.js, junto do resto do estado de login) — aqui só a bolinha, que
   // depende de ter alguém compartilhando com você agora.
   function setSharedEntries(lista) {
-    sharedEntries = Array.isArray(lista) ? lista : [];
-    if (nodes.homeFriendsDot) nodes.homeFriendsDot.hidden = !sharedEntries.some(entryAoVivo);
+    sharedEntries = (Array.isArray(lista) ? lista : []).filter((entry) => entryState(entry) !== "none");
+    if (nodes.homeFriendsDot) nodes.homeFriendsDot.hidden = !sharedEntries.some((entry) => entryState(entry) === "live");
     renderFriends();
   }
 
@@ -622,12 +657,7 @@ export function createShareUI({
       avatar.className = "share-avatar";
       avatar.setAttribute("aria-hidden", "true");
       avatar.textContent = initial(par.alias);
-      if (selecionados.has(par.otherUid)) {
-        const selo = document.createElement("span");
-        selo.className = "share-badge share-badge--outgoing";
-        selo.innerHTML = '<svg viewBox="0 0 24 24"><path d="M7 17 17 7M9 7h8v8"/></svg>';
-        avatar.append(selo);
-      }
+      if (selecionados.has(par.otherUid)) avatar.append(renderShareBadge("out", "live"));
 
       const nome = document.createElement("span");
       nome.className = "share-person-name";
@@ -811,7 +841,13 @@ export function createShareUI({
     // O carimbo de frescor ("atualizado agora" → "desatualizado") muda só com o
     // relógio passando, sem nenhum dado novo chegar — por isso reavalia sozinho.
     // Reescrever com os mesmos nós é barato; sem entradas, não faz nada.
-    setInterval(() => { if (sharedEntries.length) renderFriends(); }, 30000);
+    setInterval(() => {
+      // O prazo vence sozinho: descarta o que passou de 24h e redesenha (selo, Home, tela aberta).
+      const antes = sharedEntries.length;
+      sharedEntries = sharedEntries.filter((entry) => entryState(entry) !== "none");
+      if (nodes.homeFriendsDot) nodes.homeFriendsDot.hidden = !sharedEntries.some((entry) => entryState(entry) === "live");
+      if (sharedEntries.length || antes || shares.length) renderFriends();
+    }, 30000);
   }
 
   return {

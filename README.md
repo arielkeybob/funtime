@@ -1,4 +1,15 @@
-# FunTime — V2.10.2
+# FunTime — V2.11.0
+
+## V2.11.0 — estados de compartilhamento e vários eventos por pessoa
+
+Um vocabulário só, nas duas direções: **cor = estado, seta = direção, nada = sem compartilhamento**.
+- Verde ↙ / azul ↗: evento **ao vivo**. Cinza: o evento acabou e ainda está nas **24h** de acesso. Sem selo: nada, revogado ou passou o prazo.
+- O selo cinza (e a entrada) **somem sozinhos** no minuto em que o prazo vence, sem reabrir o app.
+- **Evento novo dentro das 24h do anterior:** os dois ficam. Em "Vendo", o ao vivo aparece em cima e o anterior em "Anteriores" (recolhido). Antes, o novo apagava o anterior para quem recebia.
+- **Corrige um bug:** parar o compartilhamento do evento *antigo* zerava o ponteiro e a pessoa perdia também o evento *novo* ao vivo.
+- Vários eventos da mesma pessoa viram um selo só (o melhor estado entre eles). Um módulo (`src/sharing/share-state.js`) decide o estado e uma função (`renderShareBadge`) desenha o selo, para reaproveitar em qualquer tela.
+
+Sem mudança em `firestore.rules`. O ponteiro no pareamento vira lista só quando há dois ou mais eventos ao mesmo tempo (um continua sendo texto, compatível com a versão anterior).
 
 ## V2.10.2 — evento encerrado deixa de aparecer como "ao vivo"
 

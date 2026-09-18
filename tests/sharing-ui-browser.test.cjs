@@ -265,3 +265,49 @@ test('evento encerrado deixa de aparecer como ao vivo', { timeout: 30000 }, asyn
     assert.deepEqual(erros, []);
   });
 });
+
+// Encerra um evento e, dentro das 24h, a pessoa abre outro: os dois aparecem — o novo ao
+// vivo em cima e o anterior sob "Anteriores" — e o selo é o melhor estado dos dois.
+test('evento novo dentro das 24h do anterior: os dois aparecem', { timeout: 30000 }, async () => {
+  await withPage(async (page, erros) => {
+    const r = await page.evaluate(async () => {
+      const { createShareUI } = await import('/funtime/src/sharing/share-ui.js');
+      const n = (s) => document.querySelector(s);
+      const nodes = {
+        friendsGrid: n('#friends-grid'), friendsEmpty: n('#friends-empty'), sharedDetailDialog: n('#shared-detail-dialog'),
+        sharedDetailTitle: n('#shared-detail-title'), sharedDetailTabs: n('#shared-detail-tabs'),
+        sharedDetailTabVendo: n('#shared-detail-tab-vendo'), sharedDetailTabCompartilhando: n('#shared-detail-tab-compartilhando'),
+        sharedDetailBody: n('#shared-detail-body'), homeFriendsDot: n('#home-friends-dot'), pairingError: n('#pairing-error'),
+      };
+      const t = Date.now();
+      const ui = createShareUI({ nodes, getShareWriter: () => null, showToast() {} });
+      ui.wire();
+      ui.setPairings([{ pairId: 'p', otherUid: 'u', alias: 'Su', myAlias: 'Eu', acceptedByMe: true, acceptedByOther: true, createdAt: t }]);
+      const entrada = (nome, startedAt, endedAt, expiresAtMs) => ({ ownerUid: 'u', shareId: nome, fromCache: false, receivedAtMs: t, view: { ownerAlias: 'Su', occasion: { name: nome, startedAt, endedAt }, totals: [], truncated: false, eventCount: 0, updatedAtMs: t, expiresAtMs, events: [] } });
+      const velho = entrada('Festa', t - 8 * 3600000, t - 2 * 3600000, t + 22 * 3600000);
+      const novo = entrada('Jantar', t - 3600000, null, t + 47 * 3600000);
+      const estado = () => ({ verde: !!n('#friends-grid .share-badge--incoming'), cinza: !!n('#friends-grid .share-badge--ended'), dot: !n('#home-friends-dot').hidden });
+
+      ui.setSharedEntries([velho]);
+      const soVelho = estado();
+      ui.setSharedEntries([velho, novo]);
+      const dois = estado();
+      n('#friends-grid .share-person').click();
+      const corpo = n('#shared-detail-body');
+      const titulos = [...corpo.querySelectorAll('.share-vendo-title')].map((e) => e.textContent);
+      const anteriores = corpo.querySelector('details.share-previous');
+      const ordem = { titulos, anterioresContemFesta: !!anteriores && anteriores.textContent.includes('Festa'), anterioresAberto: anteriores.open };
+
+      // o prazo do antigo passa: some sozinho, o novo continua
+      const vencido = { ...velho, view: { ...velho.view, expiresAtMs: t - 1 } };
+      ui.setSharedEntries([vencido, novo]);
+      const semVelho = { estado: estado(), temAnteriores: !!n('#shared-detail-body details.share-previous') };
+      return { soVelho, dois, ordem, semVelho };
+    });
+    assert.deepEqual(r.soVelho, { verde: false, cinza: true, dot: false });
+    assert.deepEqual(r.dois, { verde: true, cinza: false, dot: true });
+    assert.deepEqual(r.ordem, { titulos: ['Jantar', 'Festa'], anterioresContemFesta: true, anterioresAberto: false });
+    assert.deepEqual(r.semVelho, { estado: { verde: true, cinza: false, dot: true }, temAnteriores: false });
+    assert.deepEqual(erros, []);
+  });
+});

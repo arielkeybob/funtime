@@ -1,5 +1,6 @@
 import { loadFirestore } from "./firestore-db.js";
 import { readSharePayload } from "./share-payload.js";
+import { pointerToList } from "./share-codes.js";
 
 // Lado de quem recebe um compartilhamento. Só lê — nunca constrói `writeBatch`,
 // `setDoc`, `updateDoc` nem `deleteDoc`. Ver docs/specs/0023.
@@ -11,9 +12,12 @@ import { readSharePayload } from "./share-payload.js";
 // lista de pareamentos que share-writer.js já produz.
 export function createSharedView({ app, importModule, onChange, onStatusChange, now = () => Date.now() }) {
   let stopped = false;
-  const unsubscribers = new Map(); // ownerUid -> cancelar
-  const attachedShareId = new Map(); // ownerUid -> shareId em escuta agora
-  const entries = new Map(); // ownerUid -> retrato mais recente
+  // Uma escuta por share (dono + shareId): a mesma pessoa pode ter mais de um evento
+  // ao mesmo tempo — o novo ao vivo e o anterior ainda dentro das 24h.
+  const unsubscribers = new Map(); // "dono:shareId" -> cancelar
+  const owners = new Map(); // "dono:shareId" -> ownerUid
+  const entries = new Map(); // "dono:shareId" -> retrato mais recente
+  const keyOf = (ownerUid, shareId) => `${ownerUid}:${shareId}`;
 
   function load() {
     return loadFirestore({ app, importModule });
@@ -27,28 +31,29 @@ export function createSharedView({ app, importModule, onChange, onStatusChange, 
     onChange?.([...entries.values()]);
   }
 
-  function detach(ownerUid) {
-    unsubscribers.get(ownerUid)?.();
-    unsubscribers.delete(ownerUid);
-    attachedShareId.delete(ownerUid);
-    if (entries.delete(ownerUid)) emit();
+  function detach(key) {
+    unsubscribers.get(key)?.();
+    unsubscribers.delete(key);
+    owners.delete(key);
+    if (entries.delete(key)) emit();
   }
 
   async function attach(ownerUid, shareId) {
+    const key = keyOf(ownerUid, shareId);
     const { firestore, db } = await load();
-    if (stopped) return;
+    if (stopped || !owners.has(key)) return;
 
     const unsubscribe = firestore.onSnapshot(
       firestore.doc(db, "shares", shareId),
       (snapshot) => {
         if (stopped) return;
 
-        if (!snapshot.exists()) { entries.delete(ownerUid); emit(); return; }
+        if (!snapshot.exists()) { entries.delete(key); emit(); return; }
 
         const resultado = readSharePayload(snapshot.data(), now());
-        if (!resultado.ok) { entries.delete(ownerUid); emit(); return; }
+        if (!resultado.ok) { entries.delete(key); emit(); return; }
 
-        entries.set(ownerUid, {
+        entries.set(key, {
           ownerUid, shareId,
           view: resultado.view,
           // Cache do SDK, não do aparelho: é isso que diferencia "a nuvem confirmou
@@ -61,30 +66,31 @@ export function createSharedView({ app, importModule, onChange, onStatusChange, 
       (error) => {
         // Negado é o caminho normal quando o compartilhamento acaba (documento
         // apagado ou vencido) — reflete no estado, não é erro para reportar.
-        entries.delete(ownerUid);
+        entries.delete(key);
         emit();
         if (error?.code !== "permission-denied") report(error);
       }
     );
 
-    unsubscribers.set(ownerUid, unsubscribe);
+    unsubscribers.set(key, unsubscribe);
   }
 
   // `sources` é a lista de pareamentos, na mesma forma que share-writer.js produz
   // (precisa só de `otherUid` e `sharedWithMe`). Reconecta quando o ponteiro muda,
   // desliga quando some — sem nunca escrever nada em lugar nenhum.
   function setSources(sources) {
-    const desejado = new Map((Array.isArray(sources) ? sources : [])
-      .filter((par) => par.sharedWithMe)
-      .map((par) => [par.otherUid, par.sharedWithMe]));
-
-    for (const ownerUid of [...attachedShareId.keys()]) {
-      if (attachedShareId.get(ownerUid) !== desejado.get(ownerUid)) detach(ownerUid);
+    const desejado = new Map();
+    for (const par of Array.isArray(sources) ? sources : []) {
+      for (const shareId of pointerToList(par.sharedWithMe)) desejado.set(keyOf(par.otherUid, shareId), { ownerUid: par.otherUid, shareId });
     }
 
-    for (const [ownerUid, shareId] of desejado) {
-      if (attachedShareId.get(ownerUid) !== shareId) {
-        attachedShareId.set(ownerUid, shareId);
+    for (const key of [...owners.keys()]) {
+      if (!desejado.has(key)) detach(key);
+    }
+
+    for (const [key, { ownerUid, shareId }] of desejado) {
+      if (!owners.has(key)) {
+        owners.set(key, ownerUid);
         attach(ownerUid, shareId);
       }
     }
@@ -96,7 +102,7 @@ export function createSharedView({ app, importModule, onChange, onStatusChange, 
 
   function stop() {
     stopped = true;
-    for (const ownerUid of [...unsubscribers.keys()]) detach(ownerUid);
+    for (const key of [...owners.keys()]) detach(key);
   }
 
   return { start, stop, setSources };

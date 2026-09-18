@@ -610,3 +610,13 @@ O usuário estranhou "Sem conexão · mostrando o que chegou às 16:44" com o ap
 ## Nota pós-implementação (v2.10.2) — ao vivo × encerrado
 
 O acesso do convidado dura até 24h após o fim do evento (`expiresAt`), então a entrada continua na lista depois do fim e o app a mostrava como compartilhando agora. O critério de "ao vivo" passou a ser `view.occasion.endedAt == null`: só isso acende o selo verde e a bolinha da Home; encerrado mas ainda válido usa selo cinza e a aba Vendo mostra até quando dá para ver (`view.expiresAtMs`). No lado de quem compartilha, o bookkeeping de `shares` não guarda se o evento acabou; a tela compara com o evento em andamento (`getEventsContext`) para dizer "Evento encerrado · ainda visível para essa pessoa".
+
+## Nota pós-implementação (v2.11.0) — estados e vários eventos por pessoa
+
+Vocabulário do usuário, adotado nas duas direções: **live** (verde ao receber, azul ao enviar), **grace** (cinza: evento terminou, acesso segue por até 24h) e **none** (sem selo). `src/sharing/share-state.js` decide o estado (`shareState`, `bestState`) e `renderShareBadge` desenha o selo; qualquer tela nova só chama essas duas.
+
+Achados que motivaram: (1) o ponteiro `pairings.sharing.{dono}` guardava **um** shareId, então abrir outro evento com a mesma pessoa sobrescrevia o ponteiro e quem recebia perdia o anterior; (2) `stopShare` zerava o ponteiro sem checar de qual share era — parar o antigo derrubava o novo; (3) o vencimento só era conferido quando chegava atualização do servidor, então o selo cinza podia ficar além das 24h.
+
+Mudanças: o ponteiro é escrito como a lista completa dos shares ativos com aquela pessoa (`publishPointer`, o dono é o único escritor da própria chave). Um só share continua gravado como string e nenhum como `null`, para não quebrar um aparelho ainda na versão anterior; só dois ou mais viram array. A leitura (`pointerToList`) aceita os dois formatos. As regras do Firestore só exigem que a chave alterada seja a do próprio usuário, não o tipo do valor — **sem mudança de regras**. `shared-view.js` escuta um documento por share (`dono:shareId`). O vencimento é aplicado por relógio (30 s na tela, 60 s no servidor via `sweepExpiredShares`). `activeShares` passou a guardar `expiresAtMs`; o fim do evento de cada share meu vem das ocasiões locais (`endedAtById`).
+
+**Risco de transição:** um aparelho na versão anterior lendo um ponteiro em lista (dois eventos simultâneos com a mesma pessoa) tentaria `doc(db,"shares",array)` e falharia nessa pessoa; no caso comum (um evento) continua funcionando.
