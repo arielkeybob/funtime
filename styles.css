@@ -3783,9 +3783,12 @@ body {
 .share-start-button { flex-shrink: 0; min-height: 40px; padding: 0 16px; border: 0; border-radius: 12px; background: var(--accent); color: var(--accent-text); font-weight: 800; }
 .share-start-button:active { transform: scale(.97); }
 .settings-toggle-row.is-highlighted { outline: 2px solid var(--info); outline-offset: 3px; border-radius: 14px; }
-.share-vendo-title { display: block; font-size: 1.05rem; margin: 6px 0 2px; }
 .share-badge--ended { bottom: -5px; background: #8a8a94; }
 .share-badge--ended-out { top: -5px; background: #8a8a94; }
-.share-previous { margin-top: 18px; }
-.share-previous > summary { cursor: pointer; color: var(--muted); font-size: .8rem; font-weight: 700; padding: 10px 0; }
-.share-vendo-event + .share-vendo-event, .share-previous .share-vendo-event { margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--border); }
+.share-vendo-event + .share-vendo-event { margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--border); }
+.share-vendo-title { display: block; margin: 6px 0 2px; }
+.share-vendo-title strong { font-size: 1.05rem; }
+.share-status { font-size: .74rem; font-weight: 600; }
+.share-status--live { color: var(--success); }
+.share-status--ended { color: var(--muted); }
+.history-event-elapsed.is-neutral { border-color: var(--border); color: var(--muted); }

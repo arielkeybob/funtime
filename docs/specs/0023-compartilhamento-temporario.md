@@ -620,3 +620,11 @@ Achados que motivaram: (1) o ponteiro `pairings.sharing.{dono}` guardava **um** 
 Mudanças: o ponteiro é escrito como a lista completa dos shares ativos com aquela pessoa (`publishPointer`, o dono é o único escritor da própria chave). Um só share continua gravado como string e nenhum como `null`, para não quebrar um aparelho ainda na versão anterior; só dois ou mais viram array. A leitura (`pointerToList`) aceita os dois formatos. As regras do Firestore só exigem que a chave alterada seja a do próprio usuário, não o tipo do valor — **sem mudança de regras**. `shared-view.js` escuta um documento por share (`dono:shareId`). O vencimento é aplicado por relógio (30 s na tela, 60 s no servidor via `sweepExpiredShares`). `activeShares` passou a guardar `expiresAtMs`; o fim do evento de cada share meu vem das ocasiões locais (`endedAtById`).
 
 **Risco de transição:** um aparelho na versão anterior lendo um ponteiro em lista (dois eventos simultâneos com a mesma pessoa) tentaria `doc(db,"shares",array)` e falharia nessa pessoa; no caso comum (um evento) continua funcionando.
+
+## Nota pós-implementação (v2.11.1) — aba Vendo
+
+**"Atualizando…" preso:** `onSnapshot` sem opções só chama o callback quando o dado muda; a passagem `fromCache` true → false (servidor confirmando o mesmo dado) é mudança só de metadado e não dispara. `shared-view.js` agora usa `{ includeMetadataChanges: true }`.
+
+**Tamanho da dose:** `minimalDose` fazia `finite(record.doseSize)`, mas `doseSize` é `"half"`/`"full"` (texto), então sempre virava `null` e o tamanho nunca saía. Passou a aceitar só esses dois valores (na escrita e na leitura, que compartilham `minimalDose`). É um campo a mais na lista do que atravessa; não identifica nada além do que o histórico já mostra.
+
+**Tela:** título com situação em parênteses (verde "Em andamento" / cinza "Encerrado às hh:mm"); "Começou…" e o resumo por bebida somem na interface limpa; os encerrados dentro das 24h aparecem direto na linha do tempo, sem dropdown e sem escrever o prazo (quem **envia** continua vendo "ainda visível até…", porque precisa saber por quanto tempo o dado segue exposto); o chip "há X" é neutro, pois o verde do Histórico significa "intervalo já passou".

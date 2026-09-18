@@ -14,7 +14,9 @@ function fakeFirestore() {
 
   const module = {
     doc: (db, ...path) => ({ path: path.join('/') }),
-    onSnapshot: (reference, onNext, onError) => {
+    onSnapshot: (reference, ...resto) => {
+      // Aceita a forma com opções: onSnapshot(ref, opcoes, onNext, onError)
+      const [onNext, onError] = typeof resto[0] === 'function' ? resto : resto.slice(1);
       listeners.set(reference.path, { onNext, onError });
       return () => listeners.delete(reference.path);
     },
@@ -262,4 +264,25 @@ test('dois eventos da mesma pessoa aparecem como duas entradas', async () => {
   view.setSources([{ otherUid: ANA, sharedWithMe: 'share-novo' }]);
   assert.deepEqual([...firestore.listeners.keys()], ['shares/share-novo']);
   assert.deepEqual(retratos.at(-1).map((item) => item.view.occasion.name), ['Jantar']);
+});
+
+// Sem includeMetadataChanges o servidor confirmando o mesmo dado não avisaria: a tela
+// ficaria em "Atualizando…" para sempre.
+test('pede as mudanças de metadado, para sair do cache quando o servidor confirma', async () => {
+  const opcoes = [];
+  const retratos = [];
+  const { view, firestore } = setup({ onChange: (lista) => retratos.push(lista) });
+  const original = firestore.module.onSnapshot;
+  firestore.module.onSnapshot = (ref, ...resto) => { if (typeof resto[0] !== 'function') opcoes.push(resto[0]); return original(ref, ...resto); };
+
+  view.start();
+  view.setSources([{ otherUid: ANA, sharedWithMe: 'share-1' }]);
+  await new Promise((resolve) => setTimeout(resolve, 10));
+  assert.deepEqual(opcoes, [{ includeMetadataChanges: true }]);
+
+  const ouvinte = firestore.listeners.get('shares/share-1');
+  ouvinte.onNext(snapshotComDados(pagamentoValido(), true));
+  assert.equal(retratos.at(-1)[0].fromCache, true);
+  ouvinte.onNext(snapshotComDados(pagamentoValido(), false));
+  assert.equal(retratos.at(-1)[0].fromCache, false, 'o mesmo dado confirmado pelo servidor sai do estado de cache');
 });

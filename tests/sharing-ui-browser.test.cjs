@@ -215,7 +215,7 @@ test('a aba Vendo explica o estado em vez de mensagens técnicas', { timeout: 30
       ui.wire();
       ui.setPairings([{ pairId: 'p', otherUid: 'u', alias: 'Su', myAlias: 'Eu', acceptedByMe: true, acceptedByOther: true, createdAt: t }]);
       const entrada = (fromCache, updatedAtMs) => ({ ownerUid: 'u', fromCache, receivedAtMs: t, view: { ownerAlias: 'Su', occasion: { name: 'Festa', startedAt: t - 3600000, endedAt: null }, totals: [], truncated: false, eventCount: 0, updatedAtMs, events: [] } });
-      const texto = () => n('#shared-detail-body').innerText.replace(/\s+/g, ' ').trim();
+      const texto = () => n('#shared-detail-body').textContent.replace(/\s+/g, ' ').trim();
       ui.setSharedEntries([entrada(true, t)]);
       n('#friends-grid .share-person').click();
       const saida = { cache: texto() };
@@ -225,8 +225,8 @@ test('a aba Vendo explica o estado em vez de mensagens técnicas', { timeout: 30
       saida.antigo = texto();
       return saida;
     });
-    assert.match(r.cache, /^Atualizando… Festa Começou hoje às \d\d:\d\d Su ainda não registrou nada neste evento\.$/);
-    assert.match(r.emDia, /^Atualizado agora Festa/);
+    assert.match(r.cache, /^Atualizando…\s*Festa \(Em andamento\)\s*Começou hoje às \d\d:\d\d\s*Su ainda não registrou nada neste evento\.$/);
+    assert.match(r.emDia, /^Atualizado agora\s*Festa \(Em andamento\)/);
     assert.match(r.antigo, /Atualizado agora · última atualização dela às \d\d:\d\d/);
     assert.doesNotMatch(r.cache + r.emDia + r.antigo, /Sem conexão|desatualizado/);
     assert.deepEqual(erros, []);
@@ -261,7 +261,8 @@ test('evento encerrado deixa de aparecer como ao vivo', { timeout: 30000 }, asyn
     });
     assert.deepEqual(r.aoVivo, { pontoHome: true, verde: true, cinza: false });
     assert.deepEqual(r.encerrado, { pontoHome: false, verde: false, cinza: true });
-    assert.match(r.texto, /Evento encerrado · você pode ver até/);
+    assert.match(r.texto, /Festa \(Encerrado às \d\d:\d\d\)/);
+    assert.doesNotMatch(r.texto, /você pode ver até|24h/, 'quem recebe não precisa do prazo escrito');
     assert.deepEqual(erros, []);
   });
 });
@@ -294,20 +295,73 @@ test('evento novo dentro das 24h do anterior: os dois aparecem', { timeout: 3000
       const dois = estado();
       n('#friends-grid .share-person').click();
       const corpo = n('#shared-detail-body');
-      const titulos = [...corpo.querySelectorAll('.share-vendo-title')].map((e) => e.textContent);
-      const anteriores = corpo.querySelector('details.share-previous');
-      const ordem = { titulos, anterioresContemFesta: !!anteriores && anteriores.textContent.includes('Festa'), anterioresAberto: anteriores.open };
+      const titulos = [...corpo.querySelectorAll('.share-vendo-title')].map((e) => e.textContent.replace(/\s+/g, ' ').trim());
+      const semDropdown = !corpo.querySelector('details');
+      const ordem = { titulos, semDropdown, semPrazo: !/disponíveis|24h|você pode ver até/.test(corpo.textContent) };
 
       // o prazo do antigo passa: some sozinho, o novo continua
       const vencido = { ...velho, view: { ...velho.view, expiresAtMs: t - 1 } };
       ui.setSharedEntries([vencido, novo]);
-      const semVelho = { estado: estado(), temAnteriores: !!n('#shared-detail-body details.share-previous') };
+      const semVelho = { estado: estado(), blocos: n('#shared-detail-body').querySelectorAll('.share-vendo-event').length };
       return { soVelho, dois, ordem, semVelho };
     });
     assert.deepEqual(r.soVelho, { verde: false, cinza: true, dot: false });
     assert.deepEqual(r.dois, { verde: true, cinza: false, dot: true });
-    assert.deepEqual(r.ordem, { titulos: ['Jantar', 'Festa'], anterioresContemFesta: true, anterioresAberto: false });
-    assert.deepEqual(r.semVelho, { estado: { verde: true, cinza: false, dot: true }, temAnteriores: false });
+    assert.equal(r.ordem.titulos.length, 2);
+    assert.match(r.ordem.titulos[0], /^Jantar \(Em andamento\)$/);
+    assert.match(r.ordem.titulos[1], /^Festa \(Encerrado às \d\d:\d\d\)$/);
+    assert.equal(r.ordem.semDropdown, true, 'os anteriores aparecem direto, sem dropdown');
+    assert.equal(r.ordem.semPrazo, true, 'sem texto de disponível até/24h para quem recebe');
+    assert.deepEqual(r.semVelho, { estado: { verde: true, cinza: false, dot: true }, blocos: 1 });
+    assert.deepEqual(erros, []);
+  });
+});
+
+// Tamanho da dose aparece, e o "há X tempo" não é verde (verde no Histórico = intervalo
+// já passou, o que aqui não existe). A interface limpa esconde "Começou…" e o resumo.
+test('linha do tempo compartilhada mostra meia/inteira, chip neutro e respeita a interface limpa', { timeout: 30000 }, async () => {
+  await withPage(async (page, erros) => {
+    const r = await page.evaluate(async () => {
+      const { createShareUI } = await import('/funtime/src/sharing/share-ui.js');
+      const n = (s) => document.querySelector(s);
+      const nodes = {
+        friendsGrid: n('#friends-grid'), friendsEmpty: n('#friends-empty'), sharedDetailDialog: n('#shared-detail-dialog'),
+        sharedDetailTitle: n('#shared-detail-title'), sharedDetailTabs: n('#shared-detail-tabs'),
+        sharedDetailTabVendo: n('#shared-detail-tab-vendo'), sharedDetailTabCompartilhando: n('#shared-detail-tab-compartilhando'),
+        sharedDetailBody: n('#shared-detail-body'), homeFriendsDot: n('#home-friends-dot'), pairingError: n('#pairing-error'),
+      };
+      const t = Date.now();
+      const ui = createShareUI({ nodes, getShareWriter: () => null, showToast() {} });
+      ui.wire();
+      ui.setPairings([{ pairId: 'p', otherUid: 'u', alias: 'Su', myAlias: 'Eu', acceptedByMe: true, acceptedByOther: true, createdAt: t }]);
+      const dose = (id, tamanho) => ({ id, consumedAt: t - 600000, drinkName: 'Cerveja', drinkIcon: '🍺', intervalMinutes: 60, doseSize: tamanho });
+      ui.setSharedEntries([{ ownerUid: 'u', shareId: 'a', fromCache: false, receivedAtMs: t, view: { ownerAlias: 'Su', occasion: { name: 'Festa', startedAt: t - 3600000, endedAt: null }, totals: [{ icon: '🍺', name: 'Cerveja', count: 2 }], truncated: false, eventCount: 2, updatedAtMs: t, expiresAtMs: t + 86400000, events: [dose('1', 'half'), dose('2', 'full'), dose('3', null)] } }]);
+      n('#friends-grid .share-person').click();
+      const corpo = n('#shared-detail-body');
+      const visivel = (el) => !!el && getComputedStyle(el).display !== 'none';
+      const limpo = {
+        comecou: visivel(corpo.querySelector('.settings-description.clean-optional')),
+        resumo: visivel(corpo.querySelector('.occasion-count')),
+      };
+      document.body.classList.remove('clean-mode');
+      const completo = {
+        comecou: visivel(corpo.querySelector('.settings-description.clean-optional')),
+        resumo: visivel(corpo.querySelector('.occasion-count')),
+      };
+      document.body.classList.add('clean-mode');
+      const chip = corpo.querySelector('.history-event-elapsed');
+      return {
+        limpo, completo,
+        tamanhos: [...corpo.querySelectorAll('.history-dose-badge')].map((e) => e.textContent),
+        chipNeutro: chip.classList.contains('is-neutral') && !chip.classList.contains('is-after-interval'),
+        corChip: getComputedStyle(chip).color,
+      };
+    });
+    assert.deepEqual(r.limpo, { comecou: false, resumo: false });
+    assert.deepEqual(r.completo, { comecou: true, resumo: true });
+    assert.deepEqual(r.tamanhos.sort(), ['Inteira', 'Meia']);
+    assert.equal(r.chipNeutro, true);
+    assert.notEqual(r.corChip, 'rgb(141, 242, 187)', 'não é o verde do Histórico');
     assert.deepEqual(erros, []);
   });
 });

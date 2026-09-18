@@ -140,3 +140,14 @@ test('leitura descarta doses quebradas sem derrubar a tela', () => {
   assert.equal(resultado.ok, true);
   assert.equal(resultado.view.events.length, 1);
 });
+
+// O tamanho da dose (meia/inteira) aparece para quem recebe — antes nunca saía, porque
+// o código exigia um número e o valor é texto.
+test('o tamanho da dose (meia/inteira) atravessa; qualquer outra coisa vira null', () => {
+  const payload = montar([dose({ id: 'a', doseSize: 'half' }), dose({ id: 'b', doseSize: 'full' }), dose({ id: 'c', doseSize: 'gigante' }), dose({ id: 'd', doseSize: 3 })]);
+  assert.deepEqual(payload.events.map((item) => item.doseSize), ['half', 'full', null, null]);
+
+  const lido = readSharePayload({ ...payload, expiresAt: { toMillis: () => 10 ** 12 }, updatedAt: { toMillis: () => 1 } }, 5000);
+  assert.equal(lido.ok, true);
+  assert.deepEqual(lido.view.events.map((item) => item.doseSize), ['half', 'full', null, null]);
+});

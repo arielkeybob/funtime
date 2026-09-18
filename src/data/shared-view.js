@@ -45,6 +45,9 @@ export function createSharedView({ app, importModule, onChange, onStatusChange, 
 
     const unsubscribe = firestore.onSnapshot(
       firestore.doc(db, "shares", shareId),
+      // Sem isto o callback só roda quando o DADO muda: a leitura vinda do cache ficaria
+      // marcada como "do cache" para sempre, mesmo depois de o servidor confirmar o mesmo dado.
+      { includeMetadataChanges: true },
       (snapshot) => {
         if (stopped) return;
 

@@ -3,6 +3,8 @@ import { renderQrDataUrl, cameraAvailable, startScanner } from "./qr.js";
 import { shareState, bestState } from "./share-state.js";
 import { formatClock, formatDate, formatHistoryElapsed } from "../format/datetime.js";
 
+const DOSE_LABELS = { half: "Meia", full: "Inteira" };
+
 const MOTIVOS = {
   "not-found": "Código não encontrado ou já vencido. Peça um novo.",
   "own-code": "Esse é o seu próprio código. Quem digita é a outra pessoa.",
@@ -234,8 +236,8 @@ export function createShareUI({
     return shares.filter((share) => share.viewerUid === otherUid);
   }
 
-  // Corpo de "ela compartilha com você": um bloco por evento — o ao vivo em cima, e os
-  // já encerrados (ainda dentro das 24h) sob "Anteriores".
+  // Corpo de "ela compartilha com você": um bloco por evento, todos em linha do tempo —
+  // o ao vivo em cima, os já encerrados (ainda dentro das 24h) logo abaixo.
   function renderVendoPanel(entradas) {
     const container = document.createElement("div");
     if (!entradas.length) {
@@ -246,20 +248,11 @@ export function createShareUI({
       return container;
     }
 
-    const aoVivo = entradas.filter((entrada) => entryState(entrada) === "live");
-    const anteriores = entradas.filter((entrada) => entryState(entrada) === "grace");
-    for (const entrada of aoVivo) container.append(renderVendoEvento(entrada));
-
-    if (anteriores.length) {
-      const grupo = document.createElement("details");
-      grupo.className = "share-previous";
-      grupo.open = !aoVivo.length;
-      const resumo = document.createElement("summary");
-      resumo.textContent = `Anteriores (${anteriores.length}) · disponíveis por até 24h após o fim`;
-      grupo.append(resumo);
-      for (const entrada of anteriores) grupo.append(renderVendoEvento(entrada));
-      container.append(grupo);
-    }
+    const ordenadas = [
+      ...entradas.filter((entrada) => entryState(entrada) === "live"),
+      ...entradas.filter((entrada) => entryState(entrada) === "grace"),
+    ];
+    for (const entrada of ordenadas) container.append(renderVendoEvento(entrada));
     return container;
   }
 
@@ -267,29 +260,37 @@ export function createShareUI({
     const container = document.createElement("section");
     container.className = "share-vendo-event";
     const { view } = entry;
+    const aoVivo = entryState(entry) === "live";
 
-    const estado = document.createElement("p");
-    estado.className = "sharing-person-state";
-    estado.textContent = entryState(entry) === "live"
-      ? freshnessLabel(entry)
-      : `Evento encerrado · você pode ver até ${formatDate(view.expiresAtMs)} às ${formatClock(view.expiresAtMs)}`;
-    container.append(estado);
+    // Só o evento em andamento tem "atualizado agora"; o encerrado já não muda.
+    if (aoVivo) {
+      const estado = document.createElement("p");
+      estado.className = "sharing-person-state";
+      estado.textContent = freshnessLabel(entry);
+      container.append(estado);
+    }
 
-    const titulo = document.createElement("strong");
+    const titulo = document.createElement("div");
     titulo.className = "share-vendo-title";
-    titulo.textContent = view.occasion.name || "Evento";
+    const nome = document.createElement("strong");
+    nome.textContent = view.occasion.name || "Evento";
+    const situacao = document.createElement("small");
+    situacao.className = `share-status share-status--${aoVivo ? "live" : "ended"}`;
+    situacao.textContent = aoVivo ? "(Em andamento)" : `(Encerrado ${quandoEncerrou(view.occasion.endedAt)})`;
+    titulo.append(nome, " ", situacao);
+    container.append(titulo);
+
+    // Detalhes que a interface limpa esconde: quando começou e o resumo por bebida.
     const periodo = document.createElement("p");
-    periodo.className = "settings-description";
-    const inicio = new Date(view.occasion.startedAt);
+    periodo.className = "settings-description clean-optional";
     const dia = dayLabel(view.occasion.startedAt);
     const quando = dia === "Hoje" ? "hoje" : dia === "Ontem" ? "ontem" : `em ${dia}`;
-    periodo.textContent = `Começou ${quando} às ${formatClock(inicio)}`;
-    if (view.occasion.endedAt != null) periodo.textContent += ` · terminou às ${formatClock(view.occasion.endedAt)}`;
-    container.append(titulo, periodo);
+    periodo.textContent = `Começou ${quando} às ${formatClock(view.occasion.startedAt)}`;
+    container.append(periodo);
 
     for (const total of view.totals) {
       const linha = document.createElement("p");
-      linha.className = "occasion-count";
+      linha.className = "occasion-count clean-optional";
       linha.textContent = `${total.icon} ${total.name} · ${total.count} registro(s)`;
       container.append(linha);
     }
@@ -311,6 +312,13 @@ export function createShareUI({
 
     container.append(renderDoseTimeline(view.events));
     return container;
+  }
+
+  // "às 16:56", ou "ontem às 23:10" / "em 12 de setembro às 23:10" se não foi hoje.
+  function quandoEncerrou(timestamp) {
+    const dia = dayLabel(timestamp);
+    const hora = formatClock(timestamp);
+    return dia === "Hoje" ? `às ${hora}` : `${dia === "Ontem" ? "ontem" : `em ${dia}`} às ${hora}`;
   }
 
   function dayLabel(timestamp) {
@@ -370,13 +378,21 @@ export function createShareUI({
       const nome = document.createElement("strong");
       nome.textContent = dose.drinkName;
       identidade.append(nome);
+      const tamanho = DOSE_LABELS[dose.doseSize];
+      if (tamanho) {
+        const selo = document.createElement("span");
+        selo.className = `history-dose-badge ${dose.doseSize}`;
+        selo.textContent = tamanho;
+        identidade.append(selo);
+      }
       const horaMovel = document.createElement("span");
       horaMovel.className = "history-event-mobile-time";
       horaMovel.textContent = formatClock(dose.consumedAt);
       cabecalho.append(icone, identidade, horaMovel);
 
       const decorrido = document.createElement("span");
-      decorrido.className = "history-event-elapsed is-after-interval";
+      // Neutro de propósito: verde no Histórico quer dizer "intervalo já passou".
+      decorrido.className = "history-event-elapsed is-neutral";
       decorrido.textContent = formatHistoryElapsed(dose.consumedAt, now());
       corpo.append(cabecalho, decorrido);
 

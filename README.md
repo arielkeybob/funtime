@@ -1,4 +1,12 @@
-# FunTime — V2.11.0
+# FunTime — V2.11.1
+
+## V2.11.1 — aba Vendo mais limpa e fiel
+
+- **"Atualizando…" não fica mais preso.** O servidor confirmando o mesmo dado não avisava a tela (o Firestore só avisa mudança de dado, a menos que se peça mudança de metadado). Agora pede.
+- Título do evento com **(Em andamento)** pequeno e verde, ou **(Encerrado às hh:mm)** pequeno e cinza. Os encerrados aparecem direto, como o ao vivo, sem dropdown nem texto de "disponível até".
+- Interface limpa esconde "Começou…" e o resumo por bebida.
+- **Meia/Inteira aparece** no compartilhamento. Era um bug: o tamanho nunca era enviado (o código esperava número e o valor é texto).
+- O "há X tempo" deixou de ser verde (no Histórico verde quer dizer "intervalo já passou", o que não vale aqui).
 
 ## V2.11.0 — estados de compartilhamento e vários eventos por pessoa
 

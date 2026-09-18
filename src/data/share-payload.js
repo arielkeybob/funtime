@@ -31,7 +31,8 @@ function minimalDose(record) {
     drinkIcon: String(record.drinkIcon ?? ""),
     consumedAt: Number(record.consumedAt),
     intervalMinutes: finite(record.intervalMinutes) ? record.intervalMinutes : null,
-    doseSize: finite(record.doseSize) ? record.doseSize : null,
+    // "half" | "full" (texto) — antes exigia número e por isso o tamanho nunca saía.
+    doseSize: record.doseSize === "half" || record.doseSize === "full" ? record.doseSize : null,
   };
 
   if (finite(record.countingStoppedAt)) dose.countingStoppedAt = record.countingStoppedAt;
