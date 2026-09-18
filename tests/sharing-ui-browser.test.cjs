@@ -38,8 +38,8 @@ test('sem conta conectada, o compartilhamento não aparece', { timeout: 30000 },
   await withPage(async (page, erros) => {
     await page.evaluate(() => openSettingsView());
 
-    assert.equal(await page.locator('#settings-sharing-card').isVisible(), false,
-      'o cartão só existe para quem conectou uma conta');
+    assert.equal(await page.locator('#settings-sharing-card').count(), 0,
+      'o card de compartilhar em Configurações foi removido — a ação mora na tela Amigos');
     assert.equal(await page.locator('#pairing-dialog').evaluate((node) => node.open), false);
     assert.equal(await page.locator('#home-friends-button').isVisible(), false,
       'sem conta, o ícone de amigos no cabeçalho da Home não aparece');
@@ -99,9 +99,9 @@ test('a interface montada sem conta não conversa com a nuvem', { timeout: 30000
 
 test('o diálogo de pareamento abre e fecha pelos próprios controles', { timeout: 30000 }, async () => {
   await withPage(async (page, erros) => {
-    // O cartão fica escondido sem conta, então o teste aciona o fluxo direto — o que
-    // interessa aqui é o diálogo estar ligado aos botões.
-    await page.evaluate(() => document.querySelector('#sharing-connect').click());
+    // A tela Amigos fica escondida sem conta, então o teste aciona o fluxo direto — o
+    // que interessa aqui é o diálogo estar ligado aos botões.
+    await page.evaluate(() => document.querySelector('#friends-add').click());
     assert.equal(await page.locator('#pairing-dialog').evaluate((node) => node.open), true);
 
     assert.equal(await page.locator('#pairing-code-display').textContent(), '— — —',

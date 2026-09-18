@@ -519,3 +519,55 @@ apagados depois, não fazem parte do repositório. Também confirmado por
 mutação: a asserção nova de "abas sempre visíveis" foi checada revertendo
 temporariamente o `hidden` estático no HTML e vendo o teste
 `tests/sharing-ui-browser.test.cjs` falhar, depois restaurado.
+
+## Nota pós-implementação (v2.7.0) — "Adicionar amigo" sai de Configurações
+
+Usando a v2.6.0, o usuário notou que o card "Compartilhar eventos" em
+Configurações (`#settings-sharing-card`) tinha ficado redundante: além do
+texto explicativo, ele desenhava uma **segunda** lista de amigos
+(`#sharing-people`/`renderPeople()`, com nome + "Conectado" + "Desfazer
+amizade" por pessoa) que já não tinha razão de existir desde o redesenho da
+v2.5.0 — a grade `#friends-grid` da tela Amigos, junto com o diálogo "Sobre
+o amigo" (v2.6.0), já cobre 100% do que esse card fazia. `renderPeople()`
+foi removida inteira; `estadoDe()` continuou (ainda usada como fallback em
+`renderDetailDefault`).
+
+A ação de "Adicionar amigo" mudou de lugar: em vez de um botão dentro do
+card de Configurações, virou um "+" depois da grade de amigos, dentro da
+própria tela Amigos — reaproveitando literalmente a mesma estrutura
+(`.home-add-zone`/`.home-add-button`) já usada para o "+" de adicionar
+bebida na Home, sem CSS nova. Como consequência, o guard que decide se
+`shareUI` é criado em `app.js` (antes `if (sharingNodes.sharingConnect)`)
+precisou trocar para `if (sharingNodes.pairingDialog)` — o pareamento em si
+não depende de nenhum botão específico continuar existindo, só da estrutura
+do diálogo.
+
+Junto, dois ajustes vistos direto nos prints do diálogo "Adicionar amigo":
+os dois parágrafos explicativos ganharam `clean-optional`, a mesma classe
+que já esconde texto de ajuda em outros diálogos quando a preferência
+"interface compacta" está ativa (default `true`) — nenhum mecanismo novo,
+só faltava aplicar a classe existente. E os campos "Seu apelido"/"Código
+recebido", que estavam com a aparência crua do navegador porque
+`<label class="settings-field">` não estiliza `input[type=text]` (só
+`select`), ganharam também a classe `field` — o seletor `.field
+input[type="text"]` não exige filho direto, então herdar o visual "bonito"
+não pediu CSS nova, só a classe extra no `<label>`.
+
+Por fim, o botão "Salvar" do apelido (que antes ficava sempre clicável,
+mesmo sem nada para salvar) passou a nascer desabilitado, habilitar ao
+editar o campo e desabilitar de novo depois de salvar com sucesso —
+`apelidoSalvo` guarda o último valor conhecido e `atualizarBotaoApelido()`
+compara contra o campo a cada `input`. A regra CSS nova
+(`.settings-secondary-button:disabled { opacity: .45; }`) também passou a
+valer para os outros botões que já usavam `disabled` com essa classe
+(`#export-touch-debug`, `#clear-touch-debug`) — melhoria incidental, não
+mudança de comportamento.
+
+Verificado com `npm test` (308 passando) e um terceiro script Playwright
+descartável, montando mais uma vez uma instância de `createShareUI` sobre o
+DOM real com um `getShareWriter` falso: confirmou o "+" abrindo o diálogo,
+o texto sumindo/aparecendo ao alternar `.clean-mode` no `<body>`, o estilo
+computado do campo de apelido (fundo `#09090b`, borda, `border-radius:
+12px` — igual aos outros campos do app) e o botão "Salvar"
+desabilitado→habilitado→desabilitado no ciclo abrir/editar/salvar — script e
+capturas apagados depois, não fazem parte do repositório.

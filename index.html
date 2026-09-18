@@ -58,7 +58,7 @@
     <footer class="browser-gate-footer">
       <span>App para estudo · não é controle de segurança</span>
       <a class="policies-link" href="./policies.html">Políticas e informações</a>
-      <span>v2.6.0 · By: arielkeybob</span>
+      <span>v2.7.0 · By: arielkeybob</span>
     </footer>
   </section>
 
@@ -305,23 +305,6 @@
         </div>
       </section>
 
-      <section id="settings-sharing-card" class="settings-card settings-data-card" hidden>
-        <div class="settings-section-heading">
-          <div>
-            <p class="eyebrow">Pessoas de confiança</p>
-            <h2>Compartilhar eventos</h2>
-          </div>
-        </div>
-
-        <p class="settings-description">Adicione um amigo por um código, para poder mostrar seu consumo durante um evento. Ninguém encontra você por nome ou e-mail, e ter um amigo não mostra nada: compartilhar é sempre uma escolha sua, evento a evento.</p>
-
-        <div id="sharing-people" class="sharing-people"></div>
-
-        <div class="settings-action-stack">
-          <button id="sharing-connect" class="settings-primary-action" type="button">Adicionar amigo</button>
-        </div>
-      </section>
-
       <section class="settings-card">
         <div class="settings-section-heading">
           <div>
@@ -330,7 +313,7 @@
           </div>
         </div>
 
-        <p class="settings-description">Versão instalada: <strong>v2.6.0</strong></p>
+        <p class="settings-description">Versão instalada: <strong>v2.7.0</strong></p>
         <button id="check-app-update" class="settings-secondary-button" type="button">Verificar atualizações</button>
       </section>
 
@@ -379,9 +362,12 @@
     <main id="shared-view" hidden>
       <section class="shared-view-section">
         <h2 class="agenda-month-heading">Amigos</h2>
-        <p id="friends-empty" class="sharing-empty" hidden>Nenhum amigo ainda. Use "Adicionar amigo" nas Configurações.</p>
+        <p id="friends-empty" class="sharing-empty" hidden>Nenhum amigo ainda. Toque em "+" para adicionar.</p>
         <div id="friends-grid" class="share-grid"></div>
       </section>
+      <div class="home-add-zone">
+        <button id="friends-add" class="home-add-button" type="button" aria-label="Adicionar amigo">+</button>
+      </div>
     </main>
 
     <dialog id="shared-detail-dialog" class="dialog data-dialog">
@@ -441,7 +427,7 @@
     <footer class="app-footer">
       <span class="app-footer-disclaimer">App para estudo · não é controle de segurança</span>
       <a class="policies-link" href="./policies.html">Políticas e informações</a>
-      <span class="app-footer-meta">v2.6.0 · By: arielkeybob</span>
+      <span class="app-footer-meta">v2.7.0 · By: arielkeybob</span>
     </footer>
   </div>
 
@@ -455,9 +441,9 @@
         <button id="close-pairing" class="icon-button secondary" type="button" aria-label="Fechar">×</button>
       </div>
 
-      <p class="settings-description">Uma pessoa mostra o código, a outra digita — a conexão já se completa na hora, sem mais nada a confirmar. Vocês precisam estar juntos: o código vale por 5 minutos e não há busca por nome ou e-mail.</p>
+      <p class="settings-description clean-optional">Uma pessoa mostra o código, a outra digita — a conexão já se completa na hora, sem mais nada a confirmar. Vocês precisam estar juntos: o código vale por 5 minutos e não há busca por nome ou e-mail.</p>
 
-      <label class="settings-field" for="pairing-alias">
+      <label class="settings-field field" for="pairing-alias">
         <span>Seu apelido (o mesmo para todo mundo que você conectar)</span>
         <div class="pairing-alias-row">
           <input id="pairing-alias" type="text" maxlength="40" autocomplete="off" placeholder="Seu apelido">
@@ -471,12 +457,12 @@
           <p id="pairing-code-display" class="pairing-code">— — —</p>
           <p id="pairing-code-countdown" class="settings-description"></p>
           <button id="pairing-generate" class="settings-secondary-button" type="button">Gerar código</button>
-          <p class="settings-description">Um código por pessoa. Depois que alguém usar o código, gere outro para convidar a próxima.</p>
+          <p class="settings-description clean-optional">Um código por pessoa. Depois que alguém usar o código, gere outro para convidar a próxima.</p>
         </div>
 
         <div class="pairing-panel">
           <strong>Digitar o código de alguém</strong>
-          <label class="settings-field" for="pairing-code-input">
+          <label class="settings-field field" for="pairing-code-input">
             <span>Código recebido</span>
             <input id="pairing-code-input" type="text" inputmode="text" maxlength="7" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="AB7-K29">
           </label>

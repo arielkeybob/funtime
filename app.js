@@ -308,7 +308,7 @@ document.addEventListener("visibilitychange", () => {
 const DATA_STORAGE_KEY = "funtime-v1-data";
 const LEGACY_DRINKS_STORAGE_KEY = "balada-v1-drinks";
 const DATA_VERSION = 11;
-const APP_VERSION = "2.6.0";
+const APP_VERSION = "2.7.0";
 const DRINK_EXPORT_TYPE = "funtime-drinks";
 const DRINK_EXPORT_FORMAT_VERSION = 1;
 const BACKUP_EXPORT_TYPE = "funtime-backup";
@@ -520,9 +520,7 @@ const syncStatusRow = document.querySelector("#sync-status-row");
 const syncAccountLabel = document.querySelector("#sync-account-label");
 const syncUnavailableNotice = document.querySelector("#sync-unavailable");
 const sharingNodes = {
-  sharingCard: document.querySelector("#settings-sharing-card"),
-  sharingPeople: document.querySelector("#sharing-people"),
-  sharingConnect: document.querySelector("#sharing-connect"),
+  friendsAdd: document.querySelector("#friends-add"),
   pairingDialog: document.querySelector("#pairing-dialog"),
   pairingAlias: document.querySelector("#pairing-alias"),
   pairingAliasSave: document.querySelector("#pairing-alias-save"),
@@ -3208,8 +3206,8 @@ function updateSyncSettingsUI() {
   syncDeleteCloudButton.hidden = !user;
   syncStatusRow.hidden = !user;
   if (user) syncAccountLabel.textContent = user.email || user.displayName || "Conectado";
-  // Compartilhar exige conta: sem login não há com quem nem como.
-  if (sharingNodes.sharingCard) sharingNodes.sharingCard.hidden = !user;
+  // Compartilhar exige conta: sem login não há com quem nem como. A tela Amigos (e
+  // o "+" de adicionar dentro dela) só é alcançável por este ícone.
   if (sharingNodes.homeFriendsButton) sharingNodes.homeFriendsButton.hidden = !user;
 }
 
@@ -3421,7 +3419,7 @@ window.addEventListener("beforeunload", () => {
   cloudSync?.flushPendingWrites().catch(() => { /* melhor esforço */ });
 });
 
-if (sharingNodes.sharingConnect) {
+if (sharingNodes.pairingDialog) {
   shareUI = createShareUI({
     nodes: sharingNodes,
     getShareWriter: () => shareWriter,

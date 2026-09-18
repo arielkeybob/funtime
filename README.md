@@ -1,4 +1,27 @@
-# FunTime — V2.6.0
+# FunTime — V2.7.0
+
+## V2.7.0 — "Adicionar amigo" muda de Configurações para dentro de Amigos; diálogo mais limpo
+
+Ajustes pedidos depois de usar a v2.6.0 de verdade:
+
+- **"Adicionar amigo" sai de Configurações.** O card "Compartilhar eventos" (texto
+  explicativo + uma segunda lista de amigos com "Desfazer amizade" — sobra de antes
+  do redesenho da v2.5.0, redundante com a grade da tela Amigos) foi removido de
+  Configurações. No lugar dele, um botão "+" depois da lista de amigos, dentro da
+  própria tela Amigos — mesmo padrão visual do "+" de adicionar bebida na Home.
+- **Diálogo "Adicionar amigo" respeita a interface compacta.** Os dois parágrafos
+  explicativos do diálogo de pareamento agora somem quando a preferência "interface
+  compacta" está ativa (que já é o padrão), usando o mesmo mecanismo (`.clean-optional`)
+  já usado em outros diálogos do app.
+- **Campos com o visual padrão do app.** Os campos "Seu apelido" e "Código recebido"
+  tinham o visual cru do navegador, sem o fundo/borda que os outros campos do app já
+  usam — corrigido reaproveitando a mesma classe.
+- **Botão "Salvar" do apelido só fica ativo quando há algo novo.** Antes ficava sempre
+  clicável mesmo sem nenhuma mudança no campo; agora nasce desabilitado, habilita ao
+  editar o campo, e desabilita de novo depois de salvar.
+
+Nenhuma mudança em `firestore.rules` nem em políticas. App, boot, rodapés e cache
+alinhados a 2.7.0; DATA_VERSION 11 preservado.
 
 ## V2.6.0 — compartilhar já ao criar o evento; ícone de amigos; "Desfazer amizade" numa tela própria
 

@@ -28,6 +28,7 @@ export function createShareUI({ nodes, getShareWriter, showToast, now = () => Da
   let friendInfoAberto = null;
   let codigoAtual = null;
   let contagem = null;
+  let apelidoSalvo = "";
 
   function erro(mensagem) {
     nodes.pairingError.textContent = mensagem || "";
@@ -133,40 +134,6 @@ export function createShareUI({ nodes, getShareWriter, showToast, now = () => Da
     if (par.acceptedByMe && par.acceptedByOther) return "Conectado";
     if (par.acceptedByMe) return "Aguardando a outra pessoa";
     return "Quer se conectar com você";
-  }
-
-  function renderPeople() {
-    if (!nodes.sharingPeople) return;
-    nodes.sharingPeople.replaceChildren();
-
-    if (!pairings.length) {
-      const vazio = document.createElement("p");
-      vazio.className = "sharing-empty";
-      vazio.textContent = "Nenhum amigo ainda.";
-      nodes.sharingPeople.append(vazio);
-      return;
-    }
-
-    for (const par of pairings) {
-      const item = document.createElement("div");
-      item.className = "sharing-person";
-
-      const cabecalho = document.createElement("div");
-      cabecalho.className = "sharing-person-head";
-      const nome = document.createElement("strong");
-      nome.textContent = par.alias || "Sem apelido";
-      const estado = document.createElement("span");
-      estado.className = "sharing-person-state";
-      estado.textContent = estadoDe(par);
-      cabecalho.append(nome, estado);
-
-      const acoes = document.createElement("div");
-      acoes.className = "sharing-person-actions";
-      acoes.append(botao("Desfazer amizade", () => desfazer(par.pairId, par.alias)));
-
-      item.append(cabecalho, acoes);
-      nodes.sharingPeople.append(item);
-    }
   }
 
   // Três estados, na ordem em que o roadmap pediu para não mentir sobre estar "ao
@@ -409,8 +376,8 @@ export function createShareUI({ nodes, getShareWriter, showToast, now = () => Da
   }
 
   // A visibilidade do próprio botão (logado ou não) é responsabilidade de quem monta
-  // a tela (app.js, ao lado de sharingCard.hidden) — aqui só a bolinha, que depende
-  // de ter alguém compartilhando com você agora.
+  // a tela (app.js, junto do resto do estado de login) — aqui só a bolinha, que
+  // depende de ter alguém compartilhando com você agora.
   function setSharedEntries(lista) {
     sharedEntries = Array.isArray(lista) ? lista : [];
     if (nodes.homeFriendsDot) nodes.homeFriendsDot.hidden = sharedEntries.length === 0;
@@ -419,7 +386,6 @@ export function createShareUI({ nodes, getShareWriter, showToast, now = () => Da
 
   function setPairings(lista) {
     pairings = Array.isArray(lista) ? lista : [];
-    renderPeople();
     if (nodes.shareOccasionDialog?.open) renderShareOccasionPeople();
     // O botão da Home também depende de haver amigo, não só de share ativo.
     setSharedEntries(sharedEntries);
@@ -587,12 +553,22 @@ export function createShareUI({ nodes, getShareWriter, showToast, now = () => Da
     // Pré-preenche com o apelido já salvo — o campo não pergunta de novo a cada
     // pareamento, só permite trocar (e trocar propaga para quem já está conectado).
     try { nodes.pairingAlias.value = await shareWriter.getGlobalAlias(); }
-    catch { /* sem apelido salvo ainda, ou falha ao buscar: campo fica em branco */ }
+    catch { nodes.pairingAlias.value = ""; /* sem apelido salvo ainda, ou falha ao buscar */ }
+    apelidoSalvo = nodes.pairingAlias.value;
+    atualizarBotaoApelido();
+  }
+
+  // "Salvar" só faz sentido quando o campo difere do que já está salvo — do
+  // contrário fica sempre ativo mesmo sem nada novo para gravar.
+  function atualizarBotaoApelido() {
+    if (nodes.pairingAliasSave) nodes.pairingAliasSave.disabled = nodes.pairingAlias.value === apelidoSalvo;
   }
 
   async function salvarApelido() {
     try {
       await shareWriter.setGlobalAlias(nodes.pairingAlias.value);
+      apelidoSalvo = nodes.pairingAlias.value;
+      atualizarBotaoApelido();
       showToast("Apelido atualizado para quem você já adicionou.");
     } catch (falha) {
       console.error("Falha ao salvar o apelido.", falha);
@@ -610,8 +586,9 @@ export function createShareUI({ nodes, getShareWriter, showToast, now = () => Da
   }
 
   function wire() {
-    nodes.sharingConnect?.addEventListener("click", openPairingDialog);
+    nodes.friendsAdd?.addEventListener("click", openPairingDialog);
     nodes.pairingAliasSave?.addEventListener("click", salvarApelido);
+    nodes.pairingAlias?.addEventListener("input", atualizarBotaoApelido);
     nodes.pairingGenerate?.addEventListener("click", gerarCodigo);
     nodes.pairingRedeem?.addEventListener("click", usarCodigo);
     // Formata enquanto digita: acaba com a dúvida de precisar ou não do traço — o
@@ -640,7 +617,7 @@ export function createShareUI({ nodes, getShareWriter, showToast, now = () => Da
   }
 
   return {
-    wire, setPairings, openPairingDialog, closePairingDialog, renderPeople,
+    wire, setPairings, openPairingDialog, closePairingDialog,
     setShares, openShareOccasionDialog, closeShareOccasionDialog,
     setSharedEntries, renderFriends, renderOccasionSharePicker, startSharesFor,
   };

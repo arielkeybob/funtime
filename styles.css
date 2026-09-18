@@ -2517,6 +2517,11 @@ body {
   font-weight: 750;
 }
 
+.settings-secondary-button:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
 .settings-lock-button {
   border-color: rgb(255 255 255 / 0.16);
   background: var(--surface-2);
@@ -3562,13 +3567,6 @@ body {
 .pairing-panel { display: grid; gap: 10px; padding: 14px; border: 1px solid var(--border); border-radius: 12px; }
 .pairing-panel > strong { font-size: .84rem; }
 .pairing-code { margin: 0; text-align: center; font-size: 1.6rem; font-weight: 700; letter-spacing: .18em; font-variant-numeric: tabular-nums; }
-.sharing-people { display: grid; gap: 10px; }
-.sharing-person { display: grid; gap: 8px; padding: 12px; border: 1px solid var(--border); border-radius: 12px; }
-.sharing-person-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
-.sharing-person-head strong { font-size: .9rem; }
-.sharing-person-state { color: var(--muted); font-size: .76rem; font-weight: 700; }
-.sharing-person-actions { display: flex; flex-wrap: wrap; gap: 8px; }
-.sharing-person-actions button { min-height: 40px; font-size: .78rem; padding: 8px 12px; }
 .sharing-empty { color: var(--muted); font-size: .82rem; }
 .shared-view-disclaimer { margin: 0 0 16px; padding: 12px; border: 1px solid var(--border); border-radius: 12px; }
 
