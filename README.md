@@ -1,4 +1,11 @@
-# FunTime — V2.8.0
+# FunTime — V2.9.0
+
+## V2.9.0 — tela do amigo mais clara; selos com seta
+
+- **Vendo** usa a mesma linha do tempo do Histórico (dia, hora, ícone, nome, há quanto tempo).
+- **Compartilhando** virou uma lista de linhas com o evento e um botão "Parar" (a tela estava quebrada por um estilo que removi na v2.7.0).
+- O aviso "Os registros compartilhados…" some na interface limpa.
+- Selos na lista de amigos: seta ↗ azul (você compartilha com ela) e ↙ verde (ela compartilha com você), no lugar das bolinhas.
 
 ## V2.8.0 — pareamento por QR e conexão automática ao digitar
 

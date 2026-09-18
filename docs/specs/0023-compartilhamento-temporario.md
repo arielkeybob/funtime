@@ -594,3 +594,7 @@ Verificado com o round-trip gerador→leitor num teste de navegador, e com um sc
 descartável que injetou uma câmera falsa (canvas com o QR) para exercitar o scanner de
 verdade, incluindo o fim das trilhas de vídeo. **Não validado num iPhone real** — esse é
 o teste que falta, no Safari e na PWA instalada.
+
+## Nota pós-implementação (v2.9.0) — tela do amigo e selos
+
+A aba Compartilhando ficou quebrada porque a v2.7.0 removeu as regras `.sharing-person-head` (código morto do card de Configurações) que essa aba ainda reaproveitava; ganhou classes próprias (`.share-active-row`). A aba Vendo passou a reutilizar as classes `.history-*` do Histórico em modo somente leitura. Os selos da grade de amigos viraram setas de mesmo tamanho (↗ azul: eu compartilho; ↙ verde: ela compartilha), escolha do usuário entre cinco opções comparadas numa página de amostra.

@@ -235,16 +235,81 @@ export function createShareUI({ nodes, getShareWriter, showToast, now = () => Da
       container.append(aviso);
     }
 
-    const lista = document.createElement("div");
-    lista.className = "shared-entry-events";
-    for (const dose of [...view.events].reverse()) {
-      const linha = document.createElement("p");
-      linha.className = "shared-entry-event";
-      linha.textContent = `${formatClock(dose.consumedAt)} · ${dose.drinkIcon} ${dose.drinkName} · ${formatHistoryElapsed(dose.consumedAt, now())}`;
-      lista.append(linha);
-    }
-    container.append(lista);
+    container.append(renderDoseTimeline(view.events));
     return container;
+  }
+
+  function dayLabel(timestamp) {
+    const date = new Date(timestamp);
+    const start = new Date(date); start.setHours(0, 0, 0, 0);
+    const today = new Date(now()); today.setHours(0, 0, 0, 0);
+    const difference = Math.round((today.getTime() - start.getTime()) / 86400000);
+    if (difference === 0) return "Hoje";
+    if (difference === 1) return "Ontem";
+    const options = date.getFullYear() === new Date(now()).getFullYear()
+      ? { day: "numeric", month: "long" }
+      : { day: "numeric", month: "long", year: "numeric" };
+    return new Intl.DateTimeFormat("pt-BR", options).format(date);
+  }
+
+  // Mesma linha do tempo do Histórico (dia, hora, cartão com ícone e nome), só leitura
+  // e mais recente primeiro — reaproveita as classes .history-* do app.
+  function renderDoseTimeline(events) {
+    const lista = document.createElement("div");
+    let timeline = null;
+    let diaAtual = null;
+
+    for (const dose of [...events].reverse()) {
+      const dia = dayLabel(dose.consumedAt);
+      if (dia !== diaAtual) {
+        const secao = document.createElement("section");
+        secao.className = "history-day";
+        const titulo = document.createElement("h2");
+        titulo.className = "history-day-title";
+        titulo.textContent = dia;
+        timeline = document.createElement("div");
+        timeline.className = "history-timeline";
+        secao.append(titulo, timeline);
+        lista.append(secao);
+        diaAtual = dia;
+      }
+
+      const linha = document.createElement("div");
+      linha.className = "history-event";
+      const marcador = document.createElement("span");
+      marcador.className = "history-marker";
+      marcador.setAttribute("aria-hidden", "true");
+      const hora = document.createElement("span");
+      hora.className = "history-event-time";
+      hora.textContent = formatClock(dose.consumedAt);
+
+      const corpo = document.createElement("span");
+      corpo.className = "history-event-body";
+      const cabecalho = document.createElement("span");
+      cabecalho.className = "history-event-heading";
+      const icone = document.createElement("span");
+      icone.className = "history-event-icon";
+      icone.setAttribute("aria-hidden", "true");
+      icone.textContent = dose.drinkIcon;
+      const identidade = document.createElement("span");
+      identidade.className = "history-event-identity";
+      const nome = document.createElement("strong");
+      nome.textContent = dose.drinkName;
+      identidade.append(nome);
+      const horaMovel = document.createElement("span");
+      horaMovel.className = "history-event-mobile-time";
+      horaMovel.textContent = formatClock(dose.consumedAt);
+      cabecalho.append(icone, identidade, horaMovel);
+
+      const decorrido = document.createElement("span");
+      decorrido.className = "history-event-elapsed is-after-interval";
+      decorrido.textContent = formatHistoryElapsed(dose.consumedAt, now());
+      corpo.append(cabecalho, decorrido);
+
+      linha.append(marcador, hora, corpo);
+      timeline.append(linha);
+    }
+    return lista;
   }
 
   // Corpo de "você compartilha com ela" — cada evento ativo, com um jeito de parar.
@@ -262,10 +327,15 @@ export function createShareUI({ nodes, getShareWriter, showToast, now = () => Da
 
     for (const share of ativos) {
       const linha = document.createElement("div");
-      linha.className = "sharing-person-head";
+      linha.className = "share-active-row";
+      const texto = document.createElement("div");
+      texto.className = "share-active-text";
       const nome = document.createElement("strong");
       nome.textContent = share.occasionName || "Evento";
-      linha.append(nome, botao("Parar de compartilhar", () => pararCompartilhamento(share.shareId), "danger-button"));
+      const estado = document.createElement("span");
+      estado.textContent = "Ao vivo para essa pessoa";
+      texto.append(nome, estado);
+      linha.append(texto, botao("Parar", () => pararCompartilhamento(share.shareId), "share-stop-button"));
       container.append(linha);
     }
     return container;
@@ -385,15 +455,19 @@ export function createShareUI({ nodes, getShareWriter, showToast, now = () => Da
       avatar.setAttribute("aria-hidden", "true");
       avatar.textContent = initial(par.alias);
 
+      // Selos de mesma forma e tamanho, com a seta apontando o sentido: ↙ verde é
+      // ela compartilhando com você, ↗ azul é você compartilhando com ela.
       if (vendo) {
-        const dot = document.createElement("span");
-        dot.className = "share-status-dot share-status-dot--incoming";
-        avatar.append(dot);
+        const selo = document.createElement("span");
+        selo.className = "share-badge share-badge--incoming";
+        selo.innerHTML = '<svg viewBox="0 0 24 24"><path d="M17 7 7 17M15 17H7V9"/></svg>';
+        avatar.append(selo);
       }
       if (compartilhando) {
-        const dot = document.createElement("span");
-        dot.className = "share-status-dot share-status-dot--outgoing";
-        avatar.append(dot);
+        const selo = document.createElement("span");
+        selo.className = "share-badge share-badge--outgoing";
+        selo.innerHTML = '<svg viewBox="0 0 24 24"><path d="M7 17 17 7M9 7h8v8"/></svg>';
+        avatar.append(selo);
       }
 
       const nome = document.createElement("span");

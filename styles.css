@@ -3590,7 +3590,6 @@ body {
    compartilha com ela agora". As duas podem aparecer juntas. */
 .share-status-dot { position: absolute; width: 14px; height: 14px; border-radius: 999px; border: 2px solid var(--bg); }
 .share-status-dot--incoming { bottom: -2px; right: -2px; background: var(--success); }
-.share-status-dot--outgoing { top: -2px; right: -2px; background: var(--info); }
 #shared-entries { display: grid; gap: 14px; }
 .shared-entry-events { display: grid; gap: 4px; margin-top: 6px; max-height: 260px; overflow-y: auto; }
 .shared-entry-event { margin: 0; font-size: .8rem; color: var(--muted); }
@@ -3761,3 +3760,15 @@ body {
   .upside-marquee { height: auto; mask-image: none; }
   .upside-marquee span { width: 100%; padding-left: 0; white-space: normal; animation: none; font-size: 10px; }
 }
+.share-active-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 14px; border: 1px solid var(--border); border-radius: 14px; background: var(--surface); }
+.share-active-row + .share-active-row { margin-top: 8px; }
+.share-active-text { display: grid; gap: 2px; min-width: 0; }
+.share-active-text strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.share-active-text span { color: var(--muted); font-size: .76rem; }
+.share-stop-button { flex-shrink: 0; min-height: 40px; padding: 0 16px; border: 1px solid var(--danger-strong); border-radius: 12px; background: rgb(255 67 77 / 0.12); color: #ff9da2; font-weight: 800; }
+.share-stop-button:active { background: rgb(255 67 77 / 0.22); }
+#shared-detail-body .history-day { margin-top: 16px; }
+.share-badge { position: absolute; right: -6px; width: 22px; height: 22px; border-radius: 999px; border: 2px solid var(--bg); display: grid; place-items: center; color: #06121c; }
+.share-badge svg { width: 12px; height: 12px; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
+.share-badge--outgoing { top: -5px; background: var(--info); }
+.share-badge--incoming { bottom: -5px; background: var(--success); }
