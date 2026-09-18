@@ -123,18 +123,26 @@ export function createShareWriter({
       jaExiste = (await firestore.getDoc(pairRef)).exists();
     } catch { /* ainda não existe: segue para criar */ }
 
-    // Já existir é normal: refazer o pareamento com alguém conhecido só reaceita.
+    // Já existir é normal: já estar conectados só significa que não há nada a
+    // fazer aqui (o `acceptPairing` cobre o caso raro de um pareamento antigo, de
+    // antes desta simplificação, que ainda não tinha os dois lados aceitos).
     if (jaExiste) {
       await acceptPairing(pairId, myAlias);
       return { ok: true, pairId, otherUid: ownerUid };
     }
 
+    // Nasce aceito pelos dois: mostrar o código já foi o consentimento de quem
+    // gerou, digitá-lo é o de quem recebeu — sem tela de confirmação separada.
+    // O apelido de quem gerou o código não entra aqui (quem resgata não tem
+    // permissão de ler `users/{outro}/meta/account`); a própria pessoa preenche o
+    // dela sozinha na próxima vez que seu aparelho perceber este pareamento — ver
+    // `seedMissingAlias`.
     await firestore.setDoc(pairRef, {
       uids: [uid, ownerUid].sort(),
       createdBy: uid,
       createdAt: firestore.serverTimestamp(),
       viaCode: code,
-      acceptedBy: [uid],
+      acceptedBy: [uid, ownerUid],
       aliases: { [uid]: String(myAlias ?? "") },
       sharing: {},
     });
@@ -157,10 +165,39 @@ export function createShareWriter({
     });
   }
 
+  // Cache em memória do apelido global: evita reler a cada pareamento novo que
+  // aparece na escuta (seedMissingAlias roda a cada snapshot). `null` = ainda não
+  // buscado nesta sessão; string vazia = buscado, mas a pessoa nunca salvou um.
+  let cachedAlias = null;
+
   async function getGlobalAlias() {
     const { firestore, db } = await load();
     const snapshot = await firestore.getDoc(firestore.doc(db, "users", uid, "meta", "account"));
-    return snapshot.exists() ? String(snapshot.data()?.shareAlias ?? "") : "";
+    cachedAlias = snapshot.exists() ? String(snapshot.data()?.shareAlias ?? "") : "";
+    return cachedAlias;
+  }
+
+  async function ensureMyAlias() {
+    if (cachedAlias === null) await getGlobalAlias();
+    return cachedAlias;
+  }
+
+  // Quando alguém resgata meu código, o pareamento nasce sem o meu apelido — quem
+  // resgatou não tem permissão de ler users/{eu}/meta/account para preenchê-lo.
+  // Este aparelho é quem preenche sozinho, na primeira vez que perceber (via a
+  // própria escuta de pareamentos) um pareamento onde meu apelido ainda falta.
+  async function seedMissingAlias(pares) {
+    const alias = await ensureMyAlias();
+    if (!alias) return; // nada salvo ainda: não tem o que propagar
+
+    const { firestore, db } = await load();
+    for (const par of pares) {
+      if (par.myAlias) continue;
+      await firestore.updateDoc(
+        firestore.doc(db, "pairings", par.pairId),
+        { [`aliases.${uid}`]: alias }
+      ).catch(() => {});
+    }
   }
 
   // Um apelido só, não um por conexão: o valor canônico fica em users/{uid}/meta/account
@@ -184,6 +221,7 @@ export function createShareWriter({
       await batch.commit();
     }
 
+    cachedAlias = clean;
     return clean;
   }
 
@@ -357,6 +395,7 @@ export function createShareWriter({
         const pares = pairingsOf(snapshot);
         onPairingsChange?.(pares);
         invalidateUsedCodes(pares).catch(report);
+        seedMissingAlias(pares).catch(report);
       },
       report
     ));
@@ -387,6 +426,7 @@ export function createShareWriter({
     if (sharePushTimer) { cancel(sharePushTimer); sharePushTimer = null; }
     activeShares.clear();
     latestAppData = null;
+    cachedAlias = null;
   }
 
   return {

@@ -2,7 +2,7 @@ const { test } = require('node:test');
 const assert = require('node:assert/strict');
 const {
   generatePairingCode, formatPairingCode, normalizePairingCode, liveFormatPairingCode, buildPairId,
-  otherUidOf, pairingConfirmationCode, PAIRING_CODE_ALPHABET, PAIRING_CODE_LENGTH,
+  otherUidOf, PAIRING_CODE_ALPHABET, PAIRING_CODE_LENGTH,
 } = require('../src/data/share-codes.js');
 
 test('o alfabeto não tem glifos que se confundem', () => {
@@ -78,16 +78,4 @@ test('otherUidOf devolve o outro lado', () => {
   assert.equal(otherUidOf(['aaa', 'zzz'], 'aaa'), 'zzz');
   assert.equal(otherUidOf(['aaa', 'zzz'], 'zzz'), 'aaa');
   assert.equal(otherUidOf([], 'aaa'), null);
-});
-
-test('número de conferência: 4 dígitos, igual nos dois aparelhos', async () => {
-  const doLadoDeA = await pairingConfirmationCode('aaa_zzz');
-  const doLadoDeB = await pairingConfirmationCode(buildPairId('zzz', 'aaa'));
-
-  assert.match(doLadoDeA, /^\d{4}$/);
-  assert.equal(doLadoDeA, doLadoDeB, 'os dois lados precisam ver o mesmo número');
-});
-
-test('número de conferência muda com o par', async () => {
-  assert.notEqual(await pairingConfirmationCode('aaa_zzz'), await pairingConfirmationCode('aaa_yyy'));
 });

@@ -77,7 +77,12 @@ service cloud.firestore {
       // Consulta obrigatória: where('uids', 'array-contains', <meu uid>).
       allow list: if isMember();
 
-      // Quem cria é quem DIGITOU o código; a posse é verificada aqui.
+      // Quem cria é quem DIGITOU o código; a posse é verificada aqui. O pareamento já
+      // nasce aceito pelos dois: mostrar o código é o consentimento de quem gerou,
+      // digitá-lo é o de quem recebeu — os dois já aconteceram fisicamente antes
+      // deste `create`, então uma segunda tela de confirmação só repetiria o que a
+      // posse do código já provou. (Antes disto exigia acceptedBy.size()==1 e uma
+      // etapa separada de aceite; simplificado a pedido do usuário — ver spec 0023.)
       allow create: if signedIn()
         && request.resource.data.keys().hasOnly(
              ['uids', 'createdBy', 'createdAt', 'viaCode', 'acceptedBy', 'aliases', 'sharing'])
@@ -86,8 +91,8 @@ service cloud.firestore {
         && pairId == request.resource.data.uids[0] + '_' + request.resource.data.uids[1]
         && me() in request.resource.data.uids
         && request.resource.data.createdBy == me()
-        && request.resource.data.acceptedBy.size() == 1
-        && me() in request.resource.data.acceptedBy
+        && request.resource.data.acceptedBy.size() == 2
+        && request.resource.data.acceptedBy.hasAll(request.resource.data.uids)
         && request.resource.data.aliases.keys().hasOnly([me()])
         && request.resource.data.sharing.size() == 0
         && validCode(

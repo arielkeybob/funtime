@@ -143,7 +143,7 @@ test('aceite requer três confirmações, persiste localmente e falha fechada', 
   checks[2].checked=true; handlers.change(); assert.equal(elements['#terms-continue'].disabled,false);
   fail=true; handlers.submit({preventDefault(){}}); assert.equal(elements['#terms-error'].hidden,false); assert.equal(resolved,false);
   fail=false; handlers.submit({preventDefault(){}}); await pending;
-  assert.equal(c.hasCurrentTermsAcceptance(),true); assert.equal(JSON.parse(value).termsVersion,'1.0.5');
+  assert.equal(c.hasCurrentTermsAcceptance(),true); assert.equal(JSON.parse(value).termsVersion,'1.0.6');
   value=JSON.stringify({...JSON.parse(value),termsVersion:'0.9'}); assert.equal(c.hasCurrentTermsAcceptance(),false);
   value='{'; assert.equal(c.hasCurrentTermsAcceptance(),false);
 });
@@ -156,9 +156,10 @@ test('aceite de versão listada como ainda válida dispensa novo aceite', () => 
   const c=vm.createContext({localStorage:{getItem:()=>guardado,setItem:()=>{}},document:{querySelector:()=>null,body:{classList:{add(){},remove(){}}}}});
   vm.runInContext(fonte,c);
 
-  guardado=aceite('1.0.5'); assert.equal(c.hasCurrentTermsAcceptance(),true,'a versão atual sempre vale');
+  guardado=aceite('1.0.6'); assert.equal(c.hasCurrentTermsAcceptance(),true,'a versão atual sempre vale');
   // Fixo de propósito: tirar uma dessas da dispensa volta a pedir aceite de todo
   // mundo que já aceitou, e isso precisa quebrar o teste em vez de passar despercebido.
+  guardado=aceite('1.0.5'); assert.equal(c.hasCurrentTermsAcceptance(),true,'1.0.5 está dispensada de novo aceite');
   guardado=aceite('1.0.4'); assert.equal(c.hasCurrentTermsAcceptance(),true,'1.0.4 está dispensada de novo aceite');
   guardado=aceite('1.0.3'); assert.equal(c.hasCurrentTermsAcceptance(),true,'1.0.3 está dispensada de novo aceite');
   guardado=aceite('1.0.2'); assert.equal(c.hasCurrentTermsAcceptance(),false,'versão fora da lista exige novo aceite');

@@ -303,3 +303,72 @@ tinha `maxlength` maior que o código formatado, e nada formatava o traço
 automaticamente — daí a dúvida relatada de "precisa do traço?". Ganhou
 formatação ao vivo (`liveFormatPairingCode`) e o `maxlength` foi ajustado
 para bater exatamente com o formato exibido.
+
+## Nota pós-implementação (v2.4.0) — conexão em uma etapa só
+
+Depois que a correção da v2.3.2 fez o pareamento funcionar de verdade pela
+primeira vez, o usuário testou de novo com as duas contas reais e mandou uma
+captura de tela: quem digitou o código via a tela "É mesmo essa pessoa?"
+pedindo para conferir um número de 4 dígitos antes de aceitar — mas do lado
+de quem gerou o código, nada aparecia automaticamente; seria preciso entrar
+em Configurações e achar um botão "Conferir e aceitar" escondido ali. Nas
+palavras do usuário: *"Acho que deveria simplificar muito essa conexão aí.
+Tem muitos passos, muitos checks para um app de estudo e uso pessoal e ainda
+mais para usuários que talvez possam estar embriagados no momento da
+tentativa de conexão, visto que é um app de doses de bebida."*
+
+Apresentadas três opções de simplificação, o usuário escolheu a mais radical:
+conectar na hora, sem nenhuma segunda tela em nenhum dos dois aparelhos.
+Mostrar o código já é o consentimento de quem gera; digitá-lo é o da outra
+pessoa. Removido por inteiro:
+
+- O diálogo de confirmação (`#pairing-confirm-dialog`) e as funções
+  `abrirConfirmacao`/`aceitarConfirmacao` em `share-ui.js`.
+- `pairingConfirmationCode` (o número de 4 dígitos derivado do `pairId` por
+  SHA-256) em `share-codes.js`, agora sem nenhum lugar que o use.
+- O botão "Conferir e aceitar" na lista de pessoas conectadas.
+
+**Mudança nas regras do Firestore.** Antes, `pairings/{pairId}` podia nascer
+com `acceptedBy` contendo só quem criou o documento (quem digitou o código);
+um segundo `update` de quem gerou o código completava o aceite. Sem essa
+segunda etapa, a regra de criação passou a exigir `acceptedBy.size() == 2` e
+`acceptedBy.hasAll(uids)` — um pareamento só pode nascer já aceito pelos
+dois lados, nunca por um só. **Esta mudança precisa ser publicada
+(`firebase deploy --only firestore:rules`) antes de funcionar em produção**;
+sem publicar, `redeemPairingCode` passa a ser negado pela regra antiga.
+
+**Problema derivado, resolvido com auto-preenchimento.** Sem a segunda etapa
+de aceite, o apelido de quem gerou o código nunca mais teria como chegar ao
+documento de pareamento — antes, era exatamente ao aceitar que o aparelho de
+quem gerou escrevia o próprio apelido em `aliases.{uid}`. Como quem digitou o
+código não tem permissão para ler `users/{outroUid}/meta/account` (regra da
+spec 0022, inalterada), a única conta que pode preencher aquele campo é a
+própria dona do apelido. Solução: o aparelho de quem gerou o código já estava
+escutando os próprios pareamentos (`onPairingsChange`, reaproveitado da
+invalidação de código de uso único da v2.3.2); ganhou mais um passo nesse
+mesmo listener (`seedMissingAlias`) que, ao notar um pareamento onde falta o
+próprio apelido, escreve `aliases.{uid}` sozinho — sem pedir nada à pessoa,
+sem diálogo novo. Coberto por três testes novos em `share-writer.test.cjs`,
+verificados por mutação (reverter a correção e confirmar que cada teste
+quebra).
+
+`estadoDe(par)` manteve os três ramos que já tinha (aceito pelos dois,
+aceito só por mim, aceito só pelo outro) como um fallback inofensivo para
+pareamentos antigos ou anômalos — mesmo que a criação agora só produza o
+primeiro caso.
+
+**Pareamento legado sem caminho de conclusão.** O próprio teste do usuário
+com a esposa, feito antes desta correção, deixou um documento real de
+pareamento no Firestore de produção com `acceptedBy` contendo só o uid dele
+(quem digitou o código) — o aceite da esposa nunca chegou a acontecer, e a
+tela que faria isso deixou de existir. Não há mais um "Conferir e aceitar"
+para completá-lo. Caminho de recuperação: apagar esse pareamento específico
+pela tela de Configurações (o botão "Desfazer conexão" continua disponível
+independente do estado de aceite) e gerar um código novo — o próximo
+pareamento nasce direto no formato aceito pelos dois.
+
+O aceite das políticas (1.0.5 → 1.0.6) foi dispensado a pedido explícito do
+usuário, apesar de esta ser, pelo critério já registrado em
+`feedback_politicas_aceite` (memória), uma mudança material no modelo de
+consentimento — não uma de forma. Ver comentário em `policies.js` junto de
+`TERMS_VERSIONS_STILL_VALID`.

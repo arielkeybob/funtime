@@ -114,7 +114,9 @@ test('PRIVACIDADE: o código não carrega e-mail nem nome', async () => {
   assert.ok(!/email|displayName|@/.test(serializado));
 });
 
-test('resgatar código cria o pareamento aceito só por quem digitou', async () => {
+// Nasce aceito pelos dois: mostrar o código já foi o consentimento de quem gerou,
+// digitá-lo é o de quem recebeu — sem segunda tela de aceite (spec 0023, v2.4.0).
+test('resgatar código cria o pareamento já aceito pelos dois lados', async () => {
   const { writer, firestore } = setup({ documentos: { 'pairingCodes/AB7K29': { ownerUid: OUTRO } } });
 
   const resultado = await writer.redeemPairingCode('AB7K29', 'Ana');
@@ -123,8 +125,8 @@ test('resgatar código cria o pareamento aceito só por quem digitou', async () 
 
   const gravacao = firestore.escritas.find((item) => item.path === `pairings/${PAR}`);
   assert.deepEqual(gravacao.data.uids, [EU, OUTRO].sort());
-  assert.deepEqual(gravacao.data.acceptedBy, [EU], 'nasce aceito por um lado só');
-  assert.deepEqual(gravacao.data.aliases, { [EU]: 'Ana' }, 'só o próprio apelido');
+  assert.deepEqual(gravacao.data.acceptedBy, [EU, OUTRO], 'conecta na hora, sem etapa separada de aceite');
+  assert.deepEqual(gravacao.data.aliases, { [EU]: 'Ana' }, 'só o próprio apelido — quem digitou não pode ler o apelido do outro');
   assert.deepEqual(gravacao.data.sharing, {}, 'parear não compartilha nada');
 });
 
@@ -290,6 +292,51 @@ test('a lista de pares distingue quem aceitou o quê', async () => {
     acceptedByMe: false, acceptedByOther: true, createdByMe: false,
     sharedWithMe: null, sharingWithOther: null, viaCode: null,
   }]);
+});
+
+// Quem digita o código não tem permissão de ler o apelido de quem gerou (está sob
+// users/{outro}/meta/account) — então o pareamento nasce sem ele, e é o próprio
+// aparelho do dono que precisa preenchê-lo ao perceber o pareamento novo.
+test('preenche sozinho o apelido de quem gerou o código, quando falta', async () => {
+  const documentos = { [`users/${EU}/meta/account`]: { shareAlias: 'Ariel' } };
+  const { writer, firestore } = setup({ documentos });
+
+  await writer.start();
+  firestore.listeners.get('pairings')(snapshotDePares([{
+    __id: PAR, uids: [EU, OUTRO], createdBy: OUTRO,
+    acceptedBy: [EU, OUTRO], aliases: { [OUTRO]: 'Bia' }, sharing: {},
+  }]));
+  await new Promise((resolve) => setTimeout(resolve, 0));
+
+  const preenchimento = firestore.escritas.find((item) => item.update && item.path === `pairings/${PAR}`);
+  assert.deepEqual(preenchimento.data, { [`aliases.${EU}`]: 'Ariel' });
+});
+
+test('sem apelido global salvo ainda, não tenta preencher nada', async () => {
+  const { writer, firestore } = setup();
+
+  await writer.start();
+  firestore.listeners.get('pairings')(snapshotDePares([{
+    __id: PAR, uids: [EU, OUTRO], createdBy: OUTRO,
+    acceptedBy: [EU, OUTRO], aliases: { [OUTRO]: 'Bia' }, sharing: {},
+  }]));
+  await new Promise((resolve) => setTimeout(resolve, 0));
+
+  assert.deepEqual(firestore.escritas.filter((item) => item.path === `pairings/${PAR}`), []);
+});
+
+test('já tendo o próprio apelido no pareamento, não escreve de novo', async () => {
+  const documentos = { [`users/${EU}/meta/account`]: { shareAlias: 'Ariel' } };
+  const { writer, firestore } = setup({ documentos });
+
+  await writer.start();
+  firestore.listeners.get('pairings')(snapshotDePares([{
+    __id: PAR, uids: [EU, OUTRO], createdBy: OUTRO,
+    acceptedBy: [EU, OUTRO], aliases: { [EU]: 'Ariel', [OUTRO]: 'Bia' }, sharing: {},
+  }]));
+  await new Promise((resolve) => setTimeout(resolve, 0));
+
+  assert.deepEqual(firestore.escritas.filter((item) => item.path === `pairings/${PAR}`), []);
 });
 
 // É por este ponteiro que o outro lado descobre o compartilhamento, em vez de

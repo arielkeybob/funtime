@@ -1,4 +1,4 @@
-import { formatPairingCode, normalizePairingCode, liveFormatPairingCode, pairingConfirmationCode } from "../data/share-codes.js";
+import { formatPairingCode, normalizePairingCode, liveFormatPairingCode } from "../data/share-codes.js";
 import { formatClock, formatHistoryElapsed } from "../format/datetime.js";
 
 const MOTIVOS = {
@@ -26,7 +26,6 @@ export function createShareUI({ nodes, getShareWriter, showToast, now = () => Da
   let detalheAberto = null;
   let codigoAtual = null;
   let contagem = null;
-  let confirmando = null;
 
   function erro(mensagem) {
     nodes.pairingError.textContent = mensagem || "";
@@ -74,6 +73,8 @@ export function createShareUI({ nodes, getShareWriter, showToast, now = () => Da
     }
   }
 
+  // Conecta na hora, sem segunda tela: mostrar o código já foi o consentimento de
+  // quem gerou, digitá-lo é o de quem recebeu. Nenhum passo de aceite separado.
   async function usarCodigo() {
     erro("");
     const code = normalizePairingCode(nodes.pairingCodeInput.value);
@@ -89,43 +90,13 @@ export function createShareUI({ nodes, getShareWriter, showToast, now = () => Da
       if (!resultado.ok) { erro(MOTIVOS[resultado.reason] || MOTIVOS.invalid); return; }
 
       nodes.pairingCodeInput.value = "";
-      showToast("Pedido enviado. A outra pessoa precisa aceitar no aparelho dela.");
-      await abrirConfirmacao(resultado.pairId, { somenteConferir: true });
+      showToast("Conectado! Estar conectado não mostra nada — compartilhar é por evento.");
+      closePairingDialog();
     } catch (falha) {
       console.error("Falha ao usar o código de pareamento.", falha);
       erro("Não foi possível conectar agora.");
     } finally {
       nodes.pairingRedeem.disabled = false;
-    }
-  }
-
-  // O número é derivado do par e igual nos dois aparelhos: comparar em voz alta é o
-  // que impede aceitar outra pessoa que tenha adivinhado um código ativo.
-  async function abrirConfirmacao(pairId, { somenteConferir = false } = {}) {
-    const par = pairings.find((item) => item.pairId === pairId);
-    confirmando = { pairId, somenteConferir };
-
-    nodes.pairingConfirmNumber.textContent = await pairingConfirmationCode(pairId);
-    nodes.pairingConfirmWho.textContent = somenteConferir
-      ? "Confira com a outra pessoa antes de ela aceitar."
-      : `${par?.alias || "Alguém"} quer se conectar com você.`;
-    nodes.pairingConfirmAccept.hidden = somenteConferir;
-    if (!nodes.pairingConfirmDialog.open) nodes.pairingConfirmDialog.showModal();
-  }
-
-  async function aceitarConfirmacao() {
-    if (!confirmando) return;
-    const { pairId } = confirmando;
-    confirmando = null;
-    nodes.pairingConfirmDialog.close();
-
-    try {
-      const apelido = await shareWriter.setGlobalAlias(nodes.pairingAlias.value);
-      await shareWriter.acceptPairing(pairId, apelido);
-      showToast("Conectado. Estar conectado não mostra nada — compartilhar é por evento.");
-    } catch (falha) {
-      console.error("Falha ao aceitar o pareamento.", falha);
-      showToast("Não foi possível aceitar agora.");
     }
   }
 
@@ -151,6 +122,9 @@ export function createShareUI({ nodes, getShareWriter, showToast, now = () => Da
     return elemento;
   }
 
+  // Toda conexão nasce aceita pelos dois lados (nenhuma segunda tela de aceite) —
+  // os dois primeiros estados abaixo só existiriam num pareamento de antes dessa
+  // simplificação; ficam como fallback informativo, sem ação associada.
   function estadoDe(par) {
     if (par.acceptedByMe && par.acceptedByOther) return "Conectado";
     if (par.acceptedByMe) return "Aguardando a outra pessoa";
@@ -184,9 +158,6 @@ export function createShareUI({ nodes, getShareWriter, showToast, now = () => Da
 
       const acoes = document.createElement("div");
       acoes.className = "sharing-person-actions";
-      // Só aparece para aceitar quem ainda não aceitou — e sempre passando pela
-      // conferência do número.
-      if (!par.acceptedByMe) acoes.append(botao("Conferir e aceitar", () => abrirConfirmacao(par.pairId)));
       acoes.append(botao("Desfazer conexão", () => desfazer(par.pairId, par.alias)));
 
       item.append(cabecalho, acoes);
@@ -511,9 +482,6 @@ export function createShareUI({ nodes, getShareWriter, showToast, now = () => Da
     });
     nodes.pairingClose?.addEventListener("click", closePairingDialog);
     nodes.pairingDone?.addEventListener("click", closePairingDialog);
-    nodes.pairingConfirmAccept?.addEventListener("click", aceitarConfirmacao);
-    nodes.pairingConfirmReject?.addEventListener("click", () => { confirmando = null; nodes.pairingConfirmDialog.close(); });
-    nodes.pairingConfirmClose?.addEventListener("click", () => { confirmando = null; nodes.pairingConfirmDialog.close(); });
     nodes.closeShareOccasion?.addEventListener("click", closeShareOccasionDialog);
     nodes.shareOccasionConfirm?.addEventListener("click", confirmShareOccasion);
     nodes.shareOccasionStopAll?.addEventListener("click", stopAllForOccasion);

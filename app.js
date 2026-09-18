@@ -308,7 +308,7 @@ document.addEventListener("visibilitychange", () => {
 const DATA_STORAGE_KEY = "funtime-v1-data";
 const LEGACY_DRINKS_STORAGE_KEY = "balada-v1-drinks";
 const DATA_VERSION = 11;
-const APP_VERSION = "2.3.2";
+const APP_VERSION = "2.4.0";
 const DRINK_EXPORT_TYPE = "funtime-drinks";
 const DRINK_EXPORT_FORMAT_VERSION = 1;
 const BACKUP_EXPORT_TYPE = "funtime-backup";
@@ -534,12 +534,6 @@ const sharingNodes = {
   pairingError: document.querySelector("#pairing-error"),
   pairingClose: document.querySelector("#close-pairing"),
   pairingDone: document.querySelector("#pairing-done"),
-  pairingConfirmDialog: document.querySelector("#pairing-confirm-dialog"),
-  pairingConfirmNumber: document.querySelector("#pairing-confirm-number"),
-  pairingConfirmWho: document.querySelector("#pairing-confirm-who"),
-  pairingConfirmAccept: document.querySelector("#pairing-confirm-accept"),
-  pairingConfirmReject: document.querySelector("#pairing-confirm-reject"),
-  pairingConfirmClose: document.querySelector("#close-pairing-confirm"),
   shareOccasionDialog: document.querySelector("#share-occasion-dialog"),
   shareOccasionTitle: document.querySelector("#share-occasion-title"),
   shareOccasionGrid: document.querySelector("#share-occasion-grid"),

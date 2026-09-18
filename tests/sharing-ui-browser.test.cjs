@@ -41,7 +41,6 @@ test('sem conta conectada, o compartilhamento não aparece', { timeout: 30000 },
     assert.equal(await page.locator('#settings-sharing-card').isVisible(), false,
       'o cartão só existe para quem conectou uma conta');
     assert.equal(await page.locator('#pairing-dialog').evaluate((node) => node.open), false);
-    assert.equal(await page.locator('#pairing-confirm-dialog').evaluate((node) => node.open), false);
     assert.equal(await page.locator('#home-shared').isVisible(), false,
       'sem ninguém compartilhando, o botão de "ver compartilhado" não aparece');
     assert.equal(await page.locator('#shared-view').isVisible(), false);

@@ -61,13 +61,3 @@ export function buildPairId(uidA, uidB) {
 export function otherUidOf(uids, myUid) {
   return (Array.isArray(uids) ? uids : []).find((uid) => uid !== myUid) ?? null;
 }
-
-// Quatro dígitos iguais nos dois aparelhos, comparados em voz alta antes de aceitar.
-// Sem isso, quem adivinhar um código ativo pode se passar por quem está esperando ser
-// aceito. Não é guardado em lugar nenhum — é sempre recalculado do pairId.
-export async function pairingConfirmationCode(pairId, subtle = globalThis.crypto?.subtle) {
-  const bytes = new TextEncoder().encode(String(pairId));
-  const digest = new Uint8Array(await subtle.digest("SHA-256", bytes));
-  const number = ((digest[0] << 24 | digest[1] << 16 | digest[2] << 8 | digest[3]) >>> 0) % 10000;
-  return String(number).padStart(4, "0");
-}

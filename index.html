@@ -58,7 +58,7 @@
     <footer class="browser-gate-footer">
       <span>App para estudo · não é controle de segurança</span>
       <a class="policies-link" href="./policies.html">Políticas e informações</a>
-      <span>v2.3.2 · By: arielkeybob</span>
+      <span>v2.4.0 · By: arielkeybob</span>
     </footer>
   </section>
 
@@ -326,7 +326,7 @@
           </div>
         </div>
 
-        <p class="settings-description">Versão instalada: <strong>v2.3.2</strong></p>
+        <p class="settings-description">Versão instalada: <strong>v2.4.0</strong></p>
         <button id="check-app-update" class="settings-secondary-button" type="button">Verificar atualizações</button>
       </section>
 
@@ -418,7 +418,7 @@
     <footer class="app-footer">
       <span class="app-footer-disclaimer">App para estudo · não é controle de segurança</span>
       <a class="policies-link" href="./policies.html">Políticas e informações</a>
-      <span class="app-footer-meta">v2.3.2 · By: arielkeybob</span>
+      <span class="app-footer-meta">v2.4.0 · By: arielkeybob</span>
     </footer>
   </div>
 
@@ -432,7 +432,7 @@
         <button id="close-pairing" class="icon-button secondary" type="button" aria-label="Fechar">×</button>
       </div>
 
-      <p class="settings-description">Uma pessoa mostra o código, a outra digita. Vocês precisam estar juntos: o código vale por 5 minutos e não há busca por nome ou e-mail.</p>
+      <p class="settings-description">Uma pessoa mostra o código, a outra digita — a conexão já se completa na hora, sem mais nada a confirmar. Vocês precisam estar juntos: o código vale por 5 minutos e não há busca por nome ou e-mail.</p>
 
       <label class="settings-field" for="pairing-alias">
         <span>Seu apelido (o mesmo para todo mundo que você conectar)</span>
@@ -465,28 +465,6 @@
 
       <div class="dialog-actions">
         <button id="pairing-done" class="secondary-button" type="button">Fechar</button>
-      </div>
-    </form>
-  </dialog>
-
-  <dialog id="pairing-confirm-dialog" class="dialog data-dialog">
-    <form method="dialog">
-      <div class="dialog-header">
-        <div>
-          <p class="eyebrow">Confirmação</p>
-          <h2>É mesmo essa pessoa?</h2>
-        </div>
-        <button id="close-pairing-confirm" class="icon-button secondary" type="button" aria-label="Fechar">×</button>
-      </div>
-
-      <p class="settings-description">Confira em voz alta: o número abaixo precisa ser igual nos dois aparelhos. Se for diferente, recuse — pode ser outra pessoa.</p>
-
-      <p id="pairing-confirm-number" class="pairing-code">— — — —</p>
-      <p id="pairing-confirm-who" class="settings-description"></p>
-
-      <div class="dialog-actions">
-        <button id="pairing-confirm-reject" class="secondary-button" type="button">Recusar</button>
-        <button id="pairing-confirm-accept" class="primary-button" type="button">Confere, aceitar</button>
       </div>
     </form>
   </dialog>

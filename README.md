@@ -1,4 +1,27 @@
-# FunTime — V2.3.2
+# FunTime — V2.4.0
+
+## V2.4.0 — conexão em uma etapa só, sem tela de confirmação
+
+Simplificação pedida depois de um teste real: ao parear duas contas, quem digita o
+código já via a conexão completa na hora, mas quem gerou o código precisava entrar em
+Configurações para "Conferir e aceitar" e comparar um número de 4 dígitos — um passo a
+mais que só aparecia num dos dois aparelhos, e que exige atenção extra de alguém que,
+neste app, pode estar bebendo. Esse segundo passo foi removido inteiro: mostrar o
+código já é o consentimento de quem gera, digitá-lo é o da outra pessoa, e a conexão
+se completa para os dois lados no mesmo instante, sem diálogo de confirmação em
+nenhum aparelho. Some a tela "É mesmo essa pessoa?" e o número de conferência.
+
+Como quem digita o código não tem permissão para ler os dados de quem o gerou, o
+apelido de quem gerou o código agora se autopreenche no pareamento assim que o
+aparelho dela percebe a nova conexão — sem isso, o apelido de quem convidou ficaria
+em branco para sempre do lado de quem entrou com o código. As regras do Firestore
+mudam: um pareamento só pode nascer já aceito pelos dois lados (antes, nascia aceito
+só por quem criou, e um segundo passo completava o aceite). **Requer nova publicação
+das regras do Firestore para funcionar em produção.** Políticas atualizadas
+(1.0.5 → 1.0.6) descrevendo o consentimento em uma etapa; aceite dispensado para quem
+já aceitou a versão anterior, a pedido explícito do usuário. Ver
+`docs/specs/0023-compartilhamento-temporario.md` para o detalhe. App, boot, rodapés e
+cache alinhados a 2.4.0; DATA_VERSION 11 preservado.
 
 ## V2.3.2 — corrige "Não foi possível conectar agora" ao parear pela primeira vez
 

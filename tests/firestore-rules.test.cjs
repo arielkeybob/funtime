@@ -112,7 +112,7 @@ test('só dá para criar código em nome próprio, e com prazo curto', async () 
 test('criar pareamento exige posse de um código válido do outro', async () => {
   const pedido = {
     uids: [ANA, BIA], createdBy: BIA, createdAt: Timestamp.now(),
-    acceptedBy: [BIA], aliases: { [BIA]: 'Bia' }, sharing: {},
+    acceptedBy: [ANA, BIA], aliases: { [BIA]: 'Bia' }, sharing: {},
   };
 
   await assertFails(setDoc(doc(como(BIA), 'pairings', PAR_ANA_BIA), { ...pedido, viaCode: 'INVENT' }));
@@ -121,12 +121,26 @@ test('criar pareamento exige posse de um código válido do outro', async () => 
   await assertSucceeds(setDoc(doc(como(BIA), 'pairings', PAR_ANA_BIA), { ...pedido, viaCode: 'AB7K29' }));
 });
 
-test('não dá para já nascer aceito pelos dois', async () => {
+// Mostrar o código já é o consentimento de quem gerou; digitá-lo é o de quem
+// recebeu — os dois já aconteceram fisicamente antes deste create. Nasce aceito
+// pelos dois de propósito (v2.4.0, spec 0023) — sem isso não haveria conexão
+// nenhuma sem uma segunda tela de aceite que o usuário pediu para remover.
+test('nasce aceito pelos dois; nascer aceito por um só é negado', async () => {
+  await semearCodigo('AB7K29', ANA);
+  const base = {
+    uids: [ANA, BIA], createdBy: BIA, createdAt: Timestamp.now(), viaCode: 'AB7K29',
+    aliases: { [BIA]: 'Bia' }, sharing: {},
+  };
+
+  await assertSucceeds(setDoc(doc(como(BIA), 'pairings', PAR_ANA_BIA), { ...base, acceptedBy: [ANA, BIA] }));
+});
+
+test('nascer aceito só por quem criou é negado — não é mais o formato válido', async () => {
   await semearCodigo('AB7K29', ANA);
 
   await assertFails(setDoc(doc(como(BIA), 'pairings', PAR_ANA_BIA), {
     uids: [ANA, BIA], createdBy: BIA, createdAt: Timestamp.now(), viaCode: 'AB7K29',
-    acceptedBy: [ANA, BIA], aliases: { [BIA]: 'Bia' }, sharing: {},
+    acceptedBy: [BIA], aliases: { [BIA]: 'Bia' }, sharing: {},
   }));
 });
 
