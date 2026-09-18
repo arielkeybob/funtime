@@ -194,7 +194,7 @@ test('a aba Compartilhando oferece o que dá para fazer conforme os eventos', { 
     assert.match(textos.semEvento, /Nenhum evento em andamento.*Iniciar evento e compartilhar/);
     assert.deepEqual(textos.aposNovo, [['novo', 'u']]);
     assert.match(textos.comEvento, /Festa.*Compartilhar/);
-    assert.match(textos.vendo, /não está compartilhando nada com você/, 'Vendo não depende dos eventos');
+    assert.match(textos.vendo, /^Su não está compartilhando nada com você agora./, 'Vendo usa o apelido da pessoa e não depende dos eventos');
     assert.deepEqual(erros, []);
   });
 });
@@ -233,7 +233,7 @@ test('a aba Vendo explica o estado em vez de mensagens técnicas', { timeout: 30
   });
 });
 
-// Depois que o evento dela termina o acesso continua (até 24h), mas ela não está mais
+// Depois que o evento da outra pessoa termina o acesso continua (até 24h), mas a pessoa não está mais
 // compartilhando "agora": sem selo verde nem bolinha na Home, e o texto diz isso.
 test('evento encerrado deixa de aparecer como ao vivo', { timeout: 30000 }, async () => {
   await withPage(async (page, erros) => {

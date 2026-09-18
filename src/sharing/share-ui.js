@@ -157,7 +157,7 @@ export function createShareUI({
   }
 
   async function desfazer(pairId, alias) {
-    const certeza = window.confirm(`Desfazer amizade com ${alias || "essa pessoa"}? Qualquer compartilhamento em andamento com ela é encerrado.`);
+    const certeza = window.confirm(`Desfazer amizade com ${alias || "essa pessoa"}? Os compartilhamentos em andamento entre vocês serão encerrados.`);
     if (!certeza) return;
 
     try {
@@ -232,14 +232,14 @@ export function createShareUI({
     return shares.filter((share) => share.viewerUid === otherUid);
   }
 
-  // Corpo de "ela compartilha com você": um bloco por evento, todos em linha do tempo —
+  // Corpo de "a pessoa compartilha com você": um bloco por evento, todos em linha do tempo —
   // o ao vivo em cima, os já encerrados (ainda dentro das 24h) logo abaixo.
-  function renderVendoPanel(entradas) {
+  function renderVendoPanel(entradas, alias) {
     const container = document.createElement("div");
     if (!entradas.length) {
       const vazio = document.createElement("p");
       vazio.className = "settings-description";
-      vazio.textContent = "Ela não está compartilhando nada com você agora.";
+      vazio.textContent = `${alias || "Essa pessoa"} não está compartilhando nada com você agora.`;
       container.append(vazio);
       return container;
     }
@@ -398,7 +398,7 @@ export function createShareUI({
     return lista;
   }
 
-  // Corpo de "você compartilha com ela": o que já está sendo enviado (com "Parar") e,
+  // Corpo de "você compartilha com a pessoa": o que já está sendo enviado (com "Parar") e,
   // logo abaixo, o que dá para começar a enviar. Compartilhar é sempre de um evento,
   // então sem "Usar eventos" ligado só resta avisar e levar até a configuração.
   function renderCompartilhandoPanel(otherUid) {
@@ -488,7 +488,7 @@ export function createShareUI({
 
     const conteudo = detalheAba === "compartilhando"
       ? renderCompartilhandoPanel(detalheAberto)
-      : renderVendoPanel(vendoEntriesFor(detalheAberto));
+      : renderVendoPanel(vendoEntriesFor(detalheAberto), par.alias);
 
     nodes.sharedDetailBody.replaceChildren(conteudo);
   }
@@ -549,8 +549,8 @@ export function createShareUI({
   }
 
   // Grade única: cada amigo é um avatar com a inicial e o nome, mais até duas
-  // bolinhas no canto — verde quando ela compartilha com você agora, azul quando
-  // você compartilha com ela agora (as duas podem aparecer juntas). O histórico
+  // bolinhas no canto — verde quando a pessoa compartilha com você agora, azul quando
+  // você compartilha com a pessoa agora (as duas podem aparecer juntas). O histórico
   // completo só aparece ao tocar (openFriendDetail).
   function renderFriends() {
     if (!nodes.friendsGrid) return;
@@ -568,7 +568,7 @@ export function createShareUI({
 
       const partesEstado = [];
       if (estadoIn === "live") partesEstado.push("compartilhando com você agora");
-      else if (estadoIn === "grace") partesEstado.push("evento dela encerrado, ainda disponível para ver");
+      else if (estadoIn === "grace") partesEstado.push(`evento de ${par.alias || "essa pessoa"} encerrado, ainda disponível para ver`);
       if (estadoOut === "live") partesEstado.push("você está compartilhando com essa pessoa");
       else if (estadoOut === "grace") partesEstado.push("seu evento encerrou, ainda visível para essa pessoa");
       botaoPessoa.setAttribute("aria-label", `${par.alias || "Amigo"}${partesEstado.length ? " · " + partesEstado.join(" · ") : ""}`);
@@ -579,7 +579,7 @@ export function createShareUI({
       avatar.textContent = initial(par.alias);
 
       // Selos de mesma forma e tamanho, com a seta apontando o sentido: ↙ verde é
-      // ela compartilhando com você, ↗ azul é você compartilhando com ela.
+      // a pessoa compartilhando com você, ↗ azul é você compartilhando com a pessoa.
       if (estadoIn !== "none") avatar.append(renderShareBadge("in", estadoIn));
       if (estadoOut !== "none") avatar.append(renderShareBadge("out", estadoOut));
 

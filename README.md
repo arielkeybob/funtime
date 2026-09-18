@@ -1,4 +1,10 @@
-# FunTime — V2.11.2
+# FunTime — V2.11.3
+
+## V2.11.3 — textos para qualquer pessoa, não para um caso só
+
+- A aba Vendo dizia "Ela não está compartilhando nada com você agora." Agora usa o apelido: "[Apelido] não está compartilhando nada com você agora."
+- A confirmação de desfazer amizade e a descrição acessível dos selos também deixaram de dizer "ela"/"dela": usam o apelido ou "essa pessoa" / "entre vocês".
+- Revisados os textos visíveis do app; o resto já era neutro. (Na página de políticas, "ela" concorda com "a pessoa que recebe" e não foi alterada.)
 
 ## V2.11.2 — sem "última atualização dela às…"
 
