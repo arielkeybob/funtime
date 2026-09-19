@@ -1,4 +1,17 @@
-# FunTime — V2.16.0
+# FunTime — V2.17.0
+
+## V2.17.0 — evento compartilhado entre amigos
+
+Dez amigos indo à mesma festa não precisam mais criar dez eventos iguais: quem organiza **convida** os amigos, e cada um aceita ou não.
+
+- **Convidar não mostra doses.** Ir ao evento e ver as doses de alguém são coisas separadas: convidados só veem o evento; quem vê suas doses continua sendo decisão sua, pessoa por pessoa (o aviso aparece na própria folha do convite).
+- **Como usar:** no formulário ou no detalhe de um evento (inclusive **futuro**), toque em **Convidados** e escolha os amigos. Quem foi convidado vê um cartão em **Amigos** (o ícone na Home acende) e toca em **Vou** ou **Não vou**. Quem aceita ganha o evento na própria agenda, só dele: início automático, manter desbloqueado e encerrar seguem sendo escolhas de cada um.
+- **Marcas no avatar:** ✉ = convidado, ✔ = confirmou, pequenas e abaixo do avatar. Somem quando o evento está em andamento. Quem foi convidado vê apenas os **próprios amigos** na lista; os demais viram uma contagem. Recusar não avisa ninguém.
+- **Compartilhar doses de um evento futuro:** em **Compartilhar doses** você escolhe com quem, antes da festa; nada é compartilhado até o evento começar, e então começa sozinho. Pode ser gente que não foi convidada.
+- Se o organizador mudar o horário ou o nome, você vê "atualização disponível" e escolhe **Atualizar** ou **Manter o meu** (nunca muda sozinho). Cancelado avisa; **Sair do evento** retira sua presença e encerra as doses compartilhadas dele.
+- Sem "Usar eventos" ligado, aceitar oferece ligar. Precisa de conta e de pelo menos um amigo; sem isso nada muda na tela.
+- **Menos custo:** o compartilhamento de doses deixou de regravar o que não mudou (festa de 10 pessoas no emulador: 1.720 → 1.170 escritas; reabrir o app não grava mais nada).
+- **Regras do Firestore atualizadas** (coleção nova `sharedEvents`). Formato de dados local sem mudança (`DATA_VERSION` 11). O texto das políticas ainda descreve só o compartilhamento de doses; a atualização e o novo aceite ficam para uma próxima versão. Detalhes, achados e limites em `docs/specs/0025`.
 
 ## V2.16.0 — sincronização lê só os últimos 90 dias
 

@@ -1,9 +1,11 @@
 # 0025 — Evento compartilhado entre amigos
 
-Status: **em andamento** — Fase 0 (custo), regras do Firestore, módulo do cliente, campos da
-ocasião e interface implementados e verificados (unitários, navegador e emulador com as regras
-reais). Faltam: publicar as regras, teste em aparelhos reais, versão/cache do service worker,
-documentação de usuário e o texto das políticas (decisão do usuário, numa próxima versão).
+Status: **implementada (v2.17.0)** — Fase 0 (custo), regras do Firestore, módulo do cliente, campos
+da ocasião e interface, verificados por unitários, navegador e emulador com as regras reais.
+**Regras publicadas em `funtime-bob` em 19/09/2026** e confirmadas contra o servidor real (leitura
+sem login nas coleções `sharedEvents`, `pairings`, `shares` e `pairingCodes` responde 403). Pendentes:
+teste em aparelhos reais (dois aparelhos, duas contas) e o texto das políticas com novo aceite
+(decisão do usuário, numa próxima versão).
 
 ## Contexto
 
@@ -273,9 +275,12 @@ regravar a ocasião: perde o vínculo, nunca a ocasião.
 - `npm run test:rules` verde antes de qualquer `npm run rules:deploy` (exige Java).
 - Fase 0: 8 testes novos em `tests/share-writer.test.cjs`; 7 falham no código antigo e o oitavo (nova
   tentativa após falha) foi verificado por mutação.
-- **Ainda não feitos**: publicar `firestore.rules` (as regras precisam ir **antes** do app, como
-  na v2.4.0), teste em aparelhos reais e no Safari/PWA instalada (a câmera e o cache offline
-  nunca foram exercitados aqui), fluxo completo pelo app com contas reais (o que existe é o
-  módulo real contra o emulador e a interface com dependências falsas; a ligação em `app.js`
-  — aceitar, convidar, sair, executar a intenção — não tem teste automatizado próprio, por
-  depender do login real), versão do app, cache do service worker e documentação de usuário.
+- **Ordem de publicação que acabou acontecendo:** o código (commit `d9424e8`) foi enviado antes das
+  regras, e as regras foram publicadas logo depois. Nesse intervalo, quem tinha amigos veria as
+  linhas de convite e o convite falharia com erro genérico; o correto seria regras **antes** do app,
+  como na v2.4.0.
+- **Ainda não feitos**: teste em aparelhos reais e no Safari/PWA instalada (a câmera e o cache
+  offline nunca foram exercitados aqui) e o fluxo completo pelo app com contas reais (o que existe
+  é o módulo real contra o emulador e a interface com dependências falsas; a ligação em `app.js` —
+  aceitar, convidar, sair, executar a intenção — não tem teste automatizado próprio, por depender
+  do login real).

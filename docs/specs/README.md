@@ -37,6 +37,7 @@ Contexto geral do refactor: ver o plano aprovado em
 | [0022](0022-cloud-sync-firebase.md) | Sincronização entre aparelhos com Firebase Auth + Firestore (opt-in, sem mudança de schema local) | implementada |
 | [0023](0023-compartilhamento-temporario.md) | Compartilhar o consumo de um evento com pessoa de confiança (pareamento por código, cópia por evento, prazo de 24h) | implementada |
 | [0024](0024-janela-de-sincronizacao.md) | Janela de sincronização: escutar na nuvem só os últimos 90 dias, com download completo único por aparelho | implementada |
+| [0025](0025-evento-compartilhado.md) | Evento compartilhado entre amigos: convite pela nuvem (cópia com vínculo), marcas ✉/✔, intenção de compartilhar doses em evento futuro; custo do compartilhamento de doses | implementada (v2.17.0) |
 
 Status possíveis: `proposta` (escrita, aguardando aprovação) · `aprovada` (pode
 implementar) · `implementada` (já no código, commit referenciado).
