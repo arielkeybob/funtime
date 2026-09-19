@@ -18,6 +18,92 @@ function initializeAppDialogs() {
 }
 initializeAppDialogs();
 
+// Teclado do celular: a tecla de ação vira ✓ ("Concluído") e só desce o teclado — nunca
+// envia o formulário. Dentro do campo aparece um ✓ enquanto ele foi modificado; tocar nele
+// também desce o teclado. Salvar continua sendo só o botão do próprio cadastro.
+function initializeKeyboardDismiss() {
+  const TYPES = ['text', 'search', 'number', 'tel', 'email', 'url'];
+  const isTarget = node => node instanceof HTMLInputElement && TYPES.includes(node.type) && !node.readOnly;
+  const wantsCheck = node => node.type !== 'search' && !node.hasAttribute('data-no-check');
+  const isTouch = () => matchMedia('(pointer: coarse)').matches;
+  let button = null, active = null, startValue = '';
+
+  function ensureButton() {
+    if (button) return button;
+    button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'field-check';
+    button.hidden = true;
+    button.setAttribute('aria-label', 'Concluir campo');
+    button.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5 10 17.5 19 7.5"/></svg>';
+    // Manter o foco no campo até o clique: sem isto o toque tira o foco antes e o ✓ some.
+    button.addEventListener('pointerdown', event => event.preventDefault());
+    button.addEventListener('mousedown', event => event.preventDefault());
+    button.addEventListener('click', () => { const field = active; hide(); field?.blur(); });
+    return button;
+  }
+
+  function place() {
+    if (!active || !button || button.hidden) return;
+    if (button.parentElement !== active.parentElement) active.after(button);
+    active.parentElement.classList.add('has-field-check');
+    const size = button.offsetWidth || 32;
+    button.style.top = active.offsetTop + (active.offsetHeight - size) / 2 + 'px';
+    button.style.left = active.offsetLeft + active.offsetWidth - size - 8 + 'px';
+  }
+
+  function hide() {
+    if (button) button.hidden = true;
+  }
+
+  function refresh() {
+    if (!active || !wantsCheck(active)) return hide();
+    const changed = active.value !== startValue;
+    ensureButton().hidden = !changed;
+    if (changed) place();
+  }
+
+  function prepare(node) {
+    if (node.dataset.keyboardReady) return;
+    node.dataset.keyboardReady = '1';
+    node.setAttribute('enterkeyhint', node.type === 'search' ? 'search' : 'done');
+    if (wantsCheck(node)) node.setAttribute('data-field-check', '');
+  }
+
+  document.querySelectorAll('input').forEach(node => { if (isTarget(node)) prepare(node); });
+
+  document.addEventListener('focusin', event => {
+    if (!isTarget(event.target)) return;
+    prepare(event.target);
+    active = event.target;
+    startValue = active.value;
+    hide();
+  });
+  document.addEventListener('focusout', event => {
+    if (event.target === active) { hide(); active = null; }
+  });
+  document.addEventListener('input', event => { if (event.target === active) refresh(); });
+  addEventListener('resize', () => { place(); });
+  window.visualViewport?.addEventListener('resize', () => { place(); });
+
+  // Enter só desce o teclado. Teclados que mandam Enter como tecla "desconhecida" ainda
+  // disparam o envio implícito: o clique sintético no botão de envio (detail 0, com o foco
+  // num campo de texto) é barrado. Clique real do usuário no botão não é afetado.
+  document.addEventListener('keydown', event => {
+    if (event.key !== 'Enter' || event.isComposing || !isTouch() || !isTarget(event.target)) return;
+    event.preventDefault();
+    event.target.blur();
+  }, true);
+  document.addEventListener('click', event => {
+    const submit = event.target instanceof Element ? event.target.closest('button[type=submit], input[type=submit]') : null;
+    if (!submit || event.detail !== 0 || !isTouch() || !isTarget(document.activeElement)) return;
+    event.preventDefault();
+    event.stopPropagation();
+    document.activeElement.blur();
+  }, true);
+}
+initializeKeyboardDismiss();
+
 // Contrato compartilhado dos formulários com rascunho.
 const formDrafts = new WeakMap();
 function readFormDraft(form) {

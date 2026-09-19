@@ -1,4 +1,10 @@
-# FunTime — V2.11.3
+# FunTime — V2.12.0
+
+## V2.12.0 — teclado do celular: Enter desce o teclado e um ✓ dentro do campo
+
+- **Enter não salva mais.** Nos campos de texto dos cadastros (bebida, evento, apelido…), a tecla de ação do teclado agora é um ✓ ("Concluído") e só desce o teclado. Salvar continua sendo o botão do cadastro. No computador o Enter segue enviando o formulário.
+- **✓ dentro do campo**, no lado direito, aparece quando o texto foi modificado; tocar nele desce o teclado (também sem salvar) e ele some. Voltar ao texto original também o esconde.
+- Campos de PIN não mudam. O código de amizade continua conectando sozinho ao completar.
 
 ## V2.11.3 — textos para qualquer pessoa, não para um caso só
 

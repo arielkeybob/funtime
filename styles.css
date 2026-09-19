@@ -3792,3 +3792,11 @@ body {
 .share-status--live { color: var(--success); }
 .share-status--ended { color: var(--muted); }
 .history-event-elapsed.is-neutral { border-color: var(--border); color: var(--muted); }
+/* ✓ dentro do campo: aparece quando o texto foi modificado; tocar desce o teclado. */
+.has-field-check { position: relative; }
+[data-field-check] { padding-right: 52px; }
+button.field-check { position: absolute; z-index: 2; display: grid; place-items: center; width: 32px; height: 32px; min-height: 0; margin: 0; padding: 0; border: 0; border-radius: 50%; background: var(--accent); color: var(--accent-text); cursor: pointer; animation: field-check-in .14s ease-out; }
+button.field-check svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; }
+button.field-check:active { transform: scale(.94); }
+@keyframes field-check-in { from { opacity: 0; transform: scale(.8); } to { opacity: 1; transform: scale(1); } }
+@media (prefers-reduced-motion: reduce) { button.field-check { animation: none; } }
