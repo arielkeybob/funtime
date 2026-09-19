@@ -41,25 +41,37 @@ export function createInviteUI({
 
   // ---- Convites recebidos ---------------------------------------------------
 
+  // O mesmo cartão em dois lugares: a tela Amigos (onde o convite nasce) e a aba Eventos (onde
+  // a pessoa procura o que vai acontecer). Um ponto no menu de baixo avisa sem abrir nada.
   function renderInvites() {
-    if (!nodes.friendsInvites || !nodes.friendsInvitesList) return;
-    nodes.friendsInvites.hidden = invites.length === 0;
-    nodes.friendsInvitesList.replaceChildren();
+    const listas = [
+      [nodes.friendsInvites, nodes.friendsInvitesList],
+      [nodes.occasionInvites, nodes.occasionInvitesList],
+    ];
+    const ordenados = [...invites].sort((a, b) => a.startAt - b.startAt);
 
-    for (const convite of [...invites].sort((a, b) => a.startAt - b.startAt)) {
-      const linha = document.createElement("button");
-      linha.type = "button";
-      linha.className = "agenda-row";
-      const titulo = document.createElement("strong");
-      titulo.textContent = convite.name || "Evento";
-      const sub = document.createElement("span");
-      sub.textContent = `${aliasDe(convite.hostUid) || "Alguém"} convidou você · ${quando(convite.startAt)}`;
-      const seta = document.createElement("small");
-      seta.textContent = "Ver convite ›";
-      linha.append(titulo, sub, seta);
-      linha.addEventListener("click", () => abrirFolha(convite.eventId));
-      nodes.friendsInvitesList.append(linha);
+    for (const [secao, lista] of listas) {
+      if (!secao || !lista) continue;
+      secao.hidden = invites.length === 0;
+      lista.replaceChildren();
+
+      for (const convite of ordenados) {
+        const linha = document.createElement("button");
+        linha.type = "button";
+        linha.className = "agenda-row";
+        const titulo = document.createElement("strong");
+        titulo.textContent = convite.name || "Evento";
+        const sub = document.createElement("span");
+        sub.textContent = `${aliasDe(convite.hostUid) || "Alguém"} convidou você · ${quando(convite.startAt)}`;
+        const seta = document.createElement("small");
+        seta.textContent = "Ver convite ›";
+        linha.append(titulo, sub, seta);
+        linha.addEventListener("click", () => abrirFolha(convite.eventId));
+        lista.append(linha);
+      }
     }
+
+    if (nodes.navOccasionDot) nodes.navOccasionDot.hidden = invites.length === 0;
   }
 
   function setInvites(lista) {

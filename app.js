@@ -311,7 +311,7 @@ document.addEventListener("visibilitychange", () => {
 const DATA_STORAGE_KEY = "funtime-v1-data";
 const LEGACY_DRINKS_STORAGE_KEY = "balada-v1-drinks";
 const DATA_VERSION = 11;
-const APP_VERSION = "2.17.0";
+const APP_VERSION = "2.17.1";
 const DRINK_EXPORT_TYPE = "funtime-drinks";
 const DRINK_EXPORT_FORMAT_VERSION = 1;
 const BACKUP_EXPORT_TYPE = "funtime-backup";
@@ -562,6 +562,9 @@ const sharingNodes = {
   // Evento compartilhado (spec 0025): convites recebidos, folha de aceite e tela de convidados.
   friendsInvites: document.querySelector("#friends-invites"),
   friendsInvitesList: document.querySelector("#friends-invites-list"),
+  occasionInvites: document.querySelector("#occasion-invites"),
+  occasionInvitesList: document.querySelector("#occasion-invites-list"),
+  navOccasionDot: document.querySelector("#nav-occasion-dot"),
   inviteSheetDialog: document.querySelector("#invite-sheet-dialog"),
   inviteSheetTitle: document.querySelector("#invite-sheet-title"),
   inviteSheetBody: document.querySelector("#invite-sheet-body"),
@@ -3581,8 +3584,11 @@ function applySharedEventUpdate(occasionId, { keep = false } = {}) {
 
 // Chamado por occasions-ui.js (script clássico, sem import) a partir do detalhe do
 // evento. `events` já vem filtrado para a ocasião — este módulo não tem `state`.
-function openShareOccasionDialog(item, events) {
-  shareUI?.openShareOccasionDialog(item, events);
+// `options` precisa atravessar a ponte: o formulário do evento (item nulo, ainda sem
+// ocasião) abre este diálogo no modo "escolher antes de salvar". Sem repassar, o diálogo
+// falhava calado e o toque em "Compartilhar doses" não fazia nada.
+function openShareOccasionDialog(item, events, options) {
+  shareUI?.openShareOccasionDialog(item, events, options);
 }
 
 // Serve o formulário de criar evento (occasions-ui.js), mesmo padrão de ponte que

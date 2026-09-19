@@ -1,4 +1,9 @@
-# FunTime — V2.17.0
+# FunTime — V2.17.1
+
+## V2.17.1 — dois ajustes do evento compartilhado, achados no primeiro teste em aparelho real
+
+- **Corrigido:** ao criar um evento novo, tocar em **Compartilhar doses** não fazia nada. A ponte entre o formulário e a tela de compartilhar descartava um dado, o diálogo falhava calado e nada abria. O teste que existia trocava essa ponte por uma versão falsa e por isso não viu; agora há testes que usam a ponte real (e falham com o defeito antigo).
+- **Convite também na aba Eventos:** o convite pendente só aparecia em Amigos. Agora ele aparece também no topo de **Eventos**, com um ponto no menu de baixo, e continua em Amigos.
 
 ## V2.17.0 — evento compartilhado entre amigos
 

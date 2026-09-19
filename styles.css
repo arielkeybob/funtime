@@ -3838,3 +3838,8 @@ div.share-person { cursor: default; }
 .occasion-people { display: grid; gap: 0; margin: 4px 0; }
 .occasion-people-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 12px 14px; margin: 4px 0; }
 .occasion-people-row small { white-space: nowrap; }
+
+/* Convite pendente também aparece na aba Eventos: ponto no menu de baixo e cartão no topo. */
+.bottom-nav button { position: relative; }
+.nav-dot { position: absolute; top: 8px; left: calc(50% + 8px); width: 10px; height: 10px; border-radius: 999px; background: var(--success); border: 2px solid var(--bg); }
+.occasion-invites { margin-bottom: 8px; }

@@ -42,6 +42,7 @@ const SETUP_SCRIPT = `(() => {
   const all = (s) => [...document.querySelectorAll(s)];
   const nodes = {
     friendsInvites: n('#friends-invites'), friendsInvitesList: n('#friends-invites-list'),
+    occasionInvites: n('#occasion-invites'), occasionInvitesList: n('#occasion-invites-list'), navOccasionDot: n('#nav-occasion-dot'),
     inviteSheetDialog: n('#invite-sheet-dialog'), inviteSheetTitle: n('#invite-sheet-title'), inviteSheetBody: n('#invite-sheet-body'),
     inviteSheetError: n('#invite-sheet-error'), inviteSheetAccept: n('#invite-sheet-accept'), inviteSheetDecline: n('#invite-sheet-decline'),
     closeInviteSheet: n('#close-invite-sheet'),
@@ -432,6 +433,101 @@ test('detalhe do evento: linhas, aviso de mudança do organizador e sair do even
 
     await page.evaluate(() => { window.hasSharingFriends = () => false; openOccasionDetails('o1'); });
     assert.equal(await page.locator('#occasion-detail-content .occasion-people-row').count(), 0, 'sem amigos, o detalhe fica como era');
+    assert.deepEqual(erros, []);
+  });
+});
+
+// Estes três usam as PONTES REAIS do app (nenhum stub em openShareOccasionDialog nem em
+// openInviteDialog): um teste anterior trocava essas funções por stubs e por isso não viu que a
+// ponte de app.js descartava o terceiro argumento — em aparelho real, tocar em "Compartilhar
+// doses" num evento novo não fazia nada.
+test('formulário do evento: as duas linhas abrem as telas de verdade, pelas pontes do app', { timeout: 60000 }, async () => {
+  await withPage(async (page, erros) => {
+    await page.evaluate(() => {
+      const proximo = FunTimeOccasions.configure(buildCurrentAppData(), true);
+      commitOccasions(proximo.occasions, proximo.events, proximo.preferences);
+      window.hasSharingFriends = () => true; // única função trocada: só liga as linhas
+      openOccasionEditor();
+    });
+
+    await page.locator('#occasion-share-row').click();
+    assert.equal(await page.locator('#share-occasion-dialog').evaluate((node) => node.open), true,
+      'tocar em Compartilhar doses num evento NOVO precisa abrir a tela');
+    assert.equal(await page.locator('#share-occasion-title').textContent(), 'Compartilhar doses');
+    await page.locator('#close-share-occasion').click();
+    assert.equal(await page.locator('#share-occasion-dialog').evaluate((node) => node.open), false);
+
+    await page.locator('#occasion-invite-row').click();
+    assert.equal(await page.locator('#event-invite-dialog').evaluate((node) => node.open), true);
+    assert.equal(await page.locator('#event-invite-title').textContent(), 'Convidados');
+    await page.locator('#close-event-invite').click();
+
+    assert.equal(await page.locator('#occasion-dialog').evaluate((node) => node.open), true, 'o formulário continua aberto por baixo');
+    assert.deepEqual(erros, [], 'nenhum erro engolido no caminho');
+  });
+});
+
+test('detalhe do evento: as linhas abrem as telas de verdade, com evento agendado e em andamento', { timeout: 60000 }, async () => {
+  await withPage(async (page, erros) => {
+    await page.evaluate(() => {
+      const proximo = FunTimeOccasions.configure(buildCurrentAppData(), true);
+      commitOccasions(proximo.occasions, proximo.events, proximo.preferences);
+      commitOccasions([
+        { id: 'futuro', name: 'Festa futura', startedAt: null, endedAt: null, scheduledStartAt: Date.now() + 86400000, scheduledEndAt: null, autoStart: false },
+        { id: 'agora', name: 'Em andamento', startedAt: Date.now() - 3600000, endedAt: null },
+      ], []);
+      window.hasSharingFriends = () => true;
+    });
+
+    for (const [id, titulo] of [['futuro', 'Compartilhar doses · Festa futura'], ['agora', 'Compartilhar doses · Em andamento']]) {
+      await page.evaluate((alvo) => openOccasionDetails(alvo), id);
+      await page.locator('#occasion-detail-content .occasion-people-row', { hasText: 'Compartilhar doses' }).click();
+      assert.equal(await page.locator('#share-occasion-dialog').evaluate((node) => node.open), true, id);
+      assert.equal(await page.locator('#share-occasion-title').textContent(), titulo);
+      await page.locator('#close-share-occasion').click();
+
+      await page.locator('#occasion-detail-content .occasion-people-row', { hasText: 'Convidados' }).click();
+      assert.equal(await page.locator('#event-invite-dialog').evaluate((node) => node.open), true, id);
+      await page.locator('#close-event-invite').click();
+    }
+    assert.deepEqual(erros, []);
+  });
+});
+
+test('convite pendente também aparece na aba Eventos, com um ponto no menu', { timeout: 40000 }, async () => {
+  await withPage(async (page, erros) => {
+    const saida = await page.evaluate(async () => {
+      const { createInviteUI } = await import('/funtime/src/sharing/invite-ui.js');
+      const { n, nodes, par } = window.__t;
+      const proximo = FunTimeOccasions.configure(buildCurrentAppData(), true);
+      commitOccasions(proximo.occasions, proximo.events, proximo.preferences);
+      const ui = createInviteUI({ nodes, getMyUid: () => 'eu' });
+      ui.wire();
+      ui.setPairings([par('su', 'Su')]);
+      openOccasionView();
+
+      const convite = { eventId: 'ev-1', hostUid: 'su', name: 'Morrin', startAt: Date.now() - 780000, endAt: null, going: [], invited: ['eu'], status: 'active', expiresAtMs: Date.now() + 9e9 };
+      const vazio = { secao: n('#occasion-invites').hidden, ponto: n('#nav-occasion-dot').hidden };
+      ui.setInvites([convite]);
+      const comConvite = {
+        secao: n('#occasion-invites').hidden, ponto: n('#nav-occasion-dot').hidden,
+        eventos: n('#occasion-invites-list').innerText.replace(/\s+/g, ' '), amigos: n('#friends-invites-list').innerText.replace(/\s+/g, ' '),
+        pontoVisivel: n('#nav-occasion-dot').getBoundingClientRect().width > 0,
+      };
+      n('#occasion-invites-list .agenda-row').click();
+      const folha = { aberta: n('#invite-sheet-dialog').open, titulo: n('#invite-sheet-title').textContent };
+      ui.setInvites([]);
+      return { vazio, comConvite, folha, depois: { secao: n('#occasion-invites').hidden, ponto: n('#nav-occasion-dot').hidden } };
+    });
+
+    assert.deepEqual(saida.vazio, { secao: true, ponto: true }, 'sem convite, nada aparece');
+    assert.equal(saida.comConvite.secao, false);
+    assert.equal(saida.comConvite.ponto, false);
+    assert.equal(saida.comConvite.pontoVisivel, true);
+    assert.match(saida.comConvite.eventos, /Morrin.*Su convidou você/);
+    assert.match(saida.comConvite.amigos, /Morrin.*Su convidou você/, 'continua também na tela Amigos');
+    assert.deepEqual(saida.folha, { aberta: true, titulo: 'Morrin' });
+    assert.deepEqual(saida.depois, { secao: true, ponto: true });
     assert.deepEqual(erros, []);
   });
 });

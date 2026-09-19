@@ -233,6 +233,24 @@ que as regras negam); 7 da execução da intenção; 9 de navegador na interface
 mutação: ordem documento→ponteiro, checagem de organizador do ponteiro e não regravar ficha igual.
 Conferência visual das telas em 390×844.
 
+## Nota pós-implementação (v2.17.1) — primeiro teste em aparelho real
+
+Dois achados do primeiro uso real (duas contas, celular Android com o app instalado). O pipeline
+inteiro da nuvem funcionou de primeira: publicar, convidar, ponteiro no pareamento e o convite
+aparecendo do outro lado.
+
+- **Defeito: "Compartilhar doses" num evento novo não fazia nada.** `openShareOccasionDialog` em
+  `app.js` é a ponte que `occasions-ui.js` (script clássico) usa e repassava só dois argumentos; o
+  formulário chama com um terceiro (`options`, o modo "escolher antes de salvar", com `item`
+  nulo). Sem ele o diálogo lançava um erro ao ler `item.id` e nada abria, sem mensagem. **Por que
+  os testes não viram:** o teste do formulário trocava `openShareOccasionDialog` e
+  `openInviteDialog` por stubs, então a ponte real nunca era exercida. Corrigido, e os novos testes
+  usam a ponte real (só `hasSharingFriends` é trocada, para ligar as linhas); verificado que o teste
+  do formulário **falha** com a ponte antiga. Regra prática: teste de ponte não pode stubar a ponte.
+- **Convite só aparecia em Amigos.** Quem procura o que vai acontecer olha a aba Eventos. O mesmo
+  cartão agora aparece também no topo de **Eventos**, com um ponto no menu de baixo; continua em
+  Amigos e no ponto da Home. É a mesma lista, desenhada em dois lugares.
+
 ## Reversões conscientes da spec 0023 ("Fora de escopo")
 
 O convidado passa a **escrever** (`going`) e há aviso de convite. RSVP é resposta deliberada, não
