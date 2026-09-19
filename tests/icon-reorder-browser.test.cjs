@@ -32,9 +32,11 @@ test('Ícones: arraste, teclado, cancelamento e persistência em perfil isolado'
       state.events = [{ id: 'e', drinkId: 'd', drinkName: 'Teste', drinkIcon: '💧', consumedAt: Date.now(), intervalMinutes: 30, doseSize: null }];
       saveData(); render();
     });
-    await page.evaluate(() => openSettingsView());
+    await page.evaluate(() => { openSettingsView(); showSettingsPage('about'); });
     assert.equal(await page.locator('#touch-debug-panel').isVisible(), false);
+    await page.evaluate(() => showSettingsPage('appearance'));
     await page.locator('label[for=clean-interface]').click();
+    await page.evaluate(() => showSettingsPage('about'));
     assert.equal(await page.locator('#touch-debug-panel').isVisible(), true);
     await page.locator('#touch-debug-panel summary').click();
     assert.equal(await page.locator('#touch-debug-enabled').isChecked(), false);
@@ -147,7 +149,7 @@ test('Ícones: arraste, teclado, cancelamento e persistência em perfil isolado'
     await page.locator('#undo-icon-removal').click();
     assert.deepEqual(await order(), ['🍺', '⭐', '💧', '🍷']);
     await page.locator('.icon-edit').click(); await page.keyboard.press('Escape');
-    await page.evaluate(() => openSettingsView());
+    await page.evaluate(() => { openSettingsView(); showSettingsPage('about'); });
     await page.locator('label[for=touch-debug-enabled]').click();
     await page.screenshot({ path: path.join(require('node:os').tmpdir(), 'funtime-touch-debug.png') });
     const downloadPromise = page.waitForEvent('download');

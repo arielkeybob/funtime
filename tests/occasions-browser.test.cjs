@@ -10,6 +10,7 @@ test('agenda compacta, evento, edição, agendamento automático, aviso e persis
   await page.locator('#terms-continue').click(); await page.waitForFunction(()=>!document.body.classList.contains('boot-pending'));
   assert.equal(await page.locator('#nav-occasion').isVisible(),false);
   await page.locator('#open-settings').click();
+  await page.locator('[data-settings-open=appearance]').click();
   assert.equal(await page.locator('#events-enabled').isChecked(),false);
   await page.locator('label[for=events-enabled]').click();
   assert.equal(await page.locator('#nav-occasion').isVisible(),true);
@@ -161,6 +162,7 @@ test('agenda compacta, evento, edição, agendamento automático, aviso e persis
   await page.evaluate(()=>{Storage.prototype.setItem=realSetItem;occasionRetryAt=0;reconcileOccasions();});
   assert.equal(await page.evaluate(()=>state.occasions[0].endReason),'empty48h');
   await page.locator('#open-settings').click();
+  await page.locator('[data-settings-open=appearance]').click();
   await page.locator('label[for=events-enabled]').click();
   assert.equal(await page.locator('#nav-occasion').isVisible(),false);
   await page.reload();

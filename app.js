@@ -308,7 +308,7 @@ document.addEventListener("visibilitychange", () => {
 const DATA_STORAGE_KEY = "funtime-v1-data";
 const LEGACY_DRINKS_STORAGE_KEY = "balada-v1-drinks";
 const DATA_VERSION = 11;
-const APP_VERSION = "2.12.0";
+const APP_VERSION = "2.13.0";
 const DRINK_EXPORT_TYPE = "funtime-drinks";
 const DRINK_EXPORT_FORMAT_VERSION = 1;
 const BACKUP_EXPORT_TYPE = "funtime-backup";
@@ -358,6 +358,7 @@ const state = {
   menuDrinkId: null,
   historyDrinkId: null,
   currentView: "home",
+  settingsPage: null,
   undo: null,
   toastTimerId: null,
   reorderAnimationUntil: 0,
@@ -917,12 +918,41 @@ function setCurrentView(view) {
   });
 }
 
+// Configurações é um menu de categorias; cada uma abre a própria tela. Os elementos
+// (com os mesmos ids de sempre) só mudaram de lugar, então nenhum handler mudou.
+const SETTINGS_PAGES = { appearance: "Aparência", privacy: "Privacidade", backup: "Backup e conta", about: "Sobre o app", reset: "Redefinir dados" };
+
+function updateSettingsMenuSummary() {
+  const set = (name, text) => {
+    const node = document.querySelector("#settings-summary-" + name);
+    if (node) node.textContent = text;
+  };
+  const counting = state.preferences.countingMode === "normal" ? "Contagem normal" : "Contagem regressiva";
+  set("appearance", counting + " · " + (state.preferences.eventsEnabled ? "Eventos ativos" : "Eventos desligados"));
+  set("privacy", state.securityConfig?.enabled ? "Bloqueio ativo · " + getSecurityMethodLabel() : "Bloqueio desativado");
+  const user = firebaseAuth?.getCurrentUser() || null;
+  set("backup", user ? "Conta: " + (user.email || user.displayName || "conectada") : "Sem conta conectada");
+  set("about", "Versão " + APP_VERSION);
+  set("reset", "Ícones, histórico, bebidas ou tudo");
+}
+
+// `null` volta ao menu.
+function showSettingsPage(page) {
+  state.settingsPage = page && SETTINGS_PAGES[page] ? page : null;
+  document.querySelector("#settings-menu").hidden = Boolean(state.settingsPage);
+  document.querySelectorAll("[data-settings-page]").forEach((node) => { node.hidden = node.dataset.settingsPage !== state.settingsPage; });
+  document.querySelector("#settings-header-title").textContent = state.settingsPage ? SETTINGS_PAGES[state.settingsPage] : "Configurações";
+  document.querySelector("#settings-header-eyebrow").textContent = state.settingsPage ? "Configurações" : "Preferências";
+  if (!state.settingsPage) updateSettingsMenuSummary();
+  window.scrollTo(0, 0);
+}
+
 function openSettingsView() {
   setCurrentView("settings");
   updateInterfaceSettingsUI();
   updateDataSettingsUI();
   updateSecuritySettingsUI();
-  window.scrollTo(0, 0);
+  showSettingsPage(null);
 }
 
 function closeSettingsView() {
@@ -2946,7 +2976,13 @@ function startClock() {
 document.querySelector("#open-history").addEventListener("click", () => openHistoryView());
 document.querySelector("#close-history").addEventListener("click", closeHistoryView);
 document.querySelector("#open-settings").addEventListener("click", openSettingsView);
-document.querySelector("#close-settings").addEventListener("click", closeSettingsView);
+document.querySelector("#close-settings").addEventListener("click", () => {
+  if (state.settingsPage) showSettingsPage(null);
+  else closeSettingsView();
+});
+document.querySelectorAll("[data-settings-open]").forEach((button) => {
+  button.addEventListener("click", () => showSettingsPage(button.dataset.settingsOpen));
+});
 
 countingModeInput.addEventListener("change", () => changeCountingMode(countingModeInput.value));
 
@@ -3284,6 +3320,7 @@ function getShareEventsContext() {
 // Leva direto ao interruptor "Usar eventos" em Configurações, destacando a linha.
 function openEventsSetting() {
   openSettingsView();
+  showSettingsPage("appearance");
   const row = document.querySelector("#events-enabled")?.closest(".settings-toggle-row");
   if (!row) return;
   row.scrollIntoView({ block: "center" });
@@ -3486,7 +3523,7 @@ Object.assign(globalThis, {
   renderOccasionSharePicker, startOccasionShares,
   openSharedView, closeSharedView,
   render, saveData, effectiveCountingMode, registerDrinkAt, tickDrinkCards,
-  closeSettingsView, openDrinkMenuDialog, openEventDialog, saveSecurityConfig,
+  closeSettingsView, showSettingsPage, openEventsSetting, openDrinkMenuDialog, openEventDialog, saveSecurityConfig,
   editDrinkFromDrinkMenu, getDrinkActivity, persistIconCatalog, unlockApp,
   openDeleteDrinkDialog, openEditDrinkDialog, BACKUP_EXPORT_TYPE,
   state, DATA_STORAGE_KEY, buildCurrentAppData, refreshDataViews, showToast,

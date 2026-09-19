@@ -1,4 +1,14 @@
-# FunTime — V2.12.0
+# FunTime — V2.13.0
+
+## V2.13.0 — Configurações em menu de categorias
+
+A tela de Configurações deixou de ser uma página longa: agora é uma lista de categorias, cada uma abrindo a própria tela, com um resumo do estado embaixo do nome.
+- **Aparência**: contagem do intervalo, usar eventos, priorizar recentes, interface limpa.
+- **Privacidade**: bloqueio do aplicativo e a nota sobre a proteção.
+- **Backup e conta**: exportar/importar bebidas, backup do aplicativo e sincronização com a Conta Google.
+- **Sobre o app**: versão, verificar atualizações, políticas e o diagnóstico de toque.
+- **Redefinir e apagar dados**: em um cartão à parte, com tom de alerta.
+O botão Voltar (do app e do celular) desce da tela interna ao menu e depois à Home. O atalho "Ativar em Configurações" da tela de amigos abre direto Aparência. Os controles são os mesmos de antes, só reposicionados.
 
 ## V2.12.0 — teclado do celular: Enter desce o teclado e um ✓ dentro do campo
 

@@ -35,6 +35,7 @@
     if (state.securityLocked || document.body.classList.contains('terms-pending')) return [];
     const next = [];
     if (state.currentView !== 'home') next.push({ id: state.currentView, close: () => closeHistoryView() });
+    if (state.currentView === 'settings' && state.settingsPage) next.push({ id: 'settings-page', close: () => showSettingsPage(null) });
     if (state.currentView === 'settings') {
       document.querySelectorAll('#settings-view details[open]').forEach(details => {
         if (!details.getClientRects().length) return;
