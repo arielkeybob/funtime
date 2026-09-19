@@ -284,7 +284,7 @@ export function createDrinkInteractions({
       drinkName: drink.name,
       drinkIcon: drink.icon,
       consumedAt: timestamp,
-      occasionId: (() => { const current = state.preferences.eventsEnabled ? globalThis.FunTimeOccasions.active(state.occasions) : null; return current && globalThis.FunTimeOccasions.contains(current, timestamp) ? current.id : null; })(),
+      occasionId: (() => { if (!state.preferences.eventsEnabled) return null; const match = state.occasions.find((item) => globalThis.FunTimeOccasions.contains(item, timestamp)); return match ? match.id : null; })(),
       intervalMinutes: drink.intervalMinutes,
       doseSize: drink.askDoseSize ? (normalizeDoseSize(doseSize) || "full") : null,
     };
@@ -297,7 +297,7 @@ export function createDrinkInteractions({
     }
     onSaved?.();
     refreshDataViews();
-    if (state.preferences.eventsEnabled && !event.occasionId && globalThis.FunTimeOccasions.active(state.occasions)) showToast("Registro fora do período atual: salvo sem evento. Você pode associá-lo pelo Histórico.");
+    if (state.preferences.eventsEnabled && !event.occasionId && globalThis.FunTimeOccasions.active(state.occasions)) showToast("Registro fora do período do evento em andamento: salvo sem evento.");
 
     const reorder = state.currentView === "home"
       ? animateDrinkReorder(previousPositions, drink.id)

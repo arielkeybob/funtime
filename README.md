@@ -1,4 +1,12 @@
-# FunTime — V2.14.0
+# FunTime — V2.15.0
+
+## V2.15.0 — o horário decide o evento de um registro
+
+Os eventos nunca se sobrepõem, então para qualquer horário existe no máximo um evento possível.
+- **Dose nova** entra sozinha no evento que contém o horário — em andamento **ou já encerrado**. Antes só entrava no evento em andamento; um registro com horário dentro de um evento passado ficava "sem evento".
+- **Editar registro:** o campo "Evento deste registro" só aparece quando existe um evento cobrindo o horário escolhido, oferece só "Sem evento" e esse evento, e muda sozinho enquanto data e hora são ajustadas. Mover um registro para dentro de um evento já o seleciona; mover para fora o desvincula, sem erro.
+- Sem evento naquele horário, o campo some. Não dá mais para escolher um evento impossível nem ver "O horário está fora deste evento" ao salvar.
+- "Sem evento" continua disponível para tirar uma dose de um evento (por exemplo, para ela não aparecer para quem recebe o compartilhamento).
 
 ## V2.14.0 — bloqueio com um contador só (fora do app ou parado)
 

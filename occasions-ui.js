@@ -317,11 +317,39 @@ function refreshOccasionFilters() {
   trigger.setAttribute('aria-expanded', 'false');
   options.hidden = true;
 }
-function populateRecordOccasions(record) {
-  $occasion('record-occasion').parentElement.hidden = !state.preferences.eventsEnabled;
-  const select = $occasion('record-occasion'); select.replaceChildren(new Option('Sem evento', ''));
-  for (const item of state.occasions.filter(item => item.startedAt !== null)) select.add(new Option(item.name + ' · ' + toLocalDateInputValue(item.startedAt), item.id)); select.value = record.occasionId || '';
+// Evento de um registro: o horário decide (os eventos nunca se sobrepõem). A opção só
+// aparece quando existe um evento cobrindo o horário escolhido e oferece só "Sem evento" e
+// esse evento; muda sozinha enquanto a data e a hora são ajustadas.
+let recordOccasionRecord = null, recordOccasionChoice = null;
+function recordDialogMinute(timestamp) { return toLocalDateInputValue(timestamp) + 'T' + toLocalTimeInputValue(timestamp); }
+function refreshRecordOccasion() {
+  const record = recordOccasionRecord; if (!record) return;
+  const select = $occasion('record-occasion');
+  const date = $occasion('event-date').value;
+  const time = $occasion('event-hour').value.padStart(2, '0') + ':' + $occasion('event-minute').value.padStart(2, '0');
+  const unchanged = date + 'T' + time === recordDialogMinute(record.consumedAt);
+  const at = unchanged ? record.consumedAt : new Date(date + 'T' + time + ':00').getTime();
+  const candidate = state.preferences.eventsEnabled && Number.isFinite(at) ? state.occasions.find(item => FunTimeOccasions.contains(item, at)) || null : null;
+  select.parentElement.hidden = !candidate;
+  select.replaceChildren(new Option('Sem evento', ''));
+  if (!candidate) { select.value = ''; return; }
+  select.add(new Option(candidate.name + ' · ' + toLocalDateInputValue(candidate.startedAt), candidate.id));
+  // Escolha manual vale enquanto o evento candidato for o mesmo; sem escolha: horário
+  // inalterado mantém como está, horário novo entra no evento que o cobre.
+  if (recordOccasionChoice && recordOccasionChoice.candidateId === candidate.id) select.value = recordOccasionChoice.value;
+  else select.value = unchanged ? (record.occasionId === candidate.id ? candidate.id : '') : candidate.id;
 }
+function populateRecordOccasions(record) {
+  recordOccasionRecord = record; recordOccasionChoice = null;
+  refreshRecordOccasion();
+}
+$occasion('record-occasion').addEventListener('change', () => {
+  const select = $occasion('record-occasion');
+  const candidate = [...select.options].find(option => option.value);
+  recordOccasionChoice = { candidateId: candidate ? candidate.value : null, value: select.value };
+});
+// O próprio seletor não redispara: reconstruir as opções no meio da escolha a desfaria.
+for (const type of ['input', 'change']) $occasion('event-form').addEventListener(type, event => { if (event.target.id !== 'record-occasion') refreshRecordOccasion(); });
 $occasion('occasion-close').addEventListener('click', closeOccasionEditor); $occasion('occasion-cancel').addEventListener('click', closeOccasionEditor);
 $occasion('occasion-detail-close').addEventListener('click', closeOccasionDetails); $occasion('occasion-detail-back').addEventListener('click', closeOccasionDetails);
 $occasion('occasion-new').addEventListener('click', () => openOccasionEditor());
