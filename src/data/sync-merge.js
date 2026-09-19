@@ -1,7 +1,7 @@
 // Lógica pura da sincronização: o que mudou desde o último envio e como combinar o
 // que veio de outro aparelho com o que existe aqui. Sem rede, sem DOM, sem Firestore.
 
-function stableJson(value) {
+export function stableJson(value) {
   return JSON.stringify(value, (key, entry) => (
     entry && typeof entry === "object" && !Array.isArray(entry)
       ? Object.fromEntries(Object.keys(entry).sort().map((name) => [name, entry[name]]))

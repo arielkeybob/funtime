@@ -3824,3 +3824,17 @@ button.field-check:active { transform: scale(.94); }
 @keyframes settings-page-in { from { opacity: 0; transform: translateX(10px); } to { opacity: 1; transform: none; } }
 @media (prefers-reduced-motion: reduce) { .settings-page { animation: none; } }
 .settings-page .settings-card > .settings-toggle-row { min-height: 0; padding: 16px 0 0; border-top: 1px solid var(--border); }
+
+/* Evento compartilhado (spec 0025). Marcas de decisão sob o avatar: pequenas e AFASTADAS
+   do círculo, para não se confundirem com as setas de "vendo"/"compartilhando", que ficam
+   coladas no canto dele. Envelope = convidado; check = confirmou. */
+.share-marks { display: flex; align-items: center; justify-content: center; min-height: 16px; margin-top: 2px; }
+.share-mark { display: inline-grid; place-items: center; width: 16px; height: 16px; border-radius: 999px; }
+.share-mark svg { width: 11px; height: 11px; fill: none; stroke: currentColor; stroke-width: 2.3; stroke-linecap: round; stroke-linejoin: round; }
+.share-mark--invited { color: var(--muted); border: 1.5px solid var(--border); }
+.share-mark--going { color: var(--success); border: 1.5px solid var(--success); }
+div.share-person { cursor: default; }
+/* As duas linhas do evento (Convidados / Compartilhar doses): clicáveis, sem seletor em linha. */
+.occasion-people { display: grid; gap: 0; margin: 4px 0; }
+.occasion-people-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 12px 14px; margin: 4px 0; }
+.occasion-people-row small { white-space: nowrap; }

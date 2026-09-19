@@ -26,6 +26,22 @@
         try { if (typeof item.timeZone !== 'string') fail(); new Intl.DateTimeFormat('pt-BR', { timeZone: item.timeZone }).format(); } catch { fail(); }
         value.timeZone = item.timeZone;
       }
+      // Evento compartilhado (spec 0025). Opcionais: sem eles a ocasião é só da pessoa.
+      // Guardam o vínculo com o convite e a intenção de compartilhar doses ao iniciar.
+      const uidLike = text => typeof text === 'string' && text.length > 0 && text.length <= 200;
+      for (const key of ['sharedEventId', 'sharedHostUid']) {
+        if (item[key] !== undefined) { if (item[key] !== null && !uidLike(item[key])) fail(); value[key] = item[key]; }
+      }
+      // Retrato da ficha que o convidado já viu: só uma mudança NOVA do organizador oferece
+      // "atualização", e editar o horário de propósito não a dispara para sempre.
+      if (item.sharedFichaKey !== undefined) {
+        if (item.sharedFichaKey !== null && (typeof item.sharedFichaKey !== 'string' || !item.sharedFichaKey || item.sharedFichaKey.length > 500)) fail();
+        value.sharedFichaKey = item.sharedFichaKey;
+      }
+      if (item.shareWith !== undefined) {
+        if (!Array.isArray(item.shareWith) || item.shareWith.length > 10000 || !item.shareWith.every(uidLike)) fail();
+        if (item.shareWith.length) value.shareWith = [...new Set(item.shareWith)];
+      }
       if (value.startedAt === null && (!finite(value.scheduledStartAt) || value.endedAt !== null)) fail();
       if (value.scheduledEndAt != null && value.scheduledEndAt <= (value.startedAt ?? value.scheduledStartAt)) fail();
       if (value.startedAt !== null && value.endedAt === null && value.closedAt != null) fail();

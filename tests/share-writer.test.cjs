@@ -290,7 +290,7 @@ test('a lista de pares distingue quem aceitou o quê', async () => {
   assert.deepEqual(pares.at(-1), [{
     pairId: PAR, otherUid: OUTRO, alias: 'Bia', myAlias: '',
     acceptedByMe: false, acceptedByOther: true, createdByMe: false, createdAt: null,
-    sharedWithMe: [], sharingWithOther: [], viaCode: null,
+    sharedWithMe: [], sharingWithOther: [], invitesFromOther: [], invitesFromMe: [], viaCode: null,
   }]);
 });
 
@@ -593,4 +593,147 @@ test('o vencimento é aplicado na hora, sem esperar reabrir o app', async () => 
   agora = 500 + 24 * 60 * 60 * 1000 + 1;
   await writer.sweepExpiredShares();
   assert.ok(firestore.exclusoes.includes(`shares/${shareId}`), 'passou o prazo: apagado');
+});
+
+// --- Custo: não regravar o que não mudou (spec 0025, Fase 0) --------------------
+
+const { buildSharePayload } = require('../src/data/share-payload.js');
+const semTimer = { schedule: () => 1, cancel: () => {} };
+const escritasEm = (firestore, prefixo) => firestore.escritas.filter((item) => item.path.startsWith(prefixo));
+
+// Todo commit do app chega em scheduleSharePush — preferência, ordem de bebida, dose de
+// outro evento. Antes, cada um regravava o documento inteiro de cada convidado.
+test('um commit que não muda o evento compartilhado não regrava o documento', async () => {
+  const { writer, firestore } = setup({ timers: semTimer });
+  await writer.startShare({ occasion: ocasiao(), events: [dose('e1')], viewerUid: OUTRO, ownerAlias: 'Ana' });
+  firestore.escritas.length = 0;
+
+  const outraOcasiao = { ...dose('x1'), occasionId: 'oc-2' }; // dose de OUTRO evento não entra no payload
+  writer.scheduleSharePush({ occasions: [ocasiao()], events: [dose('e1'), outraOcasiao] });
+  await writer.flushSharePushes();
+
+  assert.deepEqual(escritasEm(firestore, 'shares/'), [], 'nada mudou neste compartilhamento: zero escritas');
+});
+
+test('dose nova regrava uma vez e repetir o mesmo estado não regrava de novo', async () => {
+  const { writer, firestore } = setup({ timers: semTimer });
+  await writer.startShare({ occasion: ocasiao(), events: [dose('e1')], viewerUid: OUTRO, ownerAlias: 'Ana' });
+  firestore.escritas.length = 0;
+
+  const estado = { occasions: [ocasiao()], events: [dose('e1'), dose('e2')] };
+  writer.scheduleSharePush(estado);
+  await writer.flushSharePushes();
+  writer.scheduleSharePush(estado);
+  await writer.flushSharePushes();
+
+  const envios = escritasEm(firestore, 'shares/');
+  assert.equal(envios.length, 1);
+  assert.equal(envios[0].data.eventCount, 2);
+});
+
+// Um envio que falhou não pode contar como enviado, senão o convidado fica sem a dose
+// até a próxima mudança.
+test('uma escrita que falhou é tentada de novo no commit seguinte', async () => {
+  const { writer, firestore } = setup({ timers: semTimer });
+  await writer.startShare({ occasion: ocasiao(), events: [dose('e1')], viewerUid: OUTRO, ownerAlias: 'Ana' });
+  firestore.escritas.length = 0;
+
+  const original = firestore.module.setDoc;
+  firestore.module.setDoc = async () => { throw new Error('offline'); };
+  const estado = { occasions: [ocasiao()], events: [dose('e1'), dose('e2')] };
+  writer.scheduleSharePush(estado);
+  await writer.flushSharePushes();
+  firestore.module.setDoc = original;
+
+  writer.scheduleSharePush(estado);
+  await writer.flushSharePushes();
+
+  assert.equal(escritasEm(firestore, 'shares/').length, 1, 'a segunda tentativa grava');
+});
+
+// Sem isto, toda abertura do app seguida de qualquer commit reenviaria o que a nuvem já tem.
+test('ao reabrir, o documento já gravado vira a base: estado igual não regrava', async () => {
+  const payload = buildSharePayload({ occasion: ocasiao(), events: [dose('e1')], ownerUid: EU, viewerUid: OUTRO, ownerAlias: 'Ana', now: 1_000_000 });
+  const documentos = {
+    [`users/${EU}/meta/shares`]: { active: { s1: { occasionId: 'oc-1', viewerUid: OUTRO, ownerAlias: 'Ana' } } },
+    'shares/s1': { ...payload, expiresAt: { toMillis: () => payload.expiresAtMs }, updatedAt: { toMillis: () => 1 } },
+  };
+  const { writer, firestore } = setup({ documentos, timers: semTimer });
+  await writer.start();
+  firestore.escritas.length = 0;
+
+  writer.scheduleSharePush({ occasions: [ocasiao()], events: [dose('e1')] });
+  await writer.flushSharePushes();
+  assert.deepEqual(escritasEm(firestore, 'shares/'), [], 'mesmo conteúdo que a nuvem já tem');
+
+  writer.scheduleSharePush({ occasions: [ocasiao()], events: [dose('e1'), dose('e2')] });
+  await writer.flushSharePushes();
+  assert.equal(escritasEm(firestore, 'shares/').length, 1, 'dose nova continua indo');
+});
+
+test('abrir o app sem compartilhamento nenhum não grava o bookkeeping', async () => {
+  const { writer, firestore } = setup();
+
+  await writer.start();
+
+  assert.deepEqual(escritasEm(firestore, `users/${EU}/meta/shares`), []);
+});
+
+test('ao reabrir, o bookkeeping só é regravado se a entrada mudou', async () => {
+  const payload = buildSharePayload({ occasion: ocasiao(), events: [], ownerUid: EU, viewerUid: OUTRO, ownerAlias: 'Ana', now: 1_000_000 });
+  const share = { ...payload, expiresAt: { toMillis: () => payload.expiresAtMs } };
+  const igual = { occasionId: 'oc-1', occasionName: 'Festa', viewerUid: OUTRO, ownerAlias: 'Ana', expiresAtMs: payload.expiresAtMs };
+
+  const semMudanca = setup({ documentos: { [`users/${EU}/meta/shares`]: { active: { s1: igual } }, 'shares/s1': share } });
+  await semMudanca.writer.start();
+  assert.deepEqual(escritasEm(semMudanca.firestore, `users/${EU}/meta/shares`), [], 'entrada idêntica: nada a gravar');
+
+  // Formato antigo da entrada (sem occasionName/expiresAtMs): completa uma vez.
+  const antigo = { occasionId: 'oc-1', viewerUid: OUTRO, ownerAlias: 'Ana' };
+  const comMudanca = setup({ documentos: { [`users/${EU}/meta/shares`]: { active: { s1: antigo } }, 'shares/s1': share } });
+  await comMudanca.writer.start();
+  assert.equal(escritasEm(comMudanca.firestore, `users/${EU}/meta/shares`).length, 1);
+});
+
+// O merge do Firestore junta os mapas: o lote só precisa levar a entrada nova, e assim
+// não reenvia as antigas nem atropela um compartilhamento que outro aparelho iniciou.
+test('começar um segundo compartilhamento grava só a entrada nova no bookkeeping', async () => {
+  const { writer, firestore } = setup();
+
+  const a = await writer.startShare({ occasion: ocasiao(), events: [], viewerUid: OUTRO, ownerAlias: 'Ana' });
+  const b = await writer.startShare({ occasion: ocasiao({ id: 'oc-2' }), events: [], viewerUid: 'uid-caio', ownerAlias: 'Ana' });
+
+  const gravacoes = escritasEm(firestore, `users/${EU}/meta/shares`);
+  assert.deepEqual(Object.keys(gravacoes[0].data.active), [a.shareId]);
+  assert.deepEqual(Object.keys(gravacoes[1].data.active), [b.shareId]);
+});
+
+test('parar um compartilhamento não gera escrita no bookkeeping', async () => {
+  const { writer, firestore } = setup();
+
+  const { shareId } = await writer.startShare({ occasion: ocasiao(), events: [], viewerUid: OUTRO, ownerAlias: 'Ana' });
+  firestore.escritas.length = 0;
+  await writer.stopShare(shareId);
+
+  assert.deepEqual(escritasEm(firestore, `users/${EU}/meta/shares`), []);
+});
+
+// Evento compartilhado (spec 0025): o mesmo documento de pareamento que já é escutado
+// carrega o ponteiro de convites, então não existe segundo listener (cada um custaria uma
+// leitura por documento a cada reconexão).
+test('a lista de pares expõe os ponteiros de convite dos dois lados, e vazio quando não há campo', async () => {
+  const pares = [];
+  const { writer, firestore } = setup({ onPairingsChange: (lista) => pares.push(lista) });
+  await writer.start();
+  const par = (invites) => snapshotDePares([{ __id: PAR, uids: [EU, OUTRO], createdBy: EU, acceptedBy: [EU, OUTRO], aliases: {}, sharing: {}, ...(invites ? { invites } : {}) }]);
+
+  firestore.listeners.get('pairings')(par());
+  assert.deepEqual([pares.at(-1)[0].invitesFromOther, pares.at(-1)[0].invitesFromMe], [[], []], 'pareamento antigo, sem o campo');
+
+  firestore.listeners.get('pairings')(par({ [OUTRO]: ['ev-1', 'ev-2'], [EU]: ['ev-9'] }));
+  assert.deepEqual(pares.at(-1)[0].invitesFromOther, ['ev-1', 'ev-2']);
+  assert.deepEqual(pares.at(-1)[0].invitesFromMe, ['ev-9']);
+
+  firestore.listeners.get('pairings')(par({ [OUTRO]: null }));
+  assert.deepEqual(pares.at(-1)[0].invitesFromOther, []);
 });

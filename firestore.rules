@@ -85,7 +85,7 @@ service cloud.firestore {
       // etapa separada de aceite; simplificado a pedido do usuário — ver spec 0023.)
       allow create: if signedIn()
         && request.resource.data.keys().hasOnly(
-             ['uids', 'createdBy', 'createdAt', 'viaCode', 'acceptedBy', 'aliases', 'sharing'])
+             ['uids', 'createdBy', 'createdAt', 'viaCode', 'acceptedBy', 'aliases', 'sharing', 'invites'])
         && request.resource.data.uids.size() == 2
         && request.resource.data.uids[0] < request.resource.data.uids[1]
         && pairId == request.resource.data.uids[0] + '_' + request.resource.data.uids[1]
@@ -95,23 +95,29 @@ service cloud.firestore {
         && request.resource.data.acceptedBy.hasAll(request.resource.data.uids)
         && request.resource.data.aliases.keys().hasOnly([me()])
         && request.resource.data.sharing.size() == 0
+        && request.resource.data.get('invites', {}).size() == 0
         && validCode(
              request.resource.data.viaCode,
              request.resource.data.uids[0] == me()
                ? request.resource.data.uids[1]
                : request.resource.data.uids[0]);
 
-      // Só três coisas são possíveis, e sempre sobre si mesmo: acrescentar-se a
+      // Só quatro coisas são possíveis, e sempre sobre si mesmo: acrescentar-se a
       // acceptedBy, mudar o próprio apelido, publicar o próprio ponteiro de
-      // compartilhamento. Ninguém aceita pelo outro nem mexe no apelido alheio.
+      // compartilhamento e o próprio ponteiro de convites. Ninguém aceita pelo outro
+      // nem mexe no apelido alheio.
+      // `invites` (spec 0025) pode não existir em pareamentos anteriores a ela, por isso
+      // `get('invites', {})`: ler um campo ausente seria erro de avaliação e negaria tudo.
       allow update: if isMember()
         && request.resource.data.diff(resource.data).affectedKeys()
-             .hasOnly(['acceptedBy', 'aliases', 'sharing'])
+             .hasOnly(['acceptedBy', 'aliases', 'sharing', 'invites'])
         && request.resource.data.acceptedBy.hasAll(resource.data.acceptedBy)
         && request.resource.data.acceptedBy.hasOnly(resource.data.acceptedBy.concat([me()]))
         && request.resource.data.aliases.diff(resource.data.aliases)
              .affectedKeys().hasOnly([me()])
         && request.resource.data.sharing.diff(resource.data.sharing)
+             .affectedKeys().hasOnly([me()])
+        && request.resource.data.get('invites', {}).diff(resource.data.get('invites', {}))
              .affectedKeys().hasOnly([me()]);
 
       // Qualquer um dos dois desfaz o pareamento, a qualquer momento.
@@ -155,6 +161,83 @@ service cloud.firestore {
         && request.resource.data.expiresAt < request.time + duration.value(96, 'h');
 
       allow delete: if isOwner();
+    }
+
+    // ----------------------------------------------------------------------
+    // 5. Eventos compartilhados (spec 0025)
+    // Uma ficha pequena publicada pelo organizador: nome, horário, quem foi convidado e
+    // quem confirmou. NÃO carrega nenhuma dose — quem vê as doses de quem continua
+    // sendo `shares`, decisão separada, por pessoa. Quem aceita ganha uma cópia local
+    // do evento; depois disso a ocasião é só dele.
+    //
+    // Escritores: o organizador escreve a ficha e `invited`; cada convidado escreve só
+    // a própria presença em `going`. Nenhum convidado pode convidar nem tirar outro.
+    // Sem `list` para convidado, pelo mesmo motivo de `shares`: o vencimento só é
+    // cobrado contra o documento real, e o id chega pelo ponteiro `invites` do
+    // pareamento (`onSnapshot` negado encerra o listener de vez).
+    // ----------------------------------------------------------------------
+    match /sharedEvents/{eventId} {
+      function isHost() { return signedIn() && resource.data.hostUid == me(); }
+      function isGuest() {
+        return signedIn()
+          && me() in resource.data.invited
+          && resource.data.expiresAt > request.time;
+      }
+      function validExpiry(time) {
+        return time is timestamp && time > request.time && time < request.time + duration.value(365, 'd');
+      }
+
+      allow get: if isHost() || isGuest();
+
+      // Consulta obrigatória: where('hostUid', '==', <meu uid>) — só para o organizador
+      // varrer os próprios eventos vencidos.
+      allow list: if isHost();
+
+      allow create: if signedIn()
+        && request.resource.data.keys().hasOnly(
+             ['hostUid', 'name', 'startAt', 'endAt', 'timeZone', 'status',
+              'invited', 'going', 'schemaVersion', 'createdAt', 'updatedAt', 'expiresAt'])
+        && request.resource.data.hostUid == me()
+        && request.resource.data.name is string
+        && request.resource.data.name.size() <= 80
+        && request.resource.data.startAt is number
+        && (request.resource.data.endAt == null || request.resource.data.endAt is number)
+        && request.resource.data.status == 'active'
+        && request.resource.data.invited.size() == 0   // convidar é um passo por pessoa, abaixo
+        && request.resource.data.going.size() == 0
+        && validExpiry(request.resource.data.expiresAt);
+
+      // Organizador: edita a ficha, cancela, convida UMA pessoa por escrita (regras não
+      // têm laço, e cada convite precisa provar amizade aceita pelos dois) e pode retirar
+      // convidados. Nunca acrescenta ninguém a `going` — presença é ato de quem vai.
+      allow update: if isHost()
+        && request.resource.data.hostUid == resource.data.hostUid
+        && request.resource.data.diff(resource.data).affectedKeys()
+             .hasOnly(['name', 'startAt', 'endAt', 'timeZone', 'status', 'invited', 'going', 'updatedAt', 'expiresAt'])
+        && request.resource.data.name is string
+        && request.resource.data.name.size() <= 80
+        && request.resource.data.status in ['active', 'cancelled']
+        && validExpiry(request.resource.data.expiresAt)
+        // Ou nada de novo (igual, ou só retiradas), ou exatamente UMA pessoa a mais, no
+        // fim da lista e com amizade aceita pelos dois lados. A lista antiga vazia é caso
+        // à parte: a fatia `[0:0]` é negada pelo motor de regras (verificado no emulador),
+        // e sem isto o primeiro convidado de qualquer evento seria recusado.
+        && (request.resource.data.invited.hasOnly(resource.data.invited)
+            || (request.resource.data.invited.size() == resource.data.invited.size() + 1
+                && (resource.data.invited.size() == 0
+                    || request.resource.data.invited[0:resource.data.invited.size()] == resource.data.invited)
+                && acceptedPair(request.resource.data.invited[resource.data.invited.size()])))
+        && request.resource.data.going.hasOnly(resource.data.going)
+        && request.resource.data.going.hasOnly(request.resource.data.invited);
+
+      // Convidado: só a própria presença, e só enquanto o convite vale. Mesmo padrão de
+      // `acceptedBy`: a lista nova só difere da antiga por mim, para mais ou para menos.
+      allow update: if isGuest()
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['going'])
+        && request.resource.data.going.hasOnly(resource.data.going.concat([me()]))
+        && resource.data.going.hasOnly(request.resource.data.going.concat([me()]));
+
+      allow delete: if isHost();
     }
   }
 }

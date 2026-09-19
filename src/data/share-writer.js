@@ -1,6 +1,7 @@
 import { loadFirestore, chunk, BATCH_LIMIT } from "./firestore-db.js";
 import { buildPairId, generatePairingCode, otherUidOf, pointerToList, listToPointer } from "./share-codes.js";
 import { buildSharePayload } from "./share-payload.js";
+import { stableJson } from "./sync-merge.js";
 
 export const PAIRING_CODE_TTL_MS = 5 * 60 * 1000;
 const SHARE_PUSH_DEBOUNCE_MS = 800;
@@ -21,6 +22,12 @@ export function createShareWriter({
   // shares filtrada por ownerUid. O id da ocasião só existe aqui e naquele
   // documento próprio; nunca no documento que o convidado lê.
   const activeShares = new Map();
+  // O que a nuvem já tem, para não regravar o que não mudou. Só em memória: cada
+  // escrita aqui custa uma leitura em todo aparelho que escuta (spec 0025, Fase 0).
+  // shareId -> retrato estável do último payload enviado a shares/{shareId}.
+  const lastPushed = new Map();
+  // shareId -> retrato estável da entrada já gravada em users/{uid}/meta/shares.
+  const storedBookkeeping = new Map();
   let latestAppData = null;
   let sharePushTimer = null;
 
@@ -52,6 +59,11 @@ export function createShareWriter({
         // antigo (um shareId ou null).
         sharedWithMe: pointerToList(data.sharing?.[other]),
         sharingWithOther: pointerToList(data.sharing?.[uid]),
+        // Ponteiros de convite a evento compartilhado (spec 0025), mesmo desenho do
+        // `sharing`: cada lado só escreve a própria chave. Pareamentos criados antes da
+        // spec não têm o campo.
+        invitesFromOther: pointerToList(data.invites?.[other]),
+        invitesFromMe: pointerToList(data.invites?.[uid]),
         viaCode: data.viaCode ?? null,
       };
     });
@@ -245,10 +257,19 @@ export function createShareWriter({
     return [...activeShares].map(([shareId, info]) => ({ shareId, ...info }));
   }
 
+  // Grava só o que é novo ou mudou. O `merge` do Firestore junta os mapas, então uma
+  // entrada que não vai no lote continua como estava — e é isso que permite a outro
+  // aparelho da mesma conta ter começado um compartilhamento que este não conhece.
   async function saveShareBookkeeping() {
+    const pending = {};
+    for (const [shareId, info] of activeShares) {
+      if (storedBookkeeping.get(shareId) !== stableJson(info)) pending[shareId] = info;
+    }
+    if (!Object.keys(pending).length) return;
+
     const { firestore, db } = await load();
-    const active = Object.fromEntries([...activeShares]);
-    await firestore.setDoc(firestore.doc(db, "users", uid, "meta", "shares"), { active }, { merge: true });
+    await firestore.setDoc(firestore.doc(db, "users", uid, "meta", "shares"), { active: pending }, { merge: true });
+    for (const [shareId, info] of Object.entries(pending)) storedBookkeeping.set(shareId, stableJson(info));
   }
 
   function activeIdsFor(viewerUid) {
@@ -284,6 +305,7 @@ export function createShareWriter({
       expiresAt: firestore.Timestamp.fromMillis(payload.expiresAtMs),
       updatedAt: firestore.serverTimestamp(),
     });
+    lastPushed.set(shareId, stableJson(payload));
 
     await publishPointer(viewerUid, [...activeIdsFor(viewerUid), shareId]);
 
@@ -296,6 +318,8 @@ export function createShareWriter({
   async function stopShare(shareId) {
     const info = activeShares.get(shareId);
     activeShares.delete(shareId);
+    lastPushed.delete(shareId);
+    storedBookkeeping.delete(shareId);
     await saveShareBookkeeping();
     onSharesChange?.(sharesSnapshot());
 
@@ -331,14 +355,28 @@ export function createShareWriter({
         occasion, events: latestAppData.events, ownerUid: uid,
         viewerUid: info.viewerUid, ownerAlias: info.ownerAlias, now: now(),
       });
+      // O prazo anda junto do evento (fim + 24h): manter o valor local em dia.
+      info.expiresAtMs = payload.expiresAtMs;
 
+      // Todo commit do app passa por aqui (preferência, ordem de bebida, dose de outro
+      // evento), mas na maioria deles este compartilhamento não mudou. Regravar custaria
+      // uma escrita e uma leitura em cada aparelho que escuta, por nada. `updatedAt` fica
+      // fora da comparação de propósito: a tela de quem vê mostra a hora do último envio
+      // real, e silêncio não indica falha (spec 0023, v2.10.1).
+      const key = stableJson(payload);
+      if (lastPushed.get(shareId) === key) continue;
+
+      // Marca antes de esperar: offline, o SDK enfileira a escrita e um segundo
+      // commit idêntico não precisa enfileirar outra. Se falhar, desmarca para tentar de novo.
+      lastPushed.set(shareId, key);
       await firestore.setDoc(firestore.doc(db, "shares", shareId), {
         ...payload,
         expiresAt: firestore.Timestamp.fromMillis(payload.expiresAtMs),
         updatedAt: firestore.serverTimestamp(),
-      }).catch(report);
-      // O prazo anda junto do evento (fim + 24h): manter o valor local em dia.
-      info.expiresAtMs = payload.expiresAtMs;
+      }).catch((error) => {
+        if (lastPushed.get(shareId) === key) lastPushed.delete(shareId);
+        report(error);
+      });
     }
   }
 
@@ -374,6 +412,10 @@ export function createShareWriter({
 
     const limit = now();
     activeShares.clear();
+    lastPushed.clear();
+    storedBookkeeping.clear();
+    // O que já está gravado, para a próxima gravação pular o que não mudou.
+    for (const [shareId, entry] of Object.entries(bookkeeping)) storedBookkeeping.set(shareId, stableJson(entry));
     const mexidas = new Set();
 
     for (const entry of mine.docs) {
@@ -393,6 +435,14 @@ export function createShareWriter({
       if (!tracked) { await firestore.deleteDoc(entry.ref).catch(report); if (data?.viewerUid) mexidas.add(data.viewerUid); continue; }
 
       activeShares.set(entry.id, { occasionId: tracked.occasionId, occasionName: data.occasion?.name ?? null, viewerUid: data.viewerUid, ownerAlias: data.ownerAlias, expiresAtMs });
+
+      // O documento já lido é o retrato do último envio: sem os carimbos de tempo, é
+      // exatamente o payload. Se divergir (versão antiga do formato), a próxima
+      // gravação simplesmente acontece, que é o comportamento seguro.
+      const enviado = { ...data };
+      delete enviado.expiresAt;
+      delete enviado.updatedAt;
+      lastPushed.set(entry.id, stableJson(enviado));
     }
 
     // Só depois de reconstruir tudo: o ponteiro de quem perdeu algum share passa a
@@ -452,6 +502,8 @@ export function createShareWriter({
     while (unsubscribers.length) unsubscribers.pop()?.();
     if (sharePushTimer) { cancel(sharePushTimer); sharePushTimer = null; }
     activeShares.clear();
+    lastPushed.clear();
+    storedBookkeeping.clear();
     latestAppData = null;
     cachedAlias = null;
   }

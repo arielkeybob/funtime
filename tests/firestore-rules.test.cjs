@@ -9,7 +9,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const { initializeTestEnvironment, assertFails, assertSucceeds } = require('@firebase/rules-unit-testing');
 const {
-  doc, getDoc, setDoc, updateDoc, deleteDoc, collection, query, where, getDocs, Timestamp,
+  doc, getDoc, setDoc, updateDoc, deleteDoc, collection, query, where, getDocs, Timestamp, arrayUnion, arrayRemove,
 } = require('firebase/firestore');
 
 // `npm run test:rules` sobe o emulador e define esta variável. No `npm test` comum ela
@@ -248,4 +248,183 @@ test('ninguém compartilha em nome de outra pessoa', async () => {
     occasion: { name: 'Festa', startedAt: 1, endedAt: null },
     events: [], totals: [], eventCount: 0, truncated: false, expiresAt: daquiA(60 * MINUTO),
   }));
+});
+
+// --- Eventos compartilhados (spec 0025) ---------------------------------------
+// A ficha do evento não carrega dose nenhuma. Aqui, ANA é a organizadora; BIA e CAIO
+// são amigos dela; DINO nunca foi pareado com ninguém.
+
+const DINO = 'ddd-dino';
+const DIA = 24 * 60 * MINUTO;
+const parDe = (a, b) => (a < b ? `${a}_${b}` : `${b}_${a}`);
+
+async function semearAmizade(a, b, aceitoPor = [a, b]) {
+  await semRegras((db) => setDoc(doc(db, 'pairings', parDe(a, b)), {
+    uids: [a, b].sort(), createdBy: b, createdAt: Timestamp.now(), viaCode: 'AB7K29',
+    acceptedBy: aceitoPor, aliases: {}, sharing: {},
+  }));
+}
+
+const fichaEvento = (extra = {}) => ({
+  hostUid: ANA, name: 'Festa Junina', startAt: Date.now() + 2 * DIA, endAt: null, timeZone: 'America/Sao_Paulo',
+  status: 'active', invited: [], going: [], schemaVersion: 1,
+  createdAt: Timestamp.now(), updatedAt: Timestamp.now(), expiresAt: daquiA(3 * DIA), ...extra,
+});
+
+const semearEvento = (id, dados) => semRegras((db) => setDoc(doc(db, 'sharedEvents', id), fichaEvento(dados)));
+const evento = (uid, id = 'ev') => doc(como(uid), 'sharedEvents', id);
+
+test('o organizador cria o evento vazio; o resto da criação é negado', async () => {
+  await assertSucceeds(setDoc(evento(ANA, 'novo'), fichaEvento()));
+
+  await assertFails(setDoc(evento(BIA, 'de-outro'), fichaEvento()));                                   // em nome da Ana
+  await assertFails(setDoc(evento(ANA, 'c1'), fichaEvento({ invited: [BIA] })));                       // convidar é um passo por pessoa
+  await assertFails(setDoc(evento(ANA, 'c2'), fichaEvento({ going: [BIA] })));                         // presença é de quem vai
+  await assertFails(setDoc(evento(ANA, 'c3'), fichaEvento({ expiresAt: daquiA(400 * DIA) })));         // teto de 1 ano
+  await assertFails(setDoc(evento(ANA, 'c4'), fichaEvento({ name: 'x'.repeat(81) })));
+  await assertFails(setDoc(evento(ANA, 'c5'), fichaEvento({ campoExtra: 1 })));
+  await assertFails(setDoc(evento(ANA, 'c6'), fichaEvento({ status: 'cancelled' })));
+});
+
+test('evento futuro distante é aceito dentro do teto', async () => {
+  await assertSucceeds(setDoc(evento(ANA, 'longe'), fichaEvento({ expiresAt: daquiA(300 * DIA) })));
+});
+
+// O primeiro convidado (lista vazia) é o caso que a fatia `[0:0]` derrubaria: o motor de
+// regras a nega. Se este teste quebrar, ninguém consegue convidar o primeiro amigo.
+test('convidar: o primeiro e os seguintes, um por vez, só amigos aceitos pelos dois', async () => {
+  await semearAmizade(ANA, BIA);
+  await semearAmizade(ANA, CAIO);
+  await semearEvento('ev', {});
+
+  await assertSucceeds(updateDoc(evento(ANA), { invited: arrayUnion(BIA) }));
+  await assertSucceeds(updateDoc(evento(ANA), { invited: arrayUnion(CAIO) }));
+  await assertSucceeds(updateDoc(evento(ANA), { invited: arrayUnion(BIA) }), 'reconvidar quem já está não muda nada');
+});
+
+test('convidar quem não é amigo, ou cuja amizade só um lado aceitou, é negado', async () => {
+  await semearAmizade(ANA, CAIO, [ANA]);
+  await semearEvento('ev', {});
+
+  await assertFails(updateDoc(evento(ANA), { invited: arrayUnion(DINO) }));
+  await assertFails(updateDoc(evento(ANA), { invited: arrayUnion(CAIO) }));
+});
+
+test('convidar duas pessoas numa só escrita é negado (cada convite prova a própria amizade)', async () => {
+  await semearAmizade(ANA, BIA);
+  await semearAmizade(ANA, CAIO);
+  await semearEvento('ev', {});
+
+  await assertFails(updateDoc(evento(ANA), { invited: arrayUnion(BIA, CAIO) }));
+});
+
+test('o organizador edita a ficha, mas não troca o dono nem estica o prazo além do teto', async () => {
+  await semearEvento('ev', {});
+
+  await assertSucceeds(updateDoc(evento(ANA), { startAt: Date.now() + 3 * DIA, name: 'Festa Junina 2', updatedAt: Timestamp.now() }));
+  await assertFails(updateDoc(evento(ANA), { hostUid: BIA }));
+  await assertFails(updateDoc(evento(ANA), { expiresAt: daquiA(500 * DIA) }));
+  await assertFails(updateDoc(evento(ANA), { status: 'apagado' }));
+});
+
+test('o organizador nunca acrescenta ninguém a going — presença é ato de quem vai', async () => {
+  await semearEvento('ev', { invited: [BIA] });
+
+  await assertFails(updateDoc(evento(ANA), { going: arrayUnion(BIA) }));
+});
+
+test('o convidado lê; quem não foi convidado, não; vencido, não; inexistente rejeita', async () => {
+  await semearEvento('ev', { invited: [BIA] });
+  await semearEvento('vencido', { invited: [BIA], expiresAt: daquiA(-MINUTO) });
+
+  await assertSucceeds(getDoc(evento(BIA)));
+  await assertSucceeds(getDoc(evento(ANA)));
+  await assertFails(getDoc(evento(DINO)));
+  await assertFails(getDoc(evento(BIA, 'vencido')));
+  await assertFails(getDoc(evento(BIA, 'nao-existe')), 'a regra lê resource.data: o cliente precisa tratar como "não encontrado"');
+});
+
+test('só o organizador varre os próprios eventos; convidado não lista nem sem filtro', async () => {
+  await semearEvento('ev', { invited: [BIA] });
+
+  await assertSucceeds(getDocs(query(collection(como(ANA), 'sharedEvents'), where('hostUid', '==', ANA))));
+  await assertFails(getDocs(query(collection(como(BIA), 'sharedEvents'), where('hostUid', '==', ANA))));
+  await assertFails(getDocs(collection(como(BIA), 'sharedEvents')));
+});
+
+test('o convidado confirma e retira a PRÓPRIA presença', async () => {
+  await semearEvento('ev', { invited: [BIA, CAIO] });
+
+  await assertSucceeds(updateDoc(evento(BIA), { going: arrayUnion(BIA) }));
+  await assertSucceeds(updateDoc(evento(CAIO), { going: arrayUnion(CAIO) }));
+  await assertSucceeds(updateDoc(evento(BIA), { going: arrayRemove(BIA) }));
+});
+
+test('o convidado não confirma nem retira a presença de OUTRO', async () => {
+  await semearEvento('ev', { invited: [BIA, CAIO], going: [CAIO] });
+
+  await assertFails(updateDoc(evento(BIA), { going: arrayUnion(DINO) }));
+  await assertFails(updateDoc(evento(BIA), { going: arrayUnion(BIA, DINO) }), 'a própria mais a de outro na mesma escrita');
+  await assertFails(updateDoc(evento(BIA), { going: arrayRemove(CAIO) }));
+});
+
+test('o convidado não convida, não retira ninguém, não edita a ficha e não cancela', async () => {
+  await semearEvento('ev', { invited: [BIA, CAIO] });
+
+  await assertFails(updateDoc(evento(BIA), { invited: arrayUnion(DINO) }));
+  await assertFails(updateDoc(evento(BIA), { invited: arrayRemove(CAIO) }));
+  await assertFails(updateDoc(evento(BIA), { name: 'Outra festa' }));
+  await assertFails(updateDoc(evento(BIA), { status: 'cancelled' }));
+  await assertFails(deleteDoc(evento(BIA)));
+});
+
+test('quem não foi convidado, ou perdeu o convite por vencimento, não confirma presença', async () => {
+  await semearEvento('ev', { invited: [BIA] });
+  await semearEvento('vencido', { invited: [BIA], expiresAt: daquiA(-MINUTO) });
+
+  await assertFails(updateDoc(evento(DINO), { going: arrayUnion(DINO) }));
+  await assertFails(updateDoc(evento(BIA, 'vencido'), { going: arrayUnion(BIA) }));
+});
+
+// `going` só pode conter quem está em `invited`: retirar o convite leva a presença junto.
+test('retirar um convidado exige retirar a presença dele; depois ele não lê mais', async () => {
+  await semearEvento('ev', { invited: [BIA, CAIO], going: [BIA] });
+
+  await assertFails(updateDoc(evento(ANA), { invited: arrayRemove(BIA) }));
+  await assertSucceeds(updateDoc(evento(ANA), { invited: arrayRemove(BIA), going: arrayRemove(BIA) }));
+  await assertFails(getDoc(evento(BIA)));
+  await assertSucceeds(getDoc(evento(CAIO)));
+});
+
+// Apagar derrubaria a escuta do convidado (permission-denied), então cancelar é um
+// estado, não uma exclusão: o documento continua legível até vencer.
+test('cancelar é suave: o convidado ainda lê o evento cancelado', async () => {
+  await semearEvento('ev', { invited: [BIA] });
+
+  await assertSucceeds(updateDoc(evento(ANA), { status: 'cancelled', updatedAt: Timestamp.now() }));
+  await assertSucceeds(getDoc(evento(BIA)));
+});
+
+test('só o organizador apaga o evento', async () => {
+  await semearEvento('ev', { invited: [BIA] });
+
+  await assertFails(deleteDoc(evento(BIA)));
+  await assertSucceeds(deleteDoc(evento(ANA)));
+});
+
+test('cada lado publica só o PRÓPRIO ponteiro de convites, mesmo em pareamento antigo sem o campo', async () => {
+  await semearPareamento([ANA, BIA]); // sem `invites`, como os pareamentos criados antes da spec 0025
+
+  await assertSucceeds(updateDoc(doc(como(ANA), 'pairings', PAR_ANA_BIA), { [`invites.${ANA}`]: ['ev'] }));
+  await assertFails(updateDoc(doc(como(BIA), 'pairings', PAR_ANA_BIA), { [`invites.${ANA}`]: [] }));
+  await assertSucceeds(updateDoc(doc(como(BIA), 'pairings', PAR_ANA_BIA), { [`invites.${BIA}`]: ['x'] }));
+  await assertSucceeds(updateDoc(doc(como(ANA), 'pairings', PAR_ANA_BIA), { [`invites.${ANA}`]: null }));
+});
+
+test('o ponteiro de convites não abriu brecha nos outros campos do pareamento', async () => {
+  await semearPareamento([ANA, BIA]);
+
+  await assertFails(updateDoc(doc(como(BIA), 'pairings', PAR_ANA_BIA), { [`sharing.${ANA}`]: 'falso' }));
+  await assertFails(updateDoc(doc(como(ANA), 'pairings', PAR_ANA_BIA), { campoQualquer: 1 }));
+  await assertFails(updateDoc(doc(como(CAIO), 'pairings', PAR_ANA_BIA), { [`invites.${CAIO}`]: ['ev'] }));
 });

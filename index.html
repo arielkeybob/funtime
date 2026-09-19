@@ -393,6 +393,10 @@
     </main>
 
     <main id="shared-view" hidden>
+      <section id="friends-invites" class="shared-view-section" hidden>
+        <h2 class="agenda-month-heading">Convites</h2>
+        <div id="friends-invites-list"></div>
+      </section>
       <section class="shared-view-section">
         <h2 class="agenda-month-heading">Amigos</h2>
         <p id="friends-empty" class="sharing-empty" hidden>Nenhum amigo ainda. Toque em "+" para adicionar.</p>
@@ -526,7 +530,7 @@
         <button id="close-share-occasion" class="icon-button secondary" type="button" aria-label="Fechar">×</button>
       </div>
 
-      <p class="settings-description">Toque para selecionar quem vê horários e bebidas deste evento em tempo real. O acesso de quem for selecionado termina sozinho 24h depois de o evento encerrar, e você pode parar quando quiser.</p>
+      <p id="share-occasion-hint" class="settings-description">Toque para selecionar quem vê horários e bebidas deste evento em tempo real. O acesso de quem for selecionado termina sozinho 24h depois de o evento encerrar, e você pode parar quando quiser.</p>
 
       <div id="share-occasion-grid" class="share-grid"></div>
       <p id="share-occasion-empty" class="sharing-empty" hidden>Adicione um amigo primeiro, nas Configurações.</p>
@@ -538,6 +542,44 @@
     </form>
   </dialog>
 
+  <dialog id="invite-sheet-dialog" class="dialog data-dialog">
+    <form method="dialog">
+      <div class="dialog-header">
+        <div>
+          <p class="eyebrow">Convite</p>
+          <h2 id="invite-sheet-title">—</h2>
+        </div>
+        <button id="close-invite-sheet" class="icon-button secondary" type="button" aria-label="Fechar">×</button>
+      </div>
+      <div id="invite-sheet-body"></div>
+      <p id="invite-sheet-error" class="form-error" role="alert" hidden></p>
+      <div class="dialog-actions">
+        <button id="invite-sheet-decline" class="secondary-button" type="button">Não vou</button>
+        <button id="invite-sheet-accept" class="primary-button" type="button">Vou</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="event-invite-dialog" class="dialog data-dialog">
+    <form method="dialog">
+      <div class="dialog-header">
+        <div>
+          <p class="eyebrow">Evento</p>
+          <h2 id="event-invite-title">Convidados</h2>
+        </div>
+        <button id="close-event-invite" class="icon-button secondary" type="button" aria-label="Fechar">×</button>
+      </div>
+      <p id="event-invite-hint" class="settings-description clean-optional">Toque para escolher quem convidar. Convidar não mostra suas doses a ninguém.</p>
+      <p id="event-invite-info" class="settings-description" hidden></p>
+      <div id="event-invite-grid" class="share-grid"></div>
+      <p id="event-invite-empty" class="sharing-empty" hidden>Adicione um amigo primeiro, na tela Amigos.</p>
+      <div class="dialog-actions">
+        <button id="event-invite-cancel" class="secondary-button" type="button">Cancelar</button>
+        <button id="event-invite-confirm" class="primary-button" type="button">Confirmar</button>
+      </div>
+    </form>
+  </dialog>
+
   <dialog id="occasion-detail-dialog" class="dialog"><form method="dialog"><div class="dialog-header"><h2>Evento</h2><button id="occasion-detail-close" class="icon-button secondary" type="button" aria-label="Fechar detalhes">×</button></div><div id="occasion-detail-content"></div><div class="dialog-actions"><button id="occasion-detail-back" class="secondary-button" type="button">Voltar</button></div></form></dialog>
 
   <dialog id="occasion-dialog" class="dialog">
@@ -545,16 +587,15 @@
       <div class="dialog-header"><h2 id="occasion-form-title">Iniciar evento</h2><button id="occasion-close" class="icon-button secondary" type="button" aria-label="Fechar">×</button></div>
       <label id="occasion-mode-field" class="field"><span>Quando começar?</span><select id="occasion-mode" name="occasionMode"><option value="now">Iniciar agora</option><option value="scheduled">Escolher data</option></select></label>
       <label class="field"><span>Nome do evento</span><input id="occasion-name" name="occasionName" type="text" maxlength="80" placeholder="Aniversário do João" required></label>
-      <div id="occasion-share-field" class="field" hidden>
-        <span>Compartilhar com</span>
-        <p id="occasion-share-empty" class="sharing-empty" hidden>Adicione um amigo primeiro, nas Configurações.</p>
-        <div id="occasion-share-grid" class="share-grid"></div>
-      </div>
       <label id="occasion-unlock-field" class="setting-toggle" hidden><span class="occasion-unlock-copy"><strong>Manter app desbloqueado durante este evento</strong><small>Ao voltar ao app, não será necessário autenticar. A tela recente continua protegida.</small></span><span class="setting-toggle-control"><input id="occasion-unlock" name="occasionUnlock" type="checkbox"><span class="setting-toggle-track" aria-hidden="true"><span></span></span></span></label>
       <p id="occasion-past-notice" class="settings-description" role="status" hidden>Esta data já passou. Os registros sem evento nesse período serão incluídos automaticamente. Informe o término se o evento já acabou; sem término, ele ficará em andamento e seguirá a regra de encerramento após 48 horas.</p><label class="field"><span>Início</span><input id="occasion-start" name="occasionStart" type="datetime-local" required></label>
       <label id="occasion-auto-field" class="setting-toggle"><span class="setting-toggle-copy">Iniciar automaticamente</span><span class="setting-toggle-control"><input id="occasion-auto" name="occasionAuto" type="checkbox"><span class="setting-toggle-track" aria-hidden="true"><span></span></span></span></label>
       <label id="occasion-end-toggle" class="setting-toggle"><span class="setting-toggle-copy">Encerrar automaticamente em uma data</span><span class="setting-toggle-control"><input id="occasion-has-end" name="occasionHasEnd" type="checkbox"><span class="setting-toggle-track" aria-hidden="true"><span></span></span></span></label>
       <label id="occasion-end-field" class="field" hidden><span>Encerramento</span><input id="occasion-end" name="occasionEnd" type="datetime-local"></label>
+      <div id="occasion-people-field" class="occasion-people" hidden>
+        <button id="occasion-invite-row" class="agenda-row occasion-people-row" type="button"><strong>Convidados</strong><small id="occasion-invite-summary">Ninguém ›</small></button>
+        <button id="occasion-share-row" class="agenda-row occasion-people-row" type="button"><strong>Compartilhar doses</strong><small id="occasion-share-summary">Ninguém ›</small></button>
+      </div>
       <p class="settings-description">Os registros anteriores são preservados. Iniciar ou encerrar um evento não reinicia contagens.</p>
       <p id="occasion-form-error" class="form-error" role="alert" hidden></p>
       <div class="dialog-actions"><button id="occasion-cancel" class="secondary-button" type="button">Cancelar</button><button id="occasion-submit" class="primary-button" type="submit">Iniciar evento</button></div>

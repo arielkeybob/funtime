@@ -3,6 +3,9 @@ const occasionDialog = document.getElementById('occasion-dialog');
 const occasionForm = document.getElementById('occasion-form');
 const occasionDetailDialog = document.getElementById('occasion-detail-dialog');
 let editingOccasionId = null, occasionOriginal = null, occasionSuggestedStart = null, occasionShareSelected = new Set();
+// Convidados escolhidos no formulário (aplicados ao salvar) e os que já constavam, para só
+// mexer na nuvem se a lista mudou (spec 0025).
+let occasionInviteSelected = new Set(), occasionInviteInitial = new Set();
 let agendaTab = null, agendaLimit = 20, detailOccasionId = null;
 let reconcilingOccasions = false, occasionRetryAt = 0, agendaStatusKey = "";
 const $occasion = id => document.getElementById(id);
@@ -62,9 +65,14 @@ function editorVisibility() {
   const planned = current ? current.startedAt === null : $occasion('occasion-mode').value === 'scheduled';
   const past = planned && new Date($occasion('occasion-start').value).getTime() < Date.now();
   $occasion('occasion-start').parentElement.hidden = !current && !planned;
-  // Compartilhar exige o evento já ter começado — só faz sentido criando um evento
-  // novo com "Iniciar agora", nunca editando ou agendando.
-  $occasion('occasion-share-field').hidden = Boolean(current) || planned;
+  // Convidados e "compartilhar doses" ficam atrás de uma linha clicável, só para quem tem
+  // amigos. Quem foi convidado não convida ninguém. Compartilhar doses de um evento que já
+  // começou é ao vivo e mora no detalhe do evento, não no formulário.
+  const guest = Boolean(current?.sharedHostUid && current.sharedHostUid !== globalThis.currentSharedEventsUid?.());
+  $occasion('occasion-people-field').hidden = !globalThis.hasSharingFriends?.();
+  $occasion('occasion-invite-row').hidden = guest;
+  $occasion('occasion-share-row').hidden = Boolean(current && current.startedAt !== null);
+  updatePeopleRows();
   $occasion('occasion-past-notice').hidden = !past;
   $occasion('occasion-unlock-field').hidden = !state.securityConfig.enabled || planned || current?.endedAt != null;
   $occasion('occasion-end-toggle').querySelector('.setting-toggle-copy').textContent = past ? 'Informar data de término' : 'Encerrar automaticamente em uma data';
@@ -92,10 +100,29 @@ function openOccasionEditor(id = null, shareWith = []) {
   $occasion('occasion-has-end').checked = current?.scheduledEndAt != null;
   $occasion('occasion-end').value = occasionInput(current?.endedAt ?? current?.scheduledEndAt ?? (occasionSuggestedStart + 4 * 3600000));
   for (const id of ['occasion-start', 'occasion-end']) { const input = $occasion(id); initializeDateTimeEditor(input); input._dateTimeEditor.collapse(); }
-  occasionShareSelected = new Set(shareWith);
-  globalThis.renderOccasionSharePicker?.(occasionShareSelected);
+  occasionShareSelected = new Set(current ? (current.shareWith || []) : shareWith);
+  const known = current ? globalThis.getSharedEventInfo?.(current) : null;
+  occasionInviteSelected = new Set(known?.roster && !known.gone ? known.roster.invited : []);
+  occasionInviteInitial = new Set(occasionInviteSelected);
   editorVisibility(); beginFormDraft(occasionForm); occasionDialog.showModal();
 }
+function peopleSummary(count) { return (count ? count + (count === 1 ? ' pessoa' : ' pessoas') : 'Ninguém') + ' ›'; }
+function updatePeopleRows() {
+  $occasion('occasion-invite-summary').textContent = peopleSummary(occasionInviteSelected.size);
+  $occasion('occasion-share-summary').textContent = peopleSummary(occasionShareSelected.size);
+}
+function editorOccasionIsPlanned() {
+  const current = state.occasions.find(item => item.id === editingOccasionId);
+  return current ? current.startedAt === null : $occasion('occasion-mode').value === 'scheduled';
+}
+$occasion('occasion-invite-row').addEventListener('click', () => {
+  const current = state.occasions.find(item => item.id === editingOccasionId) || null;
+  globalThis.openInviteDialog?.({ occasion: current, selected: occasionInviteSelected, onConfirm: chosen => { occasionInviteSelected = chosen; updatePeopleRows(); } });
+});
+$occasion('occasion-share-row').addEventListener('click', () => {
+  const current = state.occasions.find(item => item.id === editingOccasionId) || null;
+  globalThis.openShareOccasionDialog?.(current, [], { planned: editorOccasionIsPlanned(), stage: { selected: occasionShareSelected, onConfirm: chosen => { occasionShareSelected = chosen; updatePeopleRows(); } } });
+});
 $occasion('occasion-mode').addEventListener('change', () => {
   if ($occasion('occasion-mode').value === 'scheduled' && new Date($occasion('occasion-start').value).getTime() <= Date.now()) {
     occasionSuggestedStart = Date.now() + 3600000;
@@ -134,6 +161,9 @@ occasionForm.addEventListener('submit', event => {
     item.scheduledStartAt = null;
     if (item.endedAt != null) item.scheduledEndAt = null;
   }
+  // Evento que ainda não começou: com quem compartilhar as doses vira uma INTENÇÃO guardada
+  // na ocasião — nada sai do aparelho até o evento começar (spec 0025).
+  if (planned) { if (occasionShareSelected.size) item.shareWith = [...occasionShareSelected]; else delete item.shareWith; }
   if (!planned && !current && item.endedAt === null && FunTimeOccasions.active(state.occasions)) { occasionError('Já existe um evento em andamento. Informe o término do evento passado ou encerre o atual.'); return; }
   try {
     const periodChanged = current && !planned && (current.startedAt !== item.startedAt || current.endedAt !== item.endedAt);
@@ -143,6 +173,8 @@ occasionForm.addEventListener('submit', event => {
     if (!current && !planned && occasionShareSelected.size) {
       globalThis.startOccasionShares?.(item, records.filter(record => record.occasionId === item.id), [...occasionShareSelected]);
     }
+    const sameInvites = occasionInviteSelected.size === occasionInviteInitial.size && [...occasionInviteSelected].every(uid => occasionInviteInitial.has(uid));
+    if (!sameInvites) globalThis.applyOccasionInvites?.(item.id, [...occasionInviteSelected]).catch(error => { console.error('Falha ao atualizar convidados.', error); showToast('Não foi possível atualizar os convidados agora. Abra o evento para tentar de novo.'); });
     const wantsEventUnlock = !planned && item.endedAt === null && $occasion('occasion-unlock').checked;
     const hadEventUnlock = state.securityConfig.eventUnlockOccasionId === item.id;
     const unlockSaved = wantsEventUnlock === hadEventUnlock || globalThis.setSecurityEventUnlock?.(item.id, wantsEventUnlock) === true;
@@ -164,6 +196,11 @@ async function changeOccasion(id, action) {
   if (action !== 'start' && !(await showAppConfirmation(options[2], { title: options[0], confirmLabel: options[1] }))) return;
   if (state.securityLocked || JSON.stringify(state.occasions.find(occasion => occasion.id === id)) !== snapshot) return;
   try {
+    // Tirar o evento da agenda também desfaz o vínculo na nuvem: quem organiza cancela o
+    // convite de todos (soft, para não derrubar a escuta deles); quem foi convidado retira a
+    // própria presença. Sem esperar: offline a escrita só é confirmada depois, e a ação local
+    // não pode ficar presa à rede.
+    if (action === 'delete' || action === 'cancel') globalThis.releaseSharedEvent?.(item);
     let updated; let records = state.events;
     if (action === 'delete') records = records.map(record => record.occasionId === id ? { ...record, occasionId: null } : record);
     else if (action === 'cancel') updated = { ...item, closedAt: Date.now(), endReason: 'cancelled' };
@@ -180,6 +217,32 @@ async function changeOccasion(id, action) {
   } catch { showAppNotification('Não foi possível aplicar. Verifique conflitos com outro evento ou tente novamente.', { type: 'error' }); }
 }
 function occasionButton(label, action, className = 'secondary-button') { const button = document.createElement('button'); button.type = 'button'; button.className = className; button.textContent = label; button.addEventListener('click', action); return button; }
+function occasionPeopleRow(title, summary, action) {
+  const row = occasionButton('', action, 'agenda-row occasion-people-row');
+  const name = document.createElement('strong'); name.textContent = title;
+  const info = document.createElement('small'); info.textContent = (summary ? summary + ' ' : '') + '›';
+  row.append(name, info); return row;
+}
+// Quem aceita um convite ganha uma ocasião normal, só dele, com o vínculo ao evento do organizador.
+// Começa como agendamento de início manual — o padrão de qualquer agendamento; o início
+// automático e o "manter desbloqueado" se ajustam depois, no próprio evento.
+function createOccasionFromInvite(event) {
+  let timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  try { if (event.timeZone) { new Intl.DateTimeFormat('pt-BR', { timeZone: event.timeZone }).format(); timeZone = event.timeZone; } } catch { /* fuso desconhecido: usa o do aparelho */ }
+  const item = {
+    id: createId(), name: (event.name || 'Evento').trim().slice(0, 80) || 'Evento', startedAt: null, endedAt: null,
+    scheduledStartAt: event.startAt, scheduledEndAt: event.endAt != null && event.endAt > event.startAt ? event.endAt : null,
+    autoStart: false, timeZone, sharedEventId: event.eventId, sharedHostUid: event.hostUid,
+    sharedFichaKey: globalThis.sharedFichaKeyOf?.(event),
+  };
+  commitOccasions([...state.occasions, item]);
+  return state.occasions.find(occasion => occasion.id === item.id);
+}
+// Chegou dado novo do evento (alguém confirmou, o organizador mudou): redesenha o que está aberto.
+function refreshSharedEventViews() {
+  if (occasionDetailDialog.open && !occasionDialog.open && state.occasions.some(item => item.id === detailOccasionId)) openOccasionDetails(detailOccasionId);
+  if (state.currentView === 'occasion') renderOccasions();
+}
 function openOccasionHistory(id) { closeOccasionDetails(); openHistoryView(); state.historyOccasionId = id; refreshOccasionFilters(); renderHistory(); }
 function occasionStatus(item) {
   if (item.startedAt === null) {
@@ -203,6 +266,18 @@ function openOccasionDetails(id) {
   const status = document.createElement('p'); status.className = 'eyebrow'; status.textContent = occasionStatus(item);
   const dates = document.createElement('p'); dates.className = 'occasion-period'; dates.textContent = occasionDate(item.startedAt ?? item.scheduledStartAt) + ' — ' + (item.endedAt != null ? occasionDate(item.endedAt) : item.scheduledEndAt != null ? occasionDate(item.scheduledEndAt) + ' (programado)' : 'Sem fim programado');
   content.append(status, title, dates);
+  const shared = globalThis.getSharedEventInfo?.(item);
+  // O organizador pode mudar ou cancelar o evento depois de você aceitar: nada é alterado em
+  // silêncio, porque o início automático poderia disparar na hora errada.
+  if (shared?.cancelled) { const note = document.createElement('p'); note.className = 'active-warning'; note.textContent = 'O organizador cancelou este evento. Ele continua na sua agenda; cancele o agendamento se você não vai mais.'; content.append(note); }
+  else if (shared?.gone) { const note = document.createElement('p'); note.className = 'active-warning'; note.textContent = 'Você não está mais na lista de convidados deste evento.'; content.append(note); }
+  if (shared?.updateAvailable) {
+    const box = document.createElement('div'); box.className = 'occasion-update-notice';
+    const note = document.createElement('p'); note.className = 'active-warning'; note.textContent = 'O organizador mudou o evento: ' + shared.view.name + ' · ' + occasionDate(shared.view.startAt) + '.'; box.append(note);
+    const row = document.createElement('div'); row.className = 'occasion-actions';
+    row.append(occasionButton('Atualizar', () => { try { globalThis.applySharedEventUpdate?.(id); } catch { showAppNotification('Não foi possível atualizar. O evento foi mantido como estava.', { type: 'error' }); } }, 'primary-button'), occasionButton('Manter o meu', () => globalThis.applySharedEventUpdate?.(id, { keep: true })));
+    box.append(row); content.append(box);
+  }
   if (item.startedAt != null && item.scheduledStartAt != null && item.startedAt !== item.scheduledStartAt) { const planned = document.createElement('p'); planned.className = 'settings-description'; planned.textContent = 'Início planejado: ' + occasionDate(item.scheduledStartAt) + '. O período acima mostra o início efetivo.'; content.append(planned); }
   if (FunTimeOccasions.pending(item) && state.occasions.some(other => other.id !== item.id && FunTimeOccasions.pending(other) && other.scheduledStartAt < (item.scheduledEndAt ?? Infinity) && item.scheduledStartAt < (other.scheduledEndAt ?? Infinity))) {
     const warning = document.createElement('p'); warning.className = 'active-warning'; warning.textContent = 'Há outro agendamento nesse período. Apenas um evento poderá ficar em andamento; conflitos exigirão revisão.'; content.append(warning);
@@ -235,13 +310,29 @@ function openOccasionDetails(id) {
   if (item.startedAt !== null && item.endedAt === null) { actions.classList.add('is-active'); actions.append(occasionButton('Encerrar evento', () => changeOccasion(id, 'end'), 'primary-button')); }
   else if (FunTimeOccasions.pending(item)) actions.append(occasionButton('Iniciar agora', () => changeOccasion(id, 'start'), 'primary-button'));
   if (item.startedAt !== null) actions.append(occasionButton('Ver registros', () => openOccasionHistory(id)));
-  // Só evento já iniciado tem o que mostrar; agendamento futuro ainda não tem dose.
-  if (item.startedAt !== null) actions.append(occasionButton('Compartilhar com amigos', () => globalThis.openShareOccasionDialog?.(item, records)));
   content.append(actions);
+  // Convidados e compartilhar doses: duas linhas clicáveis, só para quem tem amigos e só
+  // enquanto o evento não acabou. Cada uma abre a própria tela (nada em linha).
+  const finished = item.endedAt !== null || (item.startedAt === null && item.closedAt != null);
+  if (!finished && globalThis.hasSharingFriends?.()) {
+    const people = document.createElement('div'); people.className = 'occasion-people';
+    const guest = shared && !shared.isHost;
+    const inviteSummary = shared ? (guest ? shared.goingCount + ' vão' : shared.invitedCount + (shared.invitedCount === 1 ? ' convidado' : ' convidados') + (shared.goingCount ? ' · ' + shared.goingCount + ' vão' : '')) : 'Ninguém';
+    people.append(occasionPeopleRow(guest ? 'Quem vai' : 'Convidados', inviteSummary, () => globalThis.openInviteDialog?.({
+      occasion: item, selected: new Set(shared?.roster && !shared.gone ? shared.roster.invited : []),
+      onConfirm: chosen => globalThis.applyOccasionInvites?.(id, [...chosen]).catch(error => { console.error('Falha ao atualizar convidados.', error); showToast('Não foi possível atualizar os convidados agora. Tente de novo.'); }),
+    })));
+    const shareCount = item.startedAt === null ? (item.shareWith?.length || 0) : null;
+    people.append(occasionPeopleRow('Compartilhar doses', shareCount === null ? '' : shareCount ? shareCount + (shareCount === 1 ? ' pessoa' : ' pessoas') : 'Ninguém', () => globalThis.openShareOccasionDialog?.(item, records)));
+    content.append(people);
+  }
   const more = document.createElement('div'); more.className = 'agenda-options';
   more.append(occasionButton(item.startedAt === null && item.closedAt != null ? 'Reagendar' : 'Editar', () => openOccasionEditor(id)));
   if (item.endedAt !== null && !FunTimeOccasions.active(state.occasions)) more.append(occasionButton('Reabrir', () => changeOccasion(id, 'reopen')));
   if (FunTimeOccasions.pending(item)) more.append(occasionButton('Cancelar agendamento', () => changeOccasion(id, 'cancel')));
+  if (shared && !shared.isHost) more.append(occasionButton('Sair do evento', async () => {
+    if (await showAppConfirmation('Sair de ' + item.name + '? Sua presença é retirada e as doses que você compartilha neste evento deixam de ser vistas. O evento continua na sua agenda.', { title: 'Sair do evento', confirmLabel: 'Sair' })) { await globalThis.leaveSharedEvent?.(id); if (occasionDetailDialog.open) openOccasionDetails(id); }
+  }));
   more.append(occasionButton('Excluir evento', () => changeOccasion(id, 'delete'), 'delete-event-button')); content.append(more);
   if (!occasionDetailDialog.open) occasionDetailDialog.showModal();
 }
@@ -423,6 +514,8 @@ globalThis.openOccasionEditor = openOccasionEditor;
 globalThis.occasionInput = occasionInput;
 globalThis.openOccasionDetails = openOccasionDetails;
 globalThis.populateRecordOccasions = populateRecordOccasions;
+globalThis.createOccasionFromInvite = createOccasionFromInvite;
+globalThis.refreshSharedEventViews = refreshSharedEventViews;
 Object.defineProperty(globalThis, "occasionRetryAt", {
   get: () => occasionRetryAt,
   set: (value) => { occasionRetryAt = value; },

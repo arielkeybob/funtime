@@ -1,6 +1,7 @@
 import { formatPairingCode, normalizePairingCode, liveFormatPairingCode, buildPairingQrPayload, parsePairingQrPayload } from "../data/share-codes.js";
 import { renderQrDataUrl, cameraAvailable, startScanner } from "./qr.js";
 import { shareState, bestState } from "./share-state.js";
+import { renderFriendGrid, rosterStatus, initial } from "./friend-grid.js";
 import { formatClock, formatDate, formatHistoryElapsed } from "../format/datetime.js";
 
 const DOSE_LABELS = { half: "Meia", full: "Inteira" };
@@ -22,6 +23,11 @@ export function createShareUI({
   getEventsContext = () => ({ eventsEnabled: false, active: [] }),
   startEventWith = () => {},
   openEventsSetting = () => {},
+  // Evento futuro (spec 0025): a escolha vira uma INTENÇÃO guardada na ocasião e só se
+  // torna compartilhamento quando o evento começa. E quem já foi convidado/confirmou, para
+  // as marcas ✉/✔ (só enquanto o evento não começou).
+  setShareIntent = async () => {},
+  getEventRoster = () => null,
 }) {
   const shareWriter = new Proxy({}, {
     get: (alvo, metodo) => (...args) => {
@@ -42,6 +48,22 @@ export function createShareUI({
   let apelidoSalvo = "";
   let pararLeitura = null;
   let resgatando = false;
+  // Algo pedindo atenção além de compartilhamento ao vivo (convite pendente): acende o
+  // mesmo ponto verde do ícone de Amigos na Home.
+  let atencaoExtra = false;
+
+  function atualizarPonto() {
+    if (nodes.homeFriendsDot) nodes.homeFriendsDot.hidden = !(atencaoExtra || sharedEntries.some((entry) => entryState(entry) === "live"));
+  }
+
+  function setExtraAttention(valor) {
+    atencaoExtra = Boolean(valor);
+    atualizarPonto();
+  }
+
+  function hasFriends() {
+    return pairings.some((par) => par.acceptedByMe && par.acceptedByOther);
+  }
 
   function erro(mensagem) {
     nodes.pairingError.textContent = mensagem || "";
@@ -610,7 +632,7 @@ export function createShareUI({
   // depende de ter alguém compartilhando com você agora.
   function setSharedEntries(lista) {
     sharedEntries = (Array.isArray(lista) ? lista : []).filter((entry) => entryState(entry) !== "none");
-    if (nodes.homeFriendsDot) nodes.homeFriendsDot.hidden = !sharedEntries.some((entry) => entryState(entry) === "live");
+    atualizarPonto();
     renderFriends();
   }
 
@@ -633,68 +655,29 @@ export function createShareUI({
     return new Set(shares.filter((share) => share.occasionId === occasionId).map((share) => share.viewerUid));
   }
 
-  function initial(alias) {
-    const primeiro = [...String(alias || "")].find((char) => char.trim());
-    return (primeiro || "?").toLocaleUpperCase("pt-BR");
-  }
-
-  // Grade de seleção reaproveitada em dois pontos: o diálogo "Compartilhar evento" e
-  // o formulário de criar evento. Só quem aceitou dos dois lados pode receber um
-  // compartilhamento — estar numa lista de pedidos pendentes não é a mesma coisa que
-  // estar conectado. Devolve `true` se não há ninguém para mostrar.
-  function renderFriendPicker(gridNode, emptyNode, selecionados, onToggle) {
-    if (!gridNode) return true;
-    gridNode.replaceChildren();
-
-    const conectados = [...pairings]
-      .filter((par) => par.acceptedByMe && par.acceptedByOther)
-      .sort((a, b) => (a.alias || "").localeCompare(b.alias || "", "pt-BR"));
-
-    const semNinguem = conectados.length === 0;
-    if (emptyNode) emptyNode.hidden = !semNinguem;
-    gridNode.hidden = semNinguem;
-
-    for (const par of conectados) {
-      const botaoPessoa = document.createElement("button");
-      botaoPessoa.type = "button";
-      botaoPessoa.className = "share-person";
-      botaoPessoa.setAttribute("aria-pressed", String(selecionados.has(par.otherUid)));
-      botaoPessoa.addEventListener("click", () => {
-        if (selecionados.has(par.otherUid)) selecionados.delete(par.otherUid);
-        else selecionados.add(par.otherUid);
-        onToggle();
-      });
-
-      const avatar = document.createElement("span");
-      avatar.className = "share-avatar";
-      avatar.setAttribute("aria-hidden", "true");
-      avatar.textContent = initial(par.alias);
-      if (selecionados.has(par.otherUid)) avatar.append(renderShareBadge("out", "live"));
-
-      const nome = document.createElement("span");
-      nome.className = "share-person-name";
-      nome.textContent = par.alias || "Sem apelido";
-
-      botaoPessoa.append(avatar, nome);
-      gridNode.append(botaoPessoa);
-    }
-
-    return semNinguem;
+  // Grade de seleção do diálogo de compartilhar doses. Só quem aceitou dos dois lados pode
+  // receber um compartilhamento — estar numa lista de pedidos pendentes não é a mesma coisa
+  // que estar conectado. Devolve `true` se não há ninguém para mostrar.
+  function renderFriendPicker(gridNode, emptyNode, selecionados, onToggle, marks = null) {
+    return renderFriendGrid({
+      gridNode, emptyNode, pairings, selected: selecionados, onToggle, marks,
+      // Selecionado = vai ver: a seta azul de "compartilhando", como no resto do app.
+      decorateSelected: (avatar) => avatar.append(renderShareBadge("out", "live")),
+    });
   }
 
   function renderShareOccasionPeople() {
     if (!occasionAberta) return;
-    const semNinguem = renderFriendPicker(nodes.shareOccasionGrid, nodes.shareOccasionEmpty, occasionAberta.selecionados, renderShareOccasionPeople);
+    const { item, planned, selecionados } = occasionAberta;
+    // As marcas ✉/✔ mostram o que já foi decidido na tela de convidados — só faz sentido
+    // enquanto o evento não começou, e só se ele já foi publicado para alguém.
+    const roster = planned && item ? getEventRoster(item) : null;
+    const semNinguem = renderFriendPicker(nodes.shareOccasionGrid, nodes.shareOccasionEmpty, selecionados, renderShareOccasionPeople,
+      roster ? (par) => rosterStatus(par.otherUid, roster) : null);
     if (nodes.shareOccasionConfirm) nodes.shareOccasionConfirm.hidden = semNinguem;
     if (nodes.shareOccasionStopAll) {
-      nodes.shareOccasionStopAll.hidden = activeViewersFor(occasionAberta.item.id).size === 0;
+      nodes.shareOccasionStopAll.hidden = planned || !item || activeViewersFor(item.id).size === 0;
     }
-  }
-
-  // Picker embutido no formulário de criar evento — `selecionados` é o Set que
-  // occasions-ui.js mantém e lê no submit; aqui só cuidamos da renderização.
-  function renderOccasionSharePicker(selecionados) {
-    renderFriendPicker(nodes.occasionShareGrid, nodes.occasionShareEmpty, selecionados, () => renderOccasionSharePicker(selecionados));
   }
 
   // Inicia compartilhamento com uma lista já pronta de pessoas — usado quando um
@@ -718,7 +701,32 @@ export function createShareUI({
   // como um "enviar" de mensageiro, não um botão por pessoa.
   async function confirmShareOccasion() {
     if (!occasionAberta) return;
-    const { item, events, selecionados } = occasionAberta;
+    const { item, events, selecionados, planned, stage } = occasionAberta;
+
+    // Formulário do evento: só devolve a escolha; ela é aplicada ao salvar o evento.
+    if (stage) {
+      const escolha = new Set(selecionados);
+      closeShareOccasionDialog();
+      stage.onConfirm(escolha);
+      return;
+    }
+
+    // Evento ainda não iniciado: nada sai do aparelho agora. A escolha vira uma intenção na
+    // ocasião e só se torna compartilhamento quando o evento começar.
+    if (planned) {
+      try {
+        await setShareIntent(item.id, [...selecionados]);
+        showToast(selecionados.size
+          ? `Suas doses serão compartilhadas com ${selecionados.size} pessoa(s) quando o evento começar.`
+          : "Nada será compartilhado neste evento.");
+        closeShareOccasionDialog();
+      } catch (falha) {
+        console.error("Falha ao guardar com quem compartilhar.", falha);
+        showToast("Não foi possível guardar agora. Tente de novo.");
+      }
+      return;
+    }
+
     const antes = activeViewersFor(item.id);
     const paraComecar = [...selecionados].filter((otherUid) => !antes.has(otherUid));
     const paraParar = [...antes].filter((otherUid) => !selecionados.has(otherUid));
@@ -743,7 +751,7 @@ export function createShareUI({
   }
 
   async function stopAllForOccasion() {
-    if (!occasionAberta) return;
+    if (!occasionAberta?.item) return;
     const ativos = shares.filter((share) => share.occasionId === occasionAberta.item.id);
     if (!ativos.length) return;
     if (!window.confirm(`Parar de compartilhar este evento com todo mundo (${ativos.length})?`)) return;
@@ -759,10 +767,21 @@ export function createShareUI({
   }
 
   // `item` é a ocasião (state.occasions), `events` já vem filtrado para ela — quem
-  // chama (occasions-ui.js) tem `state`, este módulo não.
-  function openShareOccasionDialog(item, events) {
-    occasionAberta = { item, events, selecionados: activeViewersFor(item.id) };
-    if (nodes.shareOccasionTitle) nodes.shareOccasionTitle.textContent = `Compartilhar "${item.name}"`;
+  // chama (occasions-ui.js) tem `state`, este módulo não. `item` é null ao criar um evento
+  // novo; `options.stage = { selected, onConfirm }` só devolve a escolha, sem aplicar, e
+  // `options.planned` diz que o evento novo ainda não começou.
+  function openShareOccasionDialog(item, events, options = {}) {
+    const stage = options.stage || null;
+    const planned = item ? item.startedAt === null : options.planned === true;
+    const inicial = stage ? stage.selected : planned ? (item?.shareWith || []) : activeViewersFor(item.id);
+    occasionAberta = { item, events, planned, stage, selecionados: new Set(inicial) };
+    if (nodes.shareOccasionTitle) nodes.shareOccasionTitle.textContent = item?.name ? `Compartilhar doses · ${item.name}` : "Compartilhar doses";
+    if (nodes.shareOccasionHint) {
+      nodes.shareOccasionHint.textContent = planned
+        ? "Toque para escolher quem verá suas doses deste evento quando ele começar. Nada é compartilhado antes disso, e o acesso termina sozinho 24h depois de o evento encerrar."
+        : "Toque para selecionar quem vê horários e bebidas deste evento em tempo real. O acesso de quem for selecionado termina sozinho 24h depois de o evento encerrar, e você pode parar quando quiser.";
+    }
+    if (nodes.shareOccasionConfirm) nodes.shareOccasionConfirm.textContent = planned || stage ? "Confirmar" : "Compartilhar";
     renderShareOccasionPeople();
     if (!nodes.shareOccasionDialog.open) nodes.shareOccasionDialog.showModal();
   }
@@ -857,7 +876,7 @@ export function createShareUI({
       // O prazo vence sozinho: descarta o que passou de 24h e redesenha (selo, Home, tela aberta).
       const antes = sharedEntries.length;
       sharedEntries = sharedEntries.filter((entry) => entryState(entry) !== "none");
-      if (nodes.homeFriendsDot) nodes.homeFriendsDot.hidden = !sharedEntries.some((entry) => entryState(entry) === "live");
+      atualizarPonto();
       if (sharedEntries.length || antes || shares.length) renderFriends();
     }, 30000);
   }
@@ -865,6 +884,6 @@ export function createShareUI({
   return {
     wire, setPairings, openPairingDialog, closePairingDialog,
     setShares, openShareOccasionDialog, closeShareOccasionDialog,
-    setSharedEntries, renderFriends, renderOccasionSharePicker, startSharesFor,
+    setSharedEntries, renderFriends, startSharesFor, setExtraAttention, hasFriends,
   };
 }

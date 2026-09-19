@@ -6,7 +6,7 @@
   "scripts": {
     "test": "node --test --test-concurrency=1",
     "test:browser": "node --test --test-concurrency=1 \"tests/*-browser.test.cjs\"",
-    "test:rules": "firebase emulators:exec --only firestore \"node --test tests/firestore-rules.test.cjs\"",
+    "test:rules": "firebase emulators:exec --only firestore \"node --test --test-concurrency=1 tests/firestore-rules.test.cjs tests/shared-event-emulator.test.cjs\"",
     "rules:deploy": "firebase deploy --only firestore:rules"
   },
   "devDependencies": {
