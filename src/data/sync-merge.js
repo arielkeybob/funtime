@@ -54,7 +54,22 @@ export function isEmptyDiff(diff) {
   ));
 }
 
-function mergeCollection(localList, remoteList, pushedList) {
+// Janela de sincronização (docs/specs/0024): o aparelho só escuta na nuvem o histórico
+// recente. Um registro mais antigo que a janela NÃO estar no remoto não diz nada — ele
+// simplesmente não foi consultado —, então nunca é tratado como exclusão nem reenviado.
+export const OCCASION_WINDOW_MARGIN_MS = 7 * 24 * 60 * 60 * 1000;
+
+// `windowStart` nulo é o modo de sempre: a coleção inteira é escutada e nada é "antigo".
+// Eventos agendados que ainda não começaram (`startedAt` nulo) nunca são antigos; a
+// margem cobre um evento que começou antes do corte mas ainda contém doses dentro dele.
+export function isOutsideWindow(name, record, windowStart) {
+  if (windowStart == null) return false;
+  if (name === "events") return Number(record?.consumedAt) < windowStart;
+  if (name === "occasions") return record?.startedAt != null && record.startedAt < windowStart - OCCASION_WINDOW_MARGIN_MS;
+  return false;
+}
+
+function mergeCollection(localList, remoteList, pushedList, isOld = () => false) {
   const remoteById = indexById(remoteList);
   const pushedIds = new Set(idsOf(pushedList));
   const merged = [];
@@ -65,9 +80,10 @@ function mergeCollection(localList, remoteList, pushedList) {
     if (remoteById.has(id)) {
       merged.push(remoteById.get(id));
       taken.add(id);
-    } else if (!pushedIds.has(id)) {
+    } else if (!pushedIds.has(id) || isOld(record)) {
       // Criado neste aparelho e ainda não enviado: manter. Se já tivesse sido
-      // enviado e sumisse do remoto, seria exclusão feita em outro aparelho.
+      // enviado e sumisse do remoto, seria exclusão feita em outro aparelho — a menos
+      // que seja mais antigo que a janela, que o remoto nem chega a mostrar.
       merged.push(record);
       taken.add(id);
     }
@@ -90,11 +106,40 @@ function sortByOrder(records, order) {
   ));
 }
 
-export function mergeRemote({ local, remote, lastPushed }) {
+export function mergeRemote({ local, remote, lastPushed, windowStart = null }) {
+  const older = (name) => (record) => isOutsideWindow(name, record, windowStart);
   return {
     drinks: sortByOrder(mergeCollection(local?.drinks, remote?.drinks, lastPushed?.drinks), remote?.drinkOrder),
-    events: mergeCollection(local?.events, remote?.events, lastPushed?.events),
-    occasions: mergeCollection(local?.occasions, remote?.occasions, lastPushed?.occasions),
+    events: mergeCollection(local?.events, remote?.events, lastPushed?.events, older("events")),
+    occasions: mergeCollection(local?.occasions, remote?.occasions, lastPushed?.occasions, older("occasions")),
     preferences: remote?.preferences ?? local?.preferences,
+  };
+}
+
+// O que o servidor já conhece, para o próximo envio mandar só o que mudou. Sem janela é
+// exatamente o remoto. Com janela o remoto só traz o recente, então o que é mais antigo
+// e existe aqui entra como "já enviado" — senão cada abertura reescreveria o histórico
+// inteiro, trocando leituras poupadas por escritas.
+export function syncedBaseline({ merged, remote, windowStart = null }) {
+  const withOlder = (name) => {
+    const remoteList = Array.isArray(remote?.[name]) ? remote[name] : [];
+    if (windowStart == null) return remoteList;
+
+    const known = new Set(idsOf(remoteList));
+    const older = (merged?.[name] || []).filter((record) => (
+      record?.id && !known.has(String(record.id)) && isOutsideWindow(name, record, windowStart)
+    ));
+    return older.length ? [...remoteList, ...older] : remoteList;
+  };
+
+  return {
+    // Na ordem que a pessoa definiu (`drinkOrder`), não na dos documentos: o Firestore
+    // devolve por id. Comparada com a ordem do aparelho, a ordem dos ids parecia sempre
+    // "mudou", `metaChanged` ficava verdadeiro, o meta era regravado, o eco da própria
+    // gravação reiniciava tudo — cerca de uma escrita por segundo com o app aberto.
+    drinks: sortByOrder(remote?.drinks ?? [], remote?.drinkOrder),
+    events: withOlder("events"),
+    occasions: withOlder("occasions"),
+    preferences: remote?.preferences ?? null,
   };
 }

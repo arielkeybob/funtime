@@ -1,4 +1,14 @@
-# FunTime — V2.15.0
+# FunTime — V2.16.0
+
+## V2.16.0 — sincronização lê só os últimos 90 dias
+
+Abrir o app depois de uma pausa fazia o Firestore reler **todo** o histórico (cada registro conta como uma leitura, e o plano gratuito tem 50 mil por dia), então o gasto crescia com a idade da conta. Agora cada abertura escuta na nuvem só os últimos 90 dias; o resto já está no aparelho.
+- **Nada some.** Na primeira sincronização de um aparelho (ou depois de sair e entrar na conta) o histórico completo é baixado **uma vez**, unido ao que já havia aqui. Aparelho novo recebe tudo sozinho, sem botão "carregar mais".
+- **Menos leituras:** com ~10 meses de uso, 346 → 109 por abertura no emulador, e o número para de crescer com o tempo. Abrir o app não escreve nada na nuvem.
+- Eventos agendados que ainda não começaram continuam aparecendo em todos os aparelhos.
+- Sem mudança de formato de dados, de regras do Firestore ou de políticas. Detalhes e limites aceitos em `docs/specs/0024`.
+- Limite conhecido: editar ou apagar em outro aparelho um registro com mais de 90 dias só chega a um aparelho que já baixou tudo se ele sair da conta e entrar de novo.
+- **Corrigido um ciclo de gravação (existia desde a 2.15.0 e antes):** com as bebidas numa ordem arrastada pela pessoa (diferente da ordem dos ids), o app aberto regravava `meta/app` cerca de **uma vez por segundo**, sem ninguém tocar em nada, e reaplicava a tela a cada retorno. O Firestore devolve as bebidas por id, e a comparação "a ordem mudou?" via sempre diferença; cada gravação gerava um eco que reiniciava o ciclo. Era o que consumia as gravações e leituras da cota diária. Agora a comparação usa a ordem salva (`drinkOrder`).
 
 ## V2.15.0 — o horário decide o evento de um registro
 

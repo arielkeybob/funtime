@@ -308,7 +308,7 @@ document.addEventListener("visibilitychange", () => {
 const DATA_STORAGE_KEY = "funtime-v1-data";
 const LEGACY_DRINKS_STORAGE_KEY = "balada-v1-drinks";
 const DATA_VERSION = 11;
-const APP_VERSION = "2.15.0";
+const APP_VERSION = "2.16.0";
 const DRINK_EXPORT_TYPE = "funtime-drinks";
 const DRINK_EXPORT_FORMAT_VERSION = 1;
 const BACKUP_EXPORT_TYPE = "funtime-backup";
@@ -3270,17 +3270,37 @@ document.querySelector('#toast-dismiss').addEventListener('click', () => {
 });
 
 const SYNC_STORAGE_KEY = "funtime-sync-v1";
+// Só o histórico dos últimos dias é escutado na nuvem a cada abertura (docs/specs/0024);
+// o resto já está neste aparelho, baixado uma vez.
+const SYNC_WINDOW_DAYS = 90;
 
-function isSyncConnected() {
-  try { return JSON.parse(localStorage.getItem(SYNC_STORAGE_KEY))?.connected === true; }
-  catch { return false; }
+function readSyncMemory() {
+  try { return JSON.parse(localStorage.getItem(SYNC_STORAGE_KEY)) || {}; }
+  catch { return {}; }
 }
 
+function isSyncConnected() {
+  return readSyncMemory().connected === true;
+}
+
+// Sair da conta apaga a chave inteira, então o próximo login refaz o download completo.
 function rememberSyncConnection(connected) {
   try {
-    if (connected) localStorage.setItem(SYNC_STORAGE_KEY, JSON.stringify({ connected: true }));
+    if (connected) localStorage.setItem(SYNC_STORAGE_KEY, JSON.stringify({ ...readSyncMemory(), connected: true }));
     else localStorage.removeItem(SYNC_STORAGE_KEY);
   } catch { /* A preferência de sincronizar é secundária: nunca derruba o app. */ }
+}
+
+// Este aparelho já baixou o histórico completo desta conta? Por conta: entrar com outra
+// Conta Google no mesmo aparelho não herda a resposta.
+function fullHistoryMemory(uid) {
+  return {
+    isDone: () => readSyncMemory().fullHistoryFor === uid,
+    markDone: () => {
+      try { localStorage.setItem(SYNC_STORAGE_KEY, JSON.stringify({ ...readSyncMemory(), fullHistoryFor: uid })); }
+      catch { /* sem isso só refaz o download na próxima abertura */ }
+    },
+  };
 }
 
 function updateSyncSettingsUI() {
@@ -3408,6 +3428,7 @@ firebaseAuth = IS_STANDALONE_APP && isFirebaseConfigured() ? createFirebaseAuth(
     cloudSync = createFirestoreSync({
       app, uid: user.uid,
       account: { email: user.email, displayName: user.displayName },
+      windowDays: SYNC_WINDOW_DAYS, fullSync: fullHistoryMemory(user.uid),
       onRemoteUpdate: applyRemoteSyncData,
       onStatusChange: ({ state: status, error }) => {
         if (status === "error") console.error("Falha ao sincronizar.", error);

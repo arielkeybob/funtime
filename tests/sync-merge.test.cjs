@@ -103,3 +103,115 @@ test('mergeRemote mantém preferências locais quando a nuvem ainda não tem met
   });
   assert.deepEqual(merged.preferences, { cleanInterface: false });
 });
+
+// --- Janela de sincronização (docs/specs/0024) --------------------------------------
+const { isOutsideWindow, syncedBaseline, OCCASION_WINDOW_MARGIN_MS } = require('../src/data/sync-merge.js');
+
+const CORTE = 1_000_000_000_000;
+const ANTIGO = CORTE - 1000;
+const RECENTE = CORTE + 1000;
+
+test('janela: sem corte nada é antigo (modo de sempre)', () => {
+  assert.equal(isOutsideWindow('events', { consumedAt: 1 }, null), false);
+  assert.equal(isOutsideWindow('occasions', { startedAt: 1 }, undefined), false);
+});
+
+test('janela: dose é antiga só se anterior ao corte; agendado sem início nunca é', () => {
+  assert.equal(isOutsideWindow('events', { consumedAt: ANTIGO }, CORTE), true);
+  assert.equal(isOutsideWindow('events', { consumedAt: RECENTE }, CORTE), false);
+  assert.equal(isOutsideWindow('events', {}, CORTE), false, 'sem horário não dá para dizer que é antigo');
+  assert.equal(isOutsideWindow('occasions', { startedAt: null, scheduledStartAt: 1 }, CORTE), false);
+  assert.equal(isOutsideWindow('drinks', { id: 'a' }, CORTE), false, 'bebidas nunca entram na janela');
+});
+
+test('janela: ocasião que começou logo antes do corte ainda conta como recente (margem)', () => {
+  assert.equal(isOutsideWindow('occasions', { startedAt: CORTE - OCCASION_WINDOW_MARGIN_MS + 1 }, CORTE), false);
+  assert.equal(isOutsideWindow('occasions', { startedAt: CORTE - OCCASION_WINDOW_MARGIN_MS - 1 }, CORTE), true);
+});
+
+test('janela: dose antiga só daqui, ausente do remoto, é mantida — não é exclusão', () => {
+  const merged = mergeRemote({
+    local: base({ events: [{ id: 'velho', consumedAt: ANTIGO }, { id: 'novo', consumedAt: RECENTE }] }),
+    remote: { drinks: [], events: [{ id: 'novo', consumedAt: RECENTE }], occasions: [] },
+    // O velho consta como já enviado: sem a janela isto seria lido como exclusão em outro aparelho.
+    lastPushed: { drinks: [], events: [{ id: 'velho', consumedAt: ANTIGO }, { id: 'novo', consumedAt: RECENTE }], occasions: [] },
+    windowStart: CORTE,
+  });
+  assert.deepEqual(merged.events.map((e) => e.id), ['velho', 'novo']);
+});
+
+test('janela: dose recente já enviada que sumiu do remoto continua sendo exclusão em outro aparelho', () => {
+  const merged = mergeRemote({
+    local: base({ events: [{ id: 'apagada', consumedAt: RECENTE }] }),
+    remote: { drinks: [], events: [], occasions: [] },
+    lastPushed: { drinks: [], events: [{ id: 'apagada', consumedAt: RECENTE }], occasions: [] },
+    windowStart: CORTE,
+  });
+  assert.deepEqual(merged.events, []);
+});
+
+test('janela: ocasião antiga é mantida e agendada que sumiu do remoto é excluída', () => {
+  const merged = mergeRemote({
+    local: base({ occasions: [
+      { id: 'velha', startedAt: CORTE - OCCASION_WINDOW_MARGIN_MS * 4, endedAt: ANTIGO },
+      { id: 'agendada', startedAt: null, scheduledStartAt: RECENTE },
+    ] }),
+    remote: { drinks: [], events: [], occasions: [] },
+    lastPushed: { drinks: [], events: [], occasions: [
+      { id: 'velha', startedAt: CORTE - OCCASION_WINDOW_MARGIN_MS * 4, endedAt: ANTIGO },
+      { id: 'agendada', startedAt: null, scheduledStartAt: RECENTE },
+    ] },
+    windowStart: CORTE,
+  });
+  assert.deepEqual(merged.occasions.map((o) => o.id), ['velha']);
+});
+
+test('janela: a base já enviada inclui o antigo local, senão cada abertura o reescreveria', () => {
+  const merged = base({ events: [{ id: 'velho', consumedAt: ANTIGO }, { id: 'novo', consumedAt: RECENTE }] });
+  const remote = { drinks: [], events: [{ id: 'novo', consumedAt: RECENTE }], occasions: [], preferences: null };
+
+  const baseline = syncedBaseline({ merged, remote, windowStart: CORTE });
+  assert.deepEqual(baseline.events.map((e) => e.id).sort(), ['novo', 'velho']);
+  assert.ok(isEmptyDiff(diffAppData(baseline, { ...merged, preferences: null })), 'nada a enviar');
+});
+
+test('janela: dose antiga criada agora (retroativa) não está na base e sobe', () => {
+  const remote = { drinks: [], events: [], occasions: [], preferences: null };
+  const baseline = syncedBaseline({ merged: base(), remote, windowStart: CORTE });
+  const diff = diffAppData(baseline, base({ events: [{ id: 'retro', consumedAt: ANTIGO }] }));
+  assert.deepEqual(diff.events.upserted.map((e) => e.id), ['retro']);
+});
+
+test('janela: apagar uma dose antiga local vira exclusão na nuvem', () => {
+  const merged = base({ events: [{ id: 'velho', consumedAt: ANTIGO }] });
+  const remote = { drinks: [], events: [], occasions: [], preferences: null };
+  const baseline = syncedBaseline({ merged, remote, windowStart: CORTE });
+  assert.deepEqual(diffAppData(baseline, base()).events.removed, ['velho']);
+});
+
+test('sem janela a base é exatamente o remoto (comportamento de sempre)', () => {
+  const merged = base({ events: [{ id: 'so-local', consumedAt: ANTIGO }] });
+  const remote = { drinks: [], events: [{ id: 'r', consumedAt: 1 }], occasions: [], preferences: null };
+  assert.deepEqual(syncedBaseline({ merged, remote }).events, remote.events);
+});
+
+// --- Ordem das bebidas não pode gerar regravação em ciclo ---------------------------
+test('ordem: a base já enviada segue a ordem da pessoa, não a dos ids que o Firestore devolve', () => {
+  // O Firestore entrega por id (d1, d2, d3); a pessoa arrastou para d3, d1, d2.
+  const remote = {
+    drinks: [{ id: 'd1' }, { id: 'd2' }, { id: 'd3' }], events: [], occasions: [],
+    preferences: { cleanInterface: true }, drinkOrder: ['d3', 'd1', 'd2'],
+  };
+  const merged = mergeRemote({ local: base({ drinks: [{ id: 'd3' }, { id: 'd1' }, { id: 'd2' }] }), remote, lastPushed: null });
+  assert.deepEqual(merged.drinks.map((d) => d.id), ['d3', 'd1', 'd2']);
+
+  const baseline = syncedBaseline({ merged, remote });
+  assert.deepEqual(baseline.drinks.map((d) => d.id), ['d3', 'd1', 'd2']);
+  assert.equal(diffAppData(baseline, merged).metaChanged, false, 'nada mudou: o meta não pode ser regravado');
+});
+
+test('ordem: reordenar de verdade continua marcando o meta', () => {
+  const remote = { drinks: [{ id: 'd1' }, { id: 'd2' }], events: [], occasions: [], preferences: null, drinkOrder: ['d1', 'd2'] };
+  const baseline = syncedBaseline({ merged: base(), remote });
+  assert.equal(diffAppData(baseline, base({ preferences: null, drinks: [{ id: 'd2' }, { id: 'd1' }] })).metaChanged, true);
+});

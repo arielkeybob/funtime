@@ -1,4 +1,4 @@
-const APP_VERSION = "2.15.0";
+const APP_VERSION = "2.16.0";
 const CACHE_NAME = "funtime-v2-15-0";
 const BACKGROUND_CACHE_NAME = "funtime-bg-v1";
 const SHARE_IMPORT_CACHE_NAME = "funtime-share-target-v1";
