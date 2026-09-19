@@ -1,6 +1,6 @@
 import { derivePinHash, PIN_PBKDF2_ITERATIONS } from "./pin-crypto.js";
 
-export const SECURITY_CONFIG_VERSION = 3;
+export const SECURITY_CONFIG_VERSION = 4;
 export const PIN_LENGTH = 4;
 export const LEGACY_PIN_LENGTH = 6;
 export const PIN_LOCKOUT_ATTEMPTS = 5;
@@ -15,6 +15,9 @@ export function createSecurityConfig({
       enabled: false,
       method: null,
       relockSeconds: 300,
+      // Além do tempo fora do app, bloqueia também parado com o app aberto (v4+). Config
+      // nova nasce ligada; config antiga em uso fica desligada até a pessoa escolher um tempo.
+      relockIdle: true,
       eventUnlockOccasionId: null,
       pin: null,
       webauthn: null,
@@ -33,6 +36,7 @@ export function createSecurityConfig({
       const storedRelock = Number(parsed.relockSeconds);
       const allowedRelock = [0, 30, 60, 300, 900];
       config.relockSeconds = allowedRelock.includes(storedRelock) ? storedRelock : 300;
+      config.relockIdle = typeof parsed.relockIdle === "boolean" ? parsed.relockIdle : parsed.enabled !== true;
       config.eventUnlockOccasionId = typeof parsed.eventUnlockOccasionId === "string" && parsed.eventUnlockOccasionId
         ? parsed.eventUnlockOccasionId
         : null;

@@ -308,7 +308,7 @@ document.addEventListener("visibilitychange", () => {
 const DATA_STORAGE_KEY = "funtime-v1-data";
 const LEGACY_DRINKS_STORAGE_KEY = "balada-v1-drinks";
 const DATA_VERSION = 11;
-const APP_VERSION = "2.13.0";
+const APP_VERSION = "2.14.0";
 const DRINK_EXPORT_TYPE = "funtime-drinks";
 const DRINK_EXPORT_FORMAT_VERSION = 1;
 const BACKUP_EXPORT_TYPE = "funtime-backup";
@@ -359,6 +359,7 @@ const state = {
   historyDrinkId: null,
   currentView: "home",
   settingsPage: null,
+  securityLastActivityAt: 0,
   undo: null,
   toastTimerId: null,
   reorderAnimationUntil: 0,
@@ -690,7 +691,34 @@ function clearSecuritySession() {
 
 function markSecurityActive() {
   if (!state.securityConfig.enabled || state.securityLocked) return;
+  state.securityLastActivityAt = Date.now();
   saveSecuritySession({ lastActiveAt: Date.now(), hiddenAt: 0 });
+}
+
+// Bloqueio por inatividade: só toque, rolagem, digitação e roda contam como uso — olhar
+// o contador de intervalo sem tocar não conta. O tempo fora do app segue o caminho
+// próprio (visibilitychange), que não muda.
+function noteSecurityActivity() {
+  const at = Date.now();
+  if (at - state.securityLastActivityAt < 1000) return;
+  state.securityLastActivityAt = at;
+}
+
+function checkSecurityIdle() {
+  const config = state.securityConfig;
+  if (!IS_STANDALONE_APP || document.body.classList.contains("terms-pending")) return;
+  if (!config.enabled || state.securityLocked || document.hidden) return;
+  if (!config.relockIdle || config.relockSeconds <= 0) return;
+  if (isSecurityEventUnlockActive()) return;
+  if (!state.securityLastActivityAt) { state.securityLastActivityAt = Date.now(); return; }
+  if (Date.now() - state.securityLastActivityAt >= config.relockSeconds * 1000) lockApp();
+}
+
+// Texto curto do tempo de bloqueio, para o resumo do menu de Configurações.
+function describeRelock(config = state.securityConfig) {
+  if (config.relockSeconds === 0) return "ao sair do app";
+  const time = config.relockSeconds < 60 ? config.relockSeconds + " s" : config.relockSeconds / 60 + " min";
+  return time + (config.relockIdle ? " sem uso" : " fora do app");
 }
 
 function getSecurityEventUnlockOccasion() {
@@ -886,6 +914,18 @@ function updateSecuritySettingsUI() {
   securityDetails.hidden = !config.enabled;
   securityMethodLabel.textContent = getSecurityMethodLabel(config.method);
   securityRelockSelect.value = String(config.relockSeconds);
+  const relockHelp = document.querySelector("#security-relock-help");
+  if (relockHelp) {
+    const legacy = config.relockSeconds > 0 && !config.relockIdle;
+    relockHelp.textContent = config.relockSeconds === 0
+      ? "Bloqueia assim que você sai do app."
+      : legacy
+        ? "Hoje só conta o tempo fora do app. Escolha um tempo para também bloquear com o app aberto e parado."
+        : "Bloqueia depois desse tempo fora do app ou parado com ele aberto. Tocar, rolar ou digitar conta como uso.";
+    // O aviso da configuração antiga não some na interface limpa: é a única pista de que
+    // o bloqueio parado ainda está desligado.
+    relockHelp.classList.toggle("clean-optional", !legacy);
+  }
 
   chooseDeviceAuthButton.disabled = !state.deviceAuthSupported;
   if (!window.isSecureContext) {
@@ -929,7 +969,7 @@ function updateSettingsMenuSummary() {
   };
   const counting = state.preferences.countingMode === "normal" ? "Contagem normal" : "Contagem regressiva";
   set("appearance", counting + " · " + (state.preferences.eventsEnabled ? "Eventos ativos" : "Eventos desligados"));
-  set("privacy", state.securityConfig?.enabled ? "Bloqueio ativo · " + getSecurityMethodLabel() : "Bloqueio desativado");
+  set("privacy", state.securityConfig?.enabled ? "Bloqueio ativo · " + getSecurityMethodLabel() + " · " + describeRelock() : "Bloqueio desativado");
   const user = firebaseAuth?.getCurrentUser() || null;
   set("backup", user ? "Conta: " + (user.email || user.displayName || "conectada") : "Sem conta conectada");
   set("about", "Versão " + APP_VERSION);
@@ -3057,7 +3097,12 @@ securityRelockSelect.addEventListener("change", () => {
   const value = Number(securityRelockSelect.value);
   if (![0, 30, 60, 300, 900].includes(value)) return;
   state.securityConfig.relockSeconds = value;
+  // Escolher um tempo é o "abrir e salvar" que liga o bloqueio por inatividade de quem
+  // já usava o app antes dele existir.
+  state.securityConfig.relockIdle = true;
+  state.securityLastActivityAt = Date.now();
   saveSecurityConfig();
+  updateSecuritySettingsUI();
   showToast("Tempo de bloqueio atualizado.");
 });
 
@@ -3151,6 +3196,10 @@ window.addEventListener("beforeunload", () => {
   if (!IS_STANDALONE_APP || document.body.classList.contains("terms-pending")) return;
   if (state.securityConfig.enabled && !state.securityLocked) markSecurityActive();
 });
+
+for (const type of ["keydown", "input", "wheel", "touchmove"]) document.addEventListener(type, noteSecurityActivity, { passive: true, capture: true });
+document.addEventListener("scroll", noteSecurityActivity, { passive: true, capture: true });
+setInterval(checkSecurityIdle, 1000);
 
 document.addEventListener("pointerdown", () => {
   if (!IS_STANDALONE_APP || document.body.classList.contains("terms-pending")) return;
@@ -3523,7 +3572,7 @@ Object.assign(globalThis, {
   renderOccasionSharePicker, startOccasionShares,
   openSharedView, closeSharedView,
   render, saveData, effectiveCountingMode, registerDrinkAt, tickDrinkCards,
-  closeSettingsView, showSettingsPage, openEventsSetting, openDrinkMenuDialog, openEventDialog, saveSecurityConfig,
+  closeSettingsView, showSettingsPage, openEventsSetting, checkSecurityIdle, openDrinkMenuDialog, openEventDialog, saveSecurityConfig,
   editDrinkFromDrinkMenu, getDrinkActivity, persistIconCatalog, unlockApp,
   openDeleteDrinkDialog, openEditDrinkDialog, BACKUP_EXPORT_TYPE,
   state, DATA_STORAGE_KEY, buildCurrentAppData, refreshDataViews, showToast,

@@ -157,3 +157,29 @@ test('registerFailedPinAttempt: tentativas de fluxos diferentes somam no mesmo c
   assert.equal(sc.registerFailedPinAttempt(), true);
   assert.equal(state.pinFailedAttempts, 5);
 });
+
+// relockIdle: além do tempo fora do app, bloqueia também parado com o app aberto.
+test('relockIdle: configuração nova nasce ligada', () => {
+  const sc = securityConfigInstance({ localStorage: { getItem: () => null } });
+  assert.equal(sc.loadSecurityConfig().relockIdle, true);
+});
+
+test('relockIdle: configuração antiga EM USO fica desligada — nada muda sozinho', () => {
+  const stored = { version: 3, enabled: true, method: 'pin', relockSeconds: 300, pin: { salt: 'AQID', hash: 'BAUG', iterations: 5000, length: 4 } };
+  const sc = securityConfigInstance({ localStorage: { getItem: () => JSON.stringify(stored) } });
+  assert.equal(sc.loadSecurityConfig().relockIdle, false);
+});
+
+test('relockIdle: configuração antiga que nunca foi ativada recebe o padrão novo', () => {
+  const stored = { version: 3, enabled: false, method: null, relockSeconds: 300 };
+  const sc = securityConfigInstance({ localStorage: { getItem: () => JSON.stringify(stored) } });
+  assert.equal(sc.loadSecurityConfig().relockIdle, true);
+});
+
+test('relockIdle: o valor salvo é respeitado', () => {
+  const base = { version: 4, enabled: true, method: 'pin', relockSeconds: 30, pin: { salt: 'AQID', hash: 'BAUG', iterations: 5000, length: 4 } };
+  for (const relockIdle of [true, false]) {
+    const sc = securityConfigInstance({ localStorage: { getItem: () => JSON.stringify({ ...base, relockIdle }) } });
+    assert.equal(sc.loadSecurityConfig().relockIdle, relockIdle);
+  }
+});

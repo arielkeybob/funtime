@@ -1,4 +1,12 @@
-# FunTime — V2.13.0
+# FunTime — V2.14.0
+
+## V2.14.0 — bloqueio com um contador só (fora do app ou parado)
+
+- "Bloquear novamente" virou **"Bloquear após ficar sem uso"** e conta o mesmo tempo **fora do app e parado com o app aberto**. Tocar, rolar ou digitar conta como uso; só olhar o contador de intervalo não conta.
+- A primeira opção deixou de ser "Imediatamente" e passou a **"Ao sair do app"**: bloqueia assim que você sai, sem contar parado.
+- **Quem já usava o bloqueio não é afetado sozinho:** a configuração antiga continua só com o tempo fora do app até a pessoa escolher um tempo (aviso na própria tela). Configurações novas já nascem com o bloqueio por parado ligado.
+- O resumo de Privacidade no menu mostra o tempo ("Bloqueio ativo · PIN · 5 min sem uso").
+- Custo assumido: quem fica só olhando o contador pode ser bloqueado; com a tela apagando o app já conta como "fora", então o ganho de segurança do bloqueio parado é pequeno. "Ao sair do app" evita isso.
 
 ## V2.13.0 — Configurações em menu de categorias
 
