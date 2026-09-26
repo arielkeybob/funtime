@@ -14,9 +14,9 @@ export const TUTORIALS = [
       },
       {
         "tipo": "video",
-        "src": "./tutorials/media/introducao/02.cb286548.mp4",
-        "poster": "./tutorials/media/introducao/02.poster.741ddebc.webp",
-        "alt": "Dois toques no cartão da Cerveja registram a dose e o cartão passa a mostrar a contagem do intervalo.",
+        "src": "./tutorials/media/introducao/02.e93109c0.mp4",
+        "poster": "./tutorials/media/introducao/02.poster.a0bf5f4e.webp",
+        "alt": "O cartão da Cerveja recebe o destaque azul e dois toques seguidos o registram; o cartão passa a mostrar a contagem do intervalo e o app avisa que o consumo foi anotado.",
         "legenda": "Dê dois toques na bebida para registrar. O intervalo começa a contar."
       },
       {
@@ -27,7 +27,7 @@ export const TUTORIALS = [
       },
       {
         "tipo": "imagem",
-        "src": "./tutorials/media/introducao/04.6fe7abdc.webp",
+        "src": "./tutorials/media/introducao/04.d2d98aae.webp",
         "alt": "Menu de Configurações com a linha Como usar em destaque.",
         "legenda": "Mais detalhes em Configurações → Como usar."
       }
@@ -40,7 +40,7 @@ export const TUTORIALS = [
     "passos": [
       {
         "tipo": "imagem",
-        "src": "./tutorials/media/cadastrar-bebida/01.89be4c59.webp",
+        "src": "./tutorials/media/cadastrar-bebida/01.596efc52.webp",
         "alt": "Tela inicial vazia com o botão Adicionar bebida em destaque.",
         "legenda": "Na tela inicial, toque em Adicionar bebida para começar."
       },
@@ -64,24 +64,31 @@ export const TUTORIALS = [
       },
       {
         "tipo": "video",
-        "src": "./tutorials/media/cadastrar-bebida/05.aa79f5a9.mp4",
-        "poster": "./tutorials/media/cadastrar-bebida/05.poster.2f50ccab.webp",
+        "src": "./tutorials/media/cadastrar-bebida/05.557e75fb.mp4",
+        "poster": "./tutorials/media/cadastrar-bebida/05.poster.e25c366e.webp",
         "alt": "O botão Salvar é tocado e o cadastro fecha, mostrando o cartão da Cerveja na tela inicial.",
         "legenda": "Toque em Salvar: a bebida aparece na tela inicial."
       },
       {
         "tipo": "video",
-        "src": "./tutorials/media/cadastrar-bebida/06.e951b9fa.mp4",
-        "poster": "./tutorials/media/cadastrar-bebida/06.poster.00436985.webp",
+        "src": "./tutorials/media/cadastrar-bebida/06.ca3e0865.mp4",
+        "poster": "./tutorials/media/cadastrar-bebida/06.poster.ed0d6589.webp",
         "alt": "O botão ⋮ do cartão da Cerveja é tocado e abre o menu com as opções Anotar dose e Editar bebida.",
         "legenda": "Toque em ⋮ no cartão para anotar uma dose ou editar a bebida."
       },
       {
         "tipo": "video",
-        "src": "./tutorials/media/cadastrar-bebida/07.699ee7a4.mp4",
-        "poster": "./tutorials/media/cadastrar-bebida/07.poster.bc820975.webp",
+        "src": "./tutorials/media/cadastrar-bebida/07.513a3d69.mp4",
+        "poster": "./tutorials/media/cadastrar-bebida/07.poster.f6637880.webp",
         "alt": "A Água é segurada e arrastada para o topo da lista de bebidas.",
         "legenda": "Segure uma bebida e arraste para mudar a ordem."
+      },
+      {
+        "tipo": "video",
+        "src": "./tutorials/media/cadastrar-bebida/08.1c3f6240.mp4",
+        "poster": "./tutorials/media/cadastrar-bebida/08.poster.3e13b43d.webp",
+        "alt": "Da tela inicial, o botão ⋮ da Água é tocado, depois Editar bebida e Excluir bebida; a pergunta sobre o histórico mostra as duas opções, e a opção de manter o histórico é tocada; a Água some da lista e o app avisa que ela foi excluída e o histórico mantido.",
+        "legenda": "Para excluir a bebida, escolha manter ou apagar o histórico dela."
       }
     ]
   },
@@ -92,14 +99,14 @@ export const TUTORIALS = [
     "passos": [
       {
         "tipo": "video",
-        "src": "./tutorials/media/registrar-dose/01.7b3a652e.mp4",
-        "poster": "./tutorials/media/registrar-dose/01.poster.b8f257f6.webp",
-        "alt": "Dois toques rápidos no cartão da Cerveja registram a dose e iniciam a contagem.",
+        "src": "./tutorials/media/registrar-dose/01.199f9554.mp4",
+        "poster": "./tutorials/media/registrar-dose/01.poster.7770d35b.webp",
+        "alt": "O cartão da Cerveja recebe o destaque azul e dois toques rápidos o registram; a contagem do intervalo começa e o app avisa que o consumo foi anotado.",
         "legenda": "Dê dois toques na bebida para registrar a dose."
       },
       {
         "tipo": "imagem",
-        "src": "./tutorials/media/registrar-dose/02.7de77c3e.webp",
+        "src": "./tutorials/media/registrar-dose/02.fed0d2db.webp",
         "alt": "Cartão da Água em contagem regressiva, com o tempo restante em destaque.",
         "legenda": "O cartão mostra quanto falta para o intervalo terminar."
       },
@@ -158,36 +165,47 @@ export const TUTORIALS = [
     "resumo": "PIN ou biometria do aparelho.",
     "passos": [
       {
+        "tipo": "texto",
+        "legenda": "Mantenha sua privacidade.",
+        "icone": "🔒",
+        "linhas": [
+          "Se alguém pegar seu celular, não abre o app nem vê seus consumos.",
+          "Você escolhe como desbloquear: PIN ou biometria.",
+          "É opcional e vale só neste aparelho.",
+          "Protege a abertura do app, não os arquivos do celular."
+        ]
+      },
+      {
         "tipo": "imagem",
-        "src": "./tutorials/media/privacidade/01.4e76983f.webp",
+        "src": "./tutorials/media/privacidade/02.4e76983f.webp",
         "alt": "Tela Privacidade com a chave Bloqueio do aplicativo, desligada, em destaque.",
         "legenda": "Ative o bloqueio do aplicativo."
       },
       {
         "tipo": "imagem",
-        "src": "./tutorials/media/privacidade/02.2e812146.webp",
+        "src": "./tutorials/media/privacidade/03.2e812146.webp",
         "alt": "Pergunta Como desbloquear? com as duas opções em destaque: Biometria / aparelho e PIN do aplicativo.",
         "legenda": "Escolha como desbloquear: biometria ou PIN."
       },
       {
         "tipo": "video",
-        "src": "./tutorials/media/privacidade/03.b07a5c82.mp4",
-        "poster": "./tutorials/media/privacidade/03.poster.d0df00a4.webp",
+        "src": "./tutorials/media/privacidade/04.8bda7219.mp4",
+        "poster": "./tutorials/media/privacidade/04.poster.bf7ca204.webp",
         "alt": "A opção PIN do aplicativo é tocada, o PIN 1234 é digitado e confirmado e o botão Salvar PIN é tocado; o app avisa que o bloqueio por PIN foi ativado.",
         "legenda": "Crie um PIN de 4 dígitos e toque em Salvar PIN."
       },
       {
         "tipo": "imagem",
-        "src": "./tutorials/media/privacidade/04.f4216c70.webp",
+        "src": "./tutorials/media/privacidade/05.f4216c70.webp",
         "alt": "Tela Privacidade com o bloqueio ativo e a opção Bloquear após ficar sem uso, com o tempo de 5 minutos, em destaque.",
-        "legenda": "Escolha em quanto tempo o app volta a bloquear."
+        "legenda": "Escolha em quanto tempo o app vai bloquear sozinho."
       },
       {
         "tipo": "video",
-        "src": "./tutorials/media/privacidade/05.e9c61ec3.mp4",
-        "poster": "./tutorials/media/privacidade/05.poster.c7ac72e6.webp",
-        "alt": "O botão Bloquear agora é tocado e o app mostra a tela de bloqueio, pedindo o PIN do aplicativo.",
-        "legenda": "Bloquear agora tranca o app até digitar o PIN."
+        "src": "./tutorials/media/privacidade/06.13c02600.mp4",
+        "poster": "./tutorials/media/privacidade/06.poster.673bcf62.webp",
+        "alt": "O botão Bloquear agora é tocado e o app mostra a tela de bloqueio, pedindo o PIN do aplicativo (ou a biometria do aparelho, se esse for o método escolhido).",
+        "legenda": "Bloquear agora tranca o app até digitar o PIN ou biometria."
       }
     ]
   },
@@ -197,48 +215,59 @@ export const TUTORIALS = [
     "resumo": "Ligar, criar, agendar e encerrar.",
     "passos": [
       {
+        "tipo": "texto",
+        "legenda": "Um evento reúne os consumos de uma ocasião.",
+        "icone": "🎉",
+        "linhas": [
+          "Pode ser uma festa, churrasco ou viagem.",
+          "No Histórico, você filtra por evento.",
+          "Dá para agendar para começar depois.",
+          "É opcional: o app funciona sem eventos."
+        ]
+      },
+      {
         "tipo": "video",
-        "src": "./tutorials/media/eventos/01.5eb33607.mp4",
-        "poster": "./tutorials/media/eventos/01.poster.f62fa5c1.webp",
+        "src": "./tutorials/media/eventos/02.d1aba2f8.mp4",
+        "poster": "./tutorials/media/eventos/02.poster.3ead8848.webp",
         "alt": "A opção Usar eventos, em Configurações → Aparência, é tocada e liga; o app avisa que os eventos foram ativados.",
         "legenda": "Em Configurações → Aparência, ative Usar eventos."
       },
       {
         "tipo": "imagem",
-        "src": "./tutorials/media/eventos/02.434a1f40.webp",
+        "src": "./tutorials/media/eventos/03.8c51c0c9.webp",
         "alt": "Tela inicial com a aba Evento, recém-criada, em destaque no menu de baixo.",
         "legenda": "A aba Evento aparece no menu de baixo."
       },
       {
         "tipo": "video",
-        "src": "./tutorials/media/eventos/03.873d81ee.mp4",
-        "poster": "./tutorials/media/eventos/03.poster.ce76a7b2.webp",
+        "src": "./tutorials/media/eventos/04.b86d5f19.mp4",
+        "poster": "./tutorials/media/eventos/04.poster.0ea316aa.webp",
         "alt": "A aba Evento é tocada e, na lista de eventos, o botão + Novo é tocado e abre o formulário Novo evento.",
         "legenda": "Na aba Evento, toque em + Novo."
       },
       {
         "tipo": "video",
-        "src": "./tutorials/media/eventos/04.be82ce66.mp4",
-        "poster": "./tutorials/media/eventos/04.poster.ec060e13.webp",
+        "src": "./tutorials/media/eventos/05.b61b9f6a.mp4",
+        "poster": "./tutorials/media/eventos/05.poster.2c7d53ca.webp",
         "alt": "O nome Churrasco do João é digitado no formulário Novo evento e o botão Iniciar evento é tocado.",
         "legenda": "Dê um nome e toque em Iniciar evento."
       },
       {
         "tipo": "imagem",
-        "src": "./tutorials/media/eventos/05.20507289.webp",
+        "src": "./tutorials/media/eventos/06.20507289.webp",
         "alt": "Tela inicial com o evento Churrasco do João em andamento, em destaque no topo, e os cartões das bebidas.",
         "legenda": "As doses que você registrar entram no evento em andamento."
       },
       {
         "tipo": "imagem",
-        "src": "./tutorials/media/eventos/06.082705d2.webp",
+        "src": "./tutorials/media/eventos/07.082705d2.webp",
         "alt": "Formulário Novo evento com a opção Escolher data selecionada em Quando começar?, em destaque.",
         "legenda": "Para agendar, troque para Escolher data."
       },
       {
         "tipo": "video",
-        "src": "./tutorials/media/eventos/07.339579a7.mp4",
-        "poster": "./tutorials/media/eventos/07.poster.113d6307.webp",
+        "src": "./tutorials/media/eventos/08.07e847aa.mp4",
+        "poster": "./tutorials/media/eventos/08.poster.59756441.webp",
         "alt": "No detalhe do evento em andamento, o botão Encerrar evento é tocado e, na confirmação, o botão Encerrar também.",
         "legenda": "No evento, toque em Encerrar evento e confirme."
       }
@@ -350,35 +379,46 @@ export const TUTORIALS = [
     "resumo": "Exportar, importar e restaurar.",
     "passos": [
       {
+        "tipo": "texto",
+        "legenda": "Bebidas e backup são coisas diferentes.",
+        "icone": "💾",
+        "linhas": [
+          "Exportar bebidas: só a lista, para passar a alguém.",
+          "Backup: bebidas, histórico e preferências.",
+          "Guarde seus dados ou troque de celular.",
+          "O PIN e o bloqueio nunca vão no arquivo."
+        ]
+      },
+      {
         "tipo": "imagem",
-        "src": "./tutorials/media/backup-e-bebidas/01.8bf2d550.webp",
+        "src": "./tutorials/media/backup-e-bebidas/02.4e89c00f.webp",
         "alt": "Tela Backup e conta com dois cartões em destaque: Exportar e importar, rotulado Só as bebidas, e Dados do aplicativo, rotulado Bebidas + histórico.",
-        "legenda": "Exportar bebidas leva só a lista; o backup leva tudo."
+        "legenda": "Em Backup e conta, os dois ficam em cartões separados."
       },
       {
         "tipo": "video",
-        "src": "./tutorials/media/backup-e-bebidas/02.c90003f5.mp4",
-        "poster": "./tutorials/media/backup-e-bebidas/02.poster.440edafe.webp",
+        "src": "./tutorials/media/backup-e-bebidas/03.926ef110.mp4",
+        "poster": "./tutorials/media/backup-e-bebidas/03.poster.4b56357a.webp",
         "alt": "O botão Exportar bebidas é tocado e o app avisa que o arquivo de bebidas foi exportado.",
         "legenda": "Exportar bebidas gera um arquivo para compartilhar ou guardar."
       },
       {
         "tipo": "video",
-        "src": "./tutorials/media/backup-e-bebidas/03.7e9e068b.mp4",
-        "poster": "./tutorials/media/backup-e-bebidas/03.poster.83951e7a.webp",
+        "src": "./tutorials/media/backup-e-bebidas/04.05dad230.mp4",
+        "poster": "./tutorials/media/backup-e-bebidas/04.poster.b4846e5e.webp",
         "alt": "O botão Importar bebidas é tocado e abre a prévia do arquivo, com as opções Adicionar às bebidas atuais e Substituir minha lista de bebidas em destaque.",
         "legenda": "Importar mostra uma prévia: adicionar ou substituir a lista."
       },
       {
         "tipo": "video",
-        "src": "./tutorials/media/backup-e-bebidas/04.8242f5fc.mp4",
-        "poster": "./tutorials/media/backup-e-bebidas/04.poster.d1fc993a.webp",
+        "src": "./tutorials/media/backup-e-bebidas/05.9cecf88b.mp4",
+        "poster": "./tutorials/media/backup-e-bebidas/05.poster.6947c2f8.webp",
         "alt": "O botão Fazer backup é tocado e o app avisa que o backup foi criado e que o arquivo deve ser guardado em local privado.",
         "legenda": "Fazer backup salva bebidas, histórico e preferências."
       },
       {
         "tipo": "imagem",
-        "src": "./tutorials/media/backup-e-bebidas/05.d4d38cba.webp",
+        "src": "./tutorials/media/backup-e-bebidas/06.d4d38cba.webp",
         "alt": "Prévia de Restaurar backup, com o aviso O que será substituído em destaque: bebidas, histórico e preferências; bloqueio e PIN do aparelho não mudam.",
         "legenda": "Restaurar troca os dados atuais; o PIN não muda."
       }

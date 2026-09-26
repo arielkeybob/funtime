@@ -29,6 +29,19 @@ module.exports = {
   seed: 'demo',
   passos: [
     {
+      // Slide só de texto: explica para que serve o bloqueio antes de mostrar como ligar. Diz também o limite
+      // (protege a abertura do app, não os arquivos do celular), em palavras simples.
+      tipo: 'texto',
+      icone: '🔒',
+      legenda: 'Mantenha sua privacidade.',
+      linhas: [
+        'Se alguém pegar seu celular, não abre o app nem vê seus consumos.',
+        'Você escolhe como desbloquear: PIN ou biometria.',
+        'É opcional e vale só neste aparelho.',
+        'Protege a abertura do app, não os arquivos do celular.',
+      ],
+    },
+    {
       tipo: 'imagem',
       legenda: 'Ative o bloqueio do aplicativo.',
       alt: 'Tela Privacidade com a chave Bloqueio do aplicativo, desligada, em destaque.',
@@ -76,7 +89,7 @@ module.exports = {
     },
     {
       tipo: 'imagem',
-      legenda: 'Escolha em quanto tempo o app volta a bloquear.',
+      legenda: 'Escolha em quanto tempo o app vai bloquear sozinho.',
       alt: 'Tela Privacidade com o bloqueio ativo e a opção Bloquear após ficar sem uso, com o tempo de 5 minutos, em destaque.',
       async antes(t) {
         // Este ponto da página parte da escolha do método (passo 2): cria o PIN para mostrar as opções.
@@ -93,8 +106,8 @@ module.exports = {
     },
     {
       tipo: 'video',
-      legenda: 'Bloquear agora tranca o app até digitar o PIN.',
-      alt: 'O botão Bloquear agora é tocado e o app mostra a tela de bloqueio, pedindo o PIN do aplicativo.',
+      legenda: 'Bloquear agora tranca o app até digitar o PIN ou biometria.',
+      alt: 'O botão Bloquear agora é tocado e o app mostra a tela de bloqueio, pedindo o PIN do aplicativo (ou a biometria do aparelho, se esse for o método escolhido).',
       async preparar(t) { await irParaPrivacidade(t); await ativarBloqueioComPin(t); },
       async gravar(t) {
         await t.esperar(1400);

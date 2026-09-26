@@ -3847,10 +3847,12 @@ div.share-person { cursor: default; }
 /* Tutoriais (spec 0026): folha de slides da introdução e de Configurações → Como usar.
    O dialog não tem <form>, então o ui.js não o reestrutura; o layout é próprio. */
 .tutorial-dialog { width: min(calc(100% - 24px), 440px); }
-.tutorial-sheet { display: grid; gap: 14px; padding: 18px; }
+/* A folha se adapta à altura da tela: em celular de tela curta (ex.: 375×667) o espaçamento, a área da mídia e o
+   texto encolhem, para nada precisar rolar e os botões ficarem sempre à vista. Em tela alta continua igual. */
+.tutorial-sheet { display: grid; gap: clamp(8px, 1.7dvh, 14px); padding: clamp(12px, 2.2dvh, 18px); }
 .tutorial-sheet .dialog-header { align-items: flex-start; }
 .tutorial-skip { min-height: 36px; padding: 0 14px; font-size: .85rem; }
-.tutorial-stage { position: relative; display: flex; align-items: center; justify-content: center; height: min(48dvh, 440px); overflow: hidden; touch-action: pan-y; user-select: none; -webkit-user-select: none; }
+.tutorial-stage { position: relative; display: flex; align-items: center; justify-content: center; height: clamp(170px, min(48dvh, calc(90dvh - 285px)), 440px); overflow: hidden; touch-action: pan-y; user-select: none; -webkit-user-select: none; }
 .tutorial-media { display: block; flex: 0 1 auto; min-height: 0; min-width: 0; max-width: 100%; max-height: 100%; width: auto; height: auto; border: 1px solid var(--border); border-radius: 14px; background: #0d0d10; object-fit: contain; }
 .tutorial-media-error { max-width: 26ch; margin: 0; color: var(--muted); font-size: .9rem; text-align: center; }
 .tutorial-play { position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%); min-height: 40px; font-size: .85rem; white-space: nowrap; }
@@ -3868,9 +3870,9 @@ div.share-person { cursor: default; }
 .tutorial-video-bar { position: absolute; left: 0; right: 0; bottom: 0; height: 4px; background: rgb(255 255 255 / .16); }
 .tutorial-video-bar span { display: block; width: 100%; height: 100%; background: #5eb4e9; transform-origin: 0 50%; transform: scaleX(0); }
 /* Slide só de texto dos tutoriais: frase principal, ícone opcional e poucas linhas de apoio. */
-.tutorial-texto { display: grid; align-content: center; justify-items: center; gap: 14px; width: 100%; height: 100%; padding: 8px 6px; text-align: center; overflow: auto; }
-.tutorial-texto-icone { font-size: 2.6rem; line-height: 1; }
-.tutorial-texto-titulo { margin: 0; font-size: 1.3rem; font-weight: 750; line-height: 1.35; overflow-wrap: anywhere; }
-.tutorial-texto-linha { margin: 0; padding-top: 12px; border-top: 1px solid var(--border); width: 100%; color: var(--muted); font-size: 1rem; line-height: 1.5; overflow-wrap: anywhere; }
+.tutorial-texto { display: grid; align-content: center; justify-items: center; gap: clamp(7px, 1.6dvh, 14px); width: 100%; height: 100%; padding: clamp(2px, 1dvh, 8px) 6px; text-align: center; overflow: auto; }
+.tutorial-texto-icone { font-size: clamp(1.7rem, 5dvh, 2.6rem); line-height: 1; }
+.tutorial-texto-titulo { margin: 0; font-size: clamp(1.05rem, 3dvh, 1.3rem); font-weight: 750; line-height: 1.35; overflow-wrap: anywhere; }
+.tutorial-texto-linha { margin: 0; padding-top: clamp(4px, 1.1dvh, 12px); border-top: 1px solid var(--border); width: 100%; color: var(--muted); font-size: clamp(.84rem, 2.1dvh, 1rem); line-height: 1.4; overflow-wrap: anywhere; }
 .tutorial-texto-titulo + .tutorial-texto-linha { margin-top: 2px; }
 .tutorial-caption--repetida { visibility: hidden; }

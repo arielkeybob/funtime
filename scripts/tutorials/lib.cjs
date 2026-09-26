@@ -440,6 +440,26 @@ function criarT(page, context) {
       await t.limparDestaque();
       await page.locator(seletor).first().click();
     },
+    // Como tocarComDedo, mas o gesto é o duplo toque real (dois toques de tela seguidos, o que o app exige
+    // para registrar uma dose): o anel aparece, o dedo desce até o alvo e "aperta" duas vezes.
+    async duploToqueComDedo(seletor, { antes = 700, descida = 850, distancia = 150, pausa = 300 } = {}) {
+      await t.destacar(seletor);
+      await page.waitForTimeout(antes);
+      await page.evaluate(aproximarDedo, { seletor, distancia, duracao: descida });
+      await page.waitForTimeout(pausa);
+      await Promise.all([
+        page.evaluate(() => {
+          const dedo = document.querySelector('.__tut[data-tut="dedo"]');
+          return dedo ? dedo.animate(
+            [{ transform: 'scale(1)' }, { transform: 'scale(.72)', offset: 0.2 }, { transform: 'scale(1)', offset: 0.45 }, { transform: 'scale(.72)', offset: 0.65 }, { transform: 'scale(1)' }],
+            { duration: 420, fill: 'forwards' },
+          ).finished : null;
+        }),
+        t.duploToque(seletor),
+      ]);
+      // O cartão muda de lugar ao registrar: o anel e o dedo não podem ficar para trás.
+      await t.limparDestaque();
+    },
     // Digita letra por letra (com atraso), para o vídeo mostrar o campo sendo preenchido em vez de aparecer pronto.
     digitar: (seletor, texto, { atraso = 90 } = {}) => page.locator(seletor).first().pressSequentially(texto, { delay: atraso }),
     // O botão que abre o seletor de arquivo do sistema (que não existe em captura) passa a receber este

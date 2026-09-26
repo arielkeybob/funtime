@@ -40,8 +40,21 @@ module.exports = {
   seed: 'demo',
   passos: [
     {
+      // Slide só de texto: diz para que serve cada um (as telas seguintes mostram como). Não repete o que os
+      // slides de importar e restaurar já dizem.
+      tipo: 'texto',
+      icone: '💾',
+      legenda: 'Bebidas e backup são coisas diferentes.',
+      linhas: [
+        'Exportar bebidas: só a lista, para passar a alguém.',
+        'Backup: bebidas, histórico e preferências.',
+        'Guarde seus dados ou troque de celular.',
+        'O PIN e o bloqueio nunca vão no arquivo.',
+      ],
+    },
+    {
       tipo: 'imagem',
-      legenda: 'Exportar bebidas leva só a lista; o backup leva tudo.',
+      legenda: 'Em Backup e conta, os dois ficam em cartões separados.',
       alt: 'Tela Backup e conta com dois cartões em destaque: Exportar e importar, rotulado Só as bebidas, e Dados do aplicativo, rotulado Bebidas + histórico.',
       antes: irParaBackup,
       destaque: [

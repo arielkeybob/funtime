@@ -9,12 +9,13 @@ module.exports = {
     {
       tipo: 'video',
       legenda: 'Dê dois toques na bebida para registrar a dose.',
-      alt: 'Dois toques rápidos no cartão da Cerveja registram a dose e iniciam a contagem.',
+      alt: 'O cartão da Cerveja recebe o destaque azul e dois toques rápidos o registram; a contagem do intervalo começa e o app avisa que o consumo foi anotado.',
       async preparar(t) { await t.esperar(400); },
       async gravar(t) {
-        await t.esperar(700);
-        await t.duploToque('.drink-card[data-drink-id="cerveja"] .drink-main');
-        await t.esperar(2600);
+        await t.esperar(1400);
+        await t.duploToqueComDedo('.drink-card[data-drink-id="cerveja"] .drink-main');
+        await t.esperarAvisoSumir();
+        await t.esperar(900);
       },
     },
     {

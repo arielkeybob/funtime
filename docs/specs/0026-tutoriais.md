@@ -89,6 +89,10 @@ passos: [{ tipo: 'imagem'|'video', src, poster?, alt, legenda } |
 { tipo: 'texto', legenda, icone?, linhas? }] }]`. O slide `texto` (sem mídia nem `alt`; até 4 linhas de
 ≤ 70 caracteres) explica uma ideia que não tem tela do app: o visualizador o desenha como um cartão e
 deixa a legenda invisível, ocupando o espaço, para o tamanho da folha não mudar entre slides.
+Critério de uso: abrir um tópico com uma tela de texto só quando ele tem uma ideia ou um limite que as
+telas não mostram (hoje Bloqueio, Amigos, Eventos e Backup); nos tópicos autoexplicativos (cadastrar,
+registrar dose, histórico) seria um toque a mais sem informação nova. Tela de texto não tem captura, então
+o `tutorials:check` não a acusa quando fica velha: revise-a ao mudar o comportamento que ela descreve.
 
 `app.js` guarda e lê a flag `funtime-tutorial-v1` (`{ seen: true, at }`) no `localStorage`,
 **por aparelho e fora do backup**, no mesmo padrão de `funtime-terms-v1`.

@@ -7,6 +7,18 @@ module.exports = {
   seed: 'demoEventos',
   passos: [
     {
+      // Slide só de texto: o conceito de evento não aparece em nenhuma tela do app antes de ligar o recurso.
+      tipo: 'texto',
+      icone: '🎉',
+      legenda: 'Um evento reúne os consumos de uma ocasião.',
+      linhas: [
+        'Pode ser uma festa, churrasco ou viagem.',
+        'No Histórico, você filtra por evento.',
+        'Dá para agendar para começar depois.',
+        'É opcional: o app funciona sem eventos.',
+      ],
+    },
+    {
       tipo: 'video',
       seed: 'demo',
       legenda: 'Em Configurações → Aparência, ative Usar eventos.',

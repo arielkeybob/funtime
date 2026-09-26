@@ -1,5 +1,5 @@
 {
-  "versaoApp": "2.20.0",
+  "versaoApp": "2.20.1",
   "topicos": {
     "introducao": {
       "cobre": {
@@ -11,10 +11,10 @@
       },
       "midia": {
         "01.977bf241.webp": "977bf241254d40456c99184f2eff15678c2de2bb",
-        "02.cb286548.mp4": "cb286548cb2a1c67dff9f04e536f45fca163c30c",
-        "02.poster.741ddebc.webp": "741ddebc90a9bb1232da272bfb2ddbba96aef1f4",
+        "02.e93109c0.mp4": "e93109c02c65043c79e68e6c297ee89fb37cbe7b",
+        "02.poster.a0bf5f4e.webp": "a0bf5f4e6912e73b5b301bce2139495987cc3c1d",
         "03.5924afee.webp": "5924afee720a3942007479d3c2cac9f48de8347e",
-        "04.6fe7abdc.webp": "6fe7abdc4af912e139be1219dbdf53db6e7cc3f5"
+        "04.d2d98aae.webp": "d2d98aae9b96901d9562d4a2fa9fd581fd211c38"
       }
     },
     "cadastrar-bebida": {
@@ -22,19 +22,22 @@
         "#empty-state": "95339960936e",
         "#drink-dialog": "73d6ac3d7506",
         "#drink-card-template": "f606a5358fe0",
-        "#drink-menu-dialog": "e3df823abf4e"
+        "#drink-menu-dialog": "e3df823abf4e",
+        "#delete-drink-dialog": "ad6cd7ecef9d"
       },
       "midia": {
-        "01.89be4c59.webp": "89be4c59159fbf0eb55d853bdec06aa50db36767",
+        "01.596efc52.webp": "596efc529e0f80f176299eb35aba25f2bb59fc80",
         "02.499ce156.webp": "499ce1562d02c519c491dd859f4f3a7ff3ac3087",
         "03.977bf241.webp": "977bf241254d40456c99184f2eff15678c2de2bb",
         "04.f11ed3c9.webp": "f11ed3c9385c69aa890a1f015c72905159b82288",
-        "05.aa79f5a9.mp4": "aa79f5a95e94aa9171ca705508af17aad795a4cc",
-        "05.poster.2f50ccab.webp": "2f50ccab44838431a8ecd2a2cd34ffc277316a56",
-        "06.e951b9fa.mp4": "e951b9fa28b18294485c87261656f105491b2042",
-        "06.poster.00436985.webp": "0043698564fca51f6d457502eb1ef8d533d1675b",
-        "07.699ee7a4.mp4": "699ee7a41a22be1d4ad3a7fdf3c7a1df376fc534",
-        "07.poster.bc820975.webp": "bc8209755855ab0cde47c6bbdf23e4beebe1982a"
+        "05.557e75fb.mp4": "557e75fb90f898c4b0a31da4fe014a72a9f758aa",
+        "05.poster.e25c366e.webp": "e25c366ea66e111ce9bfebf265fcfda417bfc98b",
+        "06.ca3e0865.mp4": "ca3e0865daeb3f60af5e7af269d2eced7a6e3164",
+        "06.poster.ed0d6589.webp": "ed0d6589fabeb7fff58c24d8f6b5cc79d1f5b380",
+        "07.513a3d69.mp4": "513a3d69ae986dfccbe5feb6345074bba4e66e91",
+        "07.poster.f6637880.webp": "f66378804f65d7f59476ec99840e8911eee11d48",
+        "08.1c3f6240.mp4": "1c3f6240734e01fb5bf061d92f2471d4544a8b1b",
+        "08.poster.3e13b43d.webp": "3e13b43d44d7576173a98a669fe7b66465d4555c"
       }
     },
     "registrar-dose": {
@@ -46,9 +49,9 @@
         "#log-dialog": "6423047b3ba5"
       },
       "midia": {
-        "01.7b3a652e.mp4": "7b3a652e89103c42b32b46ffad047177370958d8",
-        "01.poster.b8f257f6.webp": "b8f257f6ccbabb3a99694ddd114ec7d55de667f9",
-        "02.7de77c3e.webp": "7de77c3e4ae9b979433a5958293a6e1c5886ca97",
+        "01.199f9554.mp4": "199f9554aceffbb3989b4d00918e84605a9cdfe3",
+        "01.poster.7770d35b.webp": "7770d35b12534d99d20d94dc82feac97c5697c39",
+        "02.fed0d2db.webp": "fed0d2dbbb49f8405b4d065f8c54b2922cb6eec6",
         "03.1b76fdb6.webp": "1b76fdb62b809ffc93335030af75a55c9d398bb2",
         "04.b7fe37fa.webp": "b7fe37fafe1308317d13639243dcb609bea640fa"
       }
@@ -80,13 +83,13 @@
         "#security-details": "c392c1647605"
       },
       "midia": {
-        "01.4e76983f.webp": "4e76983f19f76addd481473850443615e6721c65",
-        "02.2e812146.webp": "2e812146564124a597e4785edbee948abfbbe8ea",
-        "03.b07a5c82.mp4": "b07a5c82cf4c51218d7fe754be5b2bd277e97e0e",
-        "03.poster.d0df00a4.webp": "d0df00a4612873f6289785577359a3a1a0c0ab36",
-        "04.f4216c70.webp": "f4216c705dd96d30f927985c10535c292ae1f817",
-        "05.e9c61ec3.mp4": "e9c61ec31cbc98e937d92abd9443b84c57770138",
-        "05.poster.c7ac72e6.webp": "c7ac72e6aa8ba256013c2c4f856040554ab17883"
+        "02.4e76983f.webp": "4e76983f19f76addd481473850443615e6721c65",
+        "03.2e812146.webp": "2e812146564124a597e4785edbee948abfbbe8ea",
+        "04.8bda7219.mp4": "8bda7219e3ff9d36ba1a5541915644b7628d22e1",
+        "04.poster.bf7ca204.webp": "bf7ca204356f7dd13834c25b1c1ca64a2c4be725",
+        "05.f4216c70.webp": "f4216c705dd96d30f927985c10535c292ae1f817",
+        "06.13c02600.mp4": "13c02600f0753636d0670eccec8158904d23359a",
+        "06.poster.673bcf62.webp": "673bcf6211ea0d37493229ad81b4fed38628e09c"
       }
     },
     "eventos": {
@@ -98,17 +101,17 @@
         "#nav-occasion": "b1f31b720a06"
       },
       "midia": {
-        "01.5eb33607.mp4": "5eb33607e14b1a90c984dc6fcaa5feb7cd84b714",
-        "01.poster.f62fa5c1.webp": "f62fa5c100d6aa0b7ec3d1fc39d4739ba5f886ee",
-        "02.434a1f40.webp": "434a1f408eaf36f1b77725b2329c10c3dda13e34",
-        "03.873d81ee.mp4": "873d81ee8d469228263e43338cd26882a07a123e",
-        "03.poster.ce76a7b2.webp": "ce76a7b2a307693ab3461c267715005593fd75fa",
-        "04.be82ce66.mp4": "be82ce66a0404d893d4900195ae8a26ed7e1347e",
-        "04.poster.ec060e13.webp": "ec060e137ce3019e4d5b3df0544e3f9ca58f594e",
-        "05.20507289.webp": "2050728922b857c3a523f238cc600020026690e1",
-        "06.082705d2.webp": "082705d2de713ad15693201f60dc95d54fd07c16",
-        "07.339579a7.mp4": "339579a77ae01d6eb14a4fcdf26d5b876a70038e",
-        "07.poster.113d6307.webp": "113d6307361affd626bfbccb886c43b2f673c1fd"
+        "02.d1aba2f8.mp4": "d1aba2f8995f7fc382cb803159f54e59416637e5",
+        "02.poster.3ead8848.webp": "3ead8848ff24ff77c8ee7b3805d0eafddf20f2a8",
+        "03.8c51c0c9.webp": "8c51c0c9517d0f9c8fcbee611be97b68f9a98497",
+        "04.b86d5f19.mp4": "b86d5f19232754250afa394d97a3fc3ab25de6f3",
+        "04.poster.0ea316aa.webp": "0ea316aa20c325e612523d504bdcbccf087928c1",
+        "05.b61b9f6a.mp4": "b61b9f6afe557b954e3181fb2144c4f90be4d560",
+        "05.poster.2c7d53ca.webp": "2c7d53caa1bc9e35d8e36216b3c6f81bf4ad7b54",
+        "06.20507289.webp": "2050728922b857c3a523f238cc600020026690e1",
+        "07.082705d2.webp": "082705d2de713ad15693201f60dc95d54fd07c16",
+        "08.07e847aa.mp4": "07e847aaf24e0eddf520e9d90686f07a2dd5afdf",
+        "08.poster.59756441.webp": "597564419e99ae314ab469b3feadfc318faaedf2"
       }
     },
     "amigos": {
@@ -156,14 +159,14 @@
         "#backup-restore-dialog": "95fcb8d219ed"
       },
       "midia": {
-        "01.8bf2d550.webp": "8bf2d5504f1a3615368c700b1aa4d84d1a4ea654",
-        "02.c90003f5.mp4": "c90003f5768e5abded3c0cd1deeb6d594f8e3e99",
-        "02.poster.440edafe.webp": "440edafec2cf8686314a6cfc8e31d560cdfe9d7b",
-        "03.7e9e068b.mp4": "7e9e068bf3d95dd29d9d6fbc82b5fc4ac9b1d424",
-        "03.poster.83951e7a.webp": "83951e7a9ce1b3b80831d536ac2a7d419a549bb1",
-        "04.8242f5fc.mp4": "8242f5fc2d8384b56065b63ffafc2781a00405ab",
-        "04.poster.d1fc993a.webp": "d1fc993afeca72123558c754264739d071c17d44",
-        "05.d4d38cba.webp": "d4d38cbafb5a560668d0eab8d3e3df7c048000ea"
+        "02.4e89c00f.webp": "4e89c00fca3761d31ded4cab51bf4d74888751fd",
+        "03.926ef110.mp4": "926ef1103de084c772ce70038bb3cea72f4f7664",
+        "03.poster.4b56357a.webp": "4b56357a537deb65265fe0cc13451967f0857977",
+        "04.05dad230.mp4": "05dad2302d53d617869999c00f8781fd4ff758f2",
+        "04.poster.b4846e5e.webp": "b4846e5e34e42d3c15beb10fb0f297bd3d33ae7f",
+        "05.9cecf88b.mp4": "9cecf88b26531848d475c47f18c9ca72de8b591d",
+        "05.poster.6947c2f8.webp": "6947c2f8ff176ddc8d9d6bc0ed98bc06304216fb",
+        "06.d4d38cba.webp": "d4d38cbafb5a560668d0eab8d3e3df7c048000ea"
       }
     }
   }

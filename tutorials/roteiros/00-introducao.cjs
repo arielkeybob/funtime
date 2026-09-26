@@ -24,12 +24,14 @@ module.exports = {
       tipo: 'video',
       seed: 'demo',
       legenda: 'Dê dois toques na bebida para registrar. O intervalo começa a contar.',
-      alt: 'Dois toques no cartão da Cerveja registram a dose e o cartão passa a mostrar a contagem do intervalo.',
+      alt: 'O cartão da Cerveja recebe o destaque azul e dois toques seguidos o registram; o cartão passa a mostrar a contagem do intervalo e o app avisa que o consumo foi anotado.',
       async preparar(t) { await t.esperar(400); },
       async gravar(t) {
-        await t.esperar(700);
-        await t.duploToque('.drink-card[data-drink-id="cerveja"] .drink-main');
-        await t.esperar(2600);
+        // Tela parada antes do gesto, anel azul, dedo descendo e dois toques; depois o resultado, até o aviso sumir.
+        await t.esperar(1400);
+        await t.duploToqueComDedo('.drink-card[data-drink-id="cerveja"] .drink-main');
+        await t.esperarAvisoSumir();
+        await t.esperar(900);
       },
     },
     {

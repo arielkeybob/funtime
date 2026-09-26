@@ -364,3 +364,44 @@ test('slide só de texto: cartão com a frase, ícone e linhas, sem mídia; a le
     assert.deepEqual(erros, []);
   });
 });
+
+// Percorre todos os slides de todos os tópicos e devolve o que não cabe: cartão de texto que rola, folha que rola
+// (o botão Próximo sairia da tela) ou Próximo fora da área visível.
+async function slidesQueNaoCabem(page) {
+  await fecharIntro(page);
+  await page.locator('#open-settings').click();
+  await page.locator('#settings-row-tutorials').click();
+  const nomes = await page.locator('#tutorial-topics .settings-nav-row strong').allTextContents();
+  const problemas = [];
+  for (let i = 0; i < nomes.length; i++) {
+    await page.locator('#tutorial-topics .settings-nav-row').nth(i).click();
+    await page.waitForSelector('#tutorial-dialog[open]');
+    const { total } = await contador(page);
+    for (let passo = 1; passo <= total; passo++) {
+      const medida = await page.evaluate(() => {
+        const dialogo = document.querySelector('#tutorial-dialog');
+        const proximo = document.querySelector('#tutorial-next').getBoundingClientRect();
+        const cartao = document.querySelector('.tutorial-texto');
+        return {
+          cartaoRola: cartao ? cartao.scrollHeight > cartao.clientHeight + 1 : false,
+          folhaRola: dialogo.scrollHeight > dialogo.clientHeight + 1,
+          proximoVisivel: proximo.top >= 0 && proximo.bottom <= innerHeight,
+        };
+      });
+      if (medida.cartaoRola || medida.folhaRola || !medida.proximoVisivel) problemas.push(`${nomes[i]} #${passo}: ${JSON.stringify(medida)}`);
+      if (passo < total) await page.locator('#tutorial-next').click();
+    }
+    await page.keyboard.press('Escape');
+    await page.waitForFunction(() => !document.querySelector('#tutorial-dialog').open);
+  }
+  return problemas;
+}
+
+test('todos os slides cabem na folha em celular de tela alta e de tela curta, sem rolar', { timeout: 180000 }, async () => {
+  for (const [largura, altura] of [[390, 844], [375, 667], [360, 640]]) {
+    await withApp(async (page, erros) => {
+      assert.deepEqual(await slidesQueNaoCabem(page), [], `${largura}×${altura}`);
+      assert.deepEqual(erros, []);
+    }, { contextOptions: { viewport: { width: largura, height: altura }, isMobile: true, hasTouch: true } });
+  }
+});

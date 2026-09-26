@@ -3,7 +3,7 @@ module.exports = {
   id: 'cadastrar-bebida',
   titulo: 'Cadastrar e organizar bebidas',
   resumo: 'Nome, ícone, intervalo e ordem.',
-  cobre: ['#empty-state', '#drink-dialog', '#drink-card-template', '#drink-menu-dialog'],
+  cobre: ['#empty-state', '#drink-dialog', '#drink-card-template', '#drink-menu-dialog', '#delete-drink-dialog'],
   seed: 'vazio',
   passos: [
     {
@@ -83,6 +83,34 @@ module.exports = {
         await t.esperar(600);
         await t.arrastar('.drink-card[data-drink-id="agua"] .drink-main', '.drink-card[data-drink-id="cerveja"] .drink-main', { dy: -60 });
         await t.esperar(400);
+      },
+    },
+    {
+      // Excluir a BEBIDA em si (não um registro): ⋮ → Editar bebida → Excluir bebida → escolha sobre o histórico.
+      tipo: 'video',
+      seed: 'demo',
+      legenda: 'Para excluir a bebida, escolha manter ou apagar o histórico dela.',
+      alt: 'Da tela inicial, o botão ⋮ da Água é tocado, depois Editar bebida e Excluir bebida; a pergunta sobre o histórico mostra as duas opções, e a opção de manter o histórico é tocada; a Água some da lista e o app avisa que ela foi excluída e o histórico mantido.',
+      async preparar(t) { await t.esperar(300); },
+      async gravar(t) {
+        await t.esperar(1400);
+        await t.tocarComDedo('.drink-card[data-drink-id="agua"] .more-button');
+        await t.page.waitForSelector('#drink-menu-dialog[open]');
+        await t.esperar(800);
+        await t.tocarComDedo('#drink-menu-edit', { antes: 400, descida: 650, pausa: 250 });
+        await t.page.waitForSelector('#drink-dialog[open]');
+        await t.esperar(900);
+        await t.tocarComDedo('#delete-drink-from-editor', { antes: 500, descida: 650, pausa: 250 });
+        await t.page.waitForSelector('#delete-drink-dialog[open]');
+        await t.esperar(500);
+        // As duas escolhas em destaque, com tempo para ler, antes de tocar em manter o histórico.
+        await t.destacar(['#delete-drink-keep-history', '#delete-drink-with-history']);
+        await t.esperar(2200);
+        await t.limparDestaque();
+        await t.tocarComDedo('#delete-drink-keep-history', { antes: 350, descida: 650, pausa: 250 });
+        await t.page.waitForFunction(() => !document.querySelector('.drink-card[data-drink-id="agua"]') && !document.querySelector('#delete-drink-dialog').open);
+        await t.esperarAvisoSumir();
+        await t.esperar(900);
       },
     },
   ],

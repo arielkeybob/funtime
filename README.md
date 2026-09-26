@@ -1,4 +1,14 @@
-# FunTime — V2.20.0
+# FunTime — V2.20.1
+
+## V2.20.1 — vídeos de dois toques mais calmos, excluir a bebida, tutorial de Bloqueio e folha que cabe em tela curta
+
+- **Vídeos de registrar dose** (na introdução e em Registrar doses e intervalos): agora seguem o ritmo dos outros — tela parada antes do gesto, anel azul no cartão, dedo que desce e **aperta duas vezes** (o gesto real do app) e o resultado até o aviso "Consumo anotado" sumir. Antes havia só ~0,7 s parado antes do toque.
+- **Cadastrar e organizar bebidas ganhou um oitavo slide, em vídeo: excluir a bebida em si** — ⋮ → Editar bebida → Excluir bebida → a pergunta "O que deseja fazer com o histórico?" (com as duas escolhas em destaque) → "Excluir bebida mas manter histórico" → a bebida some da lista e o app avisa, com **Desfazer**. Legenda: "Para excluir a bebida, escolha manter ou apagar o histórico dela."
+- **Bloqueio do aplicativo começa com uma tela só de texto** ("Mantenha sua privacidade."): explica para que serve — quem pegar o celular não abre o app nem vê os consumos —, que dá para escolher PIN ou biometria, que é opcional e vale só neste aparelho, e que protege a abertura do app, não os arquivos do celular. Legendas ajustadas: "Escolha em quanto tempo o app vai bloquear sozinho." e "Bloquear agora tranca o app até digitar o PIN ou biometria."
+- **Eventos e agenda e Backup e bebidas também começam com uma tela só de texto**, pelo mesmo motivo: explicar a ideia antes de mostrar os botões. Eventos: "Um evento reúne os consumos de uma ocasião" (festa, churrasco, viagem; no Histórico dá para filtrar por evento; dá para agendar; é opcional). Backup: "Bebidas e backup são coisas diferentes" (Exportar bebidas leva só a lista; o backup leva bebidas, histórico e preferências; o PIN e o bloqueio nunca vão no arquivo). O slide seguinte do Backup, que mostra os dois cartões, ganhou legenda nova ("Em Backup e conta, os dois ficam em cartões separados.") para não repetir a tela de texto. Regra adotada: tela de texto no início só quando o tópico tem uma ideia ou um limite que as telas não mostram (hoje: Bloqueio, Amigos, Eventos e Backup).
+- **A folha dos tutoriais se adapta à altura da tela.** Em celulares de tela curta (375×667, 360×640) a folha rolava e os botões podiam sair da vista; agora a área da mídia, os espaçamentos e o texto dos cartões encolhem com a altura da tela, e nada rola. Em telas altas o visual é o mesmo. Um teste percorre todos os slides em 390×844, 375×667 e 360×640.
+- **Novo comando `npm run preview:primeiro-acesso`** (só de desenvolvimento): abre uma janela do Edge do tamanho de um celular, com perfil vazio, na introdução do primeiro acesso; fechar a janela encerra o servidor.
+- Mudou o conteúdo dos tutoriais (`content.js`), que faz parte do pacote offline: nova versão (`funtime-v2-20-1`); o cache de mídia (`funtime-tutorials-v2-20`) continua e só baixa os arquivos novos. Sem mudança de dados, regras do Firestore, políticas ou aceite.
 
 ## V2.20.0 — políticas atualizadas para o evento compartilhado e tutoriais de Amigos (marco 3)
 
