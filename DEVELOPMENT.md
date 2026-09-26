@@ -1,5 +1,31 @@
 # FunTime — documentação de desenvolvimento
 
+## Tutoriais (spec 0026) — como criar e atualizar
+
+Duas camadas com um visualizador só (`src/tutorials/viewer.js`, dialog `#tutorial-dialog`): a **introdução** do primeiro acesso (tópico com `intro: true`, aberto em `bootstrapApp()` só sem dados e sem a flag `funtime-tutorial-v1`) e os tópicos de **Configurações → Como usar**. `src/tutorials/content.js` e `tutorials/manifest.lock.json` são **gerados**; a mídia fica em `tutorials/media/<id>/NN.<hash>.webp|mp4`. Nunca edite esses arquivos nem as imagens à mão.
+
+**Roteiro** (`tutorials/roteiros/NN-id.cjs`, ordem pelo prefixo): `{ id, titulo, resumo, intro?, cobre, seed, passos }`.
+- `cobre`: seletores **estáticos** de `index.html` que o tópico mostra; o manifesto guarda o hash da marcação deles e o `check` compara.
+- `seed`: `vazio`, `demo` (3 bebidas e 4 registros), `demoLimpo` (as mesmas bebidas sem registros) ou `umaBebida` (só a Cerveja, sem registros — o estado logo após o primeiro cadastro). Um passo pode trocar de seed com `seed`; num vídeo, `seed` é o estado em que a página nova começa.
+- passo de imagem: `{ tipo: 'imagem', legenda (≤ 90), alt, antes?(t), destaque?, ponto? }` — `antes` leva a tela ao estado a capturar, `destaque` é um seletor ou uma lista de `{ seletor, rotulo }` (anéis, com etiqueta curta opcional), `ponto` desenha o dedo.
+- passo de vídeo: `{ tipo: 'video', legenda, alt, seed?, preparar?(t), gravar(t) }` — grava numa página nova; o que `preparar` faz é cortado do vídeo.
+- `t`: `page`, `esperar`, `tocar`, `escrever`, `duploToque` (o registro de dose é por duplo toque), `arrastar` (pressão longa + arraste), `tocarComDedo` (anel + dedo que "aperta", some e clica; para vídeo), `destacar`. Cuidado com seletor ambíguo: `.setting-toggle` existe em mais de um dialog e pega o primeiro do DOM, que pode estar escondido; use um só, como `label[for="ask-dose-size"]`.
+
+**Comandos**
+- `npm run tutorials:build [id …] [--sem-video]` regenera; `TUTORIAIS_PNG=<pasta>` guarda também o PNG bruto para conferir a olho.
+- `npm run tutorials:check [--visual]` diz quais tópicos revisar (marcação de `cobre` que mudou; com `--visual`, imagens que mudaram). Sai com código 1 se houver algo. Não altera arquivos.
+- `tests/tutorials.test.cjs` (no `npm test`) falha se um roteiro divergir do `content.js`/manifesto/mídia, se um seletor estático sumir de `index.html` ou se a mídia passar do orçamento (imagem 150 KB, vídeo 700 KB, total 6 MB).
+
+**Depois de mudar uma tela ou um fluxo:** `tutorials:check` → ajuste legenda/roteiro dos tópicos apontados → `tutorials:build <id>` → confira o diff das imagens → nova versão (o `content.js` está no `APP_SHELL`). O que o `check` **não** pega: legenda que ficou falsa por mudança de comportamento com a mesma aparência (por isso a revisão do diff é humana) e mudança em vídeo.
+
+**Duração dos vídeos:** vem só das esperas do roteiro (`gravar` + 300 ms); o pôster é extraído do último quadro do MP4 justamente para não depender do tempo de um screenshot dentro da página em gravação.
+
+**Ferramentas de vídeo:** `recordVideo` do Playwright grava WebM (precisa de `npx playwright install ffmpeg`, só no ambiente de dev) e um ffmpeg completo converte para MP4 H.264 (`ffmpeg-static` ou a variável `FFMPEG`). Sem isso, use `--sem-video`. Screenshots e a conversão para WebP não precisam de nada além do Edge.
+
+**Service Worker:** os dois módulos estão no `APP_SHELL`; a mídia usa o cache `funtime-tutorials-v<maior>-<menor>` (cache-first, com 206 para `Range`, descartado a cada versão menor; pedidos simultâneos da mesma mídia dividem um download só). Ao abrir um tópico o visualizador faz `fetch` de toda a mídia dele em segundo plano (`prefetchTutorial`), exceto sem conexão ou com `saveData`; falha de download é engolida e a próxima abertura tenta de novo. Limites: só Edge emulando celular (fontes/rolagem podem diferir de iOS/Android); amigos/pareamento reais não são capturáveis (usar estado semeado).
+
+**Armadilha nos testes de navegador:** a introdução é um modal que cobre a tela de qualquer perfil novo em modo instalado, e os cliques dos testes passam a cair nele. `scripts/dev-server.cjs` já marca `funtime-tutorial-v1` como visto (abra `/funtime/?tutorial-intro` na prévia para ver o primeiro acesso de verdade); um teste que sobe o **próprio** servidor HTTP precisa gravar essa chave no `addInitScript`, junto do `standalone` (como fazem `navigation-browser`, `countdown-menu-browser`, `icon-reorder-browser` e `update-lock-browser`).
+
 ## V2.1.47 — easter egg de BPM: 4 toques para o palpite, refina com 8 seguidos
 
 `src/easter-eggs/index.js` (handler de `pointerup`): o primeiro palpite de BPM passa a

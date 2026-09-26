@@ -32,3 +32,6 @@ hoje, se houver.
 - Testes `node:test` novos ou que substituem `extract()`/`vm.runInContext` existentes.
 - Testes manuais relevantes de `DEVELOPMENT.md` (listar quais).
 - O que fica explicitamente fora desta rodada.
+- **Afeta algum tutorial?** Se a mudança altera uma tela, um fluxo ou um seletor mostrado em
+  `tutorials/roteiros/`, rodar `npm run tutorials:check`, atualizar os tópicos afetados e
+  dizer aqui quais (ou "nenhum") — ver spec 0026.

@@ -1,0 +1,57 @@
+{
+  "versaoApp": "2.18.0",
+  "topicos": {
+    "introducao": {
+      "cobre": {
+        "#empty-state": "95339960936e",
+        "#drink-dialog": "73d6ac3d7506",
+        "#drink-card-template": "f606a5358fe0",
+        ".bottom-nav": "d968a0871419",
+        "#settings-row-tutorials": "32e1f58d888f"
+      },
+      "midia": {
+        "01.977bf241.webp": "977bf241254d40456c99184f2eff15678c2de2bb",
+        "02.3ea783f5.mp4": "3ea783f5ace3811c4a8ec1c4d104df2fc392eacb",
+        "02.poster.753c7a29.webp": "753c7a291040b8e1eebffc05fcade52883b45789",
+        "03.5924afee.webp": "5924afee720a3942007479d3c2cac9f48de8347e",
+        "04.061b59eb.webp": "061b59ebf875a27f75e95eb5f3a1be088265eeec"
+      }
+    },
+    "cadastrar-bebida": {
+      "cobre": {
+        "#empty-state": "95339960936e",
+        "#drink-dialog": "73d6ac3d7506",
+        "#drink-card-template": "f606a5358fe0",
+        "#drink-menu-dialog": "e3df823abf4e"
+      },
+      "midia": {
+        "01.89be4c59.webp": "89be4c59159fbf0eb55d853bdec06aa50db36767",
+        "02.499ce156.webp": "499ce1562d02c519c491dd859f4f3a7ff3ac3087",
+        "03.977bf241.webp": "977bf241254d40456c99184f2eff15678c2de2bb",
+        "04.f11ed3c9.webp": "f11ed3c9385c69aa890a1f015c72905159b82288",
+        "05.3a31ddfa.mp4": "3a31ddfaaaa65b08c24179c637cca72d52701885",
+        "05.poster.be3fdd5a.webp": "be3fdd5a365c70167c1e087579ccddd014def667",
+        "06.9862fb6a.mp4": "9862fb6a93f6e7aca89bc670abff9a4ce929c6a3",
+        "06.poster.5fb60d7b.webp": "5fb60d7bba1b47d4aee5e5e5203dd2ca9ebbe564",
+        "07.2ba3274b.mp4": "2ba3274b34a2c1b625ec3478915033d72fc5da7b",
+        "07.poster.3e821fdb.webp": "3e821fdbd270789fedd1de404ecad9e78626bb79"
+      }
+    },
+    "registrar-dose": {
+      "cobre": {
+        "#drink-card-template": "f606a5358fe0",
+        "#interval-warning-dialog": "25ed209d819e",
+        "#dose-size-dialog": "efa7a5e648b4",
+        "#drink-menu-dialog": "e3df823abf4e",
+        "#log-dialog": "6423047b3ba5"
+      },
+      "midia": {
+        "01.294525c6.mp4": "294525c616d54cc39a3178d88bdaec3de5107720",
+        "01.poster.0062f4e2.webp": "0062f4e26a570fc48b3865f425394f4c9eae2a5c",
+        "02.fed0d2db.webp": "fed0d2dbbb49f8405b4d065f8c54b2922cb6eec6",
+        "03.1b76fdb6.webp": "1b76fdb62b809ffc93335030af75a55c9d398bb2",
+        "04.b7fe37fa.webp": "b7fe37fafe1308317d13639243dcb609bea640fa"
+      }
+    }
+  }
+}

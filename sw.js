@@ -1,6 +1,9 @@
-const APP_VERSION = "2.17.1";
-const CACHE_NAME = "funtime-v2-17-1";
+const APP_VERSION = "2.18.0";
+const CACHE_NAME = "funtime-v2-18-0";
 const BACKGROUND_CACHE_NAME = "funtime-bg-v1";
+// Mídia dos tutoriais (spec 0026): baixada na primeira vez que é vista. O nome acompanha a versão
+// menor do app, então cada release menor descarta a anterior e o cache nunca cresce sem limite.
+const TUTORIALS_CACHE_NAME = "funtime-tutorials-v" + APP_VERSION.split(".").slice(0, 2).join("-");
 const SHARE_IMPORT_CACHE_NAME = "funtime-share-target-v1";
 const SHARE_IMPORT_REQUEST_PATH = "./__shared-drinks-import__";
 const SHARE_TARGET_MAX_BYTES = 1500000;
@@ -44,6 +47,8 @@ const APP_SHELL = [
   "./src/easter-eggs/index.js",
   "./src/drinks/validate.js",
   "./src/history/event-dialog.js",
+  "./src/tutorials/viewer.js",
+  "./src/tutorials/content.js",
   "./src/drinks/interactions.js",
   "./app.js",
   "./occasions.js",
@@ -82,6 +87,55 @@ async function precacheAppShell() {
   );
 }
 
+// Safari só toca vídeo se responderem 206 ao pedido com Range, inclusive offline. Os arquivos são
+// pequenos, então o worker busca o arquivo inteiro uma vez, guarda, e fatia a resposta a cada pedido.
+function rangeResponse(response, header) {
+  const match = /^bytes=(\d*)-(\d*)$/.exec(header);
+  if (!match || (match[1] === "" && match[2] === "")) return response;
+  return response.arrayBuffer().then((buffer) => {
+    const size = buffer.byteLength;
+    const start = match[1] === "" ? size - Number(match[2]) : Number(match[1]);
+    const end = match[1] === "" || match[2] === "" ? size - 1 : Math.min(Number(match[2]), size - 1);
+    if (!(start >= 0) || start > end) {
+      return new Response(null, { status: 416, headers: { "Content-Range": "bytes */" + size } });
+    }
+    return new Response(buffer.slice(start, end + 1), {
+      status: 206,
+      statusText: "Partial Content",
+      headers: {
+        "Content-Type": response.headers.get("Content-Type") || "application/octet-stream",
+        "Content-Length": String(end - start + 1),
+        "Content-Range": "bytes " + start + "-" + end + "/" + size,
+      },
+    });
+  });
+}
+
+// Pedidos simultâneos da mesma mídia (o prefetch do visualizador e a própria <img>) dividem um
+// download só: sem isto, cada um baixaria o arquivo por conta própria enquanto o cache está vazio.
+const tutorialDownloads = new Map();
+
+function downloadTutorialMedia(cache, href) {
+  if (!tutorialDownloads.has(href)) {
+    const download = fetch(href)
+      .then(async (response) => {
+        if (response.ok && response.status === 200) await cache.put(href, response.clone());
+        return response;
+      })
+      .finally(() => tutorialDownloads.delete(href));
+    tutorialDownloads.set(href, download);
+  }
+  return tutorialDownloads.get(href).then((response) => response.clone());
+}
+
+async function handleTutorialMedia(request, url) {
+  const cache = await caches.open(TUTORIALS_CACHE_NAME);
+  let response = await cache.match(url.href);
+  if (!response) response = await downloadTutorialMedia(cache, url.href);
+  const range = request.headers.get("range");
+  return range && response.status === 200 ? rangeResponse(response, range) : response;
+}
+
 self.addEventListener("install", (event) => {
   // Uma versão nova fica em WAITING até o usuário confirmar no app.
   event.waitUntil(precacheAppShell());
@@ -93,7 +147,7 @@ self.addEventListener("activate", (event) => {
       caches.keys().then((keys) =>
         Promise.all(
           keys
-            .filter((key) => /^funtime-v2-/.test(key) && key !== CACHE_NAME)
+            .filter((key) => (/^funtime-v2-/.test(key) && key !== CACHE_NAME) || (/^funtime-tutorials-/.test(key) && key !== TUTORIALS_CACHE_NAME))
             .map((key) => caches.delete(key))
         )
       ),
@@ -190,6 +244,12 @@ self.addEventListener("fetch", (event) => {
   if (url.origin !== self.location.origin) return;
   // Nunca responder por recursos fora do próprio escopo (ex.: outro app na mesma origem).
   if (!url.pathname.startsWith(new URL(self.registration.scope).pathname)) return;
+
+  const tutorialsPath = new URL("./tutorials/media/", self.registration.scope).pathname;
+  if (url.pathname.startsWith(tutorialsPath)) {
+    event.respondWith(handleTutorialMedia(request, url));
+    return;
+  }
 
   const backgroundPath = new URL("./bg/", self.registration.scope).pathname;
   if (url.pathname.startsWith(backgroundPath)) {

@@ -15,18 +15,22 @@ function createDevServer() {
     if (url.pathname === '/') return res.writeHead(302, { Location: '/funtime/' }).end();
     if (!url.pathname.startsWith('/funtime/')) return res.writeHead(404).end();
     const file = url.pathname.slice('/funtime/'.length) || 'index.html';
-    if (!allowed.has(file) && !/^bg\/[\w.-]+\.mp4$/i.test(file)) return res.writeHead(404).end();
+    if (!allowed.has(file) && !/^bg\/[\w.-]+\.mp4$/i.test(file) && !/^tutorials\/media\/(?:[\w-]+\/)*[\w.-]+\.(?:webp|png|mp4)$/i.test(file)) return res.writeHead(404).end();
     try {
       let bytes = fs.readFileSync(path.join(root, file));
       if (file === 'index.html') {
-        bytes = bytes.toString().replace('<head>', `<head><script>Object.defineProperty(navigator, 'standalone', { value: true });</script>`)
+        // A introdução dos tutoriais (spec 0026) é um modal que cobre a tela de qualquer perfil novo;
+        // por padrão a prévia a marca como vista para não atrapalhar os testes. ?tutorial-intro liga.
+        const marcarIntroVista = url.searchParams.has('tutorial-intro') ? '' :
+          `try { if (localStorage.getItem('funtime-tutorial-v1') === null) localStorage.setItem('funtime-tutorial-v1', '{"seen":true,"at":0}'); } catch (e) {}`;
+        bytes = bytes.toString().replace('<head>', `<head><script>Object.defineProperty(navigator, 'standalone', { value: true });${marcarIntroVista}</script>`)
           .replace('</body>', `<div style="position:fixed;top:0;right:0;z-index:99999;background:#433719;color:#fff;padding:2px 8px;font:11px sans-serif;pointer-events:none">Prévia local · dados de teste</div></body>`);
       }
       if (file === 'sw.js') {
         // Mantém protocolo/lock do boot; GET sempre usa disco, sem cache antigo.
         bytes = bytes.toString().replace('const request = event.request;', 'const request = event.request; if (request.method === "GET") return;');
       }
-      const mime = { '.js': 'text/javascript', '.html': 'text/html', '.css': 'text/css', '.webmanifest': 'application/manifest+json', '.png': 'image/png', '.mp4': 'video/mp4' };
+      const mime = { '.js': 'text/javascript', '.html': 'text/html', '.css': 'text/css', '.webmanifest': 'application/manifest+json', '.png': 'image/png', '.webp': 'image/webp', '.mp4': 'video/mp4' };
       res.writeHead(200, { 'Content-Type': mime[path.extname(file)] || 'application/octet-stream', 'Cache-Control': 'no-store' });
       res.end(req.method === 'HEAD' ? undefined : bytes);
     } catch { res.writeHead(404).end(); }

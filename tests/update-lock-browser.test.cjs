@@ -36,7 +36,7 @@ async function environment(run){
 }
 async function installedContext(browser){
   const ctx=await browser.newContext({viewport:{width:390,height:844}});
-  await ctx.addInitScript(()=>Object.defineProperty(navigator,'standalone',{value:true,configurable:true}));return ctx;
+  await ctx.addInitScript(()=>{Object.defineProperty(navigator,'standalone',{value:true,configurable:true});try { localStorage.setItem('funtime-tutorial-v1', '{"seen":true,"at":0}'); } catch (e) {}});return ctx;
 }
 async function acceptTerms(page){
   await page.locator('#terms-screen').waitFor({state:'visible'});

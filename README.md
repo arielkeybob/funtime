@@ -1,4 +1,14 @@
-# FunTime — V2.17.1
+# FunTime — V2.18.0
+
+## V2.18.0 — tutoriais: introdução no primeiro acesso e "Como usar" em Configurações
+
+- **Primeiro acesso:** depois do aceite dos termos, quem chega sem nenhum dado vê uma introdução curta (poucas telas, com imagem e vídeo) e **Pular** sempre visível. Não reaparece depois de concluída ou pulada, e não aparece para quem já usa o app (dados existentes ou backup restaurado). A marca de "já vi" fica só neste aparelho, fora do backup, sem mudar `DATA_VERSION`.
+- **Configurações → Como usar:** lista de tópicos (cadastrar e organizar bebidas; registrar doses e intervalos) e "Rever a introdução". Cada um abre uma folha de imagens e vídeos curtos, com uma linha de legenda por passo. Voltar e Escape fecham só a folha.
+- **A mídia é gerada pelo próprio app, não desenhada à mão.** `npm run tutorials:build` executa roteiros (`tutorials/roteiros/`) no app real, com dados de exemplo e relógio fixo, e produz as imagens (WebP) e os vídeos (MP4). `npm run tutorials:check` avisa quais tópicos podem ter ficado desatualizados depois de uma mudança de tela (`--visual` compara também as imagens); `AGENTS.md` e o gabarito de spec passam a exigir essa checagem. Detalhes e limites em `docs/specs/0026`.
+- O tutorial mostra os gestos reais do app: **registrar uma dose é dar dois toques na bebida**; um toque isolado não faz nada e a pressão longa inicia a reordenação.
+- Vídeo respeita movimento reduzido e economia de dados (só o quadro inicial e um botão de tocar). Ao abrir um tópico com conexão, o app baixa em segundo plano **toda a mídia dele** (poucas centenas de KB), então o tutorial segue inteiro mesmo que a conexão caia no meio; sem conexão ou com economia de dados, cada slide baixa quando é aberto e, se falhar, mostra um aviso sem travar. O que já foi baixado fica disponível offline (cache `funtime-tutorials-v2-18`, com resposta 206 para o Safari); a versão menor seguinte descarta o cache anterior.
+- Sem mudança de formato de dados (`DATA_VERSION` 11), regras do Firestore, políticas ou aceite.
+- **Não testado em aparelho real** (iOS/Android, gestos de deslizar e reprodução de vídeo no Safari); validado só no Edge emulando celular.
 
 ## V2.17.1 — dois ajustes do evento compartilhado, achados no primeiro teste em aparelho real
 

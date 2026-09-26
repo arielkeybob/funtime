@@ -16,6 +16,8 @@ import { createInviteUI } from "./src/sharing/invite-ui.js";
 import { dueShareIntents, executeShareIntents } from "./src/sharing/share-intents.js";
 import { getFirebaseConfig, isFirebaseConfigured } from "./src/data/firestore-config.js";
 import { wireDialogDismissal } from "./src/ui/dialogs.js";
+import { createTutorialViewer, shouldShowIntro } from "./src/tutorials/viewer.js";
+import { TUTORIALS } from "./src/tutorials/content.js";
 import { createDurationPicker, createWheelPicker, setWheelPickerValue } from "./src/ui/wheel-picker.js";
 import { createFieldErrorController, createFormErrorController } from "./src/ui/field-errors.js";
 import { createDrinkReorderController } from "./src/ui/drink-reorder.js";
@@ -311,7 +313,7 @@ document.addEventListener("visibilitychange", () => {
 const DATA_STORAGE_KEY = "funtime-v1-data";
 const LEGACY_DRINKS_STORAGE_KEY = "balada-v1-drinks";
 const DATA_VERSION = 11;
-const APP_VERSION = "2.17.1";
+const APP_VERSION = "2.18.0";
 const DRINK_EXPORT_TYPE = "funtime-drinks";
 const DRINK_EXPORT_FORMAT_VERSION = 1;
 const BACKUP_EXPORT_TYPE = "funtime-backup";
@@ -994,7 +996,7 @@ function setCurrentView(view) {
 
 // Configurações é um menu de categorias; cada uma abre a própria tela. Os elementos
 // (com os mesmos ids de sempre) só mudaram de lugar, então nenhum handler mudou.
-const SETTINGS_PAGES = { appearance: "Aparência", privacy: "Privacidade", backup: "Backup e conta", about: "Sobre o app", reset: "Redefinir dados" };
+const SETTINGS_PAGES = { appearance: "Aparência", privacy: "Privacidade", backup: "Backup e conta", tutorials: "Como usar", about: "Sobre o app", reset: "Redefinir dados" };
 
 function updateSettingsMenuSummary() {
   const set = (name, text) => {
@@ -1006,6 +1008,8 @@ function updateSettingsMenuSummary() {
   set("privacy", state.securityConfig?.enabled ? "Bloqueio ativo · " + getSecurityMethodLabel() + " · " + describeRelock() : "Bloqueio desativado");
   const user = firebaseAuth?.getCurrentUser() || null;
   set("backup", user ? "Conta: " + (user.email || user.displayName || "conectada") : "Sem conta conectada");
+  const topics = TUTORIALS.filter((item) => !item.intro).length;
+  set("tutorials", topics === 1 ? "1 tutorial" : topics + " tutoriais");
   set("about", "Versão " + APP_VERSION);
   set("reset", "Ícones, histórico, bebidas ou tudo");
 }
@@ -3269,6 +3273,56 @@ async function requestPersistentStorage() {
   }
 }
 
+// Tutoriais (spec 0026). A flag é por aparelho e fica fora do backup, no mesmo padrão do aceite
+// dos termos; guardar aqui (e não no visualizador) mantém src/ sem tocar localStorage.
+const TUTORIAL_STORAGE_KEY = "funtime-tutorial-v1";
+
+function hasSeenTutorialIntro() {
+  try { return JSON.parse(localStorage.getItem(TUTORIAL_STORAGE_KEY))?.seen === true; } catch { return false; }
+}
+
+function markTutorialIntroSeen() {
+  try { localStorage.setItem(TUTORIAL_STORAGE_KEY, JSON.stringify({ seen: true, at: Date.now() })); } catch { /* Sem armazenamento: a introdução volta na próxima abertura. */ }
+}
+
+const tutorialViewer = createTutorialViewer({
+  dialog: document.querySelector("#tutorial-dialog"),
+  tutorials: TUTORIALS,
+  onClose: ({ intro }) => { if (intro) markTutorialIntroSeen(); },
+});
+
+function renderTutorialTopics() {
+  const rows = TUTORIALS.map((item) => {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "settings-nav-row";
+    button.dataset.tutorialId = item.id;
+    button.innerHTML = '<span class="settings-nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m10 8.5 5 3.5-5 3.5Z" fill="currentColor"/></svg></span>' +
+      '<span class="settings-nav-text"><strong></strong><small></small></span>' +
+      '<span class="settings-nav-chevron" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg></span>';
+    button.querySelector("strong").textContent = item.intro ? "Rever a introdução" : item.titulo;
+    button.querySelector("small").textContent = item.resumo;
+    return button;
+  });
+  document.querySelector("#tutorial-topics").replaceChildren(...rows);
+  document.querySelector("#settings-row-tutorials").hidden = rows.length === 0;
+}
+
+document.querySelector("#tutorial-topics").addEventListener("click", (event) => {
+  const row = event.target.closest("[data-tutorial-id]");
+  if (row) tutorialViewer.open(row.dataset.tutorialId);
+});
+renderTutorialTopics();
+
+function maybeShowIntroTutorial() {
+  const intro = TUTORIALS.find((item) => item.intro);
+  // Nunca por cima de outra camada (bloqueio, prévia de importação…): fica para a próxima abertura.
+  if (!intro || state.securityLocked || document.querySelector("dialog[open]")) return;
+  const seen = hasSeenTutorialIntro();
+  if (shouldShowIntro({ seen, hasData: state.drinks.length > 0 || state.events.length > 0 })) tutorialViewer.open(intro.id, { intro: true });
+  else if (!seen) markTutorialIntroSeen();
+}
+
 async function bootstrapApp() {
   await requireTermsAcceptance();
   applyInterfacePreferences();
@@ -3282,6 +3336,7 @@ async function bootstrapApp() {
   await initializeSecurity();
   showRestoreSuccessIfNeeded();
   await maybeHandleSharedDrinkImport();
+  maybeShowIntroTutorial();
   requestPersistentStorage();
 }
 

@@ -58,7 +58,7 @@
     <footer class="browser-gate-footer">
       <span>App para estudo · não é controle de segurança</span>
       <a class="policies-link" href="./policies.html">Políticas e informações</a>
-      <span>v2.17.1 · By: arielkeybob</span>
+      <span>v2.18.0 · By: arielkeybob</span>
     </footer>
   </section>
 
@@ -177,6 +177,11 @@
       <button type="button" class="settings-nav-row" data-settings-open="backup">
         <span class="settings-nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M7 18h10a4 4 0 0 0 .6-7.96A5.5 5.5 0 0 0 7.1 8.6 4.7 4.7 0 0 0 7 18Z"/></svg></span>
         <span class="settings-nav-text"><strong>Backup e conta</strong><small id="settings-summary-backup"></small></span>
+        <span class="settings-nav-chevron" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg></span>
+      </button>
+      <button type="button" class="settings-nav-row" id="settings-row-tutorials" data-settings-open="tutorials" hidden>
+        <span class="settings-nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m10 8.5 5 3.5-5 3.5Z" fill="currentColor"/></svg></span>
+        <span class="settings-nav-text"><strong>Como usar</strong><small id="settings-summary-tutorials"></small></span>
         <span class="settings-nav-chevron" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg></span>
       </button>
       <button type="button" class="settings-nav-row" data-settings-open="about">
@@ -334,6 +339,10 @@
       </section>
     </section>
 
+    <section class="settings-page" data-settings-page="tutorials" data-title="Como usar" hidden>
+      <nav id="tutorial-topics" class="settings-menu" aria-label="Tutoriais"></nav>
+    </section>
+
     <section class="settings-page" data-settings-page="about" data-title="Sobre o app" hidden>
       <section class="settings-card">
         <div class="settings-section-heading">
@@ -343,7 +352,7 @@
           </div>
         </div>
 
-        <p class="settings-description">Versão instalada: <strong>v2.17.1</strong></p>
+        <p class="settings-description">Versão instalada: <strong>v2.18.0</strong></p>
         <button id="check-app-update" class="settings-secondary-button" type="button">Verificar atualizações</button>
       </section>
 
@@ -468,7 +477,7 @@
     <footer class="app-footer">
       <span class="app-footer-disclaimer">App para estudo · não é controle de segurança</span>
       <a class="policies-link" href="./policies.html">Políticas e informações</a>
-      <span class="app-footer-meta">v2.17.1 · By: arielkeybob</span>
+      <span class="app-footer-meta">v2.18.0 · By: arielkeybob</span>
     </footer>
   </div>
 
@@ -1120,6 +1129,29 @@
         <button class="primary-button" type="submit">Salvar PIN</button>
       </div>
     </form>
+  </dialog>
+
+  <dialog id="tutorial-dialog" class="dialog tutorial-dialog" aria-labelledby="tutorial-title">
+    <div class="tutorial-sheet">
+      <div class="dialog-header">
+        <div>
+          <p id="tutorial-eyebrow" class="eyebrow">Como usar</p>
+          <h2 id="tutorial-title">—</h2>
+        </div>
+        <button id="tutorial-skip" class="secondary-button tutorial-skip" type="button" hidden>Pular</button>
+        <button id="tutorial-close" class="icon-button secondary" type="button" aria-label="Fechar">×</button>
+      </div>
+      <div id="tutorial-stage" class="tutorial-stage"></div>
+      <p id="tutorial-caption" class="tutorial-caption" aria-live="polite"></p>
+      <div class="tutorial-progress">
+        <span id="tutorial-counter" class="tutorial-counter"></span>
+        <span id="tutorial-dots" class="tutorial-dots" aria-hidden="true"></span>
+      </div>
+      <div class="dialog-actions">
+        <button id="tutorial-prev" class="secondary-button" type="button">Anterior</button>
+        <button id="tutorial-next" class="primary-button" type="button">Próximo</button>
+      </div>
+    </div>
   </dialog>
 
   <section id="lock-screen" class="lock-screen" aria-labelledby="lock-title" hidden>

@@ -3843,3 +3843,21 @@ div.share-person { cursor: default; }
 .bottom-nav button { position: relative; }
 .nav-dot { position: absolute; top: 8px; left: calc(50% + 8px); width: 10px; height: 10px; border-radius: 999px; background: var(--success); border: 2px solid var(--bg); }
 .occasion-invites { margin-bottom: 8px; }
+
+/* Tutoriais (spec 0026): folha de slides da introdução e de Configurações → Como usar.
+   O dialog não tem <form>, então o ui.js não o reestrutura; o layout é próprio. */
+.tutorial-dialog { width: min(calc(100% - 24px), 440px); }
+.tutorial-sheet { display: grid; gap: 14px; padding: 18px; }
+.tutorial-sheet .dialog-header { align-items: flex-start; }
+.tutorial-skip { min-height: 36px; padding: 0 14px; font-size: .85rem; }
+.tutorial-stage { position: relative; display: flex; align-items: center; justify-content: center; height: min(48dvh, 440px); overflow: hidden; touch-action: pan-y; user-select: none; -webkit-user-select: none; }
+.tutorial-media { display: block; flex: 0 1 auto; min-height: 0; min-width: 0; max-width: 100%; max-height: 100%; width: auto; height: auto; border: 1px solid var(--border); border-radius: 14px; background: #0d0d10; object-fit: contain; }
+.tutorial-media-error { max-width: 26ch; margin: 0; color: var(--muted); font-size: .9rem; text-align: center; }
+.tutorial-play { position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%); min-height: 40px; font-size: .85rem; white-space: nowrap; }
+.tutorial-caption { min-height: 3.2em; margin: 0; font-size: 1rem; line-height: 1.6; text-align: center; overflow-wrap: anywhere; }
+.tutorial-progress { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.tutorial-counter { color: var(--muted); font-size: .8rem; font-weight: 700; }
+.tutorial-dots { display: inline-flex; align-items: center; gap: 6px; }
+.tutorial-dots span { width: 7px; height: 7px; border-radius: 999px; background: var(--border); transition: width 140ms ease, background-color 140ms ease; }
+.tutorial-dots span[data-active="true"] { width: 18px; background: var(--text); }
+@media (prefers-reduced-motion: reduce) { .tutorial-dots span { transition: none; } }

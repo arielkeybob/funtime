@@ -19,7 +19,8 @@ test('Menu de dose, contagem cancelada e editor de horário', { timeout: 90000 }
   const browser = await chromium.launch({ channel: process.env.PWA_BROWSER_CHANNEL || 'msedge', headless: true });
   try {
     const context = await browser.newContext({ viewport: { width: 390, height: 844 } });
-    await context.addInitScript(() => Object.defineProperty(navigator, 'standalone', { value: true }));
+    // A introdução dos tutoriais (spec 0026) é um modal; estes testes não são sobre ela.
+    await context.addInitScript(() => { Object.defineProperty(navigator, 'standalone', { value: true }); try { localStorage.setItem('funtime-tutorial-v1', '{"seen":true,"at":0}'); } catch (e) {} });
     const page = await context.newPage();
     const errors = [];
     page.on('dialog', async dialog => { errors.push('Diálogo nativo: ' + dialog.message()); await dialog.dismiss(); });

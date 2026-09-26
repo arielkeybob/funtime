@@ -32,10 +32,11 @@ test('o menu lista as categorias com resumo; tocar abre a tela e ← volta ao me
   await withPage(async (page, erros) => {
     await page.locator('#open-settings').click();
     assert.equal(await page.locator('#settings-menu').isVisible(), true);
-    assert.deepEqual(await page.locator('.settings-nav-row strong').allTextContents(),
-      ['Aparência', 'Privacidade', 'Backup e conta', 'Sobre o app', 'Redefinir e apagar dados']);
+    assert.deepEqual(await page.locator('#settings-menu .settings-nav-row strong').allTextContents(),
+      ['Aparência', 'Privacidade', 'Backup e conta', 'Como usar', 'Sobre o app', 'Redefinir e apagar dados']);
     assert.match(await page.locator('#settings-summary-appearance').textContent(), /Contagem regressiva · Eventos desligados/);
     assert.equal(await page.locator('#settings-summary-privacy').textContent(), 'Bloqueio desativado');
+    assert.match(await page.locator('#settings-summary-tutorials').textContent(), /^\d+ tutoriais?$/);
     assert.equal(await page.locator('#settings-summary-backup').textContent(), 'Sem conta conectada');
     assert.match(await page.locator('#settings-summary-about').textContent(), /^Versão \d+\.\d+\.\d+$/);
     assert.deepEqual(await visiblePages(page), []);

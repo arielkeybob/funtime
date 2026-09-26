@@ -19,7 +19,8 @@ test('Ícones: arraste, teclado, cancelamento e persistência em perfil isolado'
   const browser = await chromium.launch({ channel: process.env.PWA_BROWSER_CHANNEL || 'msedge', headless: true });
   try {
     const context = await browser.newContext({ viewport: { width: 390, height: 844 }, hasTouch: true });
-    await context.addInitScript(() => Object.defineProperty(navigator, 'standalone', { value: true }));
+    // A introdução dos tutoriais (spec 0026) é um modal; estes testes não são sobre ela.
+    await context.addInitScript(() => { Object.defineProperty(navigator, 'standalone', { value: true }); try { localStorage.setItem('funtime-tutorial-v1', '{"seen":true,"at":0}'); } catch (e) {} });
     const page = await context.newPage();
     const errors = [];
     page.on('pageerror', e => errors.push(e.message));
