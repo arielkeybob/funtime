@@ -1,6 +1,6 @@
 # 0026 — Tutoriais: introdução no primeiro acesso e "Como usar" em Configurações
 
-Status: em implementação (M1)
+Status: implementada (M1 na v2.18.0, M2 na v2.19.0); M3 pendente
 
 ## Contexto
 

@@ -1,5 +1,5 @@
-const APP_VERSION = "2.18.1";
-const CACHE_NAME = "funtime-v2-18-1";
+const APP_VERSION = "2.19.0";
+const CACHE_NAME = "funtime-v2-19-0";
 const BACKGROUND_CACHE_NAME = "funtime-bg-v1";
 // Mídia dos tutoriais (spec 0026): baixada na primeira vez que é vista. O nome acompanha a versão
 // menor do app, então cada release menor descarta a anterior e o cache nunca cresce sem limite.

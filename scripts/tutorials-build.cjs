@@ -48,5 +48,7 @@ const ids = args.filter((arg) => !arg.startsWith('--'));
   console.log(`\nPronto: ${capturados.length} tópico(s), ${(bytes / 1024).toFixed(0)} KB de mídia. Revise o diff das imagens antes de commitar.`);
 })().catch((erro) => {
   console.error(`\nFalha no build dos tutoriais: ${erro.message}`);
+  // TUTORIAIS_DEBUG=1 mostra também a pilha (em que linha do roteiro parou).
+  if (process.env.TUTORIAIS_DEBUG) console.error(erro.stack);
   process.exitCode = 1;
 });

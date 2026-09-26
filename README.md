@@ -1,4 +1,13 @@
-# FunTime — V2.18.1
+# FunTime — V2.19.0
+
+## V2.19.0 — quatro tutoriais novos em Configurações → Como usar (marco 2)
+
+- **Histórico e correções:** o histórico geral, o de uma bebida (botão Histórico do card), corrigir o horário de um registro e excluí-lo (em vídeo, da tela inicial até a confirmação e o aviso com **Desfazer**).
+- **Eventos e agenda:** ligar **Usar eventos**, a aba Evento, criar um evento (com o nome sendo digitado), agendar (Escolher data) e encerrar (com a confirmação).
+- **Backup e bebidas:** **Exportar/importar bebidas** e **Fazer backup/Restaurar backup** mostrados como recursos **separados** (só a lista × bebidas, histórico e preferências), com as prévias de importar e de restaurar.
+- **Bloqueio do aplicativo:** ativar, escolher biometria ou PIN, criar o PIN (o vídeo digita e confirma), o tempo até bloquear de novo e o **Bloquear agora**. A biometria em si não dá para gravar; o tutorial mostra a escolha do método e percorre o caminho do PIN.
+- Os vídeos seguem o padrão da 2.18.1: tempo parado antes do gesto, dedo que desce até o botão, tempo no resultado, fade e barra de progresso do loop. Legendas curtas, no máximo uma linha de ideia.
+- Agora são 6 tópicos, mais a introdução (~1,8 MB de mídia no total, baixada só ao abrir um tópico). Como a lista de tutoriais mudou (é código do pacote offline), nova versão menor: `funtime-v2-19-0` e cache de mídia `funtime-tutorials-v2-19`. Sem mudança de formato de dados, regras do Firestore, políticas ou aceite.
 
 ## V2.18.1 — vídeos dos tutoriais mais calmos, com sinal de que o loop recomeçou
 

@@ -116,5 +116,172 @@ export const TUTORIALS = [
         "legenda": "Esqueceu de registrar? Use o menu ⋮ e anote a dose em outro horário."
       }
     ]
+  },
+  {
+    "id": "historico",
+    "titulo": "Histórico e correções",
+    "resumo": "Geral, por bebida e correções.",
+    "passos": [
+      {
+        "tipo": "video",
+        "src": "./tutorials/media/historico/01.04529007.mp4",
+        "poster": "./tutorials/media/historico/01.poster.510acba5.webp",
+        "alt": "Na tela inicial, o botão Histórico do menu de baixo recebe o destaque azul e é tocado; abre a lista com todos os registros, do mais recente ao mais antigo.",
+        "legenda": "Toque em Histórico no menu para ver todos os registros."
+      },
+      {
+        "tipo": "video",
+        "src": "./tutorials/media/historico/02.ab733b08.mp4",
+        "poster": "./tutorials/media/historico/02.poster.107a3529.webp",
+        "alt": "O botão Histórico do cartão da Cerveja é tocado e abre a lista só com os registros dessa bebida.",
+        "legenda": "No card, o botão Histórico mostra só aquela bebida."
+      },
+      {
+        "tipo": "video",
+        "src": "./tutorials/media/historico/03.5ca1b872.mp4",
+        "poster": "./tutorials/media/historico/03.poster.2a7f37b5.webp",
+        "alt": "Um registro do Histórico é tocado e abre o editor, com a data e as rodas de hora e minuto em destaque.",
+        "legenda": "Toque num registro para corrigir o horário."
+      },
+      {
+        "tipo": "video",
+        "src": "./tutorials/media/historico/04.09e78bfd.mp4",
+        "poster": "./tutorials/media/historico/04.poster.30c11e23.webp",
+        "alt": "Da tela inicial, o botão Histórico é tocado e depois um registro; no editor, o botão Excluir este registro é tocado e a exclusão é confirmada; o registro some da lista e o app avisa que foi excluído, com a opção Desfazer.",
+        "legenda": "Para excluir um registro, toque nele, em Excluir e confirme."
+      }
+    ]
+  },
+  {
+    "id": "eventos",
+    "titulo": "Eventos e agenda",
+    "resumo": "Ligar, criar, agendar e encerrar.",
+    "passos": [
+      {
+        "tipo": "video",
+        "src": "./tutorials/media/eventos/01.5eb33607.mp4",
+        "poster": "./tutorials/media/eventos/01.poster.f62fa5c1.webp",
+        "alt": "A opção Usar eventos, em Configurações → Aparência, é tocada e liga; o app avisa que os eventos foram ativados.",
+        "legenda": "Em Configurações → Aparência, ative Usar eventos."
+      },
+      {
+        "tipo": "imagem",
+        "src": "./tutorials/media/eventos/02.434a1f40.webp",
+        "alt": "Tela inicial com a aba Evento, recém-criada, em destaque no menu de baixo.",
+        "legenda": "A aba Evento aparece no menu de baixo."
+      },
+      {
+        "tipo": "video",
+        "src": "./tutorials/media/eventos/03.873d81ee.mp4",
+        "poster": "./tutorials/media/eventos/03.poster.ce76a7b2.webp",
+        "alt": "A aba Evento é tocada e, na lista de eventos, o botão + Novo é tocado e abre o formulário Novo evento.",
+        "legenda": "Na aba Evento, toque em + Novo."
+      },
+      {
+        "tipo": "video",
+        "src": "./tutorials/media/eventos/04.be82ce66.mp4",
+        "poster": "./tutorials/media/eventos/04.poster.ec060e13.webp",
+        "alt": "O nome Churrasco do João é digitado no formulário Novo evento e o botão Iniciar evento é tocado.",
+        "legenda": "Dê um nome e toque em Iniciar evento."
+      },
+      {
+        "tipo": "imagem",
+        "src": "./tutorials/media/eventos/05.20507289.webp",
+        "alt": "Tela inicial com o evento Churrasco do João em andamento, em destaque no topo, e os cartões das bebidas.",
+        "legenda": "As doses que você registrar entram no evento em andamento."
+      },
+      {
+        "tipo": "imagem",
+        "src": "./tutorials/media/eventos/06.082705d2.webp",
+        "alt": "Formulário Novo evento com a opção Escolher data selecionada em Quando começar?, em destaque.",
+        "legenda": "Para agendar, troque para Escolher data."
+      },
+      {
+        "tipo": "video",
+        "src": "./tutorials/media/eventos/07.339579a7.mp4",
+        "poster": "./tutorials/media/eventos/07.poster.113d6307.webp",
+        "alt": "No detalhe do evento em andamento, o botão Encerrar evento é tocado e, na confirmação, o botão Encerrar também.",
+        "legenda": "No evento, toque em Encerrar evento e confirme."
+      }
+    ]
+  },
+  {
+    "id": "backup-e-bebidas",
+    "titulo": "Backup e bebidas",
+    "resumo": "Exportar, importar e restaurar.",
+    "passos": [
+      {
+        "tipo": "imagem",
+        "src": "./tutorials/media/backup-e-bebidas/01.8bf2d550.webp",
+        "alt": "Tela Backup e conta com dois cartões em destaque: Exportar e importar, rotulado Só as bebidas, e Dados do aplicativo, rotulado Bebidas + histórico.",
+        "legenda": "Exportar bebidas leva só a lista; o backup leva tudo."
+      },
+      {
+        "tipo": "video",
+        "src": "./tutorials/media/backup-e-bebidas/02.c90003f5.mp4",
+        "poster": "./tutorials/media/backup-e-bebidas/02.poster.440edafe.webp",
+        "alt": "O botão Exportar bebidas é tocado e o app avisa que o arquivo de bebidas foi exportado.",
+        "legenda": "Exportar bebidas gera um arquivo para compartilhar ou guardar."
+      },
+      {
+        "tipo": "video",
+        "src": "./tutorials/media/backup-e-bebidas/03.7e9e068b.mp4",
+        "poster": "./tutorials/media/backup-e-bebidas/03.poster.83951e7a.webp",
+        "alt": "O botão Importar bebidas é tocado e abre a prévia do arquivo, com as opções Adicionar às bebidas atuais e Substituir minha lista de bebidas em destaque.",
+        "legenda": "Importar mostra uma prévia: adicionar ou substituir a lista."
+      },
+      {
+        "tipo": "video",
+        "src": "./tutorials/media/backup-e-bebidas/04.8242f5fc.mp4",
+        "poster": "./tutorials/media/backup-e-bebidas/04.poster.d1fc993a.webp",
+        "alt": "O botão Fazer backup é tocado e o app avisa que o backup foi criado e que o arquivo deve ser guardado em local privado.",
+        "legenda": "Fazer backup salva bebidas, histórico e preferências."
+      },
+      {
+        "tipo": "imagem",
+        "src": "./tutorials/media/backup-e-bebidas/05.d4d38cba.webp",
+        "alt": "Prévia de Restaurar backup, com o aviso O que será substituído em destaque: bebidas, histórico e preferências; bloqueio e PIN do aparelho não mudam.",
+        "legenda": "Restaurar troca os dados atuais; o PIN não muda."
+      }
+    ]
+  },
+  {
+    "id": "privacidade",
+    "titulo": "Bloqueio do aplicativo",
+    "resumo": "PIN ou biometria do aparelho.",
+    "passos": [
+      {
+        "tipo": "imagem",
+        "src": "./tutorials/media/privacidade/01.4e76983f.webp",
+        "alt": "Tela Privacidade com a chave Bloqueio do aplicativo, desligada, em destaque.",
+        "legenda": "Ative o bloqueio do aplicativo."
+      },
+      {
+        "tipo": "imagem",
+        "src": "./tutorials/media/privacidade/02.2e812146.webp",
+        "alt": "Pergunta Como desbloquear? com as duas opções em destaque: Biometria / aparelho e PIN do aplicativo.",
+        "legenda": "Escolha como desbloquear: biometria ou PIN."
+      },
+      {
+        "tipo": "video",
+        "src": "./tutorials/media/privacidade/03.b07a5c82.mp4",
+        "poster": "./tutorials/media/privacidade/03.poster.d0df00a4.webp",
+        "alt": "A opção PIN do aplicativo é tocada, o PIN 1234 é digitado e confirmado e o botão Salvar PIN é tocado; o app avisa que o bloqueio por PIN foi ativado.",
+        "legenda": "Crie um PIN de 4 dígitos e toque em Salvar PIN."
+      },
+      {
+        "tipo": "imagem",
+        "src": "./tutorials/media/privacidade/04.f4216c70.webp",
+        "alt": "Tela Privacidade com o bloqueio ativo e a opção Bloquear após ficar sem uso, com o tempo de 5 minutos, em destaque.",
+        "legenda": "Escolha em quanto tempo o app volta a bloquear."
+      },
+      {
+        "tipo": "video",
+        "src": "./tutorials/media/privacidade/05.e9c61ec3.mp4",
+        "poster": "./tutorials/media/privacidade/05.poster.c7ac72e6.webp",
+        "alt": "O botão Bloquear agora é tocado e o app mostra a tela de bloqueio, pedindo o PIN do aplicativo.",
+        "legenda": "Bloquear agora tranca o app até digitar o PIN."
+      }
+    ]
   }
 ];

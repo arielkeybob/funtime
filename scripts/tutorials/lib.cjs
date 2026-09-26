@@ -79,6 +79,46 @@ const SEEDS = {
     saveData();
     render();
   },
+  // O mesmo `demo`, com "Usar eventos" ligado (aparece a aba Evento no menu de baixo).
+  demoEventos: () => {
+    const min = 60000;
+    const agora = Date.now();
+    state.drinks = [
+      { id: 'cerveja', name: 'Cerveja', icon: '🍺', intervalMinutes: 60, askDoseSize: false },
+      { id: 'caipirinha', name: 'Caipirinha', icon: '🍹', intervalMinutes: 90, askDoseSize: true },
+      { id: 'agua', name: 'Água', icon: '💧', intervalMinutes: 30, askDoseSize: false },
+    ];
+    const registro = (id, drink, minutosAtras) => ({
+      id, drinkId: drink.id, drinkName: drink.name, drinkIcon: drink.icon,
+      intervalMinutes: drink.intervalMinutes, doseSize: null, consumedAt: agora - minutosAtras * min, occasionId: null,
+    });
+    const [cerveja, caipirinha, agua] = state.drinks;
+    state.events = [registro('e1', cerveja, 190), registro('e2', caipirinha, 130), registro('e3', cerveja, 75), registro('e4', agua, 20)];
+    state.occasions = [];
+    state.preferences.eventsEnabled = true;
+    saveData();
+    render();
+  },
+  // `demoEventos` com um evento já em andamento ("Churrasco do João", começou há 100 min) que contém as duas últimas doses.
+  demoEventoAtivo: () => {
+    const min = 60000;
+    const agora = Date.now();
+    state.drinks = [
+      { id: 'cerveja', name: 'Cerveja', icon: '🍺', intervalMinutes: 60, askDoseSize: false },
+      { id: 'caipirinha', name: 'Caipirinha', icon: '🍹', intervalMinutes: 90, askDoseSize: true },
+      { id: 'agua', name: 'Água', icon: '💧', intervalMinutes: 30, askDoseSize: false },
+    ];
+    const registro = (id, drink, minutosAtras, occasionId) => ({
+      id, drinkId: drink.id, drinkName: drink.name, drinkIcon: drink.icon,
+      intervalMinutes: drink.intervalMinutes, doseSize: null, consumedAt: agora - minutosAtras * min, occasionId,
+    });
+    const [cerveja, caipirinha, agua] = state.drinks;
+    state.occasions = [{ id: 'oc1', name: 'Churrasco do João', startedAt: agora - 100 * min, endedAt: null, scheduledEndAt: null, closedAt: null }];
+    state.events = [registro('e1', cerveja, 190, null), registro('e2', caipirinha, 130, null), registro('e3', cerveja, 75, 'oc1'), registro('e4', agua, 20, 'oc1')];
+    state.preferences.eventsEnabled = true;
+    saveData();
+    render();
+  },
   // Uma só bebida, sem registros: o estado logo depois do primeiro cadastro.
   umaBebida: () => {
     state.drinks = [{ id: 'cerveja', name: 'Cerveja', icon: '🍺', intervalMinutes: 60, askDoseSize: false }];
@@ -116,6 +156,8 @@ async function abrirApp(browser, port, { video, seed }) {
   });
   if (video) await context.clock.install({ time: HORA_FIXA });
   else await context.clock.setFixedTime(HORA_FIXA);
+  // Um ponto raro em que o app demora (derivar o PIN, por exemplo) não deve derrubar o build inteiro.
+  context.setDefaultTimeout(60000);
   const page = await context.newPage();
   const erros = [];
   page.on('pageerror', (error) => erros.push(error.message));
@@ -145,7 +187,7 @@ function desenharDestaque({ alvos, folga, ponto }) {
     el.showPopover();
     return el;
   };
-  for (const { seletor, rotulo } of alvos) {
+  for (const { seletor, rotulo, posicao } of alvos) {
     const alvo = document.querySelector(seletor);
     if (!alvo) throw new Error(`Destaque não encontrado na tela: ${seletor}`);
     alvo.scrollIntoView({ block: 'nearest' });
@@ -169,10 +211,16 @@ function desenharDestaque({ alvos, folga, ponto }) {
       });
       etiqueta.textContent = rotulo;
       const { width, height } = etiqueta.getBoundingClientRect();
-      const esquerda = Math.min(Math.max(r.left + r.width / 2 - width / 2, 8), window.innerWidth - width - 8);
-      const acima = r.top - folga - height - 8;
-      etiqueta.style.left = `${esquerda}px`;
-      etiqueta.style.top = `${acima >= 8 ? acima : r.bottom + folga + 8}px`;
+      if (posicao === 'dentro') {
+        // Canto superior direito, dentro do anel: para alvos grandes onde acima/abaixo cobriria outro texto.
+        etiqueta.style.left = `${r.right - width - 12}px`;
+        etiqueta.style.top = `${r.top + 12}px`;
+      } else {
+        const esquerda = Math.min(Math.max(r.left + r.width / 2 - width / 2, 8), window.innerWidth - width - 8);
+        const acima = r.top - folga - height - 8;
+        etiqueta.style.left = `${esquerda}px`;
+        etiqueta.style.top = `${acima >= 8 ? acima : r.bottom + folga + 8}px`;
+      }
     }
   }
 }
@@ -264,6 +312,13 @@ function criarT(page, context) {
       // Some no instante do toque, para o anel/dedo não ficarem sobre a tela que o toque abre.
       await t.limparDestaque();
       await page.locator(seletor).first().click();
+    },
+    // Digita letra por letra (com atraso), para o vídeo mostrar o campo sendo preenchido em vez de aparecer pronto.
+    digitar: (seletor, texto, { atraso = 90 } = {}) => page.locator(seletor).first().pressSequentially(texto, { delay: atraso }),
+    // O botão que abre o seletor de arquivo do sistema (que não existe em captura) passa a receber este
+    // arquivo no próximo clique: assim a prévia de importar/restaurar aparece como no aparelho.
+    aoEscolherArquivo({ nome, tipo, conteudo }) {
+      page.once('filechooser', (seletorDeArquivo) => seletorDeArquivo.setFiles({ name: nome, mimeType: tipo, buffer: Buffer.from(conteudo) }));
     },
     // Espera o aviso (toast) do app sumir, se houver um na tela; não falha se nunca aparecer.
     async esperarAvisoSumir(maximo = 9000) {
@@ -501,6 +556,7 @@ function textoConteudo(conteudo) {
 }
 
 module.exports = {
-  ROOT, LEGENDA_MAX, alvosDoDestaque, carregarRoteiros, capturar, montarConteudo, montarManifesto, textoConteudo,
+  // abrirApp/criarT/SEEDS: para scripts de exploração (mesmo ambiente das capturas: relógio fixo, contexto isolado).
+  ROOT, LEGENDA_MAX, abrirApp, criarT, SEEDS, alvosDoDestaque, carregarRoteiros, capturar, montarConteudo, montarManifesto, textoConteudo,
   paginaUtil, hashCobre, compararImagens, sha1, appVersion,
 };

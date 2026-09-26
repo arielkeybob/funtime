@@ -1,5 +1,5 @@
 {
-  "versaoApp": "2.18.1",
+  "versaoApp": "2.19.0",
   "topicos": {
     "introducao": {
       "cobre": {
@@ -51,6 +51,82 @@
         "02.7de77c3e.webp": "7de77c3e4ae9b979433a5958293a6e1c5886ca97",
         "03.1b76fdb6.webp": "1b76fdb62b809ffc93335030af75a55c9d398bb2",
         "04.b7fe37fa.webp": "b7fe37fafe1308317d13639243dcb609bea640fa"
+      }
+    },
+    "historico": {
+      "cobre": {
+        "#history-view": "e32ca34096b9",
+        "#event-dialog": "1c62457a171f",
+        "#app-confirm-dialog": "2e2c7fada09c",
+        ".bottom-nav": "d968a0871419",
+        "#drink-card-template": "f606a5358fe0"
+      },
+      "midia": {
+        "01.04529007.mp4": "045290078a328b3ffea0d4f4b4483d6ac82ea28f",
+        "01.poster.510acba5.webp": "510acba53f74bf044ae821f700e2d0951209fd1a",
+        "02.ab733b08.mp4": "ab733b0863068fa21a12fc7c24080e38bd8d927e",
+        "02.poster.107a3529.webp": "107a3529413c943549add8bd0e865a2f820e73bb",
+        "03.5ca1b872.mp4": "5ca1b8721ac9300609c5d56597c7c1cd80ecf6d4",
+        "03.poster.2a7f37b5.webp": "2a7f37b5336ca2d92ef6d1315861a0943082000b",
+        "04.09e78bfd.mp4": "09e78bfddf0fb4fbcab039b747e764257f32fe62",
+        "04.poster.30c11e23.webp": "30c11e235d3425b560617cc6df00ede9e8400ed7"
+      }
+    },
+    "eventos": {
+      "cobre": {
+        "#occasion-view": "6381abbc5360",
+        "#occasion-dialog": "fb4fbae6310a",
+        "#occasion-detail-dialog": "e783c910e97f",
+        "#app-confirm-dialog": "2e2c7fada09c",
+        "#nav-occasion": "b1f31b720a06"
+      },
+      "midia": {
+        "01.5eb33607.mp4": "5eb33607e14b1a90c984dc6fcaa5feb7cd84b714",
+        "01.poster.f62fa5c1.webp": "f62fa5c100d6aa0b7ec3d1fc39d4739ba5f886ee",
+        "02.434a1f40.webp": "434a1f408eaf36f1b77725b2329c10c3dda13e34",
+        "03.873d81ee.mp4": "873d81ee8d469228263e43338cd26882a07a123e",
+        "03.poster.ce76a7b2.webp": "ce76a7b2a307693ab3461c267715005593fd75fa",
+        "04.be82ce66.mp4": "be82ce66a0404d893d4900195ae8a26ed7e1347e",
+        "04.poster.ec060e13.webp": "ec060e137ce3019e4d5b3df0544e3f9ca58f594e",
+        "05.20507289.webp": "2050728922b857c3a523f238cc600020026690e1",
+        "06.082705d2.webp": "082705d2de713ad15693201f60dc95d54fd07c16",
+        "07.339579a7.mp4": "339579a77ae01d6eb14a4fcdf26d5b876a70038e",
+        "07.poster.113d6307.webp": "113d6307361affd626bfbccb886c43b2f673c1fd"
+      }
+    },
+    "backup-e-bebidas": {
+      "cobre": {
+        ".settings-drinks-data-card": "bd06212d574d",
+        ".settings-backup-data-card": "300a4fd60a84",
+        "#drink-import-dialog": "43fba91040b6",
+        "#backup-restore-dialog": "95fcb8d219ed"
+      },
+      "midia": {
+        "01.8bf2d550.webp": "8bf2d5504f1a3615368c700b1aa4d84d1a4ea654",
+        "02.c90003f5.mp4": "c90003f5768e5abded3c0cd1deeb6d594f8e3e99",
+        "02.poster.440edafe.webp": "440edafec2cf8686314a6cfc8e31d560cdfe9d7b",
+        "03.7e9e068b.mp4": "7e9e068bf3d95dd29d9d6fbc82b5fc4ac9b1d424",
+        "03.poster.83951e7a.webp": "83951e7a9ce1b3b80831d536ac2a7d419a549bb1",
+        "04.8242f5fc.mp4": "8242f5fc2d8384b56065b63ffafc2781a00405ab",
+        "04.poster.d1fc993a.webp": "d1fc993afeca72123558c754264739d071c17d44",
+        "05.d4d38cba.webp": "d4d38cbafb5a560668d0eab8d3e3df7c048000ea"
+      }
+    },
+    "privacidade": {
+      "cobre": {
+        "#security-method-dialog": "e0f4779e4b98",
+        "#pin-setup-dialog": "ffd0eb328fd2",
+        "#lock-screen": "bdc74e5ace98",
+        "#security-details": "c392c1647605"
+      },
+      "midia": {
+        "01.4e76983f.webp": "4e76983f19f76addd481473850443615e6721c65",
+        "02.2e812146.webp": "2e812146564124a597e4785edbee948abfbbe8ea",
+        "03.b07a5c82.mp4": "b07a5c82cf4c51218d7fe754be5b2bd277e97e0e",
+        "03.poster.d0df00a4.webp": "d0df00a4612873f6289785577359a3a1a0c0ab36",
+        "04.f4216c70.webp": "f4216c705dd96d30f927985c10535c292ae1f817",
+        "05.e9c61ec3.mp4": "e9c61ec31cbc98e937d92abd9443b84c57770138",
+        "05.poster.c7ac72e6.webp": "c7ac72e6aa8ba256013c2c4f856040554ab17883"
       }
     }
   }
