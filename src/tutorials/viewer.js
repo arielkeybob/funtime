@@ -51,11 +51,14 @@ export function createTutorialViewer({
   let reachedEnd = false;
   let video = null;
   let videoWanted = false;
+  let stopProgress = null;
   const prefetched = new Set();
 
   const total = () => tutorial?.passos.length ?? 0;
 
   function releaseVideo() {
+    stopProgress?.();
+    stopProgress = null;
     if (!video) return;
     video.pause();
     // Solta o arquivo: sem isto o navegador segue baixando o vídeo do slide que já saiu.
@@ -87,6 +90,10 @@ export function createTutorialViewer({
     element.src = step.src;
     element.addEventListener("error", () => { if (element.isConnected) showMediaError(MESSAGES.mediaError); });
     video = element;
+    // A moldura e a barra de progresso ficam num invólucro, para a barra grudar na borda de baixo do vídeo.
+    const wrap = document.createElement("div");
+    wrap.className = "tutorial-video";
+    wrap.append(element);
     const still = prefersReducedMotion() || saveData();
     if (still) {
       const play = document.createElement("button");
@@ -98,10 +105,27 @@ export function createTutorialViewer({
         play.remove();
         element.play().catch(() => {});
       });
-      return [element, play];
+      return [wrap, play];
     }
     videoWanted = true;
-    return [element];
+    wrap.append(buildProgress(element));
+    return [wrap];
+  }
+
+  // Barra fina sob o vídeo que enche até o fim e zera a cada volta do loop: é o sinal visual (sem
+  // texto) de que ele recomeçou. Não existe com movimento reduzido, onde o vídeo só toca se pedirem.
+  function buildProgress(element) {
+    const bar = document.createElement("div");
+    bar.className = "tutorial-video-bar";
+    bar.setAttribute("aria-hidden", "true");
+    const fill = document.createElement("span");
+    bar.append(fill);
+    let frame = requestAnimationFrame(function tick() {
+      if (element.duration > 0) fill.style.transform = `scaleX(${Math.min(element.currentTime / element.duration, 1)})`;
+      frame = requestAnimationFrame(tick);
+    });
+    stopProgress = () => cancelAnimationFrame(frame);
+    return bar;
   }
 
   function buildImage(step) {

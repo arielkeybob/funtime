@@ -177,6 +177,30 @@ function desenharDestaque({ alvos, folga, ponto }) {
   }
 }
 
+// O dedo (círculo branco) desce de `distancia` px acima até o centro do alvo, aparecendo aos poucos.
+// Devolve uma promessa que só resolve quando a animação termina.
+function aproximarDedo({ seletor, distancia, duracao }) {
+  document.querySelectorAll('.__tut[data-tut="dedo"]').forEach((n) => n.remove());
+  const alvo = document.querySelector(seletor);
+  if (!alvo) throw new Error(`Alvo do dedo não encontrado na tela: ${seletor}`);
+  const r = alvo.getBoundingClientRect();
+  const dedo = document.createElement('div');
+  dedo.className = '__tut';
+  dedo.dataset.tut = 'dedo';
+  dedo.setAttribute('popover', 'manual');
+  Object.assign(dedo.style, {
+    position: 'fixed', inset: 'auto', margin: '0', padding: '0', overflow: 'visible', pointerEvents: 'none', color: 'transparent',
+    left: `${r.left + r.width / 2 - 23}px`, top: `${r.top + r.height / 2 - 23}px`, width: '46px', height: '46px',
+    border: '2px solid #fff', borderRadius: '50%', background: 'rgba(255,255,255,.35)', boxShadow: '0 2px 10px rgba(0,0,0,.45)', opacity: '0',
+  });
+  document.body.append(dedo);
+  dedo.showPopover();
+  return dedo.animate(
+    [{ transform: `translateY(${-distancia}px)`, opacity: 0 }, { transform: 'translateY(0)', opacity: 1 }],
+    { duration: duracao, easing: 'cubic-bezier(.25,.7,.3,1)', fill: 'forwards' },
+  ).finished;
+}
+
 // `destaque` num passo: um seletor, ou uma lista de seletores / { seletor, rotulo }.
 function alvosDoDestaque(destaque) {
   return [].concat(destaque).map((item) => (typeof item === 'string' ? { seletor: item } : item));
@@ -226,17 +250,24 @@ function criarT(page, context) {
       await page.waitForTimeout(350);
     },
     // Para vídeo: anel + dedo sobre o elemento, o dedo "aperta" e o clique acontece de verdade.
-    async tocarComDedo(seletor, { espera = 800 } = {}) {
-      await t.destacar(seletor, { ponto: true });
-      await page.waitForTimeout(espera);
+    // O anel aparece primeiro (mostra o alvo), o dedo desce até ele, "aperta", some e o clique acontece.
+    // `antes`: tempo só com o anel; `descida`: duração do dedo chegando; `pausa`: dedo parado sobre o alvo.
+    async tocarComDedo(seletor, { antes = 700, descida = 850, distancia = 150, pausa = 300 } = {}) {
+      await t.destacar(seletor);
+      await page.waitForTimeout(antes);
+      await page.evaluate(aproximarDedo, { seletor, distancia, duracao: descida });
+      await page.waitForTimeout(pausa);
       await page.evaluate(() => {
         const dedo = document.querySelector('.__tut[data-tut="dedo"]');
-        if (dedo) { dedo.style.transition = 'transform 130ms ease-out'; dedo.style.transform = 'scale(.72)'; }
+        return dedo ? dedo.animate([{ transform: 'scale(1)' }, { transform: 'scale(.72)' }], { duration: 150, fill: 'forwards' }).finished : null;
       });
-      await page.waitForTimeout(170);
       // Some no instante do toque, para o anel/dedo não ficarem sobre a tela que o toque abre.
       await t.limparDestaque();
       await page.locator(seletor).first().click();
+    },
+    // Espera o aviso (toast) do app sumir, se houver um na tela; não falha se nunca aparecer.
+    async esperarAvisoSumir(maximo = 9000) {
+      await page.waitForFunction(() => { const aviso = document.querySelector('.toast'); return !aviso || aviso.hidden; }, null, { timeout: maximo }).catch(() => {});
     },
     destacar: (destaque, { folga = 6, ponto = false } = {}) => page.evaluate(desenharDestaque, { alvos: alvosDoDestaque(destaque), folga, ponto }),
     limparDestaque: () => page.evaluate(() => document.querySelectorAll('.__tut').forEach((n) => n.remove())),
@@ -296,15 +327,36 @@ function ffmpegPath() {
   return 'ffmpeg';
 }
 
-function webmParaMp4(entrada, saida, cortarSegundos) {
-  const args = ['-y', '-ss', cortarSegundos.toFixed(2), '-i', entrada, '-an', '-c:v', 'libx264', '-preset', 'slow', '-crf', '30',
-    '-pix_fmt', 'yuv420p', '-r', '24', '-movflags', '+faststart', saida];
+// Fade curto de/para preto nas pontas: como o vídeo roda em loop, é o sinal (sem texto) de que ele
+// recomeçou. A duração do vídeo já cortado é medida numa primeira passada sem fade, que também serve
+// de fonte do pôster (o último quadro não pode estar escurecido).
+const FADE_SEGUNDOS = 0.3;
+
+function transcodificar(entrada, saida, cortarSegundos, filtro) {
+  const args = ['-y', '-ss', cortarSegundos.toFixed(2), '-i', entrada, '-an', ...(filtro ? ['-vf', filtro] : []),
+    '-c:v', 'libx264', '-preset', 'slow', '-crf', '30', '-pix_fmt', 'yuv420p', '-r', '24', '-movflags', '+faststart', saida];
   const resultado = spawnSync(ffmpegPath(), args, { encoding: 'utf8' });
   if (resultado.error || resultado.status !== 0) {
     throw new Error(`ffmpeg falhou (${resultado.error?.message || resultado.stderr?.split('\n').slice(-4).join(' | ')}). ` +
       'Instale o ffmpeg (devDependency ffmpeg-static ou a variável FFMPEG) ou rode com --sem-video.');
   }
-  return fs.readFileSync(saida);
+}
+
+function duracaoDoMp4(arquivo) {
+  const saida = spawnSync(ffmpegPath(), ['-hide_banner', '-i', arquivo], { encoding: 'utf8' }).stderr || '';
+  const m = /Duration: (\d+):(\d+):(\d+(?:\.\d+)?)/.exec(saida);
+  if (!m) throw new Error('não consegui ler a duração do vídeo gerado');
+  return Number(m[1]) * 3600 + Number(m[2]) * 60 + Number(m[3]);
+}
+
+// Devolve { mp4, semFade }: `mp4` é o vídeo final (com fade) e `semFade` o caminho da passada intermediária.
+function webmParaMp4(entrada, saida, cortarSegundos) {
+  const semFade = saida.replace(/\.mp4$/, '.sem-fade.mp4');
+  transcodificar(entrada, semFade, cortarSegundos, null);
+  const duracao = duracaoDoMp4(semFade);
+  const fade = `fade=t=in:st=0:d=${FADE_SEGUNDOS},fade=t=out:st=${Math.max(duracao - FADE_SEGUNDOS, 0).toFixed(2)}:d=${FADE_SEGUNDOS}`;
+  transcodificar(entrada, saida, cortarSegundos, fade);
+  return { mp4: fs.readFileSync(saida), semFade };
 }
 
 // --- Cobertura (hash da marcação estática que cada tópico mostra) ---------------------------
@@ -404,10 +456,10 @@ async function gravarVideo({ browser, port, roteiro, passo, numero, tmp, util })
   const gravacao = page.video();
   await context.close();
   if (erros.length) throw new Error(`Roteiro ${roteiro.id}, passo ${numero}: o app lançou erro durante a gravação: ${erros.join(' | ')}`);
-  const mp4 = webmParaMp4(await gravacao.path(), path.join(dir, 'saida.mp4'), cortar);
-  // O pôster sai do último quadro do próprio vídeo: um screenshot dentro da página em gravação demora
-  // um tempo variável e alonga (de forma imprevisível) a cauda parada do vídeo.
-  const poster = posterDoMp4(path.join(dir, 'saida.mp4'), path.join(dir, 'poster.webp'));
+  const { mp4, semFade } = webmParaMp4(await gravacao.path(), path.join(dir, 'saida.mp4'), cortar);
+  // O pôster sai do último quadro do próprio vídeo (da versão sem fade): um screenshot dentro da página
+  // em gravação demora um tempo variável e alonga (de forma imprevisível) a cauda parada do vídeo.
+  const poster = posterDoMp4(semFade, path.join(dir, 'poster.webp'));
   return {
     principal: { nome: `${numero}.${sha1(mp4).slice(0, 8)}.mp4`, dados: mp4 },
     poster: { nome: `${numero}.poster.${sha1(poster).slice(0, 8)}.webp`, dados: poster },

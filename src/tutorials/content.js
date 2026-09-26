@@ -14,8 +14,8 @@ export const TUTORIALS = [
       },
       {
         "tipo": "video",
-        "src": "./tutorials/media/introducao/02.3ea783f5.mp4",
-        "poster": "./tutorials/media/introducao/02.poster.753c7a29.webp",
+        "src": "./tutorials/media/introducao/02.cb286548.mp4",
+        "poster": "./tutorials/media/introducao/02.poster.741ddebc.webp",
         "alt": "Dois toques no cartão da Cerveja registram a dose e o cartão passa a mostrar a contagem do intervalo.",
         "legenda": "Dê dois toques na bebida para registrar. O intervalo começa a contar."
       },
@@ -27,7 +27,7 @@ export const TUTORIALS = [
       },
       {
         "tipo": "imagem",
-        "src": "./tutorials/media/introducao/04.061b59eb.webp",
+        "src": "./tutorials/media/introducao/04.6fe7abdc.webp",
         "alt": "Menu de Configurações com a linha Como usar em destaque.",
         "legenda": "Mais detalhes em Configurações → Como usar."
       }
@@ -64,22 +64,22 @@ export const TUTORIALS = [
       },
       {
         "tipo": "video",
-        "src": "./tutorials/media/cadastrar-bebida/05.3a31ddfa.mp4",
-        "poster": "./tutorials/media/cadastrar-bebida/05.poster.be3fdd5a.webp",
+        "src": "./tutorials/media/cadastrar-bebida/05.aa79f5a9.mp4",
+        "poster": "./tutorials/media/cadastrar-bebida/05.poster.2f50ccab.webp",
         "alt": "O botão Salvar é tocado e o cadastro fecha, mostrando o cartão da Cerveja na tela inicial.",
         "legenda": "Toque em Salvar: a bebida aparece na tela inicial."
       },
       {
         "tipo": "video",
-        "src": "./tutorials/media/cadastrar-bebida/06.9862fb6a.mp4",
-        "poster": "./tutorials/media/cadastrar-bebida/06.poster.5fb60d7b.webp",
+        "src": "./tutorials/media/cadastrar-bebida/06.e951b9fa.mp4",
+        "poster": "./tutorials/media/cadastrar-bebida/06.poster.00436985.webp",
         "alt": "O botão ⋮ do cartão da Cerveja é tocado e abre o menu com as opções Anotar dose e Editar bebida.",
         "legenda": "Toque em ⋮ no cartão para anotar uma dose ou editar a bebida."
       },
       {
         "tipo": "video",
-        "src": "./tutorials/media/cadastrar-bebida/07.2ba3274b.mp4",
-        "poster": "./tutorials/media/cadastrar-bebida/07.poster.3e821fdb.webp",
+        "src": "./tutorials/media/cadastrar-bebida/07.699ee7a4.mp4",
+        "poster": "./tutorials/media/cadastrar-bebida/07.poster.bc820975.webp",
         "alt": "A Água é segurada e arrastada para o topo da lista de bebidas.",
         "legenda": "Segure uma bebida e arraste para mudar a ordem."
       }
@@ -92,14 +92,14 @@ export const TUTORIALS = [
     "passos": [
       {
         "tipo": "video",
-        "src": "./tutorials/media/registrar-dose/01.294525c6.mp4",
-        "poster": "./tutorials/media/registrar-dose/01.poster.0062f4e2.webp",
+        "src": "./tutorials/media/registrar-dose/01.7b3a652e.mp4",
+        "poster": "./tutorials/media/registrar-dose/01.poster.b8f257f6.webp",
         "alt": "Dois toques rápidos no cartão da Cerveja registram a dose e iniciam a contagem.",
         "legenda": "Dê dois toques na bebida para registrar a dose."
       },
       {
         "tipo": "imagem",
-        "src": "./tutorials/media/registrar-dose/02.fed0d2db.webp",
+        "src": "./tutorials/media/registrar-dose/02.7de77c3e.webp",
         "alt": "Cartão da Água em contagem regressiva, com o tempo restante em destaque.",
         "legenda": "O cartão mostra quanto falta para o intervalo terminar."
       },

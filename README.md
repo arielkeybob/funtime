@@ -1,4 +1,10 @@
-# FunTime — V2.18.0
+# FunTime — V2.18.1
+
+## V2.18.1 — vídeos dos tutoriais mais calmos, com sinal de que o loop recomeçou
+
+- **Cadastrar e organizar bebidas → Salvar e ⋮:** tempo parado antes do gesto, um dedo que **desce até o botão** antes do toque e a tela final por cerca de 3 s (no Salvar, até um aviso do app sumir, se houver). O vídeo do ⋮ começa só com a tela inicial e passa mais tempo no menu aberto.
+- **Sinal visual de recomeço, sem texto:** todos os vídeos ganham um fade curto de/para preto nas pontas e uma barra fina sob o vídeo que enche e zera a cada volta do loop (não aparece com movimento reduzido, onde o vídeo só toca se pedirem).
+- Mudou o `content.js`/mídia e o CSS, que estão no pacote offline: por isso nova versão (`funtime-v2-18-1`). Sem mudança de formato de dados, regras do Firestore, políticas ou aceite.
 
 ## V2.18.0 — tutoriais: introdução no primeiro acesso e "Como usar" em Configurações
 

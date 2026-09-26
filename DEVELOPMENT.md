@@ -9,7 +9,7 @@ Duas camadas com um visualizador só (`src/tutorials/viewer.js`, dialog `#tutori
 - `seed`: `vazio`, `demo` (3 bebidas e 4 registros), `demoLimpo` (as mesmas bebidas sem registros) ou `umaBebida` (só a Cerveja, sem registros — o estado logo após o primeiro cadastro). Um passo pode trocar de seed com `seed`; num vídeo, `seed` é o estado em que a página nova começa.
 - passo de imagem: `{ tipo: 'imagem', legenda (≤ 90), alt, antes?(t), destaque?, ponto? }` — `antes` leva a tela ao estado a capturar, `destaque` é um seletor ou uma lista de `{ seletor, rotulo }` (anéis, com etiqueta curta opcional), `ponto` desenha o dedo.
 - passo de vídeo: `{ tipo: 'video', legenda, alt, seed?, preparar?(t), gravar(t) }` — grava numa página nova; o que `preparar` faz é cortado do vídeo.
-- `t`: `page`, `esperar`, `tocar`, `escrever`, `duploToque` (o registro de dose é por duplo toque), `arrastar` (pressão longa + arraste), `tocarComDedo` (anel + dedo que "aperta", some e clica; para vídeo), `destacar`. Cuidado com seletor ambíguo: `.setting-toggle` existe em mais de um dialog e pega o primeiro do DOM, que pode estar escondido; use um só, como `label[for="ask-dose-size"]`.
+- `t`: `page`, `esperar`, `tocar`, `escrever`, `duploToque` (o registro de dose é por duplo toque), `arrastar` (pressão longa + arraste), `tocarComDedo` (para vídeo: o anel aparece, o dedo **desce até o alvo**, "aperta", some e o clique acontece; `antes`, `descida` e `pausa` ajustam os tempos), `esperarAvisoSumir` (aguarda o toast do app sumir, se houver), `destacar`. Cuidado com seletor ambíguo: `.setting-toggle` existe em mais de um dialog e pega o primeiro do DOM, que pode estar escondido; use um só, como `label[for="ask-dose-size"]`.
 
 **Comandos**
 - `npm run tutorials:build [id …] [--sem-video]` regenera; `TUTORIAIS_PNG=<pasta>` guarda também o PNG bruto para conferir a olho.
@@ -17,6 +17,8 @@ Duas camadas com um visualizador só (`src/tutorials/viewer.js`, dialog `#tutori
 - `tests/tutorials.test.cjs` (no `npm test`) falha se um roteiro divergir do `content.js`/manifesto/mídia, se um seletor estático sumir de `index.html` ou se a mídia passar do orçamento (imagem 150 KB, vídeo 700 KB, total 6 MB).
 
 **Depois de mudar uma tela ou um fluxo:** `tutorials:check` → ajuste legenda/roteiro dos tópicos apontados → `tutorials:build <id>` → confira o diff das imagens → nova versão (o `content.js` está no `APP_SHELL`). O que o `check` **não** pega: legenda que ficou falsa por mudança de comportamento com a mesma aparência (por isso a revisão do diff é humana) e mudança em vídeo.
+
+**Loop dos vídeos:** todo MP4 sai com fade de 0,3 s de/para preto (filtro `fade` do ffmpeg; o pôster é tirado da passada sem fade, senão sairia escurecido) e o visualizador mostra uma barra de progresso que zera a cada volta. Vale como sinal de recomeço; roteiro novo não precisa fazer nada. Dê tempo parado **antes** do gesto (a pessoa precisa ler a tela) e **depois** dele (o resultado precisa ficar visível), ou o loop parece atropelado.
 
 **Duração dos vídeos:** vem só das esperas do roteiro (`gravar` + 300 ms); o pôster é extraído do último quadro do MP4 justamente para não depender do tempo de um screenshot dentro da página em gravação.
 

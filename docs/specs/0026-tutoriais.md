@@ -78,7 +78,11 @@ permanece, e nenhuma legenda pode sugerir que é seguro consumir.
   **Pular** (só na introdução, some no último slide) e **×** (só nos tópicos), setas do teclado e deslizar
   horizontal. Vídeo: `muted loop playsinline preload="metadata" poster`;
   pausa ao trocar de slide, ao fechar e com `document.hidden`; com `prefers-reduced-motion` ou
-  `navigator.connection.saveData` mostra só o pôster e um botão de tocar.
+  `navigator.connection.saveData` mostra só o pôster e um botão de tocar. **Sinal de recomeço do
+  loop, sem texto:** o vídeo sai do build com um fade de 0,3 s de/para preto nas pontas, e o
+  visualizador desenha sob ele uma barra fina (`.tutorial-video-bar`, atualizada por
+  `requestAnimationFrame` a partir de `currentTime/duration`) que enche e zera a cada volta; ela
+  não existe nos modos de vídeo parado.
 
 `src/tutorials/content.js` (gerado): `export const TUTORIALS = [{ id, titulo, resumo, intro?,
 passos: [{ tipo: 'imagem'|'video', src, poster?, alt, legenda }] }]`.

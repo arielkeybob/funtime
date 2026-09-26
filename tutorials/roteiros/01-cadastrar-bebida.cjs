@@ -48,10 +48,13 @@ module.exports = {
         await t.esperar(300);
       },
       async gravar(t) {
-        await t.esperar(500);
+        // Formulário parado antes do gesto (dá tempo de ler), dedo descendo até o Salvar e, depois do
+        // clique, a tela inicial por tempo suficiente para ver o resultado (e um aviso, se houver, sumir).
+        await t.esperar(1200);
         await t.tocarComDedo('#drink-form button[type=submit]');
         await t.page.waitForSelector('.drink-card');
-        await t.esperar(1200);
+        await t.esperarAvisoSumir();
+        await t.esperar(2600);
       },
     },
     {
@@ -61,12 +64,13 @@ module.exports = {
       alt: 'O botão ⋮ do cartão da Cerveja é tocado e abre o menu com as opções Anotar dose e Editar bebida.',
       async preparar(t) { await t.esperar(400); },
       async gravar(t) {
-        await t.esperar(500);
+        // Só a tela inicial primeiro; depois o dedo desce até o ⋮, o menu abre e fica bastante tempo na tela.
+        await t.esperar(1400);
         await t.tocarComDedo('.drink-card .more-button');
         await t.page.waitForSelector('#drink-menu-dialog[open]');
-        await t.esperar(400);
+        await t.esperar(600);
         await t.destacar('.drink-menu-actions');
-        await t.esperar(1000);
+        await t.esperar(2800);
       },
     },
     {

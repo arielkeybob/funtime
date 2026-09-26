@@ -282,3 +282,48 @@ test('sem conexão o tópico abre com o aviso, sem baixar em segundo plano nem g
     assert.deepEqual(erros, []);
   });
 });
+
+// Leva a folha até o primeiro slide de vídeo do tópico aberto; devolve false se não houver.
+async function irAteVideo(page) {
+  const { total } = await contador(page);
+  for (let passo = 1; passo <= total; passo++) {
+    if (await page.locator('#tutorial-stage video').count()) return true;
+    if (passo < total) await page.locator('#tutorial-next').click();
+  }
+  return false;
+}
+
+test('o vídeo em loop mostra uma barra de progresso que avança e zera a cada volta', { timeout: 60000 }, async () => {
+  await withApp(async (page, erros) => {
+    await page.waitForSelector('#tutorial-dialog[open]');
+    assert.equal(await irAteVideo(page), true, 'a introdução tem um slide de vídeo');
+    await page.waitForFunction(() => document.querySelector('#tutorial-stage video')?.readyState >= 2);
+    const barra = page.locator('.tutorial-video-bar span');
+    assert.equal(await barra.count(), 1);
+    const leitura = () => page.evaluate(() => {
+      const video = document.querySelector('#tutorial-stage video');
+      const escala = Number(/scaleX\(([\d.e-]+)\)/.exec(document.querySelector('.tutorial-video-bar span').style.transform)?.[1] ?? 0);
+      return { escala, tempo: video.currentTime, duracao: video.duration };
+    });
+    // Amostra por mais que a duração do vídeo: a barra sobe e, na volta do loop, cai de novo para perto de 0.
+    const { duracao } = await leitura();
+    const escalas = [];
+    for (let i = 0; i < Math.ceil((duracao * 1000) / 250) + 6; i++) { escalas.push((await leitura()).escala); await page.waitForTimeout(250); }
+    assert.ok(Math.max(...escalas) > 0.7, 'a barra chega perto do fim');
+    assert.ok(escalas.some((valor, i) => i > 0 && valor < escalas[i - 1] - 0.5), 'a barra volta a zero quando o loop recomeça');
+    // Trocar de slide desliga o laço de atualização (nada de barra fantasma).
+    await page.locator('#tutorial-next').click();
+    assert.equal(await page.locator('.tutorial-video-bar').count(), 0);
+    assert.deepEqual(erros, []);
+  });
+});
+
+test('com movimento reduzido o vídeo não tem barra de progresso', { timeout: 60000 }, async () => {
+  await withApp(async (page, erros) => {
+    await page.waitForSelector('#tutorial-dialog[open]');
+    assert.equal(await irAteVideo(page), true);
+    assert.equal(await page.locator('.tutorial-video-bar').count(), 0);
+    assert.equal(await page.locator('.tutorial-play').isVisible(), true);
+    assert.deepEqual(erros, []);
+  }, { contextOptions: { reducedMotion: 'reduce' } });
+});
