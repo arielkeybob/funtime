@@ -153,6 +153,45 @@ export const TUTORIALS = [
     ]
   },
   {
+    "id": "privacidade",
+    "titulo": "Bloqueio do aplicativo",
+    "resumo": "PIN ou biometria do aparelho.",
+    "passos": [
+      {
+        "tipo": "imagem",
+        "src": "./tutorials/media/privacidade/01.4e76983f.webp",
+        "alt": "Tela Privacidade com a chave Bloqueio do aplicativo, desligada, em destaque.",
+        "legenda": "Ative o bloqueio do aplicativo."
+      },
+      {
+        "tipo": "imagem",
+        "src": "./tutorials/media/privacidade/02.2e812146.webp",
+        "alt": "Pergunta Como desbloquear? com as duas opções em destaque: Biometria / aparelho e PIN do aplicativo.",
+        "legenda": "Escolha como desbloquear: biometria ou PIN."
+      },
+      {
+        "tipo": "video",
+        "src": "./tutorials/media/privacidade/03.b07a5c82.mp4",
+        "poster": "./tutorials/media/privacidade/03.poster.d0df00a4.webp",
+        "alt": "A opção PIN do aplicativo é tocada, o PIN 1234 é digitado e confirmado e o botão Salvar PIN é tocado; o app avisa que o bloqueio por PIN foi ativado.",
+        "legenda": "Crie um PIN de 4 dígitos e toque em Salvar PIN."
+      },
+      {
+        "tipo": "imagem",
+        "src": "./tutorials/media/privacidade/04.f4216c70.webp",
+        "alt": "Tela Privacidade com o bloqueio ativo e a opção Bloquear após ficar sem uso, com o tempo de 5 minutos, em destaque.",
+        "legenda": "Escolha em quanto tempo o app volta a bloquear."
+      },
+      {
+        "tipo": "video",
+        "src": "./tutorials/media/privacidade/05.e9c61ec3.mp4",
+        "poster": "./tutorials/media/privacidade/05.poster.c7ac72e6.webp",
+        "alt": "O botão Bloquear agora é tocado e o app mostra a tela de bloqueio, pedindo o PIN do aplicativo.",
+        "legenda": "Bloquear agora tranca o app até digitar o PIN."
+      }
+    ]
+  },
+  {
     "id": "eventos",
     "titulo": "Eventos e agenda",
     "resumo": "Ligar, criar, agendar e encerrar.",
@@ -206,6 +245,106 @@ export const TUTORIALS = [
     ]
   },
   {
+    "id": "amigos",
+    "titulo": "Amigos e compartilhar doses",
+    "resumo": "Conectar e mostrar as doses.",
+    "passos": [
+      {
+        "tipo": "imagem",
+        "src": "./tutorials/media/amigos/01.3cb25e77.webp",
+        "alt": "Tela Backup e conta com o botão Entrar com Google, no cartão Sincronizar entre aparelhos, em destaque.",
+        "legenda": "A função Amigos precisa da Conta Google: entre em Backup e conta."
+      },
+      {
+        "tipo": "video",
+        "src": "./tutorials/media/amigos/02.f7d8ae6a.mp4",
+        "poster": "./tutorials/media/amigos/02.poster.058e705d.webp",
+        "alt": "Na tela inicial, o ícone Amigos, no canto superior direito, é tocado e abre a tela Amigos com Bia, Caio e Duda.",
+        "legenda": "Com a conta conectada, toque no ícone Amigos da tela inicial."
+      },
+      {
+        "tipo": "video",
+        "src": "./tutorials/media/amigos/03.d7458e3d.mp4",
+        "poster": "./tutorials/media/amigos/03.poster.74feb5ec.webp",
+        "alt": "Na tela Amigos, o botão + é tocado e abre Adicionar amigo; o botão Gerar código é tocado e aparecem o código com QR e o tempo de validade.",
+        "legenda": "Toque em + e mostre o código à outra pessoa, ou digite o dela."
+      },
+      {
+        "tipo": "texto",
+        "legenda": "Você pode compartilhar seu consumo com um amigo se quiser.",
+        "icone": "🤝",
+        "linhas": [
+          "Só compartilha se você quiser: a escolha é sua.",
+          "Você decide com quem e em qual evento.",
+          "Seu amigo vê só as doses daquele evento.",
+          "Você pode parar quando quiser."
+        ]
+      },
+      {
+        "tipo": "imagem",
+        "src": "./tutorials/media/amigos/05.849921ef.webp",
+        "alt": "Detalhe de um amigo, na aba Compartilhando, com o evento Churrasco do João, em andamento e ainda não compartilhado, em destaque.",
+        "legenda": "O fato de ser amigo não mostra nada. É preciso compartilhar."
+      },
+      {
+        "tipo": "texto",
+        "legenda": "Compartilhar funciona dentro de um evento.",
+        "icone": "🎉",
+        "linhas": [
+          "Primeiro, precisa estar rolando um evento.",
+          "Tudo que for consumido nele pode ser compartilhado, ou não.",
+          "Você escolhe com quais amigos: um ou mais."
+        ]
+      },
+      {
+        "tipo": "video",
+        "src": "./tutorials/media/amigos/07.fa8d6c93.mp4",
+        "poster": "./tutorials/media/amigos/07.poster.8e7feb22.webp",
+        "alt": "Um amigo é tocado, depois a aba Compartilhando e o botão Compartilhar; o evento passa a aparecer como ao vivo para essa pessoa, com o botão Parar.",
+        "legenda": "Toque no amigo, em Compartilhando e em Compartilhar."
+      },
+      {
+        "tipo": "imagem",
+        "src": "./tutorials/media/amigos/08.4f09ee13.webp",
+        "alt": "Aba Compartilhando com o evento Churrasco do João ao vivo para essa pessoa e o botão Parar em destaque.",
+        "legenda": "Para encerrar antes do fim do evento, toque em Parar."
+      }
+    ]
+  },
+  {
+    "id": "evento-compartilhado",
+    "titulo": "Evento compartilhado",
+    "resumo": "Convidar amigos e aceitar.",
+    "passos": [
+      {
+        "tipo": "video",
+        "src": "./tutorials/media/evento-compartilhado/01.0a5056d9.mp4",
+        "poster": "./tutorials/media/evento-compartilhado/01.poster.095032c1.webp",
+        "alt": "No formulário Novo evento, a linha Convidados é tocada; Bia e Caio são escolhidos e confirmados, e a linha passa a mostrar 2 pessoas.",
+        "legenda": "No evento, toque em Convidados e escolha os amigos."
+      },
+      {
+        "tipo": "imagem",
+        "src": "./tutorials/media/evento-compartilhado/02.65168e5e.webp",
+        "alt": "Formulário Novo evento com as duas linhas em destaque: Convidados, que mostra só o evento, e Compartilhar doses, que é uma escolha separada.",
+        "legenda": "Convidar mostra só o evento; as doses são outra escolha."
+      },
+      {
+        "tipo": "video",
+        "src": "./tutorials/media/evento-compartilhado/03.d01a9a9b.mp4",
+        "poster": "./tutorials/media/evento-compartilhado/03.poster.761de773.webp",
+        "alt": "O ícone Amigos é tocado e mostra o convite Festa Junina, da Bia; o convite é tocado e, na folha, o botão Vou é tocado; o app avisa que o evento foi para a agenda.",
+        "legenda": "Quem é convidado toca no convite e escolhe Vou ou Não vou."
+      },
+      {
+        "tipo": "imagem",
+        "src": "./tutorials/media/evento-compartilhado/04.ed5647c4.webp",
+        "alt": "Lista de convidados de uma festa agendada: a Bia tem o símbolo de envelope, convidada sem resposta; o Caio tem o símbolo de confirmado; a Duda não foi convidada.",
+        "legenda": "✉ foi convidado; ✔ já confirmou que vai."
+      }
+    ]
+  },
+  {
     "id": "backup-e-bebidas",
     "titulo": "Backup e bebidas",
     "resumo": "Exportar, importar e restaurar.",
@@ -242,45 +381,6 @@ export const TUTORIALS = [
         "src": "./tutorials/media/backup-e-bebidas/05.d4d38cba.webp",
         "alt": "Prévia de Restaurar backup, com o aviso O que será substituído em destaque: bebidas, histórico e preferências; bloqueio e PIN do aparelho não mudam.",
         "legenda": "Restaurar troca os dados atuais; o PIN não muda."
-      }
-    ]
-  },
-  {
-    "id": "privacidade",
-    "titulo": "Bloqueio do aplicativo",
-    "resumo": "PIN ou biometria do aparelho.",
-    "passos": [
-      {
-        "tipo": "imagem",
-        "src": "./tutorials/media/privacidade/01.4e76983f.webp",
-        "alt": "Tela Privacidade com a chave Bloqueio do aplicativo, desligada, em destaque.",
-        "legenda": "Ative o bloqueio do aplicativo."
-      },
-      {
-        "tipo": "imagem",
-        "src": "./tutorials/media/privacidade/02.2e812146.webp",
-        "alt": "Pergunta Como desbloquear? com as duas opções em destaque: Biometria / aparelho e PIN do aplicativo.",
-        "legenda": "Escolha como desbloquear: biometria ou PIN."
-      },
-      {
-        "tipo": "video",
-        "src": "./tutorials/media/privacidade/03.b07a5c82.mp4",
-        "poster": "./tutorials/media/privacidade/03.poster.d0df00a4.webp",
-        "alt": "A opção PIN do aplicativo é tocada, o PIN 1234 é digitado e confirmado e o botão Salvar PIN é tocado; o app avisa que o bloqueio por PIN foi ativado.",
-        "legenda": "Crie um PIN de 4 dígitos e toque em Salvar PIN."
-      },
-      {
-        "tipo": "imagem",
-        "src": "./tutorials/media/privacidade/04.f4216c70.webp",
-        "alt": "Tela Privacidade com o bloqueio ativo e a opção Bloquear após ficar sem uso, com o tempo de 5 minutos, em destaque.",
-        "legenda": "Escolha em quanto tempo o app volta a bloquear."
-      },
-      {
-        "tipo": "video",
-        "src": "./tutorials/media/privacidade/05.e9c61ec3.mp4",
-        "poster": "./tutorials/media/privacidade/05.poster.c7ac72e6.webp",
-        "alt": "O botão Bloquear agora é tocado e o app mostra a tela de bloqueio, pedindo o PIN do aplicativo.",
-        "legenda": "Bloquear agora tranca o app até digitar o PIN."
       }
     ]
   }

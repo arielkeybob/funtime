@@ -1,6 +1,6 @@
 # 0026 — Tutoriais: introdução no primeiro acesso e "Como usar" em Configurações
 
-Status: implementada (M1 na v2.18.0, M2 na v2.19.0); M3 pendente
+Status: implementada (M1 na v2.18.0, M2 na v2.19.0, M3 na v2.20.0)
 
 ## Contexto
 
@@ -85,7 +85,10 @@ permanece, e nenhuma legenda pode sugerir que é seguro consumir.
   não existe nos modos de vídeo parado.
 
 `src/tutorials/content.js` (gerado): `export const TUTORIALS = [{ id, titulo, resumo, intro?,
-passos: [{ tipo: 'imagem'|'video', src, poster?, alt, legenda }] }]`.
+passos: [{ tipo: 'imagem'|'video', src, poster?, alt, legenda } |
+{ tipo: 'texto', legenda, icone?, linhas? }] }]`. O slide `texto` (sem mídia nem `alt`; até 4 linhas de
+≤ 70 caracteres) explica uma ideia que não tem tela do app: o visualizador o desenha como um cartão e
+deixa a legenda invisível, ocupando o espaço, para o tamanho da folha não mudar entre slides.
 
 `app.js` guarda e lê a flag `funtime-tutorial-v1` (`{ seen: true, at }`) no `localStorage`,
 **por aparelho e fora do backup**, no mesmo padrão de `funtime-terms-v1`.
@@ -158,4 +161,21 @@ o cache não cresce sem limite; o preço é rebaixar a mídia já vista após ca
 
 M0 esta spec · M1 visualizador, Configurações, introdução, flag, harness de captura, 2 tópicos
 (cadastrar bebida; registrar dose, com um vídeo), `check`, teste e regra no `AGENTS.md` (v2.18.0) ·
-M2 tópicos de Histórico, Eventos, Backup e bebidas, Privacidade · M3 Amigos e Evento compartilhado.
+M2 tópicos de Histórico, Eventos, Backup e bebidas, Privacidade (v2.19.0) · M3 Amigos e compartilhar doses, Evento compartilhado (v2.20.0).
+
+## Marco 3 — Amigos e Evento compartilhado (v2.20.0)
+
+Os dois tópicos dependem de conta e de nuvem, que a captura não tem. Em vez de montar UIs paralelas
+(como fazem os testes de navegador), a captura usa a interface **real** do app sobre uma "nuvem" falsa:
+
+- `scripts/dev-server.cjs` acrescenta ao `app.js` **servido** (nunca ao arquivo em disco nem à produção) a
+  ponte `globalThis.__funtimeCaptura`, que atribui as variáveis do módulo (`shareWriter`, `sharedEvents`,
+  `sharedEventsUid`, `firebaseAuth`, `latestPairings`, `latestShares`) e alimenta `shareUI`/`inviteUI` pelos
+  mesmos setters que o app usa ao entrar (`setPairings`, `setShares`, `setInvites`, `setEvents`...).
+- `scripts/tutorials/lib.cjs` instala em toda página `window.__semear` e `window.__nuvemFalsa` (init script);
+  os seeds `demoAmigos`, `demoConvite` e `demoConviteEnviado` os usam. O escritor falso guarda
+  compartilhamentos e fichas em memória e devolve à interface o que o Firestore devolveria.
+- `tests/tutorials.test.cjs` falha se um refactor renomear ou transformar em `const` alguma variável que a
+  ponte atribui, e se a ponte aparecer no `app.js` de produção.
+- Limite: as capturas mostram a **interface**, não o comportamento do servidor (regras, limites, tempos).
+  Login e pareamento reais continuam sem captura.

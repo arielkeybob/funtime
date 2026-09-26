@@ -26,6 +26,25 @@ function createDevServer() {
         bytes = bytes.toString().replace('<head>', `<head><script>Object.defineProperty(navigator, 'standalone', { value: true });${marcarIntroVista}</script>`)
           .replace('</body>', `<div style="position:fixed;top:0;right:0;z-index:99999;background:#433719;color:#fff;padding:2px 8px;font:11px sans-serif;pointer-events:none">Prévia local · dados de teste</div></body>`);
       }
+      if (file === 'app.js') {
+        // Só na prévia local, nunca em produção: ponte para os tutoriais (scripts/tutorials/lib.cjs)
+        // trocarem a camada de nuvem por uma falsa e exibirem Amigos, convites e compartilhamento com a
+        // interface REAL, sem Firebase nem login. Roda no fim do módulo, onde estas variáveis existem.
+        bytes = bytes.toString() + `
+;globalThis.__funtimeCaptura = {
+  instalar({ uid, usuario, escritor, eventos }) {
+    sharedEventsUid = uid; shareWriter = escritor; sharedEvents = eventos;
+    firebaseAuth = { getCurrentUser: () => usuario, init: async () => {}, signOut: async () => {}, signIn: async () => {} };
+    updateSyncSettingsUI();
+  },
+  definirPareamentos(lista) { latestPairings = lista; shareUI.setPairings(lista); inviteUI.setPairings(lista); },
+  definirShares(lista) { latestShares = lista; shareUI.setShares(lista); },
+  definirEntradas(lista) { shareUI.setSharedEntries(lista); },
+  definirConvites(lista) { inviteUI.setInvites(lista); },
+  definirEventos(lista) { inviteUI.setEvents(lista); },
+};
+`;
+      }
       if (file === 'sw.js') {
         // Mantém protocolo/lock do boot; GET sempre usa disco, sem cache antigo.
         bytes = bytes.toString().replace('const request = event.request;', 'const request = event.request; if (request.method === "GET") return;');

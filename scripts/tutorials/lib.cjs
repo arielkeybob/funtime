@@ -13,6 +13,9 @@ const { createDevServer } = require('../dev-server.cjs');
 const ROOT = path.resolve(__dirname, '..', '..');
 const ROTEIROS_DIR = path.join(ROOT, 'tutorials', 'roteiros');
 const LEGENDA_MAX = 90;
+// Slide só de texto: poucas linhas de apoio, curtas (cabem no cartão sem rolar em telas pequenas).
+const LINHAS_MAX = 4;
+const LINHA_MAX = 70;
 // Relógio congelado nas imagens (contadores estáveis) e correndo a partir dele nos vídeos.
 const HORA_FIXA = new Date('2026-06-13T22:30:00-03:00');
 const VIEWPORT = { width: 390, height: 844 };
@@ -33,10 +36,17 @@ function validarRoteiro(roteiro, arquivo) {
   ok(Array.isArray(roteiro.passos) && roteiro.passos.length > 0, 'faltam passos');
   (roteiro.passos || []).forEach((passo, i) => {
     const rotulo = `passo ${i + 1}`;
-    ok(passo.tipo === 'imagem' || passo.tipo === 'video', `${rotulo}: tipo deve ser imagem ou video`);
+    ok(['imagem', 'video', 'texto'].includes(passo.tipo), `${rotulo}: tipo deve ser imagem, video ou texto`);
     ok(typeof passo.legenda === 'string' && passo.legenda.trim(), `${rotulo}: falta legenda`);
     ok(!passo.legenda || passo.legenda.length <= LEGENDA_MAX, `${rotulo}: legenda passa de ${LEGENDA_MAX} caracteres`);
-    ok(typeof passo.alt === 'string' && passo.alt.trim(), `${rotulo}: falta alt`);
+    // Só a mídia precisa de texto alternativo; o slide de texto já é texto.
+    if (passo.tipo !== 'texto') ok(typeof passo.alt === 'string' && passo.alt.trim(), `${rotulo}: falta alt`);
+    if (passo.tipo === 'texto') {
+      const linhas = passo.linhas ?? [];
+      ok(Array.isArray(linhas) && linhas.length <= LINHAS_MAX && linhas.every((l) => typeof l === 'string' && l.trim() && l.length <= LINHA_MAX),
+        `${rotulo}: linhas deve ter no máximo ${LINHAS_MAX} textos de até ${LINHA_MAX} caracteres`);
+      ok(!passo.icone || typeof passo.icone === 'string', `${rotulo}: icone deve ser um texto (emoji)`);
+    }
     if (passo.tipo === 'video') ok(typeof passo.gravar === 'function', `${rotulo}: video precisa de gravar()`);
     ok(!passo.seed || SEEDS[passo.seed], `${rotulo}: seed desconhecido`);
   });
@@ -55,6 +65,96 @@ function carregarRoteiros(ids = []) {
 }
 
 // --- Dados de partida -----------------------------------------------------------------------
+
+// Instalado em toda página de captura (init script): funções que os seeds de Amigos/convites usam.
+// Só funcionam servidas por scripts/dev-server.cjs, que acrescenta a ponte __funtimeCaptura ao app.js.
+function definirAuxiliaresDePagina() {
+  const MIN = 60000;
+  const DIA = 86400000;
+
+  // Os mesmos dados do seed demo; com eventoAtivo, o evento "Churrasco do João" em andamento.
+  window.__semear = ({ eventoAtivo = false, festaAgendada = false } = {}) => {
+    const agora = Date.now();
+    state.drinks = [
+      { id: 'cerveja', name: 'Cerveja', icon: '🍺', intervalMinutes: 60, askDoseSize: false },
+      { id: 'caipirinha', name: 'Caipirinha', icon: '🍹', intervalMinutes: 90, askDoseSize: true },
+      { id: 'agua', name: 'Água', icon: '💧', intervalMinutes: 30, askDoseSize: false },
+    ];
+    const registro = (id, drink, minutosAtras, occasionId) => ({
+      id, drinkId: drink.id, drinkName: drink.name, drinkIcon: drink.icon,
+      intervalMinutes: drink.intervalMinutes, doseSize: null, consumedAt: agora - minutosAtras * MIN, occasionId,
+    });
+    const [cerveja, caipirinha, agua] = state.drinks;
+    const idEvento = eventoAtivo ? 'oc1' : null;
+    state.occasions = eventoAtivo ? [{ id: 'oc1', name: 'Churrasco do João', startedAt: agora - 100 * MIN, endedAt: null, scheduledEndAt: null, closedAt: null }] : [];
+    // Festa agendada (daqui a 2 dias) que EU organizo, já com ficha na nuvem falsa (ver __nuvemFalsa).
+    if (festaAgendada) state.occasions = [{ id: 'oc2', name: 'Festa Junina', startedAt: null, endedAt: null, scheduledStartAt: agora + 2 * DIA, scheduledEndAt: null, closedAt: null, autoStart: false, timeZone: 'America/Sao_Paulo', sharedEventId: 'ev-oc2', sharedHostUid: 'eu' }];
+    state.events = [registro('e1', cerveja, 190, null), registro('e2', caipirinha, 130, null), registro('e3', cerveja, 75, idEvento), registro('e4', agua, 20, idEvento)];
+    state.preferences.eventsEnabled = true;
+    saveData();
+    render();
+  };
+
+  // "Nuvem" falsa: troca o Firebase por objetos em memória, para a interface REAL de Amigos, convites
+  // e compartilhamento funcionar sem conta. amigos: [{ uid, alias, dias }]; convites: convites
+  // recebidos; recebidos: o que amigos compartilham comigo.
+  window.__nuvemFalsa = ({ amigos = [], convites = [], recebidos = [], fichas: fichasIniciais = [] } = {}) => {
+    const ponte = globalThis.__funtimeCaptura;
+    if (!ponte) throw new Error('Falta a ponte __funtimeCaptura: sirva o app por scripts/dev-server.cjs.');
+    const pareamentos = amigos.map((a) => ({
+      pairId: 'p-' + a.uid, otherUid: a.uid, alias: a.alias, myAlias: 'Eu',
+      acceptedByMe: true, acceptedByOther: true, createdAt: Date.now() - (a.dias ?? 30) * DIA,
+    }));
+    let compartilhamentos = [];
+    let fichas = [...fichasIniciais];
+    const escritor = {
+      start: async () => {}, stop() {},
+      createPairingCode: async () => ({ code: 'K7M4XP', expiresAtMs: Date.now() + 5 * MIN }),
+      cancelPairingCode: async () => {}, redeemPairingCode: async () => ({ ok: true }), acceptPairing: async () => {},
+      setAlias: async () => {}, removePairing: async () => {}, getGlobalAlias: async () => 'Eu', setGlobalAlias: async (apelido) => apelido || 'Eu',
+      startShare: async ({ occasion, viewerUid }) => {
+        const share = { shareId: 's-' + viewerUid + '-' + occasion.id, occasionId: occasion.id, occasionName: occasion.name, viewerUid, expiresAtMs: Date.now() + 30 * DIA };
+        compartilhamentos = [...compartilhamentos.filter((item) => item.shareId !== share.shareId), share];
+        ponte.definirShares(compartilhamentos);
+        return share;
+      },
+      stopShare: async (shareId) => { compartilhamentos = compartilhamentos.filter((item) => item.shareId !== shareId); ponte.definirShares(compartilhamentos); },
+      stopAllShares: async () => { compartilhamentos = []; ponte.definirShares([]); },
+      scheduleSharePush() {}, flushSharePushes: async () => {}, deleteAllSharingData: async () => {}, sweepExpiredShares: async () => {},
+    };
+    const nuvemDeEventos = {
+      start: async () => {}, stop() {}, scheduleFichaPush() {}, flushFichaPushes: async () => {}, sweepExpired: async () => {},
+      setPairings() {}, setLinked() {}, deleteAllMyData: async () => {}, cancelEvent: async () => {}, leave: async () => {}, decline: async () => {},
+      publishEvent: async (ocasiao) => {
+        const eventId = 'ev-' + ocasiao.id;
+        fichas = [...fichas.filter((f) => f.eventId !== eventId), {
+          eventId, hostUid: 'eu', name: ocasiao.name, startAt: ocasiao.startedAt ?? ocasiao.scheduledStartAt, endAt: ocasiao.endedAt ?? ocasiao.scheduledEndAt ?? null,
+          invited: [], going: [], status: 'active', expiresAtMs: Date.now() + 90 * DIA,
+        }];
+        ponte.definirEventos(fichas);
+        return { ok: true, eventId };
+      },
+      inviteMany: async (eventId, uids) => {
+        fichas = fichas.map((f) => (f.eventId === eventId ? { ...f, invited: [...new Set([...f.invited, ...uids])] } : f));
+        ponte.definirEventos(fichas);
+        return { failed: [] };
+      },
+      uninvite: async (eventId, uid) => {
+        fichas = fichas.map((f) => (f.eventId === eventId ? { ...f, invited: f.invited.filter((x) => x !== uid), going: f.going.filter((x) => x !== uid) } : f));
+        ponte.definirEventos(fichas);
+      },
+      accept: async (eventId) => {
+        const convite = convites.find((c) => c.eventId === eventId);
+        return convite ? { ok: true, event: convite } : { ok: false, reason: 'not-found' };
+      },
+    };
+    ponte.instalar({ uid: 'eu', usuario: { uid: 'eu', email: 'voce@exemplo.com', displayName: 'Você' }, escritor, eventos: nuvemDeEventos });
+    ponte.definirPareamentos(pareamentos);
+    ponte.definirEntradas(recebidos);
+    ponte.definirEventos(fichas);
+    ponte.definirConvites(convites);
+  };
+}
 
 // Executados dentro da página (não podem usar variáveis de fora).
 const SEEDS = {
@@ -119,6 +219,32 @@ const SEEDS = {
     saveData();
     render();
   },
+  // Conta conectada (nuvem falsa) com três amigos e um evento em andamento: a Home ganha o ícone
+  // Amigos, e a tela Amigos, o detalhe de cada amigo e o compartilhar de doses funcionam de verdade.
+  demoAmigos: () => {
+    window.__semear({ eventoAtivo: true });
+    window.__nuvemFalsa({ amigos: [{ uid: 'bia', alias: 'Bia', dias: 40 }, { uid: 'caio', alias: 'Caio', dias: 25 }, { uid: 'duda', alias: 'Duda', dias: 9 }] });
+  },
+  // Conta conectada, três amigos, "Usar eventos" ligado e NENHUM evento em andamento (dá para criar
+  // um), com um convite pendente da Bia para a "Festa Junina".
+  demoConvite: () => {
+    window.__semear({ eventoAtivo: false });
+    const agora = Date.now();
+    window.__nuvemFalsa({
+      amigos: [{ uid: 'bia', alias: 'Bia', dias: 40 }, { uid: 'caio', alias: 'Caio', dias: 25 }, { uid: 'duda', alias: 'Duda', dias: 9 }],
+      convites: [{ eventId: 'ev-bia', hostUid: 'bia', name: 'Festa Junina', startAt: agora + 2 * 86400000, endAt: null, going: ['caio'], invited: ['eu', 'caio', 'duda'], status: 'active', expiresAtMs: agora + 30 * 86400000 }],
+    });
+  },
+  // Conta conectada, três amigos e uma festa AGENDADA que eu organizo: a Bia e o Caio foram convidados e o
+  // Caio já confirmou (por isso aparecem as marcas ✉ e ✔ na lista de convidados).
+  demoConviteEnviado: () => {
+    window.__semear({ eventoAtivo: false, festaAgendada: true });
+    const agora = Date.now();
+    window.__nuvemFalsa({
+      amigos: [{ uid: 'bia', alias: 'Bia', dias: 40 }, { uid: 'caio', alias: 'Caio', dias: 25 }, { uid: 'duda', alias: 'Duda', dias: 9 }],
+      fichas: [{ eventId: 'ev-oc2', hostUid: 'eu', name: 'Festa Junina', startAt: agora + 2 * 86400000, endAt: null, invited: ['bia', 'caio'], going: ['caio'], status: 'active', expiresAtMs: agora + 90 * 86400000 }],
+    });
+  },
   // Uma só bebida, sem registros: o estado logo depois do primeiro cadastro.
   umaBebida: () => {
     state.drinks = [{ id: 'cerveja', name: 'Cerveja', icon: '🍺', intervalMinutes: 60, askDoseSize: false }];
@@ -154,6 +280,7 @@ async function abrirApp(browser, port, { video, seed }) {
     // A introdução já foi "vista": as capturas mostram o app, não o visualizador.
     try { localStorage.setItem('funtime-tutorial-v1', JSON.stringify({ seen: true, at: 0 })); } catch { /* sem armazenamento */ }
   });
+  await context.addInitScript(definirAuxiliaresDePagina);
   if (video) await context.clock.install({ time: HORA_FIXA });
   else await context.clock.setFixedTime(HORA_FIXA);
   // Um ponto raro em que o app demora (derivar o PIN, por exemplo) não deve derrubar o build inteiro.
@@ -468,6 +595,8 @@ async function capturar(roteiros, { video = true, log = () => {} } = {}) {
           const webp = await pngParaWebp(util.page, png);
           await t.limparDestaque();
           arquivos = { principal: { nome: `${numero}.${sha1(webp).slice(0, 8)}.webp`, dados: webp } };
+        } else if (passo.tipo === 'texto') {
+          arquivos = {}; // nada a capturar: o texto vai direto para o content.js
         } else if (!video) {
           log(`  passo ${numero}: vídeo ignorado (--sem-video)`);
           arquivos = null;
@@ -529,7 +658,12 @@ function montarConteudo(capturados) {
     titulo: roteiro.titulo,
     resumo: roteiro.resumo,
     ...(roteiro.intro ? { intro: true } : {}),
-    passos: passos.filter((p) => p.arquivos).map(({ passo, arquivos }) => ({
+    passos: passos.filter((p) => p.arquivos).map(({ passo, arquivos }) => (passo.tipo === 'texto' ? {
+      tipo: 'texto',
+      legenda: passo.legenda,
+      ...(passo.icone ? { icone: passo.icone } : {}),
+      ...(passo.linhas?.length ? { linhas: passo.linhas } : {}),
+    } : {
       tipo: passo.tipo,
       src: `./tutorials/media/${roteiro.id}/${arquivos.principal.nome}`,
       ...(arquivos.poster ? { poster: `./tutorials/media/${roteiro.id}/${arquivos.poster.nome}` } : {}),
@@ -557,6 +691,6 @@ function textoConteudo(conteudo) {
 
 module.exports = {
   // abrirApp/criarT/SEEDS: para scripts de exploração (mesmo ambiente das capturas: relógio fixo, contexto isolado).
-  ROOT, LEGENDA_MAX, abrirApp, criarT, SEEDS, alvosDoDestaque, carregarRoteiros, capturar, montarConteudo, montarManifesto, textoConteudo,
+  ROOT, LEGENDA_MAX, LINHAS_MAX, LINHA_MAX, validarRoteiro, abrirApp, criarT, SEEDS, alvosDoDestaque, carregarRoteiros, capturar, montarConteudo, montarManifesto, textoConteudo,
   paginaUtil, hashCobre, compararImagens, sha1, appVersion,
 };

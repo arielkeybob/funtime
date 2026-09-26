@@ -1,19 +1,24 @@
 // Aceite específico deste navegador, separado dos dados transferíveis.
-const TERMS_VERSION = "1.0.6";
+const TERMS_VERSION = "1.0.7";
 // Aceites destas versões anteriores continuam valendo, sem pedir um novo. Liste aqui
 // só a mudança que não altera o que a pessoa consentiu — correção de texto, ajuste de
 // forma. Os dois erros não são simétricos: esquecer de listar apenas pede o aceite de
 // novo, enquanto listar indevidamente esconde dela uma mudança que deveria ver.
 //
-// Exceções registradas, ambas mudança material dispensada a pedido explícito do
+// Exceções registradas, todas mudança material dispensada a pedido explícito do
 // usuário (não só de forma), atenuadas por a funcionalidade ser opt-in e sempre
-// iniciada por quem compartilha:
+// iniciada por quem compartilha ou convida:
 // - 1.0.4 → 1.0.5 (spec 0023): capacidade de enviar registros para a conta de
 //   outra pessoa.
 // - 1.0.5 → 1.0.6 (spec 0023, v2.4.0): o modelo de consentimento do pareamento
 //   mudou de duas etapas (digitar código + aceite separado com confirmação de
 //   número) para uma (mostrar o código já é o consentimento de quem gera).
-const TERMS_VERSIONS_STILL_VALID = new Set(["1.0.3", "1.0.4", "1.0.5"]);
+// - 1.0.6 → 1.0.7 (spec 0025, funcionalidade da v2.17.0; texto atualizado na v2.20.0): as
+//   políticas passam a descrever o convite para evento compartilhado — a ficha do evento
+//   (nome, horário, fuso e identificadores dos convidados) fica no Firestore e a
+//   participação fica visível aos amigos do convidado. A funcionalidade já estava em uso
+//   antes de o texto existir; o usuário decidiu não pedir novo aceite.
+const TERMS_VERSIONS_STILL_VALID = new Set(["1.0.3", "1.0.4", "1.0.5", "1.0.6"]);
 const TERMS_STORAGE_KEY = "funtime-terms-v1";
 const TERMS_DRAFT_KEY = "funtime-terms-draft-v1";
 

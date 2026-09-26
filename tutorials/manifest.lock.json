@@ -1,5 +1,5 @@
 {
-  "versaoApp": "2.19.0",
+  "versaoApp": "2.20.0",
   "topicos": {
     "introducao": {
       "cobre": {
@@ -72,6 +72,23 @@
         "04.poster.30c11e23.webp": "30c11e235d3425b560617cc6df00ede9e8400ed7"
       }
     },
+    "privacidade": {
+      "cobre": {
+        "#security-method-dialog": "e0f4779e4b98",
+        "#pin-setup-dialog": "ffd0eb328fd2",
+        "#lock-screen": "bdc74e5ace98",
+        "#security-details": "c392c1647605"
+      },
+      "midia": {
+        "01.4e76983f.webp": "4e76983f19f76addd481473850443615e6721c65",
+        "02.2e812146.webp": "2e812146564124a597e4785edbee948abfbbe8ea",
+        "03.b07a5c82.mp4": "b07a5c82cf4c51218d7fe754be5b2bd277e97e0e",
+        "03.poster.d0df00a4.webp": "d0df00a4612873f6289785577359a3a1a0c0ab36",
+        "04.f4216c70.webp": "f4216c705dd96d30f927985c10535c292ae1f817",
+        "05.e9c61ec3.mp4": "e9c61ec31cbc98e937d92abd9443b84c57770138",
+        "05.poster.c7ac72e6.webp": "c7ac72e6aa8ba256013c2c4f856040554ab17883"
+      }
+    },
     "eventos": {
       "cobre": {
         "#occasion-view": "6381abbc5360",
@@ -94,6 +111,43 @@
         "07.poster.113d6307.webp": "113d6307361affd626bfbccb886c43b2f673c1fd"
       }
     },
+    "amigos": {
+      "cobre": {
+        "#sync-sign-in": "14af3de8ebab",
+        "#home-friends-button": "1a5718480582",
+        "#shared-view": "dcd6e4c78d98",
+        "#pairing-dialog": "e438cf8e371d",
+        "#shared-detail-dialog": "c44e36a0ed86"
+      },
+      "midia": {
+        "01.3cb25e77.webp": "3cb25e77994a59edacfa2c61b307340f0b5c9a49",
+        "02.f7d8ae6a.mp4": "f7d8ae6a6451a6a17134f7000afbdf1e11a3ae2b",
+        "02.poster.058e705d.webp": "058e705d23a9b47fdd042c0463083c1885166496",
+        "03.d7458e3d.mp4": "d7458e3d8d615f1985d49eea3de94007f547834e",
+        "03.poster.74feb5ec.webp": "74feb5ecaca24a383c94c6a9fde1b049b92d9570",
+        "05.849921ef.webp": "849921efe9f4ca7d335fc0c58bfa4d9b4b1e365b",
+        "07.fa8d6c93.mp4": "fa8d6c938349ec3057105784b94d2dcc2175ab50",
+        "07.poster.8e7feb22.webp": "8e7feb22f0b6fcc780c99985db8b4df436d54746",
+        "08.4f09ee13.webp": "4f09ee134f8ce03e03d945b5f68f0ad26a2b12be"
+      }
+    },
+    "evento-compartilhado": {
+      "cobre": {
+        "#occasion-dialog": "fb4fbae6310a",
+        "#event-invite-dialog": "4f125b911841",
+        "#invite-sheet-dialog": "4f929e944237",
+        "#occasion-detail-dialog": "e783c910e97f",
+        "#friends-invites": "deb4005af20f"
+      },
+      "midia": {
+        "01.0a5056d9.mp4": "0a5056d976064c5d5b9f2a0a752731a97e5ba20f",
+        "01.poster.095032c1.webp": "095032c18f4b6276edba62bc045fa94a47b5ff06",
+        "02.65168e5e.webp": "65168e5e95758f0203528391e888d65e19051fd2",
+        "03.d01a9a9b.mp4": "d01a9a9b3ff63193e5d2e09005db1eb958b81585",
+        "03.poster.761de773.webp": "761de773c6f747a5f1f250e6c6d33a4e13072a01",
+        "04.ed5647c4.webp": "ed5647c40cfc8660f18a55ee562d37af7c5ce94d"
+      }
+    },
     "backup-e-bebidas": {
       "cobre": {
         ".settings-drinks-data-card": "bd06212d574d",
@@ -110,23 +164,6 @@
         "04.8242f5fc.mp4": "8242f5fc2d8384b56065b63ffafc2781a00405ab",
         "04.poster.d1fc993a.webp": "d1fc993afeca72123558c754264739d071c17d44",
         "05.d4d38cba.webp": "d4d38cbafb5a560668d0eab8d3e3df7c048000ea"
-      }
-    },
-    "privacidade": {
-      "cobre": {
-        "#security-method-dialog": "e0f4779e4b98",
-        "#pin-setup-dialog": "ffd0eb328fd2",
-        "#lock-screen": "bdc74e5ace98",
-        "#security-details": "c392c1647605"
-      },
-      "midia": {
-        "01.4e76983f.webp": "4e76983f19f76addd481473850443615e6721c65",
-        "02.2e812146.webp": "2e812146564124a597e4785edbee948abfbbe8ea",
-        "03.b07a5c82.mp4": "b07a5c82cf4c51218d7fe754be5b2bd277e97e0e",
-        "03.poster.d0df00a4.webp": "d0df00a4612873f6289785577359a3a1a0c0ab36",
-        "04.f4216c70.webp": "f4216c705dd96d30f927985c10535c292ae1f817",
-        "05.e9c61ec3.mp4": "e9c61ec31cbc98e937d92abd9443b84c57770138",
-        "05.poster.c7ac72e6.webp": "c7ac72e6aa8ba256013c2c4f856040554ab17883"
       }
     }
   }

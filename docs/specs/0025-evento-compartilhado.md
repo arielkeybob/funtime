@@ -4,8 +4,8 @@ Status: **implementada (v2.17.0)** — Fase 0 (custo), regras do Firestore, mód
 da ocasião e interface, verificados por unitários, navegador e emulador com as regras reais.
 **Regras publicadas em `funtime-bob` em 19/09/2026** e confirmadas contra o servidor real (leitura
 sem login nas coleções `sharedEvents`, `pairings`, `shares` e `pairingCodes` responde 403). Pendentes:
-teste em aparelhos reais (dois aparelhos, duas contas) e o texto das políticas com novo aceite
-(decisão do usuário, numa próxima versão).
+teste em aparelhos reais (dois aparelhos, duas contas). O texto das políticas foi atualizado na
+v2.20.0, sem novo aceite (ver "Políticas").
 
 ## Contexto
 
@@ -265,6 +265,13 @@ decisão do usuário, que atualizará o texto e decidirá o aceite numa próxima
 que a seção 9 de `policies.html` ainda descreve só o compartilhamento de doses, enquanto o convite
 passa a guardar no servidor a ficha do evento e os uids dos participantes, com a participação
 visível a amigos.
+
+**Resolvido na v2.20.0 (26/09/2026).** A seção 9 de `policies.html` passou a descrever o convite
+(ficha do evento no Firestore, quem vê quem, recusa que não grava nada, cancelamento suave, validade
+com teto de 365 dias, "Apagar dados na nuvem" removendo as fichas, e a frase de que convidar não
+mostra doses). `TERMS_VERSION` foi a 1.0.7 e **a 1.0.6 entrou em `TERMS_VERSIONS_STILL_VALID`: sem
+novo aceite, a pedido explícito do usuário**, registrado como a terceira exceção em `policies.js`.
+`tests/audit.test.cjs` trava a versão exibida na página, a dispensa da 1.0.6 e os trechos do texto.
 
 ## Casos de borda
 

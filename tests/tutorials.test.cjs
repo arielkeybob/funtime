@@ -8,7 +8,7 @@ const path = require('node:path');
 const crypto = require('node:crypto');
 const { clampIndex, shouldShowIntro } = require('../src/tutorials/viewer.js');
 const { TUTORIALS } = require('../src/tutorials/content.js');
-const { carregarRoteiros, alvosDoDestaque, LEGENDA_MAX } = require('../scripts/tutorials/lib.cjs');
+const { carregarRoteiros, alvosDoDestaque, validarRoteiro, LEGENDA_MAX, LINHAS_MAX, LINHA_MAX } = require('../scripts/tutorials/lib.cjs');
 
 const ROOT = path.resolve(__dirname, '..');
 const html = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8');
@@ -82,9 +82,17 @@ test('content.js e o manifesto batem com os roteiros e com os arquivos de mídia
       const gerado = topico.passos[i];
       const rotulo = `${roteiro.id} passo ${i + 1}`;
       assert.equal(gerado.legenda, passo.legenda, `${rotulo}: legenda mudou no roteiro sem rebuild`);
-      assert.equal(gerado.alt, passo.alt, `${rotulo}: alt mudou no roteiro sem rebuild`);
       assert.equal(gerado.tipo, passo.tipo);
-      assert.ok(gerado.alt.trim() && gerado.legenda.length <= LEGENDA_MAX);
+      assert.ok(gerado.legenda.length <= LEGENDA_MAX);
+      if (passo.tipo === 'texto') {
+        // Slide só de texto: sem arquivo de mídia e sem alt; o conteúdo é o próprio texto.
+        assert.deepEqual(gerado.linhas ?? [], passo.linhas ?? [], `${rotulo}: linhas mudaram no roteiro sem rebuild`);
+        assert.equal(gerado.icone, passo.icone, `${rotulo}: ícone mudou no roteiro sem rebuild`);
+        assert.equal(gerado.src, undefined, `${rotulo}: slide de texto não tem mídia`);
+        return;
+      }
+      assert.equal(gerado.alt, passo.alt, `${rotulo}: alt mudou no roteiro sem rebuild`);
+      assert.ok(gerado.alt.trim());
       for (const [campo, limite] of [['src', passo.tipo === 'video' ? MAX_VIDEO : MAX_IMAGEM], ['poster', MAX_IMAGEM]]) {
         if (!gerado[campo]) continue;
         const arquivo = path.join(ROOT, gerado[campo].replace(/^\.\//, ''));
@@ -122,4 +130,35 @@ test('o Service Worker pré-carrega o visualizador e o conteúdo gerado', () => 
   const sw = fs.readFileSync(path.join(ROOT, 'sw.js'), 'utf8');
   assert.match(sw, /"\.\/src\/tutorials\/viewer\.js"/);
   assert.match(sw, /"\.\/src\/tutorials\/content\.js"/);
+});
+
+// A captura de Amigos/convites (marco 3) usa uma ponte que o dev server acrescenta ao app.js e que
+// troca variáveis do módulo por objetos falsos. Se um refactor renomear ou transformar em `const`
+// alguma delas, o build dos tutoriais quebra; este teste acusa antes, dentro do `npm test`.
+test('a ponte de captura do dev server ainda encontra as variáveis do app.js e não vaza para produção', async () => {
+  const app = fs.readFileSync(path.join(ROOT, 'app.js'), 'utf8');
+  for (const nome of ['firebaseAuth', 'shareWriter', 'sharedEvents', 'sharedEventsUid', 'latestPairings', 'latestShares', 'shareUI', 'inviteUI']) {
+    assert.match(app, new RegExp(`^let ${nome}\\b`, 'm'), `app.js precisa continuar declarando "let ${nome}" (a ponte de captura a atribui)`);
+  }
+  assert.match(app, /function updateSyncSettingsUI\b/);
+  assert.equal(app.includes('__funtimeCaptura'), false, 'a ponte só existe no dev server, nunca no app.js de produção');
+  const { createDevServer } = require('../scripts/dev-server.cjs');
+  const servidor = createDevServer();
+  await new Promise((resolve) => servidor.listen(0, '127.0.0.1', resolve));
+  try {
+    const servido = await (await fetch(`http://127.0.0.1:${servidor.address().port}/funtime/app.js`)).text();
+    assert.ok(servido.includes('__funtimeCaptura'), 'o dev server deveria acrescentar a ponte');
+  } finally { servidor.close(); }
+});
+
+// Slide só de texto (sem tela do app): dispensa alt, mas limita as linhas de apoio para o cartão caber.
+test('slide de texto: valida legenda e linhas, dispensa alt; mídia continua exigindo alt', () => {
+  const base = { id: 'x', titulo: 'X', resumo: 'r', cobre: ['#a'], seed: 'demo' };
+  const passo = (extra) => ({ ...base, passos: [{ tipo: 'texto', legenda: 'Uma frase.', ...extra }] });
+  assert.doesNotThrow(() => validarRoteiro(passo({ icone: '🤝', linhas: ['a', 'b'] }), 't'));
+  assert.doesNotThrow(() => validarRoteiro(passo({}), 't'), 'linhas são opcionais');
+  assert.throws(() => validarRoteiro(passo({ linhas: Array.from({ length: LINHAS_MAX + 1 }, () => 'a') }), 't'), /linhas/);
+  assert.throws(() => validarRoteiro(passo({ linhas: ['x'.repeat(LINHA_MAX + 1)] }), 't'), /linhas/);
+  assert.throws(() => validarRoteiro(passo({ legenda: '' }), 't'), /falta legenda/);
+  assert.throws(() => validarRoteiro({ ...base, passos: [{ tipo: 'imagem', legenda: 'Oi' }] }, 'i'), /falta alt/);
 });

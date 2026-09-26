@@ -1,4 +1,20 @@
-# FunTime — V2.19.0
+# FunTime — V2.20.0
+
+## V2.20.0 — políticas atualizadas para o evento compartilhado e tutoriais de Amigos (marco 3)
+
+- **Políticas 1.0.7 (26/09/2026), sem novo aceite.** A seção 9 de `policies.html` passa a descrever o **convite para evento compartilhado** (funcionalidade da v2.17.0, spec 0025), que já estava em uso sem texto: a ficha do evento vai para o Firestore (nome, início e fim, fuso, identificador do organizador e identificadores de convidados e de quem confirmou), o convidado vê o evento e cada participante vê pelo apelido só os próprios amigos convidados/confirmados (os demais viram uma contagem), recusar não grava nada nem avisa o organizador, cancelar é suave, a validade tem teto de 365 dias e **Apagar dados na nuvem** também remove as fichas. Convidar continua **não mostrando doses**.
+- **O aceite continua valendo:** por decisão do usuário, `TERMS_VERSION` sobe para 1.0.7 e a 1.0.6 entra em `TERMS_VERSIONS_STILL_VALID` (mesma exceção registrada em `policies.js` para 1.0.4→1.0.5 e 1.0.5→1.0.6). Instalação nova aceita a 1.0.7. Um teste agora garante que a versão exibida na página é a do aceite e que o texto do convite não some.
+- **Dois tutoriais novos** em Configurações → Como usar: **Amigos e compartilhar doses** (Entrar com Google, o ícone Amigos, Adicionar amigo com código e QR, "o fato de ser amigo não mostra nada", compartilhar e Parar, com **duas telas só de texto** em palavras simples: "você pode compartilhar seu consumo com um amigo se quiser" e "compartilhar funciona dentro de um evento") e **Evento compartilhado** (Convidados, "convidar mostra só o evento", aceitar com Vou/Não vou e as marcas ✉/✔). Agora são 8 tópicos mais a introdução (~2,5 MB de mídia, baixada só ao abrir um tópico).
+- **Novo tipo de tela nos tutoriais: só de texto** (ícone, frase em destaque e até 4 linhas curtas), para explicar uma ideia que não tem tela do app.
+- **Nova ordem da lista** em Configurações → Como usar: introdução, cadastrar, registrar, histórico, **bloqueio**, **eventos**, amigos, evento compartilhado e, por último, **backup**.
+- **Como foram gravados:** com a interface **real** do app sobre uma "nuvem" falsa em memória (sem login nem Firebase), ligada por uma ponte que **só o servidor de prévia** acrescenta ao `app.js` (nunca a produção); um teste acusa se um refactor quebrar as variáveis que a ponte usa. Isso mostra a interface, não o comportamento do servidor.
+- Inclui a 2.19.1 (aviso de mídia mais claro), ainda não publicada separadamente. Sem mudança de formato de dados nem de regras do Firestore.
+
+## V2.19.1 — aviso de mídia que não carrega, mais claro
+
+- Quando a mídia de um slide não carrega (sem conexão e ainda não baixada), o aviso agora diz **"Não foi possível carregar esta mídia. Conecte-se à internet e abra de novo."** (antes: "Conecte-se e abra de novo.").
+- O texto está em `src/tutorials/viewer.js`, que faz parte do pacote offline: por isso nova versão (`funtime-v2-19-1`). Sem mudança de dados, regras do Firestore, políticas ou aceite.
+
 
 ## V2.19.0 — quatro tutoriais novos em Configurações → Como usar (marco 2)
 

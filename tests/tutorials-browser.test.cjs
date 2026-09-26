@@ -173,7 +173,8 @@ test('mídia que não carrega mostra um aviso e não trava a navegação da folh
     await page.locator('#tutorial-topics .settings-nav-row').nth(1).click();
     await page.waitForSelector('#tutorial-dialog[open]');
     await page.waitForSelector('.tutorial-media-error');
-    assert.match(await page.locator('.tutorial-media-error').textContent(), /Não foi possível carregar/);
+    assert.equal((await page.locator('.tutorial-media-error').textContent()).trim(),
+      'Não foi possível carregar esta mídia. Conecte-se à internet e abra de novo.');
     assert.notEqual((await page.locator('#tutorial-caption').textContent()).trim(), '', 'a legenda continua valendo');
     await page.locator('#tutorial-next').click();
     assert.equal((await contador(page)).atual, 2);
@@ -326,4 +327,40 @@ test('com movimento reduzido o vídeo não tem barra de progresso', { timeout: 6
     assert.equal(await page.locator('.tutorial-play').isVisible(), true);
     assert.deepEqual(erros, []);
   }, { contextOptions: { reducedMotion: 'reduce' } });
+});
+
+test('slide só de texto: cartão com a frase, ícone e linhas, sem mídia; a legenda fica invisível mas ocupa o espaço', { timeout: 60000 }, async () => {
+  await withApp(async (page, erros) => {
+    await fecharIntro(page);
+    await page.locator('#open-settings').click();
+    await page.locator('#settings-row-tutorials').click();
+    await page.locator('#tutorial-topics .settings-nav-row', { hasText: 'Amigos e compartilhar doses' }).click();
+    await page.waitForSelector('#tutorial-dialog[open]');
+    // Avança até o primeiro slide de texto (o 4º do tópico).
+    for (let i = 0; i < 3; i++) await page.locator('#tutorial-next').click();
+    assert.deepEqual(await contador(page), { atual: 4, total: 8 });
+    assert.equal(await page.locator('.tutorial-texto').count(), 1);
+    assert.equal(await page.locator('#tutorial-stage .tutorial-media').count(), 0, 'slide de texto não tem imagem nem vídeo');
+    assert.equal((await page.locator('.tutorial-texto-titulo').textContent()).trim(), 'Você pode compartilhar seu consumo com um amigo se quiser.');
+    assert.equal(await page.locator('.tutorial-texto-icone').count(), 1);
+    assert.equal(await page.locator('.tutorial-texto-linha').count(), 4);
+    const legenda = await page.locator('#tutorial-caption').evaluate((no) => ({ classe: no.className, visibilidade: getComputedStyle(no).visibility, altura: no.getBoundingClientRect().height }));
+    assert.match(legenda.classe, /tutorial-caption--repetida/);
+    assert.equal(legenda.visibilidade, 'hidden');
+    assert.ok(legenda.altura > 20, 'a legenda invisível ainda ocupa espaço, para a folha não mudar de tamanho');
+
+    // O cartão cabe na área do slide (nada cortado) e, ao sair do texto, a legenda volta.
+    const cabe = await page.evaluate(() => {
+      const palco = document.querySelector('#tutorial-stage').getBoundingClientRect();
+      const cartao = document.querySelector('.tutorial-texto');
+      return cartao.scrollHeight <= cartao.clientHeight + 1 && cartao.getBoundingClientRect().bottom <= palco.bottom + 1;
+    });
+    assert.equal(cabe, true, 'as linhas do cartão precisam caber sem rolar');
+    await page.locator('#tutorial-next').click();
+    assert.equal(await page.locator('#tutorial-caption').evaluate((no) => getComputedStyle(no).visibility), 'visible');
+    assert.equal(await page.locator('.tutorial-texto').count(), 0);
+    await page.locator('#tutorial-next').click();
+    assert.equal((await page.locator('.tutorial-texto-titulo').textContent()).trim(), 'Compartilhar funciona dentro de um evento.');
+    assert.deepEqual(erros, []);
+  });
 });

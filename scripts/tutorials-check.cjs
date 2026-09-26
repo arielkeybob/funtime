@@ -47,7 +47,7 @@ const LIMITE_VISUAL = 0.003; // fração de pixels diferentes tolerada (serrilha
       for (const { roteiro, passos } of capturados) {
         const dir = path.join(lib.ROOT, 'tutorials', 'media', roteiro.id);
         for (const [i, { arquivos }] of passos.entries()) {
-          if (!arquivos) continue;
+          if (!arquivos?.principal) continue; // vídeo pulado ou slide de texto: nada a comparar
           const prefixo = `${String(i + 1).padStart(2, '0')}.`;
           const gravada = fs.existsSync(dir) ? fs.readdirSync(dir).find((nome) => nome.startsWith(prefixo) && nome.endsWith('.webp') && !nome.includes('.poster.')) : null;
           if (!gravada) { avisar(roteiro.id, `passo ${i + 1}: sem imagem commitada`); continue; }

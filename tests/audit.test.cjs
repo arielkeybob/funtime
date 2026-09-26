@@ -143,7 +143,7 @@ test('aceite requer três confirmações, persiste localmente e falha fechada', 
   checks[2].checked=true; handlers.change(); assert.equal(elements['#terms-continue'].disabled,false);
   fail=true; handlers.submit({preventDefault(){}}); assert.equal(elements['#terms-error'].hidden,false); assert.equal(resolved,false);
   fail=false; handlers.submit({preventDefault(){}}); await pending;
-  assert.equal(c.hasCurrentTermsAcceptance(),true); assert.equal(JSON.parse(value).termsVersion,'1.0.6');
+  assert.equal(c.hasCurrentTermsAcceptance(),true); assert.equal(JSON.parse(value).termsVersion,'1.0.7');
   value=JSON.stringify({...JSON.parse(value),termsVersion:'0.9'}); assert.equal(c.hasCurrentTermsAcceptance(),false);
   value='{'; assert.equal(c.hasCurrentTermsAcceptance(),false);
 });
@@ -156,7 +156,8 @@ test('aceite de versão listada como ainda válida dispensa novo aceite', () => 
   const c=vm.createContext({localStorage:{getItem:()=>guardado,setItem:()=>{}},document:{querySelector:()=>null,body:{classList:{add(){},remove(){}}}}});
   vm.runInContext(fonte,c);
 
-  guardado=aceite('1.0.6'); assert.equal(c.hasCurrentTermsAcceptance(),true,'a versão atual sempre vale');
+  guardado=aceite('1.0.7'); assert.equal(c.hasCurrentTermsAcceptance(),true,'a versão atual sempre vale');
+  guardado=aceite('1.0.6'); assert.equal(c.hasCurrentTermsAcceptance(),true,'1.0.6 está dispensada de novo aceite (texto do evento compartilhado, a pedido do usuário)');
   // Fixo de propósito: tirar uma dessas da dispensa volta a pedir aceite de todo
   // mundo que já aceitou, e isso precisa quebrar o teste em vez de passar despercebido.
   guardado=aceite('1.0.5'); assert.equal(c.hasCurrentTermsAcceptance(),true,'1.0.5 está dispensada de novo aceite');
@@ -472,4 +473,15 @@ test('requestPersistentStorage: navegador sem persist() não lança erro', async
 test('requestPersistentStorage: falha ao pedir não propaga erro', async () => {
   const c = persistentStorageContext({ persist: async () => { throw new Error('boom'); } });
   await assert.doesNotReject(() => c.requestPersistentStorage());
+});
+
+// A versão que a pessoa lê na página tem que ser a mesma do aceite, e o texto do convite para
+// evento compartilhado (spec 0025) não pode sumir sem que isto acuse.
+test('a página de políticas mostra a versão do aceite e descreve o convite para evento compartilhado',()=>{
+  const html=fs.readFileSync('policies.html','utf8');
+  const versao=fs.readFileSync('policies.js','utf8').match(/const TERMS_VERSION = "([^"]+)"/)[1];
+  assert.ok(html.includes(`Versão das políticas ${versao} ·`),`policies.html deveria mostrar a versão ${versao}`);
+  for(const trecho of ['Convidar amigos para um evento','Convidar não mostra suas doses','Recusar não grava nada','Cancelar um evento marca a ficha como cancelada','Apagar dados na nuvem</strong>, descrito no item 6, também apaga as fichas']){
+    assert.ok(html.includes(trecho),`policies.html perdeu o trecho: ${trecho}`);
+  }
 });

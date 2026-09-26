@@ -16,7 +16,7 @@ export function shouldShowIntro({ seen, hasData }) {
 
 const SWIPE_MIN_PX = 48;
 const MESSAGES = {
-  mediaError: "Não foi possível carregar esta mídia. Conecte-se e abra de novo.",
+  mediaError: "Não foi possível carregar esta mídia. Conecte-se à internet e abra de novo.",
   play: "Reproduzir animação",
 };
 
@@ -139,6 +139,31 @@ export function createTutorialViewer({
     return [element];
   }
 
+  // Slide só de texto: o cartão traz a frase principal (a legenda), um ícone opcional e poucas linhas
+  // de apoio. Serve para explicar uma ideia que não tem tela do app para mostrar.
+  function buildTexto(step) {
+    const card = document.createElement("div");
+    card.className = "tutorial-texto";
+    if (step.icone) {
+      const icone = document.createElement("span");
+      icone.className = "tutorial-texto-icone";
+      icone.setAttribute("aria-hidden", "true");
+      icone.textContent = step.icone;
+      card.append(icone);
+    }
+    const titulo = document.createElement("p");
+    titulo.className = "tutorial-texto-titulo";
+    titulo.textContent = step.legenda;
+    card.append(titulo);
+    for (const texto of step.linhas ?? []) {
+      const linha = document.createElement("p");
+      linha.className = "tutorial-texto-linha";
+      linha.textContent = texto;
+      card.append(linha);
+    }
+    return [card];
+  }
+
   // Ao abrir um tópico, baixa em segundo plano toda a mídia dele (poucas centenas de KB): assim ele
   // segue inteiro mesmo que a conexão caia no meio. O Service Worker guarda o que chega. Não roda
   // sem conexão nem com economia de dados; se um download falha, a próxima abertura tenta de novo.
@@ -158,12 +183,16 @@ export function createTutorialViewer({
     const count = total();
     const step = tutorial.passos[index];
     releaseVideo();
-    stage.replaceChildren(...(step.tipo === "video" ? buildVideo(step) : buildImage(step)));
+    const monta = { video: buildVideo, texto: buildTexto }[step.tipo] ?? buildImage;
+    stage.replaceChildren(...monta(step));
     // Só depois de estar na página: tocar um <video> solto não é confiável em todos os navegadores.
     if (video && videoWanted) video.play().catch(() => { /* Sem autoplay permitido: fica o pôster. */ });
     title.textContent = tutorial.titulo;
     eyebrow.textContent = intro ? "Primeiros passos" : "Como usar";
     caption.textContent = step.legenda;
+    // No slide de texto a frase já está no cartão: a legenda fica invisível, mas ocupa o mesmo espaço,
+    // para o tamanho da folha não mudar de um slide para outro.
+    caption.classList.toggle("tutorial-caption--repetida", step.tipo === "texto");
     counter.textContent = `${index + 1} de ${count}`;
     dots.replaceChildren(...tutorial.passos.map((_, i) => {
       const dot = document.createElement("span");
