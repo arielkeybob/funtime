@@ -1,5 +1,5 @@
 import { renderFriendGrid, rosterStatus } from "./friend-grid.js";
-import { formatClock, formatDate } from "../format/datetime.js";
+import { formatAgendaDateTime, formatClock, formatDate } from "../format/datetime.js";
 
 const MOTIVOS = {
   cancelled: "O organizador cancelou este evento.",
@@ -18,7 +18,13 @@ export function createInviteUI({
   getMyUid = () => null,
   acceptInvite = async () => ({ ok: false, reason: "not-found" }),
   declineInvite = async () => {},
+  // Quantos convites pedem atenção no ícone de Amigos: só quando a aba Eventos não existe (Eventos
+  // desligado, o padrão do app) e a tela Amigos é o único lugar do convite.
   onAttentionChange = () => {},
+  // Com Eventos ligado o convite mora na aba Eventos; a tela Amigos só o mostra como reserva.
+  getEventsEnabled = () => false,
+  // Avisa que a lista de convites foi redesenhada (a aba Eventos decide se mostra o grupo).
+  onInvitesRendered = () => {},
 }) {
   let pairings = [];
   let invites = [];
@@ -41,43 +47,115 @@ export function createInviteUI({
 
   // ---- Convites recebidos ---------------------------------------------------
 
-  // O mesmo cartão em dois lugares: a tela Amigos (onde o convite nasce) e a aba Eventos (onde
-  // a pessoa procura o que vai acontecer). Um ponto no menu de baixo avisa sem abrir nada.
+  // Envelope: o mesmo desenho da marca de "convidado" no avatar (friend-grid.js).
+  const ENVELOPE = '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3.5 7 8.5 6 8.5-6"/></svg>';
+
+  const atencao = () => (getEventsEnabled() ? 0 : invites.length);
+
+  // Convite de evento que já começou (o caso comum de "Iniciar agora" do organizador) diz
+  // "começou às 17:11", não uma data futura que já passou.
+  function quandoConvite(convite) {
+    if (convite.startAt <= now()) {
+      const hoje = new Date(now()).toDateString() === new Date(convite.startAt).toDateString();
+      return hoje ? `começou às ${formatClock(convite.startAt)}` : `começou ${formatAgendaDateTime(convite.startAt, now())}`;
+    }
+    return formatAgendaDateTime(convite.startAt, now());
+  }
+
+  function mostrarErro(elemento, mensagem) {
+    elemento.textContent = mensagem || "";
+    elemento.hidden = !mensagem;
+  }
+
+  // Uma linha por convite, com a resposta ao alcance de um toque. O cabeçalho abre a folha de
+  // detalhes (quem mais vai). `div`, não `button`: botões aninhados não são HTML válido.
+  function linhaConvite(convite) {
+    const nomeEvento = convite.name || "Evento";
+    const linha = document.createElement("div");
+    linha.className = "agenda-row invite-row";
+
+    const cabeca = document.createElement("button");
+    cabeca.type = "button";
+    cabeca.className = "invite-row-head";
+    const titulo = document.createElement("span");
+    titulo.className = "invite-row-title";
+    titulo.innerHTML = ENVELOPE;
+    const nome = document.createElement("strong");
+    nome.textContent = nomeEvento;
+    titulo.append(nome);
+    const sub = document.createElement("span");
+    sub.className = "invite-row-sub";
+    sub.textContent = `de ${aliasDe(convite.hostUid) || "Alguém"} · ${quandoConvite(convite)}`;
+    cabeca.append(titulo, sub);
+    cabeca.addEventListener("click", () => abrirFolha(convite.eventId));
+
+    const erro = document.createElement("p");
+    erro.className = "invite-row-error";
+    erro.setAttribute("role", "alert");
+    erro.hidden = true;
+
+    const acoes = document.createElement("div");
+    acoes.className = "invite-row-actions";
+    const vou = document.createElement("button");
+    vou.type = "button";
+    vou.className = "primary-button";
+    vou.textContent = "Vou";
+    vou.setAttribute("aria-label", `Vou ao evento ${nomeEvento}`);
+    vou.addEventListener("click", () => aceitar(convite, (mensagem) => mostrarErro(erro, mensagem)));
+    const naoVou = document.createElement("button");
+    naoVou.type = "button";
+    naoVou.className = "secondary-button";
+    naoVou.textContent = "Não vou";
+    naoVou.setAttribute("aria-label", `Não vou ao evento ${nomeEvento}`);
+    naoVou.addEventListener("click", () => recusar(convite, (mensagem) => mostrarErro(erro, mensagem)));
+    acoes.append(vou, naoVou);
+
+    linha.append(cabeca, acoes, erro);
+    return linha;
+  }
+
+  // O consentimento fica visível uma vez por lista, porque "Vou" em um toque dispensa abrir a folha.
+  function avisoConsentimento() {
+    const aviso = document.createElement("p");
+    aviso.className = "settings-description invite-consent";
+    aviso.textContent = "Ir a um evento não mostra suas doses a ninguém.";
+    return aviso;
+  }
+
+  // O convite mora na aba Eventos (grupo no topo de Próximos); a tela Amigos só o mostra como
+  // reserva, quando Eventos está desligado e a aba nem existe. Um ponto no menu de baixo avisa
+  // sem abrir nada.
   function renderInvites() {
-    const listas = [
-      [nodes.friendsInvites, nodes.friendsInvitesList],
-      [nodes.occasionInvites, nodes.occasionInvitesList],
-    ];
     const ordenados = [...invites].sort((a, b) => a.startAt - b.startAt);
+    const listas = [
+      [nodes.friendsInvites, nodes.friendsInvitesList, !getEventsEnabled()],
+      // Em Eventos, quem decide se o grupo aparece é a aba ativa (occasions-ui.js): aqui só o conteúdo.
+      [nodes.occasionInvites, nodes.occasionInvitesList, null],
+    ];
 
-    for (const [secao, lista] of listas) {
+    for (const [secao, lista, visivel] of listas) {
       if (!secao || !lista) continue;
-      secao.hidden = invites.length === 0;
+      if (visivel !== null) secao.hidden = !(visivel && ordenados.length > 0);
       lista.replaceChildren();
-
-      for (const convite of ordenados) {
-        const linha = document.createElement("button");
-        linha.type = "button";
-        linha.className = "agenda-row";
-        const titulo = document.createElement("strong");
-        titulo.textContent = convite.name || "Evento";
-        const sub = document.createElement("span");
-        sub.textContent = `${aliasDe(convite.hostUid) || "Alguém"} convidou você · ${quando(convite.startAt)}`;
-        const seta = document.createElement("small");
-        seta.textContent = "Ver convite ›";
-        linha.append(titulo, sub, seta);
-        linha.addEventListener("click", () => abrirFolha(convite.eventId));
-        lista.append(linha);
-      }
+      if (!ordenados.length) continue;
+      lista.append(avisoConsentimento());
+      for (const convite of ordenados) lista.append(linhaConvite(convite));
     }
 
     if (nodes.navOccasionDot) nodes.navOccasionDot.hidden = invites.length === 0;
+    onInvitesRendered(invites.length);
+  }
+
+  // Eventos foi ligado ou desligado: o convite muda de lugar (Eventos ⇄ Amigos).
+  function refresh() {
+    renderInvites();
+    onAttentionChange(atencao());
   }
 
   function setInvites(lista) {
     invites = Array.isArray(lista) ? lista : [];
     renderInvites();
-    onAttentionChange(invites.length);
+    onAttentionChange(atencao());
     if (sheetAberta) {
       const atual = invites.find((item) => item.eventId === sheetAberta);
       if (atual) renderFolha(atual);
@@ -131,43 +209,45 @@ export function createInviteUI({
     if (nodes.inviteSheetDialog?.open) nodes.inviteSheetDialog.close();
   }
 
-  function travarFolha(travar) {
-    respondendo = travar;
-    if (nodes.inviteSheetAccept) nodes.inviteSheetAccept.disabled = travar;
-    if (nodes.inviteSheetDecline) nodes.inviteSheetDecline.disabled = travar;
-  }
-
-  async function aceitar() {
-    const convite = invites.find((item) => item.eventId === sheetAberta);
-    if (!convite || respondendo) return;
-    erroFolha("");
-    travarFolha(true);
-    try {
-      const resultado = await acceptInvite(convite);
-      if (resultado?.ok) { fecharFolha(); return; }
-      erroFolha(resultado?.message || MOTIVOS[resultado?.reason] || MOTIVOS["not-found"]);
-    } catch (falha) {
-      console.error("Falha ao aceitar o convite.", falha);
-      erroFolha("Não foi possível aceitar agora. Tente de novo.");
-    } finally {
-      travarFolha(false);
+  // Uma resposta por vez: trava os botões da folha e das linhas enquanto a nuvem responde.
+  function travar(sim) {
+    respondendo = sim;
+    for (const botao of [nodes.inviteSheetAccept, nodes.inviteSheetDecline]) if (botao) botao.disabled = sim;
+    for (const lista of [nodes.friendsInvitesList, nodes.occasionInvitesList]) {
+      lista?.querySelectorAll(".invite-row-actions button").forEach((botao) => { botao.disabled = sim; });
     }
   }
 
-  async function recusar() {
-    const convite = invites.find((item) => item.eventId === sheetAberta);
+  // `aoErro` diz onde mostrar o motivo: na folha (padrão) ou dentro da própria linha.
+  async function aceitar(convite, aoErro = erroFolha) {
     if (!convite || respondendo) return;
-    erroFolha("");
-    travarFolha(true);
+    aoErro("");
+    travar(true);
+    try {
+      const resultado = await acceptInvite(convite);
+      if (resultado?.ok) { if (sheetAberta === convite.eventId) fecharFolha(); return; }
+      aoErro(resultado?.message || MOTIVOS[resultado?.reason] || MOTIVOS["not-found"]);
+    } catch (falha) {
+      console.error("Falha ao aceitar o convite.", falha);
+      aoErro("Não foi possível aceitar agora. Tente de novo.");
+    } finally {
+      travar(false);
+    }
+  }
+
+  async function recusar(convite, aoErro = erroFolha) {
+    if (!convite || respondendo) return;
+    aoErro("");
+    travar(true);
     try {
       await declineInvite(convite);
-      fecharFolha();
+      if (sheetAberta === convite.eventId) fecharFolha();
       showToast("Convite descartado. Quem convidou não é avisado.");
     } catch (falha) {
       console.error("Falha ao recusar o convite.", falha);
-      erroFolha("Não foi possível descartar agora. Tente de novo.");
+      aoErro("Não foi possível descartar agora. Tente de novo.");
     } finally {
-      travarFolha(false);
+      travar(false);
     }
   }
 
@@ -262,8 +342,8 @@ export function createInviteUI({
 
   function wire() {
     nodes.closeInviteSheet?.addEventListener("click", fecharFolha);
-    nodes.inviteSheetAccept?.addEventListener("click", aceitar);
-    nodes.inviteSheetDecline?.addEventListener("click", recusar);
+    nodes.inviteSheetAccept?.addEventListener("click", () => aceitar(invites.find((item) => item.eventId === sheetAberta)));
+    nodes.inviteSheetDecline?.addEventListener("click", () => recusar(invites.find((item) => item.eventId === sheetAberta)));
     nodes.closeEventInvite?.addEventListener("click", closeInviteDialog);
     nodes.eventInviteCancel?.addEventListener("click", closeInviteDialog);
     nodes.eventInviteConfirm?.addEventListener("click", confirmarDialogo);
@@ -271,9 +351,12 @@ export function createInviteUI({
     setInterval(() => {
       const antes = invites.length;
       invites = invites.filter((item) => item.expiresAtMs > now() && (item.endAt ?? Infinity) > now());
-      if (invites.length !== antes) { renderInvites(); onAttentionChange(invites.length); }
+      if (invites.length !== antes) { renderInvites(); onAttentionChange(atencao()); }
     }, 30000);
   }
 
-  return { wire, setPairings, setInvites, setEvents, rosterFor, openInviteDialog, closeInviteDialog };
+  return {
+    wire, setPairings, setInvites, setEvents, rosterFor, openInviteDialog, closeInviteDialog,
+    refresh, aliasOf: aliasDe, pendingCount: () => invites.length,
+  };
 }

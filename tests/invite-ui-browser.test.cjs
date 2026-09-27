@@ -96,7 +96,7 @@ test('convite recebido: cartão, folha com Vou / Não vou e motivo quando não d
       saida.cartao = { oculto: n('#friends-invites').hidden, texto: n('#friends-invites-list').innerText.replace(/\\s+/g, ' ') };
       saida.atencao = [...atencao];
 
-      n('#friends-invites-list .agenda-row').click();
+      n('#friends-invites-list .invite-row-head').click();
       saida.folha = { aberta: n('#invite-sheet-dialog').open, titulo: n('#invite-sheet-title').textContent, corpo: n('#invite-sheet-body').innerText.replace(/\\s+/g, ' ') };
 
       resposta = { ok: false, reason: 'cancelled' };
@@ -107,7 +107,7 @@ test('convite recebido: cartão, folha com Vou / Não vou e motivo quando não d
       n('#invite-sheet-accept').click(); await new Promise((r) => setTimeout(r, 30));
       saida.aceito = { aberta: n('#invite-sheet-dialog').open };
 
-      n('#friends-invites-list .agenda-row').click();
+      n('#friends-invites-list .invite-row-head').click();
       n('#invite-sheet-decline').click(); await new Promise((r) => setTimeout(r, 30));
       saida.recusado = { aberta: n('#invite-sheet-dialog').open };
 
@@ -119,7 +119,7 @@ test('convite recebido: cartão, folha com Vou / Não vou e motivo quando não d
 
     assert.equal(saida.antes, true);
     assert.equal(saida.cartao.oculto, false);
-    assert.match(saida.cartao.texto, /Festa Junina.*Bia convidou você/);
+    assert.match(saida.cartao.texto, /Festa Junina.*de Bia/);
     assert.deepEqual(saida.atencao, [1], 'convite pendente acende o ponto do ícone de Amigos');
     assert.equal(saida.folha.aberta, true);
     assert.equal(saida.folha.titulo, 'Festa Junina');
@@ -494,40 +494,111 @@ test('detalhe do evento: as linhas abrem as telas de verdade, com evento agendad
   });
 });
 
-test('convite pendente também aparece na aba Eventos, com um ponto no menu', { timeout: 40000 }, async () => {
+// O componente do convite isolado (v2.21.0). A integração com a aba Eventos e com as pontes reais do app
+// está em tests/eventos-tela-browser.test.cjs; aqui ficam as garantias que só o componente dá.
+test('linha de convite: Vou e Não vou a um toque, motivo dentro da própria linha e botões travados enquanto responde', { timeout: 40000 }, async () => {
   await withPage(async (page, erros) => {
     const saida = await page.evaluate(async () => {
       const { createInviteUI } = await import('/funtime/src/sharing/invite-ui.js');
       const { n, nodes, par } = window.__t;
-      const proximo = FunTimeOccasions.configure(buildCurrentAppData(), true);
-      commitOccasions(proximo.occasions, proximo.events, proximo.preferences);
-      const ui = createInviteUI({ nodes, getMyUid: () => 'eu' });
+      const chamadas = []; let resposta = { ok: false, reason: 'cancelled' }; let liberar = null;
+      const ui = createInviteUI({
+        nodes, showToast: (mensagem) => chamadas.push(['toast', mensagem]), getMyUid: () => 'eu',
+        acceptInvite: (convite) => { chamadas.push(['aceitar', convite.eventId]); return new Promise((resolve) => { liberar = () => resolve(resposta); }); },
+        declineInvite: async (convite) => { chamadas.push(['recusar', convite.eventId]); },
+        getEventsEnabled: () => true,
+      });
       ui.wire();
-      ui.setPairings([par('su', 'Su')]);
-      openOccasionView();
-
-      const convite = { eventId: 'ev-1', hostUid: 'su', name: 'Morrin', startAt: Date.now() - 780000, endAt: null, going: [], invited: ['eu'], status: 'active', expiresAtMs: Date.now() + 9e9 };
-      const vazio = { secao: n('#occasion-invites').hidden, ponto: n('#nav-occasion-dot').hidden };
+      ui.setPairings([par('bia', 'Bia')]);
+      const convite = { eventId: 'ev-1', hostUid: 'bia', name: 'Festa Junina', startAt: Date.now() + 86400000, endAt: null, going: [], invited: ['eu'], status: 'active', expiresAtMs: Date.now() + 9e9 };
       ui.setInvites([convite]);
-      const comConvite = {
-        secao: n('#occasion-invites').hidden, ponto: n('#nav-occasion-dot').hidden,
-        eventos: n('#occasion-invites-list').innerText.replace(/\s+/g, ' '), amigos: n('#friends-invites-list').innerText.replace(/\s+/g, ' '),
-        pontoVisivel: n('#nav-occasion-dot').getBoundingClientRect().width > 0,
+
+      const linha = () => n('#occasion-invites-list .invite-row');
+      const botoes = () => [...linha().querySelectorAll('.invite-row-actions button')];
+      const saida = { rotulos: botoes().map((botao) => botao.getAttribute('aria-label')) };
+
+      botoes()[0].click();                                 // Vou: a resposta ainda está a caminho
+      saida.travados = botoes().map((botao) => botao.disabled);
+      botoes()[1].click();                                 // segundo toque enquanto responde: ignorado
+      saida.chamadasEnquantoEspera = chamadas.filter(([tipo]) => tipo !== 'toast').length;
+      liberar(); await new Promise((r) => setTimeout(r, 30));
+      saida.aposFalha = {
+        erro: linha().querySelector('.invite-row-error').textContent, visivel: !linha().querySelector('.invite-row-error').hidden,
+        destravados: botoes().map((botao) => !botao.disabled), folhaAberta: n('#invite-sheet-dialog').open,
       };
-      n('#occasion-invites-list .agenda-row').click();
-      const folha = { aberta: n('#invite-sheet-dialog').open, titulo: n('#invite-sheet-title').textContent };
-      ui.setInvites([]);
-      return { vazio, comConvite, folha, depois: { secao: n('#occasion-invites').hidden, ponto: n('#nav-occasion-dot').hidden } };
+
+      botoes()[1].click(); await new Promise((r) => setTimeout(r, 30));   // Não vou
+      saida.recusou = chamadas.filter(([tipo]) => tipo === 'recusar').length;
+      saida.aviso = chamadas.find(([tipo]) => tipo === 'toast')?.[1];
+      return saida;
     });
 
-    assert.deepEqual(saida.vazio, { secao: true, ponto: true }, 'sem convite, nada aparece');
-    assert.equal(saida.comConvite.secao, false);
-    assert.equal(saida.comConvite.ponto, false);
-    assert.equal(saida.comConvite.pontoVisivel, true);
-    assert.match(saida.comConvite.eventos, /Morrin.*Su convidou você/);
-    assert.match(saida.comConvite.amigos, /Morrin.*Su convidou você/, 'continua também na tela Amigos');
-    assert.deepEqual(saida.folha, { aberta: true, titulo: 'Morrin' });
-    assert.deepEqual(saida.depois, { secao: true, ponto: true });
+    assert.deepEqual(saida.rotulos, ['Vou ao evento Festa Junina', 'Não vou ao evento Festa Junina'], 'cada botão diz de qual evento é');
+    assert.deepEqual(saida.travados, [true, true], 'enquanto a nuvem responde os dois botões ficam travados');
+    assert.equal(saida.chamadasEnquantoEspera, 1, 'um segundo toque não dispara outra resposta');
+    assert.equal(saida.aposFalha.erro, 'O organizador cancelou este evento.');
+    assert.equal(saida.aposFalha.visivel, true, 'o motivo aparece dentro da própria linha');
+    assert.deepEqual(saida.aposFalha.destravados, [true, true]);
+    assert.equal(saida.aposFalha.folhaAberta, false, 'responder na linha não abre a folha');
+    assert.equal(saida.recusou, 1);
+    assert.match(saida.aviso, /Quem convidou não é avisado/);
+    assert.deepEqual(erros, []);
+  });
+});
+
+test('convite que já começou diz "começou às", e o consentimento aparece uma vez por lista', { timeout: 40000 }, async () => {
+  await withPage(async (page, erros) => {
+    const saida = await page.evaluate(async () => {
+      const { createInviteUI } = await import('/funtime/src/sharing/invite-ui.js');
+      const { n, nodes, par } = window.__t;
+      const ui = createInviteUI({ nodes, getMyUid: () => 'eu', getEventsEnabled: () => true });
+      ui.wire();
+      ui.setPairings([par('su', 'Su')]);
+      const base = { hostUid: 'su', endAt: null, going: [], invited: ['eu'], status: 'active', expiresAtMs: Date.now() + 9e9 };
+      ui.setInvites([
+        { ...base, eventId: 'a', name: 'Morrin', startAt: Date.now() - 13 * 60000 },
+        { ...base, eventId: 'b', name: 'Depois', startAt: Date.now() + 5 * 86400000 },
+      ]);
+      const linhas = [...document.querySelectorAll('#occasion-invites-list .invite-row')].map((linha) => linha.innerText.replace(/\s+/g, ' '));
+      return { linhas, consentimentos: document.querySelectorAll('#occasion-invites-list .invite-consent').length };
+    });
+
+    assert.match(saida.linhas[0], /Morrin.*de Su · começou às \d{2}:\d{2}/);
+    assert.match(saida.linhas[1], /Depois.*de Su · (seg|ter|qua|qui|sex|sáb|dom) \d{2}\/\d{2} · \d{2}:\d{2}/);
+    assert.equal(saida.consentimentos, 1, 'o aviso "não mostra suas doses" não se repete a cada convite');
+    assert.deepEqual(erros, []);
+  });
+});
+
+test('reserva em Amigos: com Eventos ligado o cartão de Amigos some, e refresh() troca o lugar do convite', { timeout: 40000 }, async () => {
+  await withPage(async (page, erros) => {
+    const saida = await page.evaluate(async () => {
+      const { createInviteUI } = await import('/funtime/src/sharing/invite-ui.js');
+      const { n, nodes, par } = window.__t;
+      let ligado = false; const atencao = []; let redesenhos = 0;
+      const ui = createInviteUI({
+        nodes, getMyUid: () => 'eu', getEventsEnabled: () => ligado,
+        onAttentionChange: (quantidade) => atencao.push(quantidade), onInvitesRendered: () => { redesenhos += 1; },
+      });
+      ui.wire();
+      ui.setPairings([par('bia', 'Bia')]);
+      ui.setInvites([{ eventId: 'ev', hostUid: 'bia', name: 'Festa', startAt: Date.now() + 86400000, endAt: null, going: [], invited: ['eu'], status: 'active', expiresAtMs: Date.now() + 9e9 }]);
+
+      const estado = () => ({ amigos: !n('#friends-invites').hidden, ponto: n('#nav-occasion-dot').hidden });
+      const desligado = estado();
+      ligado = true; ui.refresh();
+      const ligadoAgora = estado();
+      ligado = false; ui.refresh();
+      return { desligado, ligadoAgora, deNovo: estado(), atencao, quantidade: ui.pendingCount(), alias: ui.aliasOf('bia'), redesenhos: redesenhos > 0 };
+    });
+
+    assert.deepEqual(saida.desligado, { amigos: true, ponto: false }, 'Eventos desligado: o convite fica em Amigos (a aba nem existe)');
+    assert.equal(saida.ligadoAgora.amigos, false, 'Eventos ligado: o cartão de Amigos sai');
+    assert.equal(saida.deNovo.amigos, true, 'desligar de novo devolve o convite a Amigos');
+    assert.deepEqual(saida.atencao, [1, 0, 1], 'o ponto de Amigos só acende quando é o único lugar do convite');
+    assert.equal(saida.quantidade, 1);
+    assert.equal(saida.alias, 'Bia');
+    assert.equal(saida.redesenhos, true, 'a aba Eventos é avisada para redesenhar o grupo');
     assert.deepEqual(erros, []);
   });
 });

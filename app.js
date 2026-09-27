@@ -1,4 +1,4 @@
-import { formatTime, formatClock, formatHistoryElapsed, formatInterval } from "./src/format/datetime.js";
+import { formatTime, formatClock, formatHistoryElapsed, formatInterval, formatAgendaDateTime } from "./src/format/datetime.js";
 import { resolveCountingMode } from "./src/format/counting-mode.js";
 import { derEcdsaSignatureToRaw } from "./src/security/webauthn-signature.js";
 import { derivePinHash, PIN_PBKDF2_ITERATIONS } from "./src/security/pin-crypto.js";
@@ -313,7 +313,7 @@ document.addEventListener("visibilitychange", () => {
 const DATA_STORAGE_KEY = "funtime-v1-data";
 const LEGACY_DRINKS_STORAGE_KEY = "balada-v1-drinks";
 const DATA_VERSION = 11;
-const APP_VERSION = "2.20.1";
+const APP_VERSION = "2.21.0";
 const DRINK_EXPORT_TYPE = "funtime-drinks";
 const DRINK_EXPORT_FORMAT_VERSION = 1;
 const BACKUP_EXPORT_TYPE = "funtime-backup";
@@ -3488,6 +3488,9 @@ function getSharedEventInfo(item) {
     gone: Boolean(roster?.gone),
     invitedCount: view?.invited.length ?? 0,
     goingCount: view?.going.length ?? 0,
+    // De quem é o evento, pelo apelido de amigo — a linha da agenda diz "de Ariel". Não depende de
+    // a ficha já ter chegado da nuvem: o apelido vem dos pareamentos.
+    hostAlias: isHost ? "" : (inviteUI?.aliasOf(item.sharedHostUid) ?? ""),
   };
 }
 
@@ -3894,8 +3897,12 @@ if (sharingNodes.pairingDialog) {
     getMyUid: () => sharedEventsUid,
     acceptInvite: acceptSharedEvent,
     declineInvite: declineSharedEvent,
-    // Convite pendente acende o mesmo ponto do ícone de Amigos na Home.
+    // Com Eventos ligado o convite mora na aba Eventos (grupo no topo de Próximos, ponto no menu). O ponto do
+    // ícone de Amigos na Home só acende quando a aba não existe e a tela Amigos é o único lugar do convite.
     onAttentionChange: (quantidade) => shareUI?.setExtraAttention(quantidade > 0),
+    getEventsEnabled: () => state.preferences.eventsEnabled === true,
+    // Convite novo ou respondido: a aba Eventos redesenha (o grupo aparece só em Próximos).
+    onInvitesRendered: () => globalThis.refreshSharedEventViews?.(),
   });
   shareUI = createShareUI({
     nodes: sharingNodes,
@@ -3946,6 +3953,10 @@ Object.assign(globalThis, {
   getSharedEventInfo, applyOccasionInvites, applySharedEventUpdate, leaveSharedEvent, releaseSharedEvent,
   hasSharingFriends: () => shareUI?.hasFriends() === true,
   openInviteDialog: (options) => inviteUI?.openInviteDialog(options),
+  // Tela Eventos: quantos convites esperam resposta, redesenhar quando Eventos liga/desliga e a data da agenda.
+  pendingInviteCount: () => inviteUI?.pendingCount() ?? 0,
+  refreshInviteViews: () => inviteUI?.refresh(),
+  formatAgendaDateTime,
   currentSharedEventsUid: () => sharedEventsUid,
   openSharedView, closeSharedView,
   render, saveData, effectiveCountingMode, registerDrinkAt, tickDrinkCards,

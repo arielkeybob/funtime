@@ -1,4 +1,15 @@
-# FunTime — V2.20.1
+# FunTime — V2.21.0
+
+## V2.21.0 — a aba Eventos mais clara: convites, busca e linhas da agenda
+
+Achado no primeiro uso real: a aba **Eventos** ficou pesada e confusa. O convite parecia um evento comum, aparecia em quatro lugares e a busca ficava escondida (e podia continuar filtrando a lista sem ninguém ver).
+
+- **Convites no topo de "Próximos", com resposta a um toque.** O convite vira um cartão de destaque (contorno verde, envelope) sob o título "Aguardando sua resposta", com **Vou** e **Não vou** ali mesmo; tocar no nome abre os detalhes (quem mais vai). Quando você está em "Anteriores", a aba Próximos ganha um pontinho, e o menu de baixo já tinha o dele. A tela abre em Próximos se houver convite. "Ir a um evento não mostra suas doses a ninguém" aparece uma vez, no cabeçalho do grupo.
+- **Um lugar só para o convite.** Com "Usar eventos" ligado, o convite mora só na aba Eventos; o ponto do ícone de Amigos na Home volta a significar apenas "alguém compartilha com você agora". A tela Amigos só mostra o convite como **reserva**, quando Eventos está desligado (o padrão do app) e a aba nem existe.
+- **Busca só quando serve.** O painel recolhido "Buscar e filtrar" saiu, junto com o filtro de mês (a lista já é agrupada por mês). Com **8 eventos ou mais** aparece um campo de busca sempre visível, com ✕ para limpar; com poucos eventos a lista inteira já cabe. **Cada abertura da tela começa sem filtro**, então nada fica filtrado sem você ver.
+- **Linhas mais limpas:** "Setembro de 2026" (antes saía "Setembro De 2026"), data legível ("sáb 17/10 · 21:23"), sem "0 registros" em evento futuro, e o "Início manual" (que é o padrão) não é mais dito. Evento aceito por convite mostra "de Ariel"; o seu com convidados mostra "4 convidados · 2 vão".
+- **Evento em andamento** vira um cartão em destaque no topo da aba, com o mesmo brilho da Home. **Agendamento que já passou do horário** ganha o grupo "Passou do horário" no topo de Próximos, em vez de ficar entre os meses como se fosse futuro.
+- **Tutoriais atualizados:** Eventos e Evento compartilhado (o convite agora é respondido na aba Evento). Sem mudança de dados, de regras do Firestore nem de políticas (`DATA_VERSION` 11).
 
 ## V2.20.1 — vídeos de dois toques mais calmos, excluir a bebida, tutorial de Bloqueio e folha que cabe em tela curta
 

@@ -24,6 +24,17 @@ export function formatDate(timestamp) {
   }).format(new Date(timestamp));
 }
 
+// Data da agenda de eventos: "sáb 17/10 · 21:23". O ano só aparece quando não é o corrente,
+// e a abreviação do dia da semana vem sem o ponto que o pt-BR acrescenta ("sáb.").
+export function formatAgendaDateTime(timestamp, now = Date.now()) {
+  const date = new Date(timestamp);
+  const weekday = new Intl.DateTimeFormat("pt-BR", { weekday: "short" }).format(date).replace(".", "");
+  const day = String(date.getDate()).padStart(2, "0");
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const year = date.getFullYear() === new Date(now).getFullYear() ? "" : `/${String(date.getFullYear()).slice(-2)}`;
+  return `${weekday} ${day}/${month}${year} · ${formatClock(timestamp)}`;
+}
+
 export function formatHistoryElapsed(timestamp, now = Date.now()) {
   const elapsedMs = Math.max(0, now - Number(timestamp));
   const totalMinutes = Math.floor(elapsedMs / 60000);

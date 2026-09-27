@@ -58,7 +58,7 @@
     <footer class="browser-gate-footer">
       <span>App para estudo · não é controle de segurança</span>
       <a class="policies-link" href="./policies.html">Políticas e informações</a>
-      <span>v2.20.1 · By: arielkeybob</span>
+      <span>v2.21.0 · By: arielkeybob</span>
     </footer>
   </section>
 
@@ -352,7 +352,7 @@
           </div>
         </div>
 
-        <p class="settings-description">Versão instalada: <strong>v2.20.1</strong></p>
+        <p class="settings-description">Versão instalada: <strong>v2.21.0</strong></p>
         <button id="check-app-update" class="settings-secondary-button" type="button">Verificar atualizações</button>
       </section>
 
@@ -393,14 +393,14 @@
 
     <header id="occasion-header" class="app-header" hidden><div><p class="eyebrow">Suas ocasiões</p><h1>Eventos</h1></div><button id="occasion-new" class="primary-button" type="button">+ Novo</button></header>
     <main id="occasion-view" hidden>
-      <section id="occasion-invites" class="occasion-invites" hidden>
-        <h2 class="agenda-month-heading">Convites</h2>
-        <div id="occasion-invites-list"></div>
-      </section>
       <section id="occasion-current" class="occasion-current"></section>
       <section class="occasion-history">
-        <div class="agenda-tabs" role="group" aria-label="Lista de eventos"><button id="agenda-past" type="button" aria-pressed="false">Anteriores</button><button id="agenda-upcoming" type="button" aria-pressed="true">Próximos</button></div>
-        <details class="agenda-filters"><summary>Buscar e filtrar</summary><label class="field"><span>Nome</span><input id="agenda-search" type="search" placeholder="Buscar evento"></label><label class="field"><span>Mês</span><input id="agenda-month" type="month"></label></details>
+        <div class="agenda-tabs" role="group" aria-label="Lista de eventos"><button id="agenda-past" type="button" aria-pressed="false">Anteriores</button><button id="agenda-upcoming" type="button" aria-pressed="true">Próximos<span id="agenda-upcoming-dot" class="tab-dot" role="img" aria-label="Há convite para você" hidden></span></button></div>
+        <section id="occasion-invites" class="occasion-invites" hidden>
+          <h2 class="agenda-month-heading">Aguardando sua resposta</h2>
+          <div id="occasion-invites-list"></div>
+        </section>
+        <div id="agenda-search-field" class="agenda-search" hidden><input id="agenda-search" type="search" placeholder="Buscar evento" aria-label="Buscar evento" enterkeyhint="search" autocomplete="off"><button id="agenda-search-clear" class="agenda-search-clear" type="button" aria-label="Limpar busca" hidden>×</button></div>
         <div id="occasion-list"></div><button id="agenda-more" class="secondary-button" type="button" hidden>Mostrar mais</button>
       </section>
     </main>
@@ -477,7 +477,7 @@
     <footer class="app-footer">
       <span class="app-footer-disclaimer">App para estudo · não é controle de segurança</span>
       <a class="policies-link" href="./policies.html">Políticas e informações</a>
-      <span class="app-footer-meta">v2.20.1 · By: arielkeybob</span>
+      <span class="app-footer-meta">v2.21.0 · By: arielkeybob</span>
     </footer>
   </div>
 

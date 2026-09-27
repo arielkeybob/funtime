@@ -124,7 +124,9 @@ function definirAuxiliaresDePagina() {
     };
     const nuvemDeEventos = {
       start: async () => {}, stop() {}, scheduleFichaPush() {}, flushFichaPushes: async () => {}, sweepExpired: async () => {},
-      setPairings() {}, setLinked() {}, deleteAllMyData: async () => {}, cancelEvent: async () => {}, leave: async () => {}, decline: async () => {},
+      setPairings() {}, setLinked() {}, deleteAllMyData: async () => {}, cancelEvent: async () => {}, leave: async () => {},
+      // Como o módulo real: responder ao convite (Vou ou Não vou) o tira da lista de pendentes.
+      decline: async (eventId) => { convites = convites.filter((c) => c.eventId !== eventId); ponte.definirConvites(convites); },
       publishEvent: async (ocasiao) => {
         const eventId = 'ev-' + ocasiao.id;
         fichas = [...fichas.filter((f) => f.eventId !== eventId), {
@@ -145,7 +147,10 @@ function definirAuxiliaresDePagina() {
       },
       accept: async (eventId) => {
         const convite = convites.find((c) => c.eventId === eventId);
-        return convite ? { ok: true, event: convite } : { ok: false, reason: 'not-found' };
+        if (!convite) return { ok: false, reason: 'not-found' };
+        convites = convites.filter((c) => c.eventId !== eventId);
+        ponte.definirConvites(convites);
+        return { ok: true, event: convite };
       },
     };
     ponte.instalar({ uid: 'eu', usuario: { uid: 'eu', email: 'voce@exemplo.com', displayName: 'Você' }, escritor, eventos: nuvemDeEventos });

@@ -251,6 +251,51 @@ aparecendo do outro lado.
   cartão agora aparece também no topo de **Eventos**, com um ponto no menu de baixo; continua em
   Amigos e no ponto da Home. É a mesma lista, desenhada em dois lugares.
 
+## Nota pós-implementação (v2.21.0) — a aba Eventos redesenhada
+
+O uso real mostrou que o convite ficou mal resolvido na tela: reaproveitava o cartão de evento
+(`.agenda-row`, três linhas, ~200 px), empurrava as abas, e um convite sinalizava em **quatro** lugares
+(ponto do menu, cartão em Eventos, cartão em Amigos, ponto do ícone de Amigos na Home). Além disso, o
+"Buscar e filtrar" era um `<details>` recolhido cujo texto e mês **persistiam** entre aberturas — uma lista
+podia ficar filtrada sem o usuário ver. Decisões tomadas com o usuário, entre quatro desenhos comparados
+(grupo em Próximos, envelope no cabeçalho, faixa de uma linha, terceira aba):
+
+- **Grupo "Aguardando sua resposta" no topo de Próximos**, com **Vou / Não vou** inline. O convite é um
+  evento futuro, então fica onde ele vai morar; depois do "Vou" a linha vira um evento comum, sem trocar de
+  lugar. É um `div.agenda-row.invite-row`, **não** um `button` (botões aninhados são HTML inválido); o
+  cabeçalho tocável abre a folha de detalhes. Em Anteriores, um ponto na aba Próximos avisa; a tela abre em
+  Próximos se houver convite pendente (exceto logo após salvar um evento, que mantém a aba escolhida).
+- **Um lugar só:** com Eventos ligado o convite mora só em Eventos e o ponto do ícone de Amigos volta a
+  significar só "alguém compartilha com você agora". A tela Amigos guarda o cartão como **reserva** quando
+  Eventos está desligado (o padrão do app, em que a aba nem existe). `refreshOccasionContext()` chama a
+  ponte `refreshInviteViews` para o convite trocar de lugar ao ligar/desligar Eventos.
+- **O aviso de consentimento** ("Ir a um evento não mostra suas doses a ninguém") saiu de cada convite
+  para o cabeçalho do grupo, uma vez só e sempre visível, porque o "Vou" a um toque dispensa abrir a folha
+  (que mantém o dela).
+- **Busca:** o painel recolhido e o filtro de mês saíram (a lista já é agrupada por mês; o campo nativo de
+  mês é ruim no celular). Um campo sempre visível, com ✕, aparece só com **8 ou mais** ocasiões
+  (`AGENDA_SEARCH_MIN`, contando as duas abas para não aparecer e sumir ao trocar de aba). **Cada abertura da
+  tela zera a busca**, o que acaba com o filtro escondido.
+- **Linhas:** `text-transform: capitalize` no cabeçalho de mês fazia "Setembro De 2026"; virou
+  `::first-letter { uppercase }`. Data legível (`formatAgendaDateTime`: "sáb 17/10 · 21:23"), "N registros" só
+  com N > 0, "Início manual" (o padrão) e "Encerrado" (o que a aba já diz) não são repetidos, e uma terceira
+  linha só quando há o que dizer: "de {apelido}" no evento aceito, "N convidados · M vão" no seu.
+  O evento em andamento vira cartão em destaque (mesmo brilho da Home, parado com movimento reduzido).
+  Agendamento com o horário vencido ganha o grupo "Passou do horário" (só agrupamento visual; `occasions.js`
+  não mudou).
+- **Testes.** `tests/eventos-tela-browser.test.cjs` dirige o **app real** com a nuvem falsa do harness dos
+  tutoriais (`abrirApp`), em vez de montar uma segunda instância: assim as pontes de `app.js`
+  (`pendingInviteCount`, `refreshInviteViews`, `getSharedEventInfo`) são exercitadas de verdade — o
+  defeito da v2.17.1 nasceu de uma ponte trocada por stub. Verificado por mutação: remover a chamada de
+  `refreshInviteViews`, não abrir em Próximos com convite, não zerar a busca ao reabrir, voltar o
+  `capitalize` e mostrar o convite em Amigos com Eventos ligado derrubam cada um o teste correspondente.
+- **Tutoriais:** `eventos` (marcação de `#occasion-view`) e `evento-compartilhado` (o convite agora é
+  respondido na aba Evento) foram regenerados; a "nuvem" falsa do harness passou a tirar o convite da lista
+  ao aceitar/recusar, como o módulo real faz.
+
+Sem mudança no que vai à nuvem, nas regras do Firestore, nas políticas ou no formato de dados
+(`DATA_VERSION` continua 11).
+
 ## Reversões conscientes da spec 0023 ("Fora de escopo")
 
 O convidado passa a **escrever** (`going`) e há aviso de convite. RSVP é resposta deliberada, não

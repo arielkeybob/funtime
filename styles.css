@@ -3616,14 +3616,15 @@ body {
 .agenda-row { display: grid; gap: 6px; width: 100%; border: 1px solid var(--border); border-radius: 14px; background: var(--surface); color: var(--text); text-align: left; padding: 15px; margin: 8px 0; font: inherit; }
 .agenda-row strong { overflow-wrap: anywhere; }
 .agenda-row span, .agenda-row small { color: var(--muted); font-size: .78rem; line-height: 1.5; }
-.agenda-month-heading { font-size: .85rem; text-transform: capitalize; color: var(--muted); margin: 24px 0 10px; }
+.agenda-month-heading { font-size: .85rem; color: var(--muted); margin: 24px 0 10px; }
+/* Só a primeira letra em maiúscula: "Setembro de 2026", não "Setembro De 2026". */
+.agenda-month-heading::first-letter { text-transform: uppercase; }
 .agenda-empty { color: var(--muted); padding: 24px 4px; line-height: 1.6; }
-.agenda-filters > summary { cursor: pointer; padding: 12px 0; color: var(--muted); }
 .agenda-options { margin-top: 24px; } .agenda-options button { display: block; width: 100%; margin: 10px 0; min-height: 44px; }
 #occasion-detail-content h2 { overflow-wrap: anywhere; }
 #occasion-header { align-items: center; justify-content: space-between; }
 #occasion-header .primary-button { padding: 10px 15px; font-size: .85rem; min-height: 44px; }
-#occasion-mode, .agenda-filters input { width: 100%; min-height: 48px; border: 1px solid var(--border); border-radius: 12px; padding: 12px; color: var(--text); background: var(--surface); font: inherit; }
+#occasion-mode { width: 100%; min-height: 48px; border: 1px solid var(--border); border-radius: 12px; padding: 12px; color: var(--text); background: var(--surface); font: inherit; }
 .occasion-reminder { border: 1px solid #777088; background: var(--surface); border-radius: 14px; padding: 16px; margin-bottom: 16px; }
 .occasion-reminder p { margin: 0 0 14px; line-height: 1.5; }
 .occasion-reminder button { padding: 10px 14px; margin-right: 8px; font-size: .8rem; }
@@ -3876,3 +3877,37 @@ div.share-person { cursor: default; }
 .tutorial-texto-linha { margin: 0; padding-top: clamp(4px, 1.1dvh, 12px); border-top: 1px solid var(--border); width: 100%; color: var(--muted); font-size: clamp(.84rem, 2.1dvh, 1rem); line-height: 1.4; overflow-wrap: anywhere; }
 .tutorial-texto-titulo + .tutorial-texto-linha { margin-top: 2px; }
 .tutorial-caption--repetida { visibility: hidden; }
+
+/* Tela Eventos (v2.21.0): linhas enxutas, grupo de convites no topo de Próximos, busca só com muitos eventos. */
+.agenda-row .agenda-row-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; color: var(--text); font-size: 1rem; }
+.agenda-row .agenda-row-chevron { flex: none; color: var(--muted); font-size: 1.15rem; line-height: 1; }
+.agenda-month-heading.is-overdue { color: #f3ce62; }
+.tab-dot { display: inline-block; width: 8px; height: 8px; margin-left: 6px; border-radius: 999px; background: var(--success); vertical-align: middle; }
+.tab-dot[hidden], .agenda-search[hidden], .agenda-search-clear[hidden] { display: none; }
+
+/* Convite: uma pergunta esperando resposta, não um evento. Contorno de destaque e a resposta a um toque. */
+.invite-row { gap: 10px; border-color: var(--success); }
+.invite-row-head { display: grid; gap: 4px; width: 100%; padding: 0; border: 0; background: transparent; color: inherit; font: inherit; text-align: left; }
+.agenda-row .invite-row-title { display: flex; align-items: center; gap: 8px; color: var(--text); font-size: 1rem; }
+.invite-row-title svg { flex: none; width: 18px; height: 18px; fill: none; stroke: var(--success); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.agenda-row .invite-row-sub { color: var(--muted); font-size: .78rem; }
+.invite-row-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.invite-row-actions button { min-height: 44px; margin: 0; }
+.invite-row-error { margin: 0; color: var(--danger); font-size: .8rem; line-height: 1.4; }
+.invite-consent { margin: 0 0 4px; }
+
+.agenda-search { position: relative; display: flex; margin: 4px 0 8px; }
+.agenda-search input { width: 100%; min-height: 48px; border: 1px solid var(--border); border-radius: 12px; padding: 12px 46px 12px 14px; color: var(--text); background: var(--surface); font: inherit; }
+.agenda-search input::-webkit-search-cancel-button { display: none; -webkit-appearance: none; }
+.agenda-search-clear { position: absolute; right: 6px; top: 50%; width: 36px; height: 36px; transform: translateY(-50%); border: 0; border-radius: 999px; background: transparent; color: var(--muted); font-size: 1.4rem; line-height: 1; }
+
+/* Evento em andamento: cartão em destaque, com o mesmo brilho da Home (parado com movimento reduzido). */
+.occasion-current-card {
+  box-shadow: -4px -2px 14px -4px #ef476f60, 4px 2px 14px -4px #568cff66, 0 4px 13px -4px #b16cff58, 3px -3px 12px -4px #f3ce6248;
+  animation: occasion-glow 6s ease-in-out infinite;
+}
+.occasion-current-card strong { font-size: 1.15rem; }
+.agenda-row .agenda-row-label { color: var(--success); font-size: .7rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+@media (prefers-reduced-motion: reduce) {
+  .occasion-current-card { animation: none; }
+}

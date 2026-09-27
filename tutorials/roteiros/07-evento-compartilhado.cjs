@@ -4,7 +4,7 @@ module.exports = {
   id: 'evento-compartilhado',
   titulo: 'Evento compartilhado',
   resumo: 'Convidar amigos e aceitar.',
-  cobre: ['#occasion-dialog', '#event-invite-dialog', '#invite-sheet-dialog', '#occasion-detail-dialog', '#friends-invites'],
+  cobre: ['#occasion-dialog', '#event-invite-dialog', '#invite-sheet-dialog', '#occasion-detail-dialog', '#friends-invites', '#occasion-view'],
   seed: 'demoConvite',
   passos: [
     {
@@ -46,19 +46,17 @@ module.exports = {
     },
     {
       tipo: 'video',
-      legenda: 'Quem é convidado toca no convite e escolhe Vou ou Não vou.',
-      alt: 'O ícone Amigos é tocado e mostra o convite Festa Junina, da Bia; o convite é tocado e, na folha, o botão Vou é tocado; o app avisa que o evento foi para a agenda.',
+      legenda: 'Quem é convidado responde Vou ou Não vou na aba Evento.',
+      alt: 'A aba Evento é tocada e mostra, no topo de Próximos, o convite Festa Junina, da Bia, aguardando resposta; o botão Vou é tocado e o app avisa que o evento foi para a agenda.',
       async preparar(t) { await t.esperar(300); },
       async gravar(t) {
         await t.esperar(1400);
-        await t.tocarComDedo('#home-friends-button');
-        await t.page.waitForSelector('#shared-view:not([hidden])');
-        await t.esperar(1000);
-        await t.tocarComDedo('#friends-invites-list .agenda-row', { antes: 400, descida: 700 });
-        await t.page.waitForSelector('#invite-sheet-dialog[open]');
+        await t.tocarComDedo('#nav-occasion');
+        await t.page.waitForSelector('#occasion-view:not([hidden])');
+        await t.page.waitForSelector('#occasion-invites .invite-row');
         await t.esperar(1600);
-        await t.tocarComDedo('#invite-sheet-accept', { antes: 400, descida: 700 });
-        await t.page.waitForFunction(() => !document.querySelector('#invite-sheet-dialog').open);
+        await t.tocarComDedo('#occasion-invites .invite-row .primary-button', { antes: 400, descida: 700 });
+        await t.page.waitForFunction(() => !document.querySelector('#occasion-invites .invite-row'));
         await t.esperarAvisoSumir();
         await t.esperar(1000);
       },

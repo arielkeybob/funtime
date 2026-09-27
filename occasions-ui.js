@@ -51,7 +51,17 @@ function reconcileOccasions() {
     showAppNotification('Não foi possível atualizar a agenda. Tente novamente em instantes; os dados foram preservados.', { type: 'error' }); return false;
   } finally { reconcilingOccasions = false; }
 }
-function openOccasionView() { if (!state.preferences.eventsEnabled) return; reconcileOccasions(); setCurrentView('occasion'); renderOccasions(); window.scrollTo(0, 0); }
+// A busca só aparece com muitos eventos; com poucos, a lista inteira já cabe na tela.
+const AGENDA_SEARCH_MIN = 8;
+function openOccasionView({ keepTab = false } = {}) {
+  if (!state.preferences.eventsEnabled) return;
+  reconcileOccasions();
+  // Cada abertura começa limpa: uma busca esquecida não pode continuar filtrando a lista sem ninguém ver.
+  $occasion('agenda-search').value = ''; agendaLimit = 20;
+  // Com convite esperando resposta, a tela abre em Próximos, que é onde ele está.
+  if (!keepTab && (globalThis.pendingInviteCount?.() || 0) > 0) agendaTab = 'upcoming';
+  setCurrentView('occasion'); renderOccasions(); window.scrollTo(0, 0);
+}
 function openHomeOccasion() {
   if (!state.preferences.eventsEnabled || !reconcileOccasions()) return;
   const active = FunTimeOccasions.active(state.occasions);
@@ -179,7 +189,7 @@ occasionForm.addEventListener('submit', event => {
     const hadEventUnlock = state.securityConfig.eventUnlockOccasionId === item.id;
     const unlockSaved = wantsEventUnlock === hadEventUnlock || globalThis.setSecurityEventUnlock?.(item.id, wantsEventUnlock) === true;
     closeOccasionEditor(); if (occasionDetailDialog.open) closeOccasionDetails();
-    if (!planned && !current && !retrospective) closeHistoryView(); else { agendaTab = planned ? 'upcoming' : 'past'; openOccasionView(); }
+    if (!planned && !current && !retrospective) closeHistoryView(); else { agendaTab = planned ? 'upcoming' : 'past'; openOccasionView({ keepTab: true }); }
     if (unlockSaved) showToast((current ? 'Evento atualizado.' : retrospective ? 'Evento cadastrado.' : planned ? 'Evento agendado.' : 'Evento iniciado.') + (included ? ' ' + included + ' registro(s) incluído(s).' : ''));
   } catch { occasionError('Não foi possível salvar. Verifique períodos conflitantes, registros fora do período ou tente novamente.'); }
 });
@@ -252,12 +262,56 @@ function occasionStatus(item) {
   }
   return item.endedAt === null ? 'Em andamento' : item.endReason && item.endReason !== 'manual' ? 'Encerrado automaticamente' : 'Encerrado';
 }
+// Agendamento cujo horário já passou e ainda espera início: fica num grupo próprio em Próximos.
+const isOverdueOccasion = item => FunTimeOccasions.pending(item) && item.scheduledStartAt <= Date.now();
+function agendaWhen(timestamp) { return globalThis.formatAgendaDateTime ? globalThis.formatAgendaDateTime(timestamp) : occasionDate(timestamp); }
+// O que a linha da agenda diz sobre a situação: só o que agrega. "Início manual" é o padrão e
+// "Encerrado" é o que a aba Anteriores já diz, então ficam de fora; o detalhe do evento mantém o texto completo.
+function occasionRowStatus(item) {
+  if (item.startedAt === null) {
+    if (item.closedAt != null) return item.endReason === 'cancelled' ? 'Cancelado' : 'Expirado';
+    if (item.autoStart) return item.scheduledStartAt <= Date.now() ? 'Precisa de revisão' : 'Inicia sozinho';
+    return '';
+  }
+  if (item.endedAt === null) return 'Em andamento';
+  return item.endReason && item.endReason !== 'manual' ? 'Encerrado automaticamente' : '';
+}
+// Terceira linha, só quando há o que dizer: de quem é o convite, quantos foram convidados/vão e os registros.
+function occasionMeta(item) {
+  const parts = []; const shared = globalThis.getSharedEventInfo?.(item);
+  if (shared) {
+    if (shared.isHost) {
+      if (shared.invitedCount) parts.push(shared.invitedCount + (shared.invitedCount === 1 ? ' convidado' : ' convidados') + (shared.goingCount ? ' · ' + shared.goingCount + (shared.goingCount === 1 ? ' vai' : ' vão') : ''));
+    } else parts.push(shared.hostAlias ? 'de ' + shared.hostAlias : 'convite aceito');
+    if (shared.cancelled) parts.push('cancelado pelo organizador');
+  }
+  const n = state.events.filter(record => record.occasionId === item.id).length;
+  if (n) parts.push(n + (n === 1 ? ' registro' : ' registros'));
+  return parts.join(' · ');
+}
 function occasionRow(item) {
   const button = occasionButton('', () => openOccasionDetails(item.id), 'agenda-row');
+  const head = document.createElement('span'); head.className = 'agenda-row-head';
   const title = document.createElement('strong'); title.textContent = item.name;
-  const sub = document.createElement('span'); sub.textContent = occasionDate(item.startedAt ?? item.scheduledStartAt) + ' · ' + occasionStatus(item);
-  const count = document.createElement('small'); const n = state.events.filter(record => record.occasionId === item.id).length; count.textContent = n + (n === 1 ? ' registro' : ' registros') + ' ›';
-  button.append(title, sub, count); return button;
+  const chevron = document.createElement('span'); chevron.className = 'agenda-row-chevron'; chevron.setAttribute('aria-hidden', 'true'); chevron.textContent = '›';
+  head.append(title, chevron);
+  const status = occasionRowStatus(item), when = agendaWhen(item.startedAt ?? item.scheduledStartAt);
+  const sub = document.createElement('span'); sub.className = 'agenda-row-sub'; sub.textContent = status ? when + ' · ' + status : when;
+  button.append(head, sub);
+  const meta = occasionMeta(item);
+  if (meta) { const small = document.createElement('small'); small.textContent = meta; button.append(small); }
+  return button;
+}
+// O evento em andamento vira um cartão em destaque no topo, com o mesmo brilho da Home.
+function occasionCurrentCard(item) {
+  const button = occasionButton('', () => openOccasionDetails(item.id), 'agenda-row occasion-current-card');
+  const label = document.createElement('span'); label.className = 'agenda-row-label'; label.textContent = 'Em andamento';
+  const title = document.createElement('strong'); title.textContent = item.name;
+  const sub = document.createElement('span'); sub.className = 'agenda-row-sub'; sub.textContent = 'desde ' + agendaWhen(item.startedAt);
+  button.append(label, title, sub);
+  const meta = occasionMeta(item);
+  if (meta) { const small = document.createElement('small'); small.textContent = meta; button.append(small); }
+  return button;
 }
 function openOccasionDetails(id) {
   const item = state.occasions.find(item => item.id === id); if (!item) return;
@@ -338,20 +392,36 @@ function openOccasionDetails(id) {
 }
 function renderOccasions() {
   const current = $occasion('occasion-current'), list = $occasion('occasion-list'); current.replaceChildren(); list.replaceChildren();
-  const active = FunTimeOccasions.active(state.occasions); if (active) current.append(occasionRow(active));
+  const active = FunTimeOccasions.active(state.occasions); if (active) current.append(occasionCurrentCard(active));
   agendaTab ||= state.occasions.some(FunTimeOccasions.pending) ? 'upcoming' : 'past';
   $occasion('agenda-upcoming').setAttribute('aria-pressed', String(agendaTab === 'upcoming')); $occasion('agenda-past').setAttribute('aria-pressed', String(agendaTab === 'past'));
-  const search = $occasion('agenda-search').value.trim().toLocaleLowerCase('pt-BR'), month = $occasion('agenda-month').value;
+  // Convite esperando resposta mora no topo de Próximos; em Anteriores, um ponto na aba avisa que há um.
+  const invites = globalThis.pendingInviteCount?.() || 0;
+  $occasion('occasion-invites').hidden = !(invites > 0 && agendaTab === 'upcoming');
+  $occasion('agenda-upcoming-dot').hidden = !(invites > 0 && agendaTab !== 'upcoming');
+  // Busca visível só com muitos eventos (contando os das duas abas, para não aparecer e sumir ao trocar de aba).
+  const searchInput = $occasion('agenda-search');
+  const searchable = state.occasions.filter(item => item.id !== active?.id).length >= AGENDA_SEARCH_MIN;
+  if (!searchable) searchInput.value = '';
+  $occasion('agenda-search-field').hidden = !searchable;
+  $occasion('agenda-search-clear').hidden = !searchInput.value;
+  const search = searchInput.value.trim().toLocaleLowerCase('pt-BR');
   const items = state.occasions.filter(item => item.id !== active?.id && (agendaTab === 'upcoming' ? FunTimeOccasions.pending(item) : !FunTimeOccasions.pending(item)))
-    .filter(item => item.name.toLocaleLowerCase('pt-BR').includes(search) && (!month || toLocalDateInputValue(item.startedAt ?? item.scheduledStartAt).startsWith(month)))
+    .filter(item => item.name.toLocaleLowerCase('pt-BR').includes(search))
     .sort((a, b) => ((a.startedAt ?? a.scheduledStartAt) - (b.startedAt ?? b.scheduledStartAt)) * (agendaTab === 'upcoming' ? 1 : -1));
-  let lastMonth = '';
+  let lastGroup = '';
   for (const item of items.slice(0, agendaLimit)) {
-    const date = new Date(item.startedAt ?? item.scheduledStartAt); const key = date.getFullYear() + '-' + date.getMonth();
-    if (key !== lastMonth) { const heading = document.createElement('h2'); heading.className = 'agenda-month-heading'; heading.textContent = date.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' }); list.append(heading); lastMonth = key; }
+    // Atrasados vêm primeiro (são os mais antigos) e ganham grupo próprio em vez de um mês do passado.
+    const overdue = agendaTab === 'upcoming' && isOverdueOccasion(item);
+    const date = new Date(item.startedAt ?? item.scheduledStartAt); const group = overdue ? 'overdue' : date.getFullYear() + '-' + date.getMonth();
+    if (group !== lastGroup) {
+      const heading = document.createElement('h2'); heading.className = 'agenda-month-heading' + (overdue ? ' is-overdue' : '');
+      heading.textContent = overdue ? 'Passou do horário' : date.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
+      list.append(heading); lastGroup = group;
+    }
     list.append(occasionRow(item));
   }
-  if (!items.length) { const empty = document.createElement('p'); empty.className = 'agenda-empty'; empty.textContent = search || month ? 'Nenhum evento encontrado.' : agendaTab === 'upcoming' ? 'Nenhum evento agendado. Use + Novo para planejar ou iniciar um.' : 'Seus eventos anteriores aparecerão aqui.'; list.append(empty); }
+  if (!items.length) { const empty = document.createElement('p'); empty.className = 'agenda-empty'; empty.textContent = search ? 'Nenhum evento encontrado.' : agendaTab === 'upcoming' ? 'Nenhum evento agendado. Use + Novo para planejar ou iniciar um.' : 'Seus eventos anteriores aparecerão aqui.'; list.append(empty); }
   $occasion('agenda-more').hidden = items.length <= agendaLimit;
 }
 function refreshOccasionContext() {
@@ -361,6 +431,8 @@ function refreshOccasionContext() {
   document.querySelector('.bottom-nav').style.gridTemplateColumns = `repeat(${enabled ? 4 : 3}, minmax(0, 1fr))`;
   $occasion('home-occasion').hidden = !enabled;
   $occasion('home-occasion').classList.toggle('is-active', enabled && !!FunTimeOccasions.active(state.occasions));
+  // Eventos ligado ou desligado muda onde o convite pendente aparece (Eventos ⇄ Amigos).
+  globalThis.refreshInviteViews?.();
   if (!enabled) return;
   const active = FunTimeOccasions.active(state.occasions), button = $occasion('home-occasion');
   const text = active ? '🎉 ' + active.name + ' · Em andamento ›' : 'Sem evento em andamento · Eventos ›'; if (button.textContent !== text) button.textContent = text;
@@ -480,7 +552,8 @@ document.addEventListener('pointerdown', event => {
   if (!$occasion('history-occasion-field').contains(event.target)) closeHistoryOccasionFilter();
 });
 for (const [id, tab] of [['agenda-upcoming','upcoming'],['agenda-past','past']]) $occasion(id).addEventListener('click', () => { agendaTab = tab; agendaLimit = 20; renderOccasions(); });
-for (const id of ['agenda-search','agenda-month']) $occasion(id).addEventListener('input', () => { agendaLimit = 20; renderOccasions(); });
+$occasion('agenda-search').addEventListener('input', () => { agendaLimit = 20; renderOccasions(); });
+$occasion('agenda-search-clear').addEventListener('click', () => { $occasion('agenda-search').value = ''; agendaLimit = 20; renderOccasions(); $occasion('agenda-search').focus(); });
 $occasion('agenda-more').addEventListener('click', () => { agendaLimit += 20; renderOccasions(); });
 document.addEventListener('visibilitychange', () => { if (!document.hidden) reconcileOccasions(); });
 window.addEventListener('focus', reconcileOccasions);

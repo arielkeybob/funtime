@@ -148,7 +148,9 @@ test('agenda compacta, evento, edição, agendamento automático, aviso e persis
   });
   await page.locator('#agenda-upcoming').click(); assert.equal(await page.locator('#occasion-list .agenda-row').count(),20);
   await page.locator('#agenda-more').click(); assert.equal(await page.locator('#occasion-list .agenda-row').count(),40);
-  await page.locator('.agenda-filters summary').click(); await page.locator('#agenda-search').fill('Agenda 099');
+  assert.equal(await page.locator('.agenda-filters').count(),0);
+  assert.equal(await page.locator('#agenda-search-field').isVisible(),true); // 100 eventos: a busca aparece sem abrir nada
+  await page.locator('#agenda-search').fill('Agenda 099');
   assert.equal(await page.locator('#occasion-list .agenda-row').count(),1);
   await page.locator('#occasion-list .agenda-row').click(); await page.keyboard.press('Escape');
   assert.equal(await page.locator('#agenda-search').inputValue(),'Agenda 099');

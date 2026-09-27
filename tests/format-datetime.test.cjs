@@ -1,6 +1,6 @@
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
-const { formatTime, formatClock, formatHistoryElapsed, formatInterval } = require('../src/format/datetime.js');
+const { formatTime, formatClock, formatHistoryElapsed, formatInterval, formatAgendaDateTime } = require('../src/format/datetime.js');
 
 test('formatTime converte milissegundos em HH:MM:SS, arredondando para cima e sem negativos', () => {
   assert.equal(formatTime(5400000), '01:30:00');
@@ -27,4 +27,19 @@ test('formatInterval combina horas e minutos, ou mostra só a unidade presente',
   assert.equal(formatInterval(60), '1 h');
   assert.equal(formatInterval(45), '45 min');
   assert.equal(formatInterval(0), '0 min');
+});
+
+// Data da agenda de eventos: dia da semana + dia/mês (+ ano só se não for o corrente) + hora.
+test('formatAgendaDateTime mostra dia da semana, dia/mês e hora, sem ponto na abreviação', () => {
+  const agora = new Date(2026, 8, 26, 12, 0).getTime();
+
+  assert.equal(formatAgendaDateTime(new Date(2026, 9, 17, 21, 23).getTime(), agora), 'sáb 17/10 · 21:23');
+  assert.equal(formatAgendaDateTime(new Date(2026, 8, 19, 9, 5).getTime(), agora), 'sáb 19/09 · 09:05');
+});
+
+test('formatAgendaDateTime acrescenta o ano só quando ele não é o corrente', () => {
+  const agora = new Date(2026, 11, 30, 12, 0).getTime();
+
+  assert.equal(formatAgendaDateTime(new Date(2027, 0, 2, 20, 0).getTime(), agora), 'sáb 02/01/27 · 20:00');
+  assert.equal(formatAgendaDateTime(new Date(2026, 0, 2, 20, 0).getTime(), agora), 'sex 02/01 · 20:00');
 });
