@@ -3,8 +3,9 @@ export function initEasterEggs({ state, homeHeader, homeView, toast, updateToast
   const BACKGROUND_VIDEO_SOURCE = 'local';
   const BACKGROUND_VIDEO_CACHE_NAME = 'funtime-bg-v1';
   const localBackgroundVideos = [
-    './bg/Bg1.mp4', './bg/Bg2.mp4', './bg/Bg3.mp4', './bg/Bg4.mp4',
-    './bg/Bg5.mp4', './bg/Bg6.mp4', './bg/Bg8-1.mp4'
+    './bg/Bg9.mp4', './bg/Bg10.mp4', './bg/Bg11.mp4',
+    './bg/Bg12.mp4', './bg/Bg13.mp4', './bg/Bg14.mp4',
+    './bg/Bg15.mp4', './bg/Bg16.mp4', './bg/Bg17.mp4'
   ];
   const youtubeBackgroundVideoIds = [
     'Q6SzupOIkrs', 'Kjc3Q3Z1a-M', 'RtDRL2DMujw',

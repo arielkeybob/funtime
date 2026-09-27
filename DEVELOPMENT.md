@@ -34,6 +34,25 @@ Duas camadas com um visualizador só (`src/tutorials/viewer.js`, dialog `#tutori
 
 **Armadilha nos testes de navegador:** a introdução é um modal que cobre a tela de qualquer perfil novo em modo instalado, e os cliques dos testes passam a cair nele. `scripts/dev-server.cjs` já marca `funtime-tutorial-v1` como visto (abra `/funtime/?tutorial-intro` na prévia para ver o primeiro acesso de verdade); um teste que sobe o **próprio** servidor HTTP precisa gravar essa chave no `addInitScript`, junto do `standalone` (como fazem `navigation-browser`, `countdown-menu-browser`, `icon-reorder-browser` e `update-lock-browser`).
 
+## Vídeos de fundo do easter egg — como preparar um MP4 novo
+
+`bg/BgN.mp4`, listado em `src/easter-eggs/index.js` e fora do `APP_SHELL`. O cache `funtime-bg-v1` é por URL: **nunca reaproveite um nome já publicado**, ou quem já baixou continua vendo o vídeo antigo. O efeito mostra o vídeo a 52 % de opacidade, atrás de cards com blur, por 20 s (+ 2 s de fade), então detalhe fino quase não aparece: o alvo é **≤ 20 s, sem áudio, ~1–2 MB** (os nove atuais, Bg9–Bg17, somam 11 MB). Bg9–Bg11 vieram de MP4s novos; Bg12–Bg17 são a recompressão dos antigos Bg1, Bg2, Bg3, Bg5, Bg6 e Bg8-1, feita a partir do próprio MP4 480×854 e só dos primeiros 20 s, que é tudo o que o efeito sempre exibiu (o Bg4 foi removido). As versões pesadas seguem no histórico do Git.
+
+Receita usada nos Bg9–Bg17 (ffmpeg completo, ex.: `node_modules/ffmpeg-static`). H.264 High L3.1 por compatibilidade com iPhone; 360×640 (9:16) a 30 fps (baixar o fps quase não reduz o tamanho, o custo vem da mudança entre quadros); CRF 35 com `psy-rd=0.4,0.0` (−13 % de tamanho frente ao padrão do x264; CRF 37 e 38 poupam mais 30 % e 40 %, mas borram o cabelo/roupa até parecer pintura); `hqdn3d` para tirar ruído; `-an`. Animações gráficas de cor chapada (Bg13, Bg16) usam CRF 38: girando, são as mais caras de comprimir e não têm textura para borrar; medi que o CRF alto não acrescenta cintilação entre quadros. Escolha um trecho sem corte seco do original.
+
+```
+ffmpeg -ss INICIO -i origem.mp4 -an -filter_complex "
+ [0:v]setpts=PTS-STARTPTS,hqdn3d=4:3:6:4.5,scale=360:640:flags=lanczos,fps=30,format=yuv420p,trim=end_frame=N,setpts=PTS-STARTPTS,split[a][b];
+ [a]trim=start_frame=18,setpts=PTS-STARTPTS[s1];
+ [b]trim=end_frame=18,setpts=PTS-STARTPTS[s2];
+ [s1][s2]xfade=transition=fade:duration=0.6:offset=SEGUNDOS,format=yuv420p[v]" -map "[v]" \
+ -c:v libx264 -preset veryslow -crf 35 -profile:v high -level 3.1 \
+ -x264-params "aq-mode=3:deblock=1,1:ref=6:bframes=8:b-adapt=2:keyint=300:min-keyint=30:psy-rd=0.4,0.0" \
+ -movflags +faststart -map_metadata -1 BgN.mp4
+```
+
+`N` = quadros do trecho e `SEGUNDOS` = `(N-36)/30`; a saída tem `N-18` quadros (`N` = 618 dá 20,00 s). Duas armadilhas: (1) o `<video>` tem `loop`, então um clipe **mais curto que 20 s reinicia sozinho** e um de 20 s reinicia justo quando o fade-out começa — por isso o `xfade` dissolve o final no começo (0,6 s), deixando a emenda contínua; (2) fontes baixadas do YouTube costumam ter o primeiro quadro de vídeo em ~0,11 s, e o `fps` preencheria essa lacuna duplicando quadros no início: o `setpts=PTS-STARTPTS` antes do `fps` evita isso.
+
 ## V2.1.47 — easter egg de BPM: 4 toques para o palpite, refina com 8 seguidos
 
 `src/easter-eggs/index.js` (handler de `pointerup`): o primeiro palpite de BPM passa a

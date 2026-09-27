@@ -391,28 +391,28 @@ export const TUTORIALS = [
       },
       {
         "tipo": "imagem",
-        "src": "./tutorials/media/backup-e-bebidas/02.4e89c00f.webp",
+        "src": "./tutorials/media/backup-e-bebidas/02.894c3f85.webp",
         "alt": "Tela Backup e conta com dois cartões em destaque: Exportar e importar, rotulado Só as bebidas, e Dados do aplicativo, rotulado Bebidas + histórico.",
         "legenda": "Em Backup e conta, os dois ficam em cartões separados."
       },
       {
         "tipo": "video",
-        "src": "./tutorials/media/backup-e-bebidas/03.926ef110.mp4",
-        "poster": "./tutorials/media/backup-e-bebidas/03.poster.4b56357a.webp",
+        "src": "./tutorials/media/backup-e-bebidas/03.d64fb992.mp4",
+        "poster": "./tutorials/media/backup-e-bebidas/03.poster.b2fec5d9.webp",
         "alt": "O botão Exportar bebidas é tocado e o app avisa que o arquivo de bebidas foi exportado.",
         "legenda": "Exportar bebidas gera um arquivo para compartilhar ou guardar."
       },
       {
         "tipo": "video",
-        "src": "./tutorials/media/backup-e-bebidas/04.05dad230.mp4",
-        "poster": "./tutorials/media/backup-e-bebidas/04.poster.b4846e5e.webp",
+        "src": "./tutorials/media/backup-e-bebidas/04.e5ae0aad.mp4",
+        "poster": "./tutorials/media/backup-e-bebidas/04.poster.6bca91c8.webp",
         "alt": "O botão Importar bebidas é tocado e abre a prévia do arquivo, com as opções Adicionar às bebidas atuais e Substituir minha lista de bebidas em destaque.",
         "legenda": "Importar mostra uma prévia: adicionar ou substituir a lista."
       },
       {
         "tipo": "video",
-        "src": "./tutorials/media/backup-e-bebidas/05.9cecf88b.mp4",
-        "poster": "./tutorials/media/backup-e-bebidas/05.poster.6947c2f8.webp",
+        "src": "./tutorials/media/backup-e-bebidas/05.8c6e7bbb.mp4",
+        "poster": "./tutorials/media/backup-e-bebidas/05.poster.d9fbe946.webp",
         "alt": "O botão Fazer backup é tocado e o app avisa que o backup foi criado e que o arquivo deve ser guardado em local privado.",
         "legenda": "Fazer backup salva bebidas, histórico e preferências."
       },

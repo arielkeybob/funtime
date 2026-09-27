@@ -313,7 +313,7 @@ document.addEventListener("visibilitychange", () => {
 const DATA_STORAGE_KEY = "funtime-v1-data";
 const LEGACY_DRINKS_STORAGE_KEY = "balada-v1-drinks";
 const DATA_VERSION = 11;
-const APP_VERSION = "2.21.1";
+const APP_VERSION = "2.22.0";
 const DRINK_EXPORT_TYPE = "funtime-drinks";
 const DRINK_EXPORT_FORMAT_VERSION = 1;
 const BACKUP_EXPORT_TYPE = "funtime-backup";
@@ -387,6 +387,9 @@ const state = {
   pendingSharedImportCheck: false,
   pendingSyncApply: null,
   pendingSharedViewApply: null,
+  // Espelha o "Seu apelido" de Amigos (users/{uid}/meta/account) só pra saudação do
+  // Início — nunca persistido aqui, some ao sair e volta a buscar no próximo login.
+  myAlias: "",
 };
 
 // Declarados aqui, longe do bloco de sincronização lá embaixo, porque `commitAppData` e
@@ -432,6 +435,7 @@ const {
 state.securityConfig = IS_STANDALONE_APP ? loadSecurityConfig() : getDefaultSecurityConfig();
 
 const homeHeader = document.querySelector("#home-header");
+const homeEyebrow = document.querySelector("#home-eyebrow");
 const historyHeader = document.querySelector("#history-header");
 const homeView = document.querySelector("#home-view");
 const historyView = document.querySelector("#history-view");
@@ -976,6 +980,47 @@ function updateSecuritySettingsUI() {
   }
 }
 
+let homeGreetingTimer = null;
+
+function stopHomeGreeting() {
+  if (homeGreetingTimer) { clearTimeout(homeGreetingTimer); homeGreetingTimer = null; }
+}
+
+// Alterna devagar entre "FunTime" e "Olá, {apelido}!" na etiqueta do cabeçalho do Início.
+// Só ali: nas outras telas a etiqueta mostra outra coisa e este relógio fica parado. Sem
+// apelido salvo em Amigos, ou com "menos movimento" pedido pelo sistema, fica parado em
+// "FunTime" e nenhuma transição roda.
+function refreshHomeGreeting() {
+  stopHomeGreeting();
+  if (!homeEyebrow) return;
+  const alias = (state.myAlias || "").trim();
+  const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if (state.currentView !== "home" || !alias || reduceMotion) {
+    homeEyebrow.textContent = "FunTime";
+    homeEyebrow.style.opacity = "";
+    return;
+  }
+  const variants = ["FunTime", `Olá, ${alias}!`];
+  const HOLD_MS = 4500;
+  const FADE_MS = 2500;
+  let index = 0;
+  homeEyebrow.textContent = variants[0];
+  homeEyebrow.style.opacity = "1";
+  const fadeOut = () => {
+    homeEyebrow.style.opacity = "0";
+    homeGreetingTimer = setTimeout(swap, FADE_MS);
+  };
+  // Troca o texto assim que o fade-out termina e já inicia o fade-in no mesmo instante —
+  // sem pausa parada em branco entre um e outro.
+  const swap = () => {
+    index = (index + 1) % variants.length;
+    homeEyebrow.textContent = variants[index];
+    homeEyebrow.style.opacity = "1";
+    homeGreetingTimer = setTimeout(fadeOut, HOLD_MS);
+  };
+  homeGreetingTimer = setTimeout(fadeOut, HOLD_MS);
+}
+
 function setCurrentView(view) {
   state.currentView = view;
   homeHeader.hidden = view !== "home";
@@ -988,6 +1033,7 @@ function setCurrentView(view) {
   document.getElementById("occasion-view").hidden = view !== "occasion";
   if (sharedHeader) sharedHeader.hidden = view !== "shared";
   if (sharedViewMain) sharedViewMain.hidden = view !== "shared";
+  refreshHomeGreeting();
   document.querySelectorAll("[data-nav-view]").forEach(button => {
     if (button.dataset.navView === view) button.setAttribute("aria-current", "page");
     else button.removeAttribute("aria-current");
@@ -3755,6 +3801,11 @@ firebaseAuth = IS_STANDALONE_APP && isFirebaseConfigured() ? createFirebaseAuth(
         if (status === "error") console.error("Falha no compartilhamento.", error);
       },
     });
+    // Busca o apelido já aqui (não só quando a pessoa abre Amigos) para a saudação do
+    // Início poder aparecer assim que o login termina.
+    shareWriter.getGlobalAlias()
+      .then((alias) => { state.myAlias = alias || ""; refreshHomeGreeting(); })
+      .catch(() => { /* sem apelido ainda ou falha ao buscar: saudação simplesmente não aparece */ });
     sharedViewReader = createSharedView({
       app,
       onChange: applySharedViewEntries,
@@ -3789,6 +3840,8 @@ firebaseAuth = IS_STANDALONE_APP && isFirebaseConfigured() ? createFirebaseAuth(
     cloudSync = null;
     shareWriter?.stop();
     shareWriter = null;
+    state.myAlias = "";
+    refreshHomeGreeting();
     sharedViewReader?.stop();
     sharedViewReader = null;
     // Os eventos que organizo ficam na nuvem (a ficha não carrega consumo); sair só para de
@@ -3908,6 +3961,7 @@ if (sharingNodes.pairingDialog) {
     nodes: sharingNodes,
     getShareWriter: () => shareWriter,
     showToast,
+    onAliasChange: (alias) => { state.myAlias = alias || ""; refreshHomeGreeting(); },
     getEventsContext: getShareEventsContext,
     startEventWith: (uid) => openOccasionEditor(null, [uid]),
     openEventsSetting,

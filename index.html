@@ -58,7 +58,7 @@
     <footer class="browser-gate-footer">
       <span>App para estudo · não é controle de segurança</span>
       <a class="policies-link" href="./policies.html">Políticas e informações</a>
-      <span>v2.21.1 · By: arielkeybob</span>
+      <span>v2.22.0 · By: arielkeybob</span>
     </footer>
   </section>
 
@@ -79,7 +79,7 @@
   <div id="app-shell" class="app-shell">
     <header id="home-header" class="app-header home-header">
       <div class="home-header-copy">
-        <p class="eyebrow home-header-eyebrow">FunTime</p>
+        <p id="home-eyebrow" class="eyebrow home-header-eyebrow">FunTime</p>
         <h1>Início</h1>
       </div>
       <div class="home-header-actions">
@@ -296,24 +296,6 @@
         <input id="drink-import-file" class="visually-hidden-file" type="file" accept=".txt,text/plain,.json,application/json">
       </section>
 
-      <section class="settings-card settings-data-card settings-backup-data-card">
-        <div class="settings-section-heading">
-          <div>
-            <p class="eyebrow">Backup e restauração</p>
-            <h2>Dados do aplicativo</h2>
-          </div>
-        </div>
-
-        <p class="settings-description clean-optional">O backup inclui bebidas, histórico e preferências. PIN, biometria e bloqueio deste aparelho não entram no arquivo.</p>
-
-        <div class="settings-action-stack">
-          <button id="create-backup" class="settings-primary-action" type="button">Fazer backup</button>
-          <button id="restore-backup" class="settings-secondary-button" type="button">Restaurar backup</button>
-        </div>
-
-        <input id="backup-restore-file" class="visually-hidden-file" type="file" accept=".json,application/json">
-      </section>
-
       <section class="settings-card settings-data-card settings-sync-data-card">
         <div class="settings-section-heading">
           <div>
@@ -337,6 +319,24 @@
           <button id="sync-delete-cloud" class="settings-secondary-button" type="button" hidden>Apagar dados na nuvem</button>
         </div>
       </section>
+
+      <section class="settings-card settings-data-card settings-backup-data-card">
+        <div class="settings-section-heading">
+          <div>
+            <p class="eyebrow">Backup e restauração</p>
+            <h2>Dados do aplicativo</h2>
+          </div>
+        </div>
+
+        <p class="settings-description clean-optional">O backup inclui bebidas, histórico e preferências. PIN, biometria e bloqueio deste aparelho não entram no arquivo.</p>
+
+        <div class="settings-action-stack">
+          <button id="create-backup" class="settings-primary-action" type="button">Fazer backup</button>
+          <button id="restore-backup" class="settings-secondary-button" type="button">Restaurar backup</button>
+        </div>
+
+        <input id="backup-restore-file" class="visually-hidden-file" type="file" accept=".json,application/json">
+      </section>
     </section>
 
     <section class="settings-page" data-settings-page="tutorials" data-title="Como usar o App" hidden>
@@ -352,7 +352,7 @@
           </div>
         </div>
 
-        <p class="settings-description">Versão instalada: <strong>v2.21.1</strong></p>
+        <p class="settings-description">Versão instalada: <strong>v2.22.0</strong></p>
         <button id="check-app-update" class="settings-secondary-button" type="button">Verificar atualizações</button>
       </section>
 
@@ -477,7 +477,7 @@
     <footer class="app-footer">
       <span class="app-footer-disclaimer">App para estudo · não é controle de segurança</span>
       <a class="policies-link" href="./policies.html">Políticas e informações</a>
-      <span class="app-footer-meta">v2.21.1 · By: arielkeybob</span>
+      <span class="app-footer-meta">v2.22.0 · By: arielkeybob</span>
     </footer>
   </div>
 

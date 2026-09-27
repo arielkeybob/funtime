@@ -28,6 +28,9 @@ export function createShareUI({
   // as marcas ✉/✔ (só enquanto o evento não começou).
   setShareIntent = async () => {},
   getEventRoster = () => null,
+  // Ponte pra saudação do Início (que não conhece esta tela): avisada sempre que o
+  // apelido é buscado ou salvo aqui, pra ficar igual sem esperar o próximo login.
+  onAliasChange = () => {},
 }) {
   const shareWriter = new Proxy({}, {
     get: (alvo, metodo) => (...args) => {
@@ -808,6 +811,7 @@ export function createShareUI({
     catch { nodes.pairingAlias.value = ""; /* sem apelido salvo ainda, ou falha ao buscar */ }
     apelidoSalvo = nodes.pairingAlias.value;
     atualizarBotaoApelido();
+    onAliasChange(apelidoSalvo);
   }
 
   // "Salvar" só faz sentido quando o campo difere do que já está salvo — do
@@ -821,6 +825,7 @@ export function createShareUI({
       await shareWriter.setGlobalAlias(nodes.pairingAlias.value);
       apelidoSalvo = nodes.pairingAlias.value;
       atualizarBotaoApelido();
+      onAliasChange(apelidoSalvo);
       showToast("Apelido atualizado para quem você já adicionou.");
     } catch (falha) {
       console.error("Falha ao salvar o apelido.", falha);

@@ -3631,7 +3631,8 @@ body {
 
 /* Mundo invertido: decoração local, temporária e sem captura de toque. */
 .home-header { user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
-.home-header-eyebrow { text-transform: none; }
+.home-header-eyebrow { text-transform: none; transition: opacity 2.5s ease-in-out; }
+@media (prefers-reduced-motion: reduce) { .home-header-eyebrow { transition: none; } }
 .upside-down-world {
   position: fixed;
   inset: 0;

@@ -1,4 +1,11 @@
-# FunTime — V2.21.1
+# FunTime — V2.22.0
+
+## V2.22.0 — saudação animada no Início e vídeos de fundo renovados
+
+- **"Olá, [apelido]!" alternando na etiqueta do Início.** A etiqueta que hoje só mostra "FunTime" acima de "Início" passa a alternar devagar com "Olá, [apelido]!" quando você está logado e já salvou um apelido em Amigos — fade lento (~4,5 s parado em cada frase, sem pausa em branco no meio), sem deslocar mais nada no cabeçalho. Só acontece nessa tela; nas demais a etiqueta continua mostrando outra coisa. Sem apelido salvo, sem conta conectada ou com "menos movimento" pedido pelo sistema, fica parado em "FunTime", sem nenhuma transição. Respeita `prefers-reduced-motion`.
+- **Vídeos de fundo do easter egg renovados** (`Bg9`–`Bg17`, no lugar de `Bg1`–`Bg8`): mesma duração e efeito (20 s, sem áudio, atrás dos cards com blur), arquivos recomprimidos/trocados, ~11 MB ao todo. Receita de compressão documentada em `DEVELOPMENT.md`.
+- Na tela **Backup e conta**, o cartão de backup/restauração passa a aparecer depois do cartão de sincronização.
+- Sem mudança de dados, de regras do Firestore nem de políticas (`DATA_VERSION` 11).
 
 ## V2.21.1 — convite não respondido não fica guardado, sem grupo "Passou do horário" e "Como usar o App"
 
