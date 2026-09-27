@@ -33,7 +33,7 @@ test('o menu lista as categorias com resumo; tocar abre a tela e ← volta ao me
     await page.locator('#open-settings').click();
     assert.equal(await page.locator('#settings-menu').isVisible(), true);
     assert.deepEqual(await page.locator('#settings-menu .settings-nav-row strong').allTextContents(),
-      ['Aparência', 'Privacidade', 'Backup e conta', 'Como usar', 'Sobre o app', 'Redefinir e apagar dados']);
+      ['Aparência', 'Privacidade', 'Backup e conta', 'Como usar o App', 'Sobre o app', 'Redefinir e apagar dados']);
     assert.match(await page.locator('#settings-summary-appearance').textContent(), /Contagem regressiva · Eventos desligados/);
     assert.equal(await page.locator('#settings-summary-privacy').textContent(), 'Bloqueio desativado');
     assert.match(await page.locator('#settings-summary-tutorials').textContent(), /^\d+ tutoriais?$/);

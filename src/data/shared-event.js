@@ -67,6 +67,12 @@ export function readEventDoc(raw, eventId) {
   };
 }
 
+// Quando o evento acaba para efeito de convite: o fim informado ou, sem fim, 48h depois do
+// início — a mesma regra com que a ocasião é encerrada à força. Convite sem resposta some aí.
+export function eventEndMs(view) {
+  return finite(view.endAt) ? view.endAt : view.startAt + OPEN_EVENT_MAX_MS;
+}
+
 export function createSharedEvents({
   app, uid, importModule, onEventsChange, onInvitesChange, onStatusChange,
   now = () => Date.now(), createEventId = () => crypto.randomUUID(),
@@ -83,7 +89,11 @@ export function createSharedEvents({
   // Convites que ainda não aceitei nem recusei.
   const pendingInvites = new Map(); // eventId -> retrato
   const lastFicha = new Map(); // eventId -> retrato estável do que a nuvem já tem
-  const fetching = new Set();
+  // Convites pendentes são ESCUTADOS (não lidos uma vez): se o organizador encerra, cancela ou
+  // retira o convite, ele sai da lista na hora. `finishedInvites` guarda, nesta sessão, os que já se
+  // sabe que não valem mais, para não relê-los a cada mudança de pareamento.
+  const inviteWatchers = new Map(); // eventId -> função que solta a escuta
+  const finishedInvites = new Set();
   let wantedInvites = new Map(); // eventId -> hostUid, do que os ponteiros dos amigos apontam
   let linked = new Map(); // eventId -> hostUid, das ocasiões locais ligadas a evento de OUTRO
   let dismissed = null; // eventId -> ms, carregado só quando aparece o primeiro convite
@@ -119,7 +129,9 @@ export function createSharedEvents({
   }
 
   function emitInvites() {
-    if (!stopped) onInvitesChange?.([...pendingInvites.values()]);
+    if (stopped) return;
+    // Só o que ainda vale: um evento que acabou (ou venceu) por passagem de tempo não fica na lista.
+    onInvitesChange?.([...pendingInvites.values()].filter((view) => alive(view) && eventEndMs(view) > now()));
   }
 
   // ---- Organizador ----------------------------------------------------------
@@ -300,34 +312,55 @@ export function createSharedEvents({
     return dismissed;
   }
 
-  // Um `get` só por convite, não uma escuta: o convite pendente não muda a todo momento,
-  // e cada escuta custaria uma leitura por reconexão. Quem aceita passa a ser escutado.
-  async function fetchInvite(eventId, hostUid) {
-    if (fetching.has(eventId)) return;
-    fetching.add(eventId);
+  // Tira o convite da lista e solta a escuta. `forever` lembra, nesta sessão, que ele não vale mais
+  // (acabou, foi cancelado, retirado, recusado ou aceito) para não voltar a ser lido.
+  function dropInvite(eventId, { forever = false } = {}) {
+    inviteWatchers.get(eventId)?.();
+    inviteWatchers.delete(eventId);
+    if (forever) finishedInvites.add(eventId);
+    if (pendingInvites.delete(eventId)) emitInvites();
+  }
+
+  // A primeira leitura custa o mesmo que o `get` de antes; depois, só uma leitura quando o evento muda.
+  async function watchInvite(eventId, hostUid) {
+    if (inviteWatchers.has(eventId) || finishedInvites.has(eventId) || linked.has(eventId)) return;
+    inviteWatchers.set(eventId, () => {}); // guarda o lugar enquanto carrega
     try {
-      if ((await ensureDismissed()).has(eventId)) return;
+      if ((await ensureDismissed()).has(eventId)) { dropInvite(eventId, { forever: true }); return; }
 
       const { firestore, db } = await load();
-      // A regra lê resource.data: documento inexistente é negado e o SDK REJEITA em vez de
-      // devolver exists()==false (spec 0023, v2.3.2). Aqui, negado é "não há convite".
-      let snapshot;
-      try { snapshot = await firestore.getDoc(eventRef(firestore, db, eventId)); } catch { return; }
-      if (!snapshot.exists()) return;
+      if (stopped || !inviteWatchers.has(eventId)) return;
 
-      const view = readEventDoc(snapshot.data(), eventId);
-      // O ponteiro é escrito pelo amigo: ele poderia apontar para o evento de qualquer
-      // pessoa. Só vale se o organizador do documento é quem publicou o ponteiro.
-      if (!view || view.hostUid !== hostUid) return;
-      if (view.status !== "active" || !alive(view) || (view.endAt ?? Infinity) <= now()) return;
-      if (!wantedInvites.has(eventId) || linked.has(eventId)) return;
+      const unsubscribe = firestore.onSnapshot(
+        eventRef(firestore, db, eventId),
+        (snapshot) => {
+          if (stopped || !inviteWatchers.has(eventId)) return;
+          if (!wantedInvites.has(eventId) || linked.has(eventId)) { dropInvite(eventId); return; }
 
-      pendingInvites.set(eventId, view);
-      emitInvites();
+          const view = snapshot.exists() ? readEventDoc(snapshot.data(), eventId) : null;
+          // O ponteiro é escrito pelo amigo: ele poderia apontar para o evento de qualquer pessoa.
+          // Só vale se o organizador do documento é quem publicou o ponteiro.
+          if (!view || view.hostUid !== hostUid || view.status !== "active" || !alive(view) || eventEndMs(view) <= now()) {
+            dropInvite(eventId, { forever: true });
+            return;
+          }
+          pendingInvites.set(eventId, view);
+          emitInvites();
+        },
+        (error) => {
+          // A regra lê resource.data: documento inexistente, convite retirado ou vencido é negado e
+          // a escuta morre (spec 0023). Aqui, negado é "esse convite acabou", não um erro.
+          dropInvite(eventId, { forever: true });
+          if (error?.code !== "permission-denied") report(error);
+        }
+      );
+
+      // Descartado enquanto carregava (ou o módulo parou): não deixa a escuta pendurada.
+      if (stopped || !inviteWatchers.has(eventId)) { unsubscribe(); return; }
+      inviteWatchers.set(eventId, unsubscribe);
     } catch (error) {
+      inviteWatchers.delete(eventId);
       report(error);
-    } finally {
-      fetching.delete(eventId);
     }
   }
 
@@ -340,16 +373,13 @@ export function createSharedEvents({
       for (const eventId of pointerToList(par.invitesFromOther)) wantedInvites.set(eventId, par.otherUid);
     }
 
-    let mudou = false;
-    for (const eventId of [...pendingInvites.keys()]) {
-      if (!wantedInvites.has(eventId)) { pendingInvites.delete(eventId); mudou = true; }
+    // O ponteiro sumiu (o organizador retirou o convite ou apagou o evento): solta a escuta.
+    for (const eventId of new Set([...pendingInvites.keys(), ...inviteWatchers.keys()])) {
+      if (!wantedInvites.has(eventId)) dropInvite(eventId);
     }
-    if (mudou) emitInvites();
 
-    for (const [eventId, hostUid] of wantedInvites) {
-      if (pendingInvites.has(eventId) || linked.has(eventId)) continue;
-      fetchInvite(eventId, hostUid);
-    }
+    // watchInvite já pula o que está sendo escutado, o que já acabou e o que virou ocasião.
+    for (const [eventId, hostUid] of wantedInvites) watchInvite(eventId, hostUid);
   }
 
   async function attach(eventId, hostUid) {
@@ -391,16 +421,13 @@ export function createSharedEvents({
     }
 
     for (const eventId of [...watched.keys()]) if (!linked.has(eventId)) detach(eventId);
-    let mudouConvites = false;
-    for (const eventId of linked.keys()) {
-      if (pendingInvites.delete(eventId)) mudouConvites = true;
-    }
+    // Virou ocasião: deixa de ser convite pendente e quem escuta é a ligação.
+    for (const eventId of linked.keys()) dropInvite(eventId);
     for (const [eventId, hostUid] of linked) {
       if (watched.has(eventId)) continue;
       watched.set(eventId, { hostUid, unsubscribe: null, view: null, gone: false });
       attach(eventId, hostUid).catch(report);
     }
-    if (mudouConvites) emitInvites();
     emitEvents();
   }
 
@@ -415,7 +442,7 @@ export function createSharedEvents({
     const view = readEventDoc(snapshot.data(), eventId);
     if (!view || view.hostUid === uid) return { ok: false, reason: "not-found" };
     if (view.status === "cancelled") return { ok: false, reason: "cancelled" };
-    if (!alive(view) || (view.endAt ?? Infinity) <= now()) return { ok: false, reason: "over" };
+    if (!alive(view) || eventEndMs(view) <= now()) return { ok: false, reason: "over" };
 
     try {
       await waitAck(firestore.updateDoc(eventRef(firestore, db, eventId), { going: firestore.arrayUnion(uid) }));
@@ -424,8 +451,8 @@ export function createSharedEvents({
       throw error;
     }
 
-    pendingInvites.delete(eventId);
-    emitInvites();
+    // Respondido: não volta como convite enquanto o app ainda não ligou a ocasião.
+    dropInvite(eventId, { forever: true });
     return { ok: true, event: { ...view, going: unique([...view.going, uid]) } };
   }
 
@@ -435,8 +462,7 @@ export function createSharedEvents({
   async function decline(eventId) {
     const mapa = await ensureDismissed();
     mapa.set(eventId, now());
-    pendingInvites.delete(eventId);
-    emitInvites();
+    dropInvite(eventId, { forever: true });
 
     const limite = now() - DISMISSED_KEEP_MS;
     const { firestore, db } = await load();
@@ -496,7 +522,9 @@ export function createSharedEvents({
     while (unsubscribers.length) unsubscribers.pop()?.();
     for (const eventId of [...watched.keys()]) detach(eventId);
     if (fichaTimer) { cancel(fichaTimer); fichaTimer = null; }
-    hosted.clear(); pendingInvites.clear(); lastFicha.clear(); fetching.clear();
+    for (const unsubscribe of inviteWatchers.values()) unsubscribe();
+    inviteWatchers.clear(); finishedInvites.clear();
+    hosted.clear(); pendingInvites.clear(); lastFicha.clear();
     wantedInvites = new Map(); linked = new Map(); dismissed = null; latestAppData = null;
   }
 

@@ -1,4 +1,11 @@
-# FunTime — V2.21.0
+# FunTime — V2.21.1
+
+## V2.21.1 — convite não respondido não fica guardado, sem grupo "Passou do horário" e "Como usar o App"
+
+- **Convite que ninguém respondeu some quando o evento acaba.** Antes ele só saía ao responder, cancelar ou expirar a ficha (dias depois do fim); agora, se o evento já terminou (ou, sem horário de fim, passou de 48 h do início), o convite **não aparece nem é guardado**, inclusive com o app aberto quando o evento termina. Também some se o organizador cancela, apaga o evento ou retira você da lista. Custo na nuvem igual ao anterior (uma escuta por convite pendente, no lugar de uma leitura).
+- **Retirado o grupo "Passou do horário"** da aba Eventos. O agendamento que passou do horário volta a ficar entre os meses de Próximos, e a linha diz **"Aguardando início"**.
+- **A entrada de Configurações "Como usar" agora é "Como usar o App"** (também no título da página e no cabeçalho do tutorial). O tutorial da introdução, que cita o nome, foi regenerado.
+- Sem mudança de dados, de regras do Firestore nem de políticas (`DATA_VERSION` 11).
 
 ## V2.21.0 — a aba Eventos mais clara: convites, busca e linhas da agenda
 
@@ -8,7 +15,7 @@ Achado no primeiro uso real: a aba **Eventos** ficou pesada e confusa. O convite
 - **Um lugar só para o convite.** Com "Usar eventos" ligado, o convite mora só na aba Eventos; o ponto do ícone de Amigos na Home volta a significar apenas "alguém compartilha com você agora". A tela Amigos só mostra o convite como **reserva**, quando Eventos está desligado (o padrão do app) e a aba nem existe.
 - **Busca só quando serve.** O painel recolhido "Buscar e filtrar" saiu, junto com o filtro de mês (a lista já é agrupada por mês). Com **8 eventos ou mais** aparece um campo de busca sempre visível, com ✕ para limpar; com poucos eventos a lista inteira já cabe. **Cada abertura da tela começa sem filtro**, então nada fica filtrado sem você ver.
 - **Linhas mais limpas:** "Setembro de 2026" (antes saía "Setembro De 2026"), data legível ("sáb 17/10 · 21:23"), sem "0 registros" em evento futuro, e o "Início manual" (que é o padrão) não é mais dito. Evento aceito por convite mostra "de Ariel"; o seu com convidados mostra "4 convidados · 2 vão".
-- **Evento em andamento** vira um cartão em destaque no topo da aba, com o mesmo brilho da Home. **Agendamento que já passou do horário** ganha o grupo "Passou do horário" no topo de Próximos, em vez de ficar entre os meses como se fosse futuro.
+- **Evento em andamento** vira um cartão em destaque no topo da aba, com o mesmo brilho da Home. **Agendamento que já passou do horário** ganhou o grupo "Passou do horário" no topo de Próximos (retirado na V2.21.1).
 - **Tutoriais atualizados:** Eventos e Evento compartilhado (o convite agora é respondido na aba Evento). Sem mudança de dados, de regras do Firestore nem de políticas (`DATA_VERSION` 11).
 
 ## V2.20.1 — vídeos de dois toques mais calmos, excluir a bebida, tutorial de Bloqueio e folha que cabe em tela curta

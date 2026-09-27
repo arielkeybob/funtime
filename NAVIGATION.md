@@ -24,7 +24,7 @@ Implementação local, sem publicação. O app antes alterava `hidden` e abria d
 | Aviso de intervalo | Tela de origem |
 | Anotar horário após aviso | Aviso de intervalo, que permanece abaixo |
 | Meia/inteira | Fecha e mantém o registro já existente; mesma regra do botão Fechar |
-| Tutorial (folha de slides) — Configurações → Como usar | Fecha a folha; Configurações → Como usar permanece |
+| Tutorial (folha de slides) — Configurações → Como usar o App | Fecha a folha; Configurações → Como usar o App permanece |
 | Introdução do primeiro acesso | Voltar/Escape contam como **Pular** (grava "já vi") e vão à Home |
 | Prévia de importar bebidas | Configurações/origem; limpa importação pendente, sem aplicar |
 | Prévia de restaurar backup | Configurações; limpa restauração pendente, sem aplicar |

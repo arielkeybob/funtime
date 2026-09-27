@@ -224,3 +224,51 @@ test('apagar dados na nuvem remove meus eventos, limpa o ponteiro e retira minha
   assert.equal((await lerPar(ANA, BIA)).invites[ANA], null);
   assert.deepEqual((await lerSemRegras(`sharedEvents/${dela.eventId}`)).dados.going, []);
 });
+
+// v2.21.1: convite sem resposta não fica guardado depois que o evento acaba. O convite pendente é
+// ESCUTADO, então encerrar ou cancelar do lado do organizador chega ao convidado.
+test('convite sem resposta some quando o organizador encerra o evento', async () => {
+  const timers = { fila: [] };
+  const ana = pessoa(ANA, { schedule: (fn) => { timers.fila.push(fn); return timers.fila.length; }, cancel: () => { timers.fila.length = 0; } });
+  const bia = pessoa(BIA);
+  await ana.sharedEvents.start();
+  const emAndamento = ocasiao({ startedAt: Date.now() - HORA, scheduledStartAt: null, scheduledEndAt: null });
+  const { eventId } = await ana.sharedEvents.publishEvent(emAndamento);
+  await ana.sharedEvents.invite(eventId, BIA);
+  bia.sharedEvents.setPairings(paresDe(ANA, [eventId]));
+  await esperar(() => bia.ultimosConvites().length === 1, 'a Bia recebe o convite de um evento que já está rolando');
+
+  ana.sharedEvents.scheduleFichaPush({ occasions: [{ ...emAndamento, endedAt: Date.now() - 60000, sharedEventId: eventId, sharedHostUid: ANA }] });
+  timers.fila[0]();
+
+  await esperar(() => bia.ultimosConvites().length === 0, 'o convite some da lista da Bia quando o evento acaba');
+  assert.deepEqual(bia.erros, []);
+});
+
+test('convite sem resposta some quando o organizador cancela o evento', async () => {
+  const ana = pessoa(ANA); const bia = pessoa(BIA);
+  await ana.sharedEvents.start();
+  const { eventId } = await ana.sharedEvents.publishEvent(ocasiao());
+  await ana.sharedEvents.invite(eventId, BIA);
+  bia.sharedEvents.setPairings(paresDe(ANA, [eventId]));
+  await esperar(() => bia.ultimosConvites().length === 1, 'convite recebido');
+
+  await ana.sharedEvents.cancelEvent(eventId);
+
+  await esperar(() => bia.ultimosConvites().length === 0, 'o convite cancelado some');
+  assert.deepEqual(bia.erros, []);
+});
+
+test('convite sem resposta some quando o organizador retira o convite (a escuta é negada pelas regras)', async () => {
+  const ana = pessoa(ANA); const bia = pessoa(BIA);
+  await ana.sharedEvents.start();
+  const { eventId } = await ana.sharedEvents.publishEvent(ocasiao());
+  await ana.sharedEvents.invite(eventId, BIA);
+  bia.sharedEvents.setPairings(paresDe(ANA, [eventId]));
+  await esperar(() => bia.ultimosConvites().length === 1, 'convite recebido');
+
+  await ana.sharedEvents.uninvite(eventId, BIA);
+
+  await esperar(() => bia.ultimosConvites().length === 0, 'o convite retirado some');
+  assert.deepEqual(bia.erros, [], 'negado é o caminho normal, não um erro');
+});

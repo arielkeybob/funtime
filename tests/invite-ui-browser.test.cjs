@@ -602,3 +602,34 @@ test('reserva em Amigos: com Eventos ligado o cartão de Amigos some, e refresh(
     assert.deepEqual(erros, []);
   });
 });
+
+// Convite que ninguém respondeu não fica guardado depois que o evento acaba (v2.21.1).
+test('convite de evento que já acabou não aparece: com fim informado, ou sem fim e começado há mais de 48h', { timeout: 40000 }, async () => {
+  await withPage(async (page, erros) => {
+    const saida = await page.evaluate(async () => {
+      const { createInviteUI } = await import('/funtime/src/sharing/invite-ui.js');
+      const { nodes, par } = window.__t;
+      const atencao = [];
+      const ui = createInviteUI({ nodes, getMyUid: () => 'eu', getEventsEnabled: () => false, onAttentionChange: (quantidade) => atencao.push(quantidade) });
+      ui.wire();
+      ui.setPairings([par('su', 'Su')]);
+      const agora = Date.now(); const hora = 3600000;
+      const base = { hostUid: 'su', going: [], invited: ['eu'], status: 'active', expiresAtMs: agora + 30 * 24 * hora };
+      ui.setInvites([
+        { ...base, eventId: 'acabou', name: 'Acabou', startAt: agora - 5 * hora, endAt: agora - hora },
+        { ...base, eventId: 'sem-fim-antigo', name: 'Sem fim antigo', startAt: agora - 49 * hora, endAt: null },
+        { ...base, eventId: 'em-andamento', name: 'Em andamento', startAt: agora - hora, endAt: null },
+        { ...base, eventId: 'futuro', name: 'Futuro', startAt: agora + 24 * hora, endAt: null },
+      ]);
+      return {
+        nomes: [...document.querySelectorAll('#friends-invites-list .invite-row strong')].map((no) => no.textContent),
+        quantidade: ui.pendingCount(), atencao,
+      };
+    });
+
+    assert.deepEqual(saida.nomes, ['Em andamento', 'Futuro'], 'o que acabou não fica guardado; o que ainda dá para ir continua');
+    assert.equal(saida.quantidade, 2);
+    assert.deepEqual(saida.atencao, [2], 'o ponto de atenção conta só os convites que valem');
+    assert.deepEqual(erros, []);
+  });
+});

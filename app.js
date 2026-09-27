@@ -313,7 +313,7 @@ document.addEventListener("visibilitychange", () => {
 const DATA_STORAGE_KEY = "funtime-v1-data";
 const LEGACY_DRINKS_STORAGE_KEY = "balada-v1-drinks";
 const DATA_VERSION = 11;
-const APP_VERSION = "2.21.0";
+const APP_VERSION = "2.21.1";
 const DRINK_EXPORT_TYPE = "funtime-drinks";
 const DRINK_EXPORT_FORMAT_VERSION = 1;
 const BACKUP_EXPORT_TYPE = "funtime-backup";
@@ -996,7 +996,7 @@ function setCurrentView(view) {
 
 // Configurações é um menu de categorias; cada uma abre a própria tela. Os elementos
 // (com os mesmos ids de sempre) só mudaram de lugar, então nenhum handler mudou.
-const SETTINGS_PAGES = { appearance: "Aparência", privacy: "Privacidade", backup: "Backup e conta", tutorials: "Como usar", about: "Sobre o app", reset: "Redefinir dados" };
+const SETTINGS_PAGES = { appearance: "Aparência", privacy: "Privacidade", backup: "Backup e conta", tutorials: "Como usar o App", about: "Sobre o app", reset: "Redefinir dados" };
 
 function updateSettingsMenuSummary() {
   const set = (name, text) => {

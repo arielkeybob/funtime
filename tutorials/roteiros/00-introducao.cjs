@@ -53,8 +53,8 @@ module.exports = {
     {
       tipo: 'imagem',
       seed: 'demo',
-      legenda: 'Mais detalhes em Configurações → Como usar.',
-      alt: 'Menu de Configurações com a linha Como usar em destaque.',
+      legenda: 'Mais detalhes em Configurações → Como usar o App.',
+      alt: 'Menu de Configurações com a linha Como usar o App em destaque.',
       async antes(t) { await t.tocar('#open-settings'); },
       destaque: '#settings-row-tutorials',
     },

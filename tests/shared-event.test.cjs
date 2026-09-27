@@ -113,6 +113,8 @@ function fakeFirestore({ documentos = {}, negados = [] } = {}) {
       for (const escuta of escutas) if (escuta.ativa && escuta.path === path) { escuta.ativa = false; escuta.erro?.(Object.assign(new Error(codigo), { code: codigo })); }
     },
     escutasAtivas: (path) => escutas.filter((escuta) => escuta.ativa && escuta.path === path).length,
+    // Quantas vezes o caminho foi escutado desde o início (cada abertura custa uma leitura).
+    aberturas: (path) => escutas.filter((escuta) => escuta.path === path).length,
     notificar,
   };
 }
@@ -620,4 +622,148 @@ test('uma negação que chega dentro do prazo ainda é respeitada ao aceitar', a
   firestore.module.updateDoc = async () => { throw Object.assign(new Error('negado'), { code: 'permission-denied' }); };
 
   assert.deepEqual(await sharedEvents.accept('ev-b'), { ok: false, reason: 'not-found' });
+});
+
+// --- convite sem resposta some quando o evento acaba (v2.21.1) -----------------------------
+// O convite pendente é ESCUTADO: se o organizador encerra, cancela ou retira, ele sai da lista na
+// hora, em vez de ficar guardado até vencer.
+
+test('convite sem resposta some quando o organizador ENCERRA o evento', async () => {
+  const { sharedEvents, firestore, ultimos } = setup({ documentos: { 'sharedEvents/ev-b': docEvento({ endAt: null, startAt: AGORA - HORA }) } });
+  sharedEvents.setPairings(paresCom(['ev-b']));
+  await tick(); await tick();
+  assert.equal(ultimos().convites.length, 1, 'em andamento e sem fim: ainda dá para ir');
+
+  firestore.docs.get('sharedEvents/ev-b').endAt = AGORA - 1000;
+  firestore.notificar();
+
+  assert.equal(ultimos().convites.length, 0);
+});
+
+test('convite sem resposta some quando o organizador CANCELA o evento', async () => {
+  const { sharedEvents, firestore, ultimos } = setup({ documentos: { 'sharedEvents/ev-b': docEvento() } });
+  sharedEvents.setPairings(paresCom(['ev-b']));
+  await tick(); await tick();
+  assert.equal(ultimos().convites.length, 1);
+
+  firestore.docs.get('sharedEvents/ev-b').status = 'cancelled';
+  firestore.notificar();
+
+  assert.equal(ultimos().convites.length, 0);
+});
+
+test('convite sem resposta some quando o organizador retira o convite (a escuta é negada)', async () => {
+  const { sharedEvents, firestore, ultimos, erros } = setup({ documentos: { 'sharedEvents/ev-b': docEvento() } });
+  sharedEvents.setPairings(paresCom(['ev-b']));
+  await tick(); await tick();
+
+  firestore.derrubar('sharedEvents/ev-b');
+
+  assert.equal(ultimos().convites.length, 0);
+  assert.deepEqual(erros, [], 'negado é o caminho normal, não um erro');
+});
+
+// A ocasião do próprio app é encerrada à força em 48h; o convite acompanha a mesma regra.
+test('evento sem fim iniciado há mais de 48h não é mais convite, nem dá para aceitar', async () => {
+  const antigo = docEvento({ startAt: AGORA - 3 * DIA, endAt: null, expiresAt: { toMillis: () => AGORA + DIA } });
+  const { sharedEvents, convites } = setup({ documentos: { 'sharedEvents/ev-b': antigo } });
+
+  sharedEvents.setPairings(paresCom(['ev-b']));
+  await tick(); await tick();
+
+  assert.equal(convites.filter((lista) => lista.length).length, 0);
+  assert.deepEqual(await sharedEvents.accept('ev-b'), { ok: false, reason: 'over' });
+});
+
+test('evento que começou há menos de 48h e não tem fim continua sendo convite', async () => {
+  const { sharedEvents, ultimos } = setup({ documentos: { 'sharedEvents/ev-b': docEvento({ startAt: AGORA - 47 * HORA, endAt: null }) } });
+
+  sharedEvents.setPairings(paresCom(['ev-b']));
+  await tick(); await tick();
+
+  assert.equal(ultimos().convites.length, 1);
+});
+
+// O convite A acabou com o app aberto, sem snapshot novo dele: quando OUTRO convite chega a lista é
+// reemitida, e A não pode voltar nela.
+test('convite que acabou com o app aberto não volta na lista quando outro convite chega', async () => {
+  let agora = AGORA;
+  const { sharedEvents, ultimos } = setup({
+    now: () => agora,
+    documentos: {
+      'sharedEvents/ev-a': docEvento({ startAt: AGORA - HORA, endAt: AGORA + 10 * 60 * 1000 }),
+      'sharedEvents/ev-c': docEvento({ name: 'Outro', startAt: AGORA + DIA, endAt: AGORA + DIA + 4 * HORA }),
+    },
+  });
+  sharedEvents.setPairings(paresCom(['ev-a']));
+  await tick(); await tick();
+  assert.deepEqual(ultimos().convites.map((c) => c.eventId), ['ev-a']);
+
+  agora = AGORA + 30 * 60 * 1000; // A terminou; ninguém avisou a nuvem
+  sharedEvents.setPairings(paresCom(['ev-a', 'ev-c']));
+  await tick(); await tick();
+
+  assert.deepEqual(ultimos().convites.map((c) => c.eventId), ['ev-c']);
+});
+
+test('convite encerrado não é relido a cada mudança de pareamento (cada abertura custa uma leitura)', async () => {
+  const { sharedEvents, firestore } = setup({ documentos: { 'sharedEvents/ev-b': docEvento({ endAt: AGORA - 1000, startAt: AGORA - 2 * HORA }) } });
+
+  for (let i = 0; i < 4; i += 1) { sharedEvents.setPairings(paresCom(['ev-b'])); await tick(); await tick(); }
+
+  assert.equal(firestore.aberturas('sharedEvents/ev-b'), 1, 'lido uma vez; depois se sabe que acabou');
+});
+
+test('convite pendente escutado só existe uma vez, mesmo com o pareamento chegando várias vezes', async () => {
+  const { sharedEvents, firestore } = setup({ documentos: { 'sharedEvents/ev-b': docEvento() } });
+
+  for (let i = 0; i < 4; i += 1) { sharedEvents.setPairings(paresCom(['ev-b'])); await tick(); await tick(); }
+
+  assert.equal(firestore.escutasAtivas('sharedEvents/ev-b'), 1);
+});
+
+test('recusar e aceitar soltam a escuta do convite pendente', async () => {
+  const { sharedEvents, firestore } = setup({ documentos: { 'sharedEvents/a': docEvento(), 'sharedEvents/b': docEvento() } });
+  sharedEvents.setPairings(paresCom(['a', 'b']));
+  await tick(); await tick();
+  assert.equal(firestore.escutasAtivas('sharedEvents/a') + firestore.escutasAtivas('sharedEvents/b'), 2);
+
+  await sharedEvents.decline('a');
+  assert.equal(firestore.escutasAtivas('sharedEvents/a'), 0);
+
+  await sharedEvents.accept('b');
+  assert.equal(firestore.escutasAtivas('sharedEvents/b'), 0, 'aceito deixa de ser convite; quem escuta é a ocasião ligada');
+});
+
+test('aceitar não faz o convite reaparecer enquanto a ocasião ainda não foi ligada', async () => {
+  const { sharedEvents, ultimos } = setup({ documentos: { 'sharedEvents/ev-b': docEvento() } });
+  sharedEvents.setPairings(paresCom(['ev-b']));
+  await tick(); await tick();
+
+  await sharedEvents.accept('ev-b');
+  sharedEvents.setPairings(paresCom(['ev-b'])); // o pareamento chega de novo antes do app ligar a ocasião
+  await tick(); await tick();
+
+  assert.equal(ultimos().convites.length, 0);
+});
+
+test('a ocasião ligada assume o evento: a escuta de convite pendente cai e sobra uma só', async () => {
+  const { sharedEvents, firestore } = setup({ documentos: { 'sharedEvents/ev-b': docEvento() } });
+  sharedEvents.setPairings(paresCom(['ev-b']));
+  await tick(); await tick();
+
+  sharedEvents.setLinked([{ eventId: 'ev-b', hostUid: BIA }]);
+  await tick(); await tick();
+
+  assert.equal(firestore.escutasAtivas('sharedEvents/ev-b'), 1);
+});
+
+test('stop solta também as escutas de convites pendentes', async () => {
+  const { sharedEvents, firestore } = setup({ documentos: { 'sharedEvents/ev-b': docEvento() } });
+  sharedEvents.setPairings(paresCom(['ev-b']));
+  await tick(); await tick();
+
+  sharedEvents.stop();
+
+  assert.equal(firestore.escutasAtivas('sharedEvents/ev-b'), 0);
 });

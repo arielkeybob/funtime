@@ -1,6 +1,6 @@
 // Navegador real. A tela Eventos redesenhada (v2.21.0): convites no topo de Próximos com Vou / Não vou,
-// reserva na tela Amigos, busca só com muitos eventos, linhas enxutas, grupo "Passou do horário" e
-// cartão do evento em andamento.
+// reserva na tela Amigos, busca só com muitos eventos, linhas enxutas, agendamento vencido com
+// "Aguardando início" (sem grupo próprio) e cartão do evento em andamento.
 //
 // Usa o app REAL com a "nuvem" falsa do harness dos tutoriais (scripts/tutorials/lib.cjs → abrirApp),
 // não uma segunda instância montada à mão: assim as pontes de app.js (pendingInviteCount,
@@ -216,7 +216,7 @@ test('linhas da agenda: mês em minúscula no "de", data legível, sem "0 regist
   });
 });
 
-test('agendamento que já passou do horário ganha grupo próprio no topo de Próximos', { timeout: 90000 }, async () => {
+test('agendamento que já passou do horário fica em Próximos, no seu mês, com "Aguardando início"', { timeout: 90000 }, async () => {
   await comApp('vazio', async (page, erros) => {
     await page.evaluate(() => {
       const proximo = FunTimeOccasions.configure(buildCurrentAppData(), true);
@@ -230,13 +230,14 @@ test('agendamento que já passou do horário ganha grupo próprio no topo de Pr�
     await page.locator('#nav-occasion').click();
 
     const cabecalhos = await page.locator('#occasion-list .agenda-month-heading').allTextContents();
-    assert.equal(cabecalhos[0], 'Passou do horário');
-    assert.match(cabecalhos[1], /^[a-zç]+ de \d{4}$/);
-    assert.equal(await page.locator('#occasion-list .agenda-month-heading.is-overdue').count(), 1);
+    assert.ok(cabecalhos.length >= 1);
+    for (const cabecalho of cabecalhos) assert.match(cabecalho, /^[a-zç]+ de \d{4}$/, 'só grupos de mês: não existe grupo "Passou do horário"');
+    assert.equal(await page.locator('#occasion-list .is-overdue').count(), 0);
     const linhas = await page.locator('#occasion-list .agenda-row').allInnerTexts();
-    assert.match(linhas[0], /Amanhã/, 'o atrasado vem antes do futuro');
+    assert.match(linhas[0], /Amanhã/, 'o atrasado continua antes do futuro, por data');
     assert.match(linhas[1], /Ruwpulse/);
-    assert.doesNotMatch(await texto(page, '#occasion-list .agenda-row:has-text("Amanhã")'), /Aguardando início/, 'o grupo já diz; a linha não repete');
+    assert.match(await texto(page, '#occasion-list .agenda-row:has-text("Amanhã")'), /Aguardando início/, 'a linha avisa que o horário já passou');
+    assert.doesNotMatch(await texto(page, '#occasion-list .agenda-row:has-text("Ruwpulse")'), /Aguardando início/);
     assert.deepEqual(erros, []);
   });
 });

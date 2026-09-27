@@ -188,7 +188,7 @@ export function createTutorialViewer({
     // Só depois de estar na página: tocar um <video> solto não é confiável em todos os navegadores.
     if (video && videoWanted) video.play().catch(() => { /* Sem autoplay permitido: fica o pôster. */ });
     title.textContent = tutorial.titulo;
-    eyebrow.textContent = intro ? "Primeiros passos" : "Como usar";
+    eyebrow.textContent = intro ? "Primeiros passos" : "Como usar o App";
     caption.textContent = step.legenda;
     // No slide de texto a frase já está no cartão: a legenda fica invisível, mas ocupa o mesmo espaço,
     // para o tamanho da folha não mudar de um slide para outro.

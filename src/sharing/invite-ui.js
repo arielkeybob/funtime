@@ -1,5 +1,6 @@
 import { renderFriendGrid, rosterStatus } from "./friend-grid.js";
 import { formatAgendaDateTime, formatClock, formatDate } from "../format/datetime.js";
+import { eventEndMs } from "../data/shared-event.js";
 
 const MOTIVOS = {
   cancelled: "O organizador cancelou este evento.",
@@ -51,6 +52,10 @@ export function createInviteUI({
   const ENVELOPE = '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3.5 7 8.5 6 8.5-6"/></svg>';
 
   const atencao = () => (getEventsEnabled() ? 0 : invites.length);
+
+  // Convite sem resposta não fica guardado depois que o evento acaba (o fim informado ou, sem fim,
+  // 48h depois do início) nem depois de vencer. A mesma regra do módulo da nuvem.
+  const convitePendente = (convite) => convite.expiresAtMs > now() && eventEndMs(convite) > now();
 
   // Convite de evento que já começou (o caso comum de "Iniciar agora" do organizador) diz
   // "começou às 17:11", não uma data futura que já passou.
@@ -153,7 +158,7 @@ export function createInviteUI({
   }
 
   function setInvites(lista) {
-    invites = Array.isArray(lista) ? lista : [];
+    invites = (Array.isArray(lista) ? lista : []).filter(convitePendente);
     renderInvites();
     onAttentionChange(atencao());
     if (sheetAberta) {
@@ -350,7 +355,7 @@ export function createInviteUI({
     // Um convite que vence sozinho some da lista sem esperar um dado novo.
     setInterval(() => {
       const antes = invites.length;
-      invites = invites.filter((item) => item.expiresAtMs > now() && (item.endAt ?? Infinity) > now());
+      invites = invites.filter(convitePendente);
       if (invites.length !== antes) { renderInvites(); onAttentionChange(atencao()); }
     }, 30000);
   }

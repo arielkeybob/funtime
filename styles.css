@@ -3881,7 +3881,6 @@ div.share-person { cursor: default; }
 /* Tela Eventos (v2.21.0): linhas enxutas, grupo de convites no topo de Próximos, busca só com muitos eventos. */
 .agenda-row .agenda-row-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; color: var(--text); font-size: 1rem; }
 .agenda-row .agenda-row-chevron { flex: none; color: var(--muted); font-size: 1.15rem; line-height: 1; }
-.agenda-month-heading.is-overdue { color: #f3ce62; }
 .tab-dot { display: inline-block; width: 8px; height: 8px; margin-left: 6px; border-radius: 999px; background: var(--success); vertical-align: middle; }
 .tab-dot[hidden], .agenda-search[hidden], .agenda-search-clear[hidden] { display: none; }
 

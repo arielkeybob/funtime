@@ -1,5 +1,5 @@
 // Tutoriais (spec 0026) em navegador real, origem e perfil efêmeros: introdução no primeiro
-// acesso, Configurações → Como usar, Voltar/Escape, mídia que falha e movimento reduzido.
+// acesso, Configurações → Como usar o App, Voltar/Escape, mídia que falha e movimento reduzido.
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
 const { chromium } = require('playwright');
@@ -122,21 +122,21 @@ test('quem já tem dados não vê a introdução, e a flag é gravada em silênc
   });
 });
 
-test('Configurações → Como usar lista os tópicos; abrir mostra × sem Pular; Voltar fecha só o visualizador', { timeout: 60000 }, async () => {
+test('Configurações → Como usar o App lista os tópicos; abrir mostra × sem Pular; Voltar fecha só o visualizador', { timeout: 60000 }, async () => {
   await withApp(async (page, erros) => {
     await fecharIntro(page);
     await page.locator('#open-settings').click();
     assert.equal(await page.locator('#settings-row-tutorials').isVisible(), true);
     assert.match(await page.locator('#settings-summary-tutorials').textContent(), /^\d+ tutoriais?$/);
     await page.locator('#settings-row-tutorials').click();
-    assert.equal(await page.locator('#settings-header-title').textContent(), 'Como usar');
+    assert.equal(await page.locator('#settings-header-title').textContent(), 'Como usar o App');
     const linhas = page.locator('#tutorial-topics .settings-nav-row');
     assert.ok(await linhas.count() >= 2);
     assert.equal(await linhas.first().locator('strong').textContent(), 'Rever a introdução');
 
     await linhas.nth(1).click();
     await page.waitForSelector('#tutorial-dialog[open]');
-    assert.equal(await page.locator('#tutorial-eyebrow').textContent(), 'Como usar');
+    assert.equal(await page.locator('#tutorial-eyebrow').textContent(), 'Como usar o App');
     assert.equal(await page.locator('#tutorial-skip').isVisible(), false);
     assert.equal(await page.locator('#tutorial-close').isVisible(), true);
     const alt = await page.locator('#tutorial-stage .tutorial-media').getAttribute('alt')

@@ -262,16 +262,15 @@ function occasionStatus(item) {
   }
   return item.endedAt === null ? 'Em andamento' : item.endReason && item.endReason !== 'manual' ? 'Encerrado automaticamente' : 'Encerrado';
 }
-// Agendamento cujo horário já passou e ainda espera início: fica num grupo próprio em Próximos.
-const isOverdueOccasion = item => FunTimeOccasions.pending(item) && item.scheduledStartAt <= Date.now();
 function agendaWhen(timestamp) { return globalThis.formatAgendaDateTime ? globalThis.formatAgendaDateTime(timestamp) : occasionDate(timestamp); }
 // O que a linha da agenda diz sobre a situação: só o que agrega. "Início manual" é o padrão e
 // "Encerrado" é o que a aba Anteriores já diz, então ficam de fora; o detalhe do evento mantém o texto completo.
+// Agendamento que passou do horário continua em Próximos, só com o aviso "Aguardando início".
 function occasionRowStatus(item) {
   if (item.startedAt === null) {
     if (item.closedAt != null) return item.endReason === 'cancelled' ? 'Cancelado' : 'Expirado';
     if (item.autoStart) return item.scheduledStartAt <= Date.now() ? 'Precisa de revisão' : 'Inicia sozinho';
-    return '';
+    return item.scheduledStartAt <= Date.now() ? 'Aguardando início' : '';
   }
   if (item.endedAt === null) return 'Em andamento';
   return item.endReason && item.endReason !== 'manual' ? 'Encerrado automaticamente' : '';
@@ -411,12 +410,10 @@ function renderOccasions() {
     .sort((a, b) => ((a.startedAt ?? a.scheduledStartAt) - (b.startedAt ?? b.scheduledStartAt)) * (agendaTab === 'upcoming' ? 1 : -1));
   let lastGroup = '';
   for (const item of items.slice(0, agendaLimit)) {
-    // Atrasados vêm primeiro (são os mais antigos) e ganham grupo próprio em vez de um mês do passado.
-    const overdue = agendaTab === 'upcoming' && isOverdueOccasion(item);
-    const date = new Date(item.startedAt ?? item.scheduledStartAt); const group = overdue ? 'overdue' : date.getFullYear() + '-' + date.getMonth();
+    const date = new Date(item.startedAt ?? item.scheduledStartAt); const group = date.getFullYear() + '-' + date.getMonth();
     if (group !== lastGroup) {
-      const heading = document.createElement('h2'); heading.className = 'agenda-month-heading' + (overdue ? ' is-overdue' : '');
-      heading.textContent = overdue ? 'Passou do horário' : date.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
+      const heading = document.createElement('h2'); heading.className = 'agenda-month-heading';
+      heading.textContent = date.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
       list.append(heading); lastGroup = group;
     }
     list.append(occasionRow(item));

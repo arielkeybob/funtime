@@ -14,8 +14,8 @@ export const TUTORIALS = [
       },
       {
         "tipo": "video",
-        "src": "./tutorials/media/introducao/02.e93109c0.mp4",
-        "poster": "./tutorials/media/introducao/02.poster.a0bf5f4e.webp",
+        "src": "./tutorials/media/introducao/02.5e08aac3.mp4",
+        "poster": "./tutorials/media/introducao/02.poster.f67e5140.webp",
         "alt": "O cartão da Cerveja recebe o destaque azul e dois toques seguidos o registram; o cartão passa a mostrar a contagem do intervalo e o app avisa que o consumo foi anotado.",
         "legenda": "Dê dois toques na bebida para registrar. O intervalo começa a contar."
       },
@@ -27,9 +27,9 @@ export const TUTORIALS = [
       },
       {
         "tipo": "imagem",
-        "src": "./tutorials/media/introducao/04.d2d98aae.webp",
-        "alt": "Menu de Configurações com a linha Como usar em destaque.",
-        "legenda": "Mais detalhes em Configurações → Como usar."
+        "src": "./tutorials/media/introducao/04.170f3d46.webp",
+        "alt": "Menu de Configurações com a linha Como usar o App em destaque.",
+        "legenda": "Mais detalhes em Configurações → Como usar o App."
       }
     ]
   },

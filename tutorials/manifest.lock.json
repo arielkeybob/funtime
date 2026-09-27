@@ -1,5 +1,5 @@
 {
-  "versaoApp": "2.21.0",
+  "versaoApp": "2.21.1",
   "topicos": {
     "introducao": {
       "cobre": {
@@ -7,14 +7,14 @@
         "#drink-dialog": "73d6ac3d7506",
         "#drink-card-template": "f606a5358fe0",
         ".bottom-nav": "d968a0871419",
-        "#settings-row-tutorials": "32e1f58d888f"
+        "#settings-row-tutorials": "ff944d184929"
       },
       "midia": {
         "01.977bf241.webp": "977bf241254d40456c99184f2eff15678c2de2bb",
-        "02.e93109c0.mp4": "e93109c02c65043c79e68e6c297ee89fb37cbe7b",
-        "02.poster.a0bf5f4e.webp": "a0bf5f4e6912e73b5b301bce2139495987cc3c1d",
+        "02.5e08aac3.mp4": "5e08aac3072aba526c6a9985d937b6a5037f6d58",
+        "02.poster.f67e5140.webp": "f67e5140f2e06b7232252054dea011cd9d3d8222",
         "03.5924afee.webp": "5924afee720a3942007479d3c2cac9f48de8347e",
-        "04.d2d98aae.webp": "d2d98aae9b96901d9562d4a2fa9fd581fd211c38"
+        "04.170f3d46.webp": "170f3d463419014e047c8bf246c94d680335fd2c"
       }
     },
     "cadastrar-bebida": {

@@ -29,9 +29,9 @@ produto, não como extra.
 
 1. **Introdução no primeiro acesso**: 4 slides (cadastrar bebida e intervalo → **dois toques** para
    registrar e ver a contagem → histórico geral ou só de uma bebida → onde rever os tutoriais
-   em Configurações → Como usar), legendas curtas, com **Pular** sempre visível. Aparece depois do aceite dos termos e da
+   em Configurações → Como usar o App), legendas curtas, com **Pular** sempre visível. Aparece depois do aceite dos termos e da
    segurança, em `bootstrapApp()`, só se a pessoa não tem dados.
-2. **Configurações → Como usar**: nova categoria no menu, com a lista de tópicos e "Rever a
+2. **Configurações → Como usar o App**: nova categoria no menu, com a lista de tópicos e "Rever a
    introdução". Cada tópico abre a mesma folha de slides (3 a 6 quadros).
 
 **Mídia mista**: imagens anotadas na maioria (WebP); vídeo curto em loop (MP4, sem áudio)
@@ -135,7 +135,7 @@ o cache não cresce sem limite; o preço é rebaixar a mídia já vista após ca
 
 - Usuário que já tem dados (atual ou backup restaurado) **não** vê a introdução; a flag é
   gravada em silêncio. Backup nunca carrega a flag: aparelho novo sem dados vê a introdução.
-- Voltar e Escape fecham o visualizador e voltam a Configurações → Como usar
+- Voltar e Escape fecham o visualizador e voltam a Configurações → Como usar o App
   (`tests/navigation-browser.test.cjs` continua valendo; linha nova em `NAVIGATION.md`).
 - Bloquear com o visualizador aberto fecha o dialog e a mídia (`src/security/lock.js`).
 - Sem armazenamento local disponível: a introdução aparece de novo na próxima abertura, sem
@@ -155,7 +155,7 @@ o cache não cresce sem limite; o preço é rebaixar a mídia já vista após ca
   checagem de módulo de `src/tutorials/*.js`.
 - `tests/tutorials.test.cjs` (unidade: `clampIndex`, `shouldShowIntro`, integridade do manifesto
   e dos seletores) e `tests/tutorials-browser.test.cjs` (primeiro acesso → Pular/Concluir; recarregar
-  não reabre; perfil com dados não mostra; Configurações → Como usar; Voltar; bloqueio).
+  não reabre; perfil com dados não mostra; Configurações → Como usar o App; Voltar; bloqueio).
 - `tests/settings-menu-browser.test.cjs` atualizado para a nova categoria.
 - Determinismo: `tutorials:build` duas vezes, sem diferença nas imagens.
 - Fora desta rodada: aparelhos reais (iOS/Android, reprodução de vídeo no Safari), tópicos de
@@ -183,3 +183,9 @@ Os dois tópicos dependem de conta e de nuvem, que a captura não tem. Em vez de
   ponte atribui, e se a ponte aparecer no `app.js` de produção.
 - Limite: as capturas mostram a **interface**, não o comportamento do servidor (regras, limites, tempos).
   Login e pareamento reais continuam sem captura.
+
+## Nota (v2.21.1) — nome da categoria
+
+A categoria de Configurações que abre esta lista passou de "Como usar" para **"Como usar o App"** (linha do menu, título
+da página e rótulo acima do título do tópico no visualizador). O único tópico que cita o nome é a introdução (último
+slide), regenerado com `tutorials:build introducao`.

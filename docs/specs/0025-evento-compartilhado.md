@@ -281,8 +281,8 @@ podia ficar filtrada sem o usuário ver. Decisões tomadas com o usuário, entre
   com N > 0, "Início manual" (o padrão) e "Encerrado" (o que a aba já diz) não são repetidos, e uma terceira
   linha só quando há o que dizer: "de {apelido}" no evento aceito, "N convidados · M vão" no seu.
   O evento em andamento vira cartão em destaque (mesmo brilho da Home, parado com movimento reduzido).
-  Agendamento com o horário vencido ganha o grupo "Passou do horário" (só agrupamento visual; `occasions.js`
-  não mudou).
+  Agendamento com o horário vencido ganhou, nesta versão, o grupo "Passou do horário" (só agrupamento
+  visual; `occasions.js` não mudou) — **retirado na v2.21.1**, ver a nota abaixo.
 - **Testes.** `tests/eventos-tela-browser.test.cjs` dirige o **app real** com a nuvem falsa do harness dos
   tutoriais (`abrirApp`), em vez de montar uma segunda instância: assim as pontes de `app.js`
   (`pendingInviteCount`, `refreshInviteViews`, `getSharedEventInfo`) são exercitadas de verdade — o
@@ -295,6 +295,38 @@ podia ficar filtrada sem o usuário ver. Decisões tomadas com o usuário, entre
 
 Sem mudança no que vai à nuvem, nas regras do Firestore, nas políticas ou no formato de dados
 (`DATA_VERSION` continua 11).
+
+## Nota pós-implementação (v2.21.1) — convite não respondido não fica guardado
+
+Duas correções pedidas depois de usar a v2.21.0:
+
+- **Grupo "Passou do horário" retirado.** Agendamento que passou do horário volta a ficar entre os meses
+  de Próximos, na ordem por data, e a linha diz **"Aguardando início"** (o texto que a linha já tinha antes da
+  v2.21.0; agendamento com início automático continua "Precisa de revisão"). Era ruído: um grupo a mais para
+  o que o detalhe do evento já explica.
+- **Convite sem resposta some quando o evento acaba.** Antes o convite pendente só saía ao responder,
+  cancelar ou vencer o `expiresAt` da ficha (dias depois do fim), então ficava na tela um convite de evento
+  que já tinha terminado. Agora `src/data/shared-event.js` decide o "acabou" com `eventEndMs(view)`
+  (`endAt`, ou `startAt` + 48 h para evento sem fim — o mesmo limite do encerramento forçado da ocasião) e
+  o convite **não é listado nem guardado** depois disso:
+  - cada convite pendente é um `onSnapshot` na ficha (`inviteWatchers`, o mesmo custo de leitura do
+    `getDoc` que havia); o listener solta o convite se a ficha some, é de outro organizador, foi
+    cancelada, expirou, acabou ou a leitura é negada (`permission-denied`, o que a regra devolve para ficha
+    apagada ou convidado retirado) e cancela a escuta;
+  - `finishedInvites` guarda o que já foi descartado nesta sessão para não reabrir a escuta a cada
+    atualização do ponteiro `pairings/{pairId}.invites`; `setPairings` solta o que não é mais desejado e
+    `stop()` desfaz tudo;
+  - `accept` usa o mesmo `eventEndMs` para responder `'over'`;
+  - `invite-ui.js` também filtra por `eventEndMs` (`convitePendente`, na entrada e no relógio de 30 s), então
+    o convite some sozinho sem esperar a nuvem, inclusive com o app aberto de um evento que termina.
+  Nada muda na nuvem nem nas regras. Testes: `tests/shared-event.test.cjs` (unidade, dez casos novos),
+  `tests/invite-ui-browser.test.cjs` (convite de evento encerrado não aparece) e
+  `tests/shared-event-emulator.test.cjs` (SDK real contra o emulador: evento que termina, é cancelado ou
+  retira o convidado faz o convite sumir).
+
+Além disso, a entrada do menu de Configurações **"Como usar" passou a se chamar "Como usar o App"** (menu,
+título da página e rótulo do visualizador dos tutoriais); só o tutorial `introducao` cita o nome e foi
+regenerado.
 
 ## Reversões conscientes da spec 0023 ("Fora de escopo")
 
