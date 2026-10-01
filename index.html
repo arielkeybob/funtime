@@ -15,8 +15,9 @@
 </head>
 <body class="clean-mode security-booting boot-pending">
   <section id="startup-screen" class="startup-screen" role="status" aria-live="polite">
-    <img src="./icons/icon-192-v2.png" width="96" height="96" alt="" style="border-radius: 22px">
-    <h1>FunTime</h1>
+    <img id="startup-icon" src="./icons/icon-192-v2.png" width="96" height="96" alt="" style="border-radius: 22px">
+    <div id="startup-art" hidden></div>
+    <h1 id="startup-title">FunTime</h1>
     <p id="startup-message">Abrindo o FunTime…</p>
     <button id="startup-download" class="secondary-button" type="button" hidden>Baixar cópia dos dados</button>
     <button id="startup-retry" class="primary-button" type="button" hidden>Tentar novamente</button>
@@ -58,7 +59,7 @@
     <footer class="browser-gate-footer">
       <span>App para estudo · não é controle de segurança</span>
       <a class="policies-link" href="./policies.html">Políticas e informações</a>
-      <span>v2.23.7 · By: arielkeybob</span>
+      <span>v2.23.8 · By: arielkeybob</span>
     </footer>
   </section>
 
@@ -352,7 +353,7 @@
           </div>
         </div>
 
-        <p class="settings-description">Versão instalada: <strong>v2.23.7</strong></p>
+        <p class="settings-description">Versão instalada: <strong>v2.23.8</strong></p>
         <button id="check-app-update" class="settings-secondary-button" type="button">Verificar atualizações</button>
       </section>
 
@@ -477,7 +478,7 @@
     <footer class="app-footer">
       <span class="app-footer-disclaimer">App para estudo · não é controle de segurança</span>
       <a class="policies-link" href="./policies.html">Políticas e informações</a>
-      <span class="app-footer-meta">v2.23.7 · By: arielkeybob</span>
+      <span class="app-footer-meta">v2.23.8 · By: arielkeybob</span>
     </footer>
   </div>
 
@@ -1185,6 +1186,48 @@
     <strong>FunTime</strong>
   </div>
 
+
+  <!-- Ilustração da atualização: abacaxi trocando óculos e canudo. Clonada por boot.js e app.js. -->
+  <template id="updating-art">
+    <svg class="updating-art" viewBox="0 0 200 220" aria-hidden="true" focusable="false">
+      <g class="pine-straw">
+        <path d="M126 92 L152 50 Q156 43 164 41 L173 39" fill="none" stroke="#fff" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M126 92 L152 50 Q156 43 164 41 L173 39" fill="none" stroke="#ef4444" stroke-width="9" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="5 7"/>
+      </g>
+      <g class="pine-leaves">
+        <path d="M100 96 C84 70 84 38 100 12 C116 38 116 70 100 96Z" fill="#3fae3a"/>
+        <path d="M100 96 C92 70 92 40 100 12 C108 40 108 70 100 96Z" fill="#7bd13b" opacity=".55"/>
+        <path d="M92 98 C66 82 54 58 58 38 C80 46 94 68 92 98Z" fill="#2f9a35"/>
+        <path d="M108 98 C134 82 146 58 142 38 C120 46 106 68 108 98Z" fill="#2f9a35"/>
+        <path d="M86 100 C58 96 40 84 36 70 C60 62 82 74 86 100Z" fill="#58b83a"/>
+        <path d="M114 100 C142 96 160 84 164 70 C140 62 118 74 114 100Z" fill="#58b83a"/>
+      </g>
+      <rect x="38" y="90" width="124" height="116" rx="52" fill="#fbbf24"/>
+      <path d="M44 150 C44 112 70 94 100 94 C60 104 52 130 52 170 C46 166 44 158 44 150Z" fill="#fde68a" opacity=".55"/>
+      <g stroke="#d97706" stroke-width="2" opacity=".45" fill="none">
+        <path d="M52 118 L148 202 M76 100 L158 176 M46 150 L110 206"/>
+        <path d="M148 118 L52 202 M124 100 L42 176 M154 150 L90 206"/>
+      </g>
+      <circle cx="100" cy="152" r="31" fill="#fff4d6" stroke="#d98a2b" stroke-width="4"/>
+      <g stroke="#b45309" stroke-width="4" stroke-linecap="round">
+        <path d="M100 128 V134 M100 170 V176 M76 152 H82 M118 152 H124"/>
+        <path d="M100 152 L113 139 M100 152 L111 163" stroke-width="5"/>
+      </g>
+      <circle cx="100" cy="152" r="5.5" fill="#fbbf24" stroke="#b45309" stroke-width="2"/>
+      <g class="pine-glasses">
+        <path d="M30 96 H170" stroke="#17101f" stroke-width="7" stroke-linecap="round"/>
+        <path d="M42 96 H93 L89 122 Q87 130 79 130 H56 Q48 130 46 122Z" fill="#4c1d95" stroke="#17101f" stroke-width="6" stroke-linejoin="round"/>
+        <path d="M158 96 H107 L111 122 Q113 130 121 130 H144 Q152 130 154 122Z" fill="#4c1d95" stroke="#17101f" stroke-width="6" stroke-linejoin="round"/>
+        <path d="M52 102 H72 L66 118 H55Z M148 102 H128 L134 118 H145Z" fill="#c026d3" opacity=".7"/>
+        <path d="M93 98 Q100 92 107 98" fill="none" stroke="#17101f" stroke-width="5" stroke-linecap="round"/>
+      </g>
+    </svg>
+  </template>
+
+  <div id="updating-overlay" class="updating-overlay" role="status" aria-live="polite" hidden>
+    <div id="updating-overlay-art"></div>
+    <p>Atualizando…</p>
+  </div>
 
   <div id="update-toast" class="update-toast" role="status" aria-live="polite" hidden>
     <div class="update-toast-copy">

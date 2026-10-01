@@ -26,6 +26,19 @@
       if (!booted) window.location.reload();
     });
   }
+  // Troca o ícone estático da tela de início pela ilustração do abacaxi e usa o visual do aviso de atualização.
+  function showUpdateArt() {
+    const template = document.querySelector("#updating-art");
+    const holder = document.querySelector("#startup-art");
+    if (!template?.content || !holder) return null;
+    const art = template.content.firstElementChild.cloneNode(true);
+    holder.replaceChildren(art);
+    holder.hidden = false;
+    document.querySelector("#startup-icon").hidden = true;
+    document.querySelector("#startup-title").textContent = "Nova versão disponível";
+    screen.classList.add("is-update");
+    return art;
+  }
   async function prepareWorker() {
     if (!("serviceWorker" in navigator)) throw new Error("Abra o app em um navegador atualizado, usando HTTPS ou localhost.");
     const registration = await navigator.serviceWorker.register("./sw.js", { updateViaCache: "none" });
@@ -36,15 +49,30 @@
       return false;
     }
     const version = await request(worker, "GET_VERSION");
-    if (version?.version !== "2.23.7") {
+    if (version?.version !== "2.23.8") {
       // Não ativar uma atualização sem a ação explícita do usuário.
       await registration.update();
-      show("Há uma atualização necessária para abrir o FunTime.");
+      show("Há uma atualização necessária para abrir o FunTime. Seus dados locais serão preservados.");
+      const art = showUpdateArt();
       const offer = () => {
         if (!registration.waiting) return;
         retry.hidden = false;
+        retry.disabled = false;
+        retry.className = "update-apply";
         retry.textContent = "Atualizar";
-        retry.onclick = () => { retry.disabled = true; registration.waiting?.postMessage({ type: "SKIP_WAITING" }); };
+        retry.onclick = () => {
+          retry.disabled = true;
+          retry.textContent = "Atualizando…";
+          art?.classList.add("is-updating");
+          registration.waiting?.postMessage({ type: "SKIP_WAITING" });
+          // Sem recarga em 15 s: devolve o botão em vez de deixar a tela parada.
+          setTimeout(() => {
+            if (booted) return;
+            art?.classList.remove("is-updating");
+            retry.disabled = false;
+            retry.textContent = "Tentar atualizar de novo";
+          }, 15000);
+        };
       };
       registration.addEventListener("updatefound", () => registration.installing?.addEventListener("statechange", offer));
       registration.installing?.addEventListener("statechange", offer);

@@ -315,7 +315,7 @@ document.addEventListener("visibilitychange", () => {
 const DATA_STORAGE_KEY = "funtime-v1-data";
 const LEGACY_DRINKS_STORAGE_KEY = "balada-v1-drinks";
 const DATA_VERSION = 11;
-const APP_VERSION = "2.23.7";
+const APP_VERSION = "2.23.8";
 const DRINK_EXPORT_TYPE = "funtime-drinks";
 const DRINK_EXPORT_FORMAT_VERSION = 1;
 const BACKUP_EXPORT_TYPE = "funtime-backup";
@@ -526,6 +526,7 @@ const toastUndo = document.querySelector("#toast-undo");
 const updateToast = document.querySelector("#update-toast");
 const applyUpdateButton = document.querySelector("#apply-update");
 const dismissUpdateButton = document.querySelector("#dismiss-update");
+const updatingOverlay = document.querySelector("#updating-overlay");
 
 const appShell = document.querySelector("#app-shell");
 const settingsHeader = document.querySelector("#settings-header");
@@ -2694,7 +2695,6 @@ function renderHistory() {
     button.type = "button";
     button.className = "history-event";
     if (context?.isViolation) button.classList.add("violation");
-    if (reaction) button.classList.add("has-reaction");
     button.setAttribute("aria-label", `Editar anotação de ${drink.name}, tomada às ${formatClock(event.consumedAt)}h, ${formatHistoryElapsed(event.consumedAt)}${reaction ? `, reação: ${reaction.label}` : ""}`);
 
     const marker = document.createElement("span");
@@ -2781,13 +2781,12 @@ function renderHistory() {
       body.append(alert, detail);
     }
 
-    if (reaction) {
-      const reactionBadge = document.createElement("span");
-      reactionBadge.className = "history-reaction-badge";
-      reactionBadge.textContent = reaction.icon;
-      reactionBadge.setAttribute("aria-hidden", "true");
-      body.appendChild(reactionBadge);
-    }
+    const reactionBadge = document.createElement("span");
+    reactionBadge.className = reaction ? "history-reaction-badge" : "history-reaction-badge is-empty";
+    reactionBadge.textContent = reaction ? reaction.icon : "+";
+    reactionBadge.setAttribute("aria-label", reaction ? `Reação: ${reaction.label}. Toque para mudar.` : "Adicionar reação");
+    body.appendChild(reactionBadge);
+    historyReaction.attachReactionBadge(reactionBadge, event, button);
 
     button.append(marker, time, body);
     historyReaction.attachEventButton(button, event);
@@ -3106,8 +3105,32 @@ function applyPendingAppUpdate() {
   state.updateReloadRequested = true;
   applyUpdateButton.disabled = true;
   applyUpdateButton.textContent = "Atualizando…";
+  showUpdatingOverlay();
 
   worker.postMessage({ type: "SKIP_WAITING" });
+  // Sem recarga em 15 s: fecha a animação, devolve o botão e avisa, em vez de deixar a tela coberta.
+  setTimeout(() => {
+    if (!state.updateReloadRequested) return;
+    state.updateReloadRequested = false;
+    hideUpdatingOverlay();
+    showUpdateAvailable(worker);
+    showAppNotification("Não foi possível concluir a atualização agora. Tente novamente.", { title: "Falha na atualização", type: "error" });
+  }, 15000);
+}
+
+function showUpdatingOverlay() {
+  const holder = updatingOverlay.querySelector("#updating-overlay-art");
+  if (!holder.firstElementChild) {
+    holder.append(document.querySelector("#updating-art").content.firstElementChild.cloneNode(true));
+  }
+  holder.firstElementChild.classList.add("is-updating");
+  updateToast.hidden = true;
+  updatingOverlay.hidden = false;
+}
+
+function hideUpdatingOverlay() {
+  updatingOverlay.hidden = true;
+  updatingOverlay.querySelector(".updating-art")?.classList.remove("is-updating");
 }
 
 function startClock() {

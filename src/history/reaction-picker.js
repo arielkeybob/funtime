@@ -201,5 +201,15 @@ export function createHistoryReactionController({
     });
   }
 
-  return { attachEventButton, closePicker };
+  // Selo no canto do card: clicável independente do toque-e-segurar, segundo
+  // caminho até o mesmo seletor. stopPropagation() evita que o clique "vaze" pro
+  // botão do registro inteiro (que abriria "Editar registro" junto).
+  function attachReactionBadge(badge, event, rowButton) {
+    badge.addEventListener("click", (clickEvent) => {
+      clickEvent.stopPropagation();
+      openPicker(event.id, rowButton);
+    });
+  }
+
+  return { attachEventButton, attachReactionBadge, closePicker };
 }

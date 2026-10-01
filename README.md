@@ -1,4 +1,9 @@
-# FunTime — V2.23.7
+# FunTime — V2.23.8
+
+## V2.23.8 — tocar no selo do histórico também reage
+
+- **O selo no canto do registro agora é clicável.** Com uma reação já marcada, tocar nele abre o seletor direto (sem precisar segurar o registro inteiro). Sem reação nenhuma, aparece um "+" discreto no mesmo lugar — tocar nele também abre o seletor. Tocar na reação já marcada, dentro do seletor, desmarca e o "+" volta a aparecer. Toque e segurar o registro continua funcionando como antes, como atalho adicional.
+- Sem mudança de dados, de regras do Firestore nem de políticas; `DATA_VERSION` permanece 11.
 
 ## V2.23.7 — ícones de reação maiores
 

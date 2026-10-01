@@ -1,5 +1,5 @@
 {
-  "versaoApp": "2.23.3",
+  "versaoApp": "2.23.8",
   "topicos": {
     "introducao": {
       "cobre": {
@@ -66,16 +66,16 @@
         "#drink-card-template": "f606a5358fe0"
       },
       "midia": {
-        "01.25b221c0.mp4": "25b221c02d03118566a461c7f9c5858366091e4d",
-        "01.poster.de3b1ed0.webp": "de3b1ed09795a94c72dede91f3cd66b60bf1afcd",
-        "02.4158b4bf.mp4": "4158b4bf1853bf2ab12246364398867491bfdb75",
-        "02.poster.b3b2ec88.webp": "b3b2ec884df6e5dcaa4ef7d4d7d22dd92e05bf26",
-        "03.ac15235b.mp4": "ac15235b93ee26cb9ef58116c0a31d345a315df1",
-        "03.poster.1c379857.webp": "1c37985702aa351327bd4199def6c2442db62721",
-        "04.a3ddf0c7.mp4": "a3ddf0c76d3c48407e5c1a5cfc9068adc955d8b8",
-        "04.poster.edb75245.webp": "edb75245fa072de4abc32a5927109d2ae46ad7d3",
-        "05.1c3e1eaa.mp4": "1c3e1eaabd2d9b7d0cab4be096ed51285a934931",
-        "05.poster.72f56de7.webp": "72f56de7469cbbf7a6b53315b50fe4b202ea6a50"
+        "01.e1bb48e0.mp4": "e1bb48e09ec1b401c1d974a9cd6fe9da623c5d09",
+        "01.poster.63c81af0.webp": "63c81af04a548530a1f82d048a3432c036d83a7d",
+        "02.f63c1c5d.mp4": "f63c1c5d42528fad55ff4836ab7ddaa53a4889e9",
+        "02.poster.a9909161.webp": "a9909161b21377d0f76fcbf117de26d7cb5b6acb",
+        "03.4a716bf8.mp4": "4a716bf863da6fcb15b9014dfa3b78383b90c461",
+        "03.poster.402210b7.webp": "402210b7cbbd0c8c7e82e22689e122271ba2dc50",
+        "04.ff7d70f2.mp4": "ff7d70f2be5ddd20db05ff3362a4361052ff8acb",
+        "04.poster.e4b9696b.webp": "e4b9696b92fd7c9488bfffcdfe1897bb82c21efc",
+        "05.db760efa.mp4": "db760efa2dee981329db64ae80d68a025021cf81",
+        "05.poster.aabb2f69.webp": "aabb2f69b47c1cef32cf506e89d5362af7f12de3"
       }
     },
     "privacidade": {
