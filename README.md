@@ -1,4 +1,10 @@
-# FunTime — V2.23.6
+# FunTime — V2.23.7
+
+## V2.23.7 — ícones de reação maiores
+
+- Ícone da animação de reação ainda maior (2rem → 2,8rem).
+- Selo permanente no canto do registro maior também (24px → 30px).
+- Sem mudança de dados, de regras do Firestore nem de políticas; `DATA_VERSION` permanece 11.
 
 ## V2.23.6 — animação de reação maior e mais longa
 

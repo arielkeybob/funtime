@@ -1295,7 +1295,7 @@ body {
 }
 
 .history-event.has-reaction {
-  margin-bottom: 16px;
+  margin-bottom: 20px;
 }
 
 .history-event-heading {
@@ -2149,16 +2149,16 @@ body {
 .history-reaction-badge {
   position: absolute;
   right: 10px;
-  bottom: -11px;
+  bottom: -14px;
   z-index: 1;
   display: grid;
   place-items: center;
-  width: 24px;
-  height: 24px;
+  width: 30px;
+  height: 30px;
   border: 2px solid var(--bg);
   border-radius: 999px;
   background: var(--surface-2);
-  font-size: 0.85rem;
+  font-size: 1.1rem;
   line-height: 1;
 }
 
@@ -2213,7 +2213,7 @@ body {
   z-index: 5000;
   pointer-events: none;
   user-select: none;
-  font-size: 2rem;
+  font-size: 2.8rem;
   line-height: 1;
   transform: translate(-50%, -50%);
   animation: reaction-pop-rise 1500ms ease-out both;
