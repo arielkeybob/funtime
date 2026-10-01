@@ -2206,6 +2206,34 @@ body {
   transform: scale(1.08);
 }
 
+/* Emoji efêmero ao escolher uma reação - mesma técnica do balão "N BPM" do easter
+   egg (.tap-bpm-balloon), só mais sutil e rápido (ver justificativa no módulo que o cria). */
+.reaction-pop {
+  position: fixed;
+  z-index: 5000;
+  pointer-events: none;
+  user-select: none;
+  font-size: 1.6rem;
+  line-height: 1;
+  transform: translate(-50%, -50%);
+  animation: reaction-pop-rise 750ms ease-out both;
+}
+
+@keyframes reaction-pop-rise {
+  0% { opacity: 0; transform: translate(-50%, -50%) scale(.5); }
+  25% { opacity: 1; transform: translate(-50%, -50%) scale(1.25); }
+  100% { opacity: 0; transform: translate(-50%, calc(-50% - 26px)) scale(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reaction-pop { animation-name: reaction-pop-fade; }
+}
+
+@keyframes reaction-pop-fade {
+  0%, 100% { opacity: 0; }
+  30% { opacity: 1; }
+}
+
 .event-dose-field {
   gap: 8px;
 }

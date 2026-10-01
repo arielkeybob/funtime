@@ -1,4 +1,9 @@
-# FunTime — V2.23.3
+# FunTime — V2.23.4
+
+## V2.23.4 — animação ao escolher uma reação
+
+- **Ao escolher ou trocar uma reação, o ícone sobe e desaparece rapidamente** (0,75s) no canto do registro, antes de o selo permanente se fixar ali — um toque de leveza inspirado no coração de curtir do Instagram, só mais sutil. Remover uma reação (tocar de novo no ícone já selecionado) continua silencioso.
+- Sem mudança de dados, de regras do Firestore nem de políticas; `DATA_VERSION` permanece 11.
 
 ## V2.23.3 — corrige seletor de reação preso na tela
 
