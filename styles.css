@@ -1278,6 +1278,7 @@ body {
 }
 
 .history-event-body {
+  position: relative;
   display: grid;
   gap: 5px;
   min-width: 0;
@@ -1288,8 +1289,13 @@ body {
   transition: border-color 150ms ease, background-color 150ms ease;
 }
 
-.history-event:active .history-event-body {
+.history-event:active .history-event-body,
+.history-event.is-reacting .history-event-body {
   background: var(--surface-2);
+}
+
+.history-event.has-reaction {
+  margin-bottom: 16px;
 }
 
 .history-event-heading {
@@ -1318,10 +1324,6 @@ body {
 }
 
 .history-event-identity .history-dose-badge {
-  flex: 0 0 auto;
-}
-
-.history-event-identity .history-reaction-badge {
   flex: 0 0 auto;
 }
 
@@ -2145,7 +2147,18 @@ body {
 }
 
 .history-reaction-badge {
-  font-size: 1.05rem;
+  position: absolute;
+  right: 10px;
+  bottom: -11px;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border: 2px solid var(--bg);
+  border-radius: 999px;
+  background: var(--surface-2);
+  font-size: 0.85rem;
   line-height: 1;
 }
 
@@ -2153,60 +2166,45 @@ body {
   opacity: 0.6;
 }
 
-.reaction-picker-dialog {
-  width: min(calc(100% - 28px), 390px);
+.reaction-picker-popover {
+  position: fixed;
+  inset: auto;
+  margin: 0;
+  display: flex;
+  gap: 4px;
+  padding: 6px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface-2);
+  box-shadow: 0 10px 28px rgb(0 0 0 / 0.45);
 }
 
-.reaction-picker-dialog form {
-  gap: 16px;
-}
-
-.reaction-picker-header h2 {
-  overflow: hidden;
-  max-width: 265px;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.reaction-picker-options {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 8px;
+.reaction-picker-popover::backdrop {
+  background: transparent;
 }
 
 .reaction-picker-button {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 6px;
-  min-height: 76px;
-  padding: 10px 6px;
-  border: 1px solid var(--border);
-  border-radius: 14px;
-  background: #09090b;
-  color: var(--muted);
-}
-
-.reaction-picker-icon {
-  font-size: 1.6rem;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  font-size: 1.5rem;
   line-height: 1;
-}
-
-.reaction-picker-label {
-  font-size: 0.72rem;
-  font-weight: 760;
-  text-align: center;
-}
-
-.reaction-picker-button.is-selected {
-  border-color: var(--success);
-  background: rgb(94 233 155 / 0.09);
-  box-shadow: inset 0 0 0 1px rgb(94 233 155 / 0.16);
-  color: var(--text);
+  transition: transform 120ms ease, background-color 120ms ease;
 }
 
 .reaction-picker-button:active {
-  background: var(--surface-2);
+  background: rgb(255 255 255 / 0.08);
+}
+
+.reaction-picker-button.is-selected {
+  background: rgb(94 233 155 / 0.16);
+  box-shadow: inset 0 0 0 2px var(--success);
+  transform: scale(1.08);
 }
 
 .event-dose-field {

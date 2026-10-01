@@ -1,11 +1,11 @@
 export function createHistoryReactionController({
   state, pressMs, moveTolerance,
-  reactionPickerDialog, reactionPickerDrinkName, reactionPickerOptions,
-  getEventDrinkIdentity, openEventDialog,
+  reactionPickerPopover, openEventDialog,
   commitAppData, buildCurrentAppData, dataStorageKey,
   showAppNotification, refreshDataViews, REACTIONS,
 }) {
   let activeEventId = null;
+  let activeTargetButton = null;
 
   REACTIONS.forEach((reaction) => {
     const button = document.createElement("button");
@@ -13,43 +13,82 @@ export function createHistoryReactionController({
     button.className = "reaction-picker-button";
     button.dataset.reaction = reaction.id;
     button.setAttribute("aria-pressed", "false");
-
-    const icon = document.createElement("span");
-    icon.className = "reaction-picker-icon";
-    icon.textContent = reaction.icon;
-    icon.setAttribute("aria-hidden", "true");
-
-    const label = document.createElement("span");
-    label.className = "reaction-picker-label";
-    label.textContent = reaction.label;
-
-    button.append(icon, label);
+    button.setAttribute("aria-label", reaction.label);
+    button.textContent = reaction.icon;
     button.addEventListener("click", () => setReaction(reaction.id));
-    reactionPickerOptions.appendChild(button);
+    reactionPickerPopover.appendChild(button);
   });
 
   function updateSelection(reactionId) {
-    reactionPickerOptions.querySelectorAll(".reaction-picker-button").forEach((button) => {
+    reactionPickerPopover.querySelectorAll(".reaction-picker-button").forEach((button) => {
       const isSelected = button.dataset.reaction === reactionId;
       button.classList.toggle("is-selected", isSelected);
       button.setAttribute("aria-pressed", String(isSelected));
     });
   }
 
-  function openPicker(eventId) {
+  // Ancora o popover perto do card tocado, acima dele se houver espaço, abaixo senão -
+  // igual ao menu de reações de apps de mensagem, em vez de um modal centralizado na tela.
+  function positionPopover(targetButton) {
+    const card = targetButton.querySelector(".history-event-body") || targetButton;
+    const cardRect = card.getBoundingClientRect();
+    const gap = 10;
+    const popoverRect = reactionPickerPopover.getBoundingClientRect();
+
+    let top = cardRect.top - popoverRect.height - gap;
+    if (top < 8) top = Math.min(cardRect.bottom + gap, window.innerHeight - popoverRect.height - 8);
+
+    let left = cardRect.left + cardRect.width / 2 - popoverRect.width / 2;
+    left = Math.max(8, Math.min(left, window.innerWidth - popoverRect.width - 8));
+
+    reactionPickerPopover.style.top = `${Math.max(8, top)}px`;
+    reactionPickerPopover.style.left = `${left}px`;
+  }
+
+  function openPicker(eventId, targetButton) {
     const event = state.events.find((item) => item.id === eventId);
     if (!event) return;
     activeEventId = eventId;
-    const drink = getEventDrinkIdentity(event);
-    reactionPickerDrinkName.textContent = `${drink.icon} ${drink.name}`;
+    activeTargetButton = targetButton;
+    targetButton.classList.add("is-reacting");
     updateSelection(event.reaction || null);
-    reactionPickerDialog.showModal();
+    reactionPickerPopover.showPopover();
+    positionPopover(targetButton);
   }
 
   function closePicker() {
-    activeEventId = null;
-    if (reactionPickerDialog.open) reactionPickerDialog.close();
+    if (reactionPickerPopover.matches(":popover-open")) reactionPickerPopover.hidePopover();
   }
+
+  // Cobre tanto o fechamento explícito (escolher uma reação) quanto o fechar manual
+  // abaixo (tocar fora, Esc) - um único lugar para desfazer o destaque do card.
+  reactionPickerPopover.addEventListener("toggle", (toggleEvent) => {
+    if (toggleEvent.newState !== "closed") return;
+    activeTargetButton?.classList.remove("is-reacting");
+    activeTargetButton = null;
+    activeEventId = null;
+  });
+
+  // popover="manual" (como o #toast) para fechar nós mesmos ao tocar fora, em vez de
+  // "auto": o navegador fecharia sozinho no primeiro toque fora detectado, e o próprio
+  // touchend do gesto de segurar - que termina no card original, fora do popover -
+  // contaria como esse toque, fechando o popover no instante em que o dedo soltasse,
+  // antes de qualquer escolha. Ouvir o INÍCIO de um toque novo (não o clique que o
+  // navegador sintetiza ao final de um toque já em andamento) evita essa corrida sem
+  // precisar de nenhuma janela de tempo arbitrária.
+  const handleOutsideStart = (event) => {
+    if (!reactionPickerPopover.matches(":popover-open")) return;
+    if (reactionPickerPopover.contains(event.target)) return;
+    closePicker();
+  };
+  document.addEventListener("touchstart", handleOutsideStart, true);
+  document.addEventListener("pointerdown", (event) => {
+    if (event.pointerType === "touch") return;
+    handleOutsideStart(event);
+  });
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && reactionPickerPopover.matches(":popover-open")) closePicker();
+  });
 
   function setReaction(reactionId) {
     const event = state.events.find((item) => item.id === activeEventId);
@@ -67,8 +106,6 @@ export function createHistoryReactionController({
     closePicker();
   }
 
-  document.querySelector("#close-reaction-picker-dialog")?.addEventListener("click", closePicker);
-
   // Dono único do listener de clique do registro: evita a corrida entre o
   // clique normal (abrir "Editar registro") e o clique fantasma que o
   // navegador sintetiza depois de um toque-e-segurar bem-sucedido.
@@ -77,7 +114,7 @@ export function createHistoryReactionController({
     let suppressClick = false;
 
     const start = (point) => {
-      if (state.pendingHistoryReactionId || reactionPickerDialog.open) return;
+      if (state.pendingHistoryReactionId || reactionPickerPopover.matches(":popover-open")) return;
       const origin = { ...point };
       state.pendingHistoryReactionId = event.id;
       button.classList.add("is-reaction-pressing");
@@ -101,7 +138,7 @@ export function createHistoryReactionController({
         cleanup();
         suppressClick = true;
         if (typeof navigator.vibrate === "function") navigator.vibrate(30);
-        openPicker(event.id);
+        openPicker(event.id, button);
       }, pressMs);
 
       const move = (next) => {

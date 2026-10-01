@@ -315,7 +315,7 @@ document.addEventListener("visibilitychange", () => {
 const DATA_STORAGE_KEY = "funtime-v1-data";
 const LEGACY_DRINKS_STORAGE_KEY = "balada-v1-drinks";
 const DATA_VERSION = 11;
-const APP_VERSION = "2.23.1";
+const APP_VERSION = "2.23.2";
 const DRINK_EXPORT_TYPE = "funtime-drinks";
 const DRINK_EXPORT_FORMAT_VERSION = 1;
 const BACKUP_EXPORT_TYPE = "funtime-backup";
@@ -518,9 +518,7 @@ const doseSizeDrinkName = document.querySelector("#dose-size-drink-name");
 const doseHalfButton = document.querySelector("#dose-half-button");
 const doseFullButton = document.querySelector("#dose-full-button");
 
-const reactionPickerDialog = document.querySelector("#reaction-picker-dialog");
-const reactionPickerDrinkName = document.querySelector("#reaction-picker-drink-name");
-const reactionPickerOptions = document.querySelector("#reaction-picker-options");
+const reactionPickerPopover = document.querySelector("#reaction-picker-popover");
 
 const toast = document.querySelector("#toast");
 const toastMessage = document.querySelector("#toast-message");
@@ -2690,11 +2688,13 @@ function renderHistory() {
     }
 
     const context = getEventContext(event.id);
+    const reaction = event.reaction ? getReactionById(event.reaction) : null;
     const button = document.createElement("button");
     button.type = "button";
     button.className = "history-event";
     if (context?.isViolation) button.classList.add("violation");
-    button.setAttribute("aria-label", `Editar anotação de ${drink.name}, tomada às ${formatClock(event.consumedAt)}h, ${formatHistoryElapsed(event.consumedAt)}`);
+    if (reaction) button.classList.add("has-reaction");
+    button.setAttribute("aria-label", `Editar anotação de ${drink.name}, tomada às ${formatClock(event.consumedAt)}h, ${formatHistoryElapsed(event.consumedAt)}${reaction ? `, reação: ${reaction.label}` : ""}`);
 
     const marker = document.createElement("span");
     marker.className = "history-marker";
@@ -2727,17 +2727,6 @@ function renderHistory() {
       doseBadge.className = `history-dose-badge ${event.doseSize}`;
       doseBadge.textContent = getDoseLabel(event.doseSize);
       identity.appendChild(doseBadge);
-    }
-
-    if (event.reaction) {
-      const reaction = getReactionById(event.reaction);
-      if (reaction) {
-        const reactionBadge = document.createElement("span");
-        reactionBadge.className = "history-reaction-badge";
-        reactionBadge.textContent = reaction.icon;
-        reactionBadge.setAttribute("aria-label", reaction.label);
-        identity.appendChild(reactionBadge);
-      }
     }
 
     const mobileTime = document.createElement("span");
@@ -2789,6 +2778,14 @@ function renderHistory() {
       detail.textContent = `${formatElapsed(context.elapsedMs)} após o registro anterior · faltavam ${formatElapsed(context.remainingAtConsumptionMs)}`;
 
       body.append(alert, detail);
+    }
+
+    if (reaction) {
+      const reactionBadge = document.createElement("span");
+      reactionBadge.className = "history-reaction-badge";
+      reactionBadge.textContent = reaction.icon;
+      reactionBadge.setAttribute("aria-hidden", "true");
+      body.appendChild(reactionBadge);
     }
 
     button.append(marker, time, body);
@@ -2917,8 +2914,7 @@ const { openEventDialog, closeEventDialog } = createEventDialog({
 
 const historyReaction = createHistoryReactionController({
   state, pressMs: HISTORY_REACTION_PRESS_MS, moveTolerance: HISTORY_REACTION_MOVE_TOLERANCE,
-  reactionPickerDialog, reactionPickerDrinkName, reactionPickerOptions,
-  getEventDrinkIdentity, openEventDialog,
+  reactionPickerPopover, openEventDialog,
   commitAppData, buildCurrentAppData, dataStorageKey: DATA_STORAGE_KEY,
   showAppNotification, refreshDataViews, REACTIONS,
 });

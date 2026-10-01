@@ -1,4 +1,10 @@
-# FunTime — V2.23.1
+# FunTime — V2.23.2
+
+## V2.23.2 — seletor de reação mais leve, igual a apps de mensagem
+
+- **O seletor "Reagir à dose" deixou de ser um popup em tela cheia.** Agora é um balão pequeno que aparece ancorado perto do registro (acima dele, ou abaixo se não houver espaço), sem escurecer o resto da tela — igual ao menu de reações do WhatsApp. Toca fora dele para fechar sem escolher nada.
+- **O selo da reação saiu de perto do nome da bebida e foi para o canto do card**, com uma folga maior até o próximo registro para não ficar colado.
+- Sem mudança de dados, de regras do Firestore nem de políticas; `DATA_VERSION` permanece 11.
 
 ## V2.23.1 — corrige trava ao abrir, causada pela 2.23.0
 
