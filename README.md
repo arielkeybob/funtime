@@ -1,4 +1,9 @@
-# FunTime — V2.23.5
+# FunTime — V2.23.6
+
+## V2.23.6 — animação de reação maior e mais longa
+
+- Novo ajuste a pedido do usuário: ícone maior (1,6rem → 2rem), subida mais alta (36px → 52px) e duração maior (1,1s → 1,5s).
+- Sem mudança de dados, de regras do Firestore nem de políticas; `DATA_VERSION` permanece 11.
 
 ## V2.23.5 — ajuste fino da animação de reação
 

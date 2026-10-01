@@ -58,7 +58,7 @@ export function createHistoryReactionController({
     pop.style.left = `${rect.left + rect.width / 2}px`;
     pop.style.top = `${rect.top + rect.height / 2}px`;
     document.body.appendChild(pop);
-    setTimeout(() => pop.remove(), 1100);
+    setTimeout(() => pop.remove(), 1500);
   }
 
   function openPicker(eventId, targetButton) {

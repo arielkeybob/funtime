@@ -2213,16 +2213,16 @@ body {
   z-index: 5000;
   pointer-events: none;
   user-select: none;
-  font-size: 1.6rem;
+  font-size: 2rem;
   line-height: 1;
   transform: translate(-50%, -50%);
-  animation: reaction-pop-rise 1100ms ease-out both;
+  animation: reaction-pop-rise 1500ms ease-out both;
 }
 
 @keyframes reaction-pop-rise {
   0% { opacity: 0; transform: translate(-50%, -50%) scale(.5); }
   25% { opacity: 1; transform: translate(-50%, -50%) scale(1.25); }
-  100% { opacity: 0; transform: translate(-50%, calc(-50% - 36px)) scale(1); }
+  100% { opacity: 0; transform: translate(-50%, calc(-50% - 52px)) scale(1); }
 }
 
 @media (prefers-reduced-motion: reduce) {
