@@ -2163,9 +2163,11 @@ body {
 
 .history-reaction-badge.is-empty {
   color: var(--muted);
-  background: transparent;
-  border-color: var(--border);
-  font-weight: 300;
+}
+
+.history-reaction-badge svg {
+  width: 18px;
+  height: 18px;
 }
 
 .history-event.is-reaction-pressing {

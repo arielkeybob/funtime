@@ -1,4 +1,9 @@
-# FunTime — V2.23.9
+# FunTime — V2.23.10
+
+## V2.23.10 — ícone de "adicionar reação" no selo vazio
+
+- **O "+" do selo sem reação virou um ícone de carinha com um "+"** (traço fino, sem cor, fundo opaco) — mais claro do que um "+" solto, que também tinha fundo transparente e confundia com a borda do card. SVG desenhado à mão (`ADD_REACTION_ICON_SVG`, `src/history/reactions.js`), no mesmo espírito de ícone do botão "adicionar reação" de apps de mensagem.
+- Sem mudança de dados, de regras do Firestore nem de políticas; `DATA_VERSION` permanece 11.
 
 ## V2.23.9 — animação de atualização do abacaxi
 

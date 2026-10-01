@@ -23,7 +23,7 @@ import { createFieldErrorController, createFormErrorController } from "./src/ui/
 import { createDrinkReorderController } from "./src/ui/drink-reorder.js";
 import { createIconCatalog } from "./src/ui/icon-catalog.js";
 import { createEventDialog } from "./src/history/event-dialog.js";
-import { REACTIONS, REACTION_IDS, normalizeReaction, getReactionById } from "./src/history/reactions.js";
+import { REACTIONS, REACTION_IDS, normalizeReaction, getReactionById, ADD_REACTION_ICON_SVG } from "./src/history/reactions.js";
 import { createHistoryReactionController } from "./src/history/reaction-picker.js";
 import { createDrinkInteractions } from "./src/drinks/interactions.js";
 import { initEasterEggs } from "./src/easter-eggs/index.js";
@@ -315,7 +315,7 @@ document.addEventListener("visibilitychange", () => {
 const DATA_STORAGE_KEY = "funtime-v1-data";
 const LEGACY_DRINKS_STORAGE_KEY = "balada-v1-drinks";
 const DATA_VERSION = 11;
-const APP_VERSION = "2.23.9";
+const APP_VERSION = "2.23.10";
 const DRINK_EXPORT_TYPE = "funtime-drinks";
 const DRINK_EXPORT_FORMAT_VERSION = 1;
 const BACKUP_EXPORT_TYPE = "funtime-backup";
@@ -2783,7 +2783,8 @@ function renderHistory() {
 
     const reactionBadge = document.createElement("span");
     reactionBadge.className = reaction ? "history-reaction-badge" : "history-reaction-badge is-empty";
-    reactionBadge.textContent = reaction ? reaction.icon : "+";
+    if (reaction) reactionBadge.textContent = reaction.icon;
+    else reactionBadge.innerHTML = ADD_REACTION_ICON_SVG;
     reactionBadge.setAttribute("aria-label", reaction ? `Reação: ${reaction.label}. Toque para mudar.` : "Adicionar reação");
     body.appendChild(reactionBadge);
     historyReaction.attachReactionBadge(reactionBadge, event, button);
