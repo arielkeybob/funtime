@@ -7,6 +7,33 @@ export function createHistoryReactionController({
   let activeEventId = null;
   let activeTargetButton = null;
 
+  // Depois de soltar um toque, o navegador sintetiza mousedown/mouseup/click nas
+  // MESMAS coordenadas do toque - se algo novo (como o seletor) abriu bem naquele
+  // ponto durante o toque, o fantasma acaba "clicando" ali sem o usuário ter feito
+  // nada. Intercepta e descarta esses três eventos uma única vez, bem na captura
+  // (antes de alcançar qualquer alvo), então libera - janela curta o bastante pra
+  // não engolir um toque genuíno logo em seguida.
+  function suppressGhostClick() {
+    const block = (clickEvent) => {
+      clickEvent.preventDefault();
+      clickEvent.stopImmediatePropagation();
+    };
+    ["mousedown", "mouseup", "click"].forEach((type) => document.addEventListener(type, block, true));
+    setTimeout(() => {
+      ["mousedown", "mouseup", "click"].forEach((type) => document.removeEventListener(type, block, true));
+    }, 500);
+  }
+
+  const heading = document.createElement("p");
+  heading.className = "reaction-picker-heading";
+  heading.id = "reaction-picker-heading";
+  heading.textContent = "Como está se sentindo?";
+  reactionPickerPopover.appendChild(heading);
+
+  const optionsRow = document.createElement("div");
+  optionsRow.className = "reaction-picker-options";
+  reactionPickerPopover.appendChild(optionsRow);
+
   REACTIONS.forEach((reaction) => {
     const button = document.createElement("button");
     button.type = "button";
@@ -16,7 +43,7 @@ export function createHistoryReactionController({
     button.setAttribute("aria-label", reaction.label);
     button.textContent = reaction.icon;
     button.addEventListener("click", () => setReaction(reaction.id, button));
-    reactionPickerPopover.appendChild(button);
+    optionsRow.appendChild(button);
   });
 
   function updateSelection(reactionId) {
@@ -27,18 +54,21 @@ export function createHistoryReactionController({
     });
   }
 
-  // Ancora o popover perto do card tocado, acima dele se houver espaço, abaixo senão -
-  // igual ao menu de reações de apps de mensagem, em vez de um modal centralizado na tela.
+  // Ancora o popover perto do selo no canto (direita do card), acima dele se houver
+  // espaço, abaixo senão - mais perto de onde o dedo tocou do que centralizado no
+  // card inteiro, igual ao menu de reações de apps de mensagem.
   function positionPopover(targetButton) {
-    const card = targetButton.querySelector(".history-event-body") || targetButton;
-    const cardRect = card.getBoundingClientRect();
+    const anchor = targetButton.querySelector(".history-reaction-badge")
+      || targetButton.querySelector(".history-event-body")
+      || targetButton;
+    const anchorRect = anchor.getBoundingClientRect();
     const gap = 10;
     const popoverRect = reactionPickerPopover.getBoundingClientRect();
 
-    let top = cardRect.top - popoverRect.height - gap;
-    if (top < 8) top = Math.min(cardRect.bottom + gap, window.innerHeight - popoverRect.height - 8);
+    let top = anchorRect.top - popoverRect.height - gap;
+    if (top < 8) top = Math.min(anchorRect.bottom + gap, window.innerHeight - popoverRect.height - 8);
 
-    let left = cardRect.left + cardRect.width / 2 - popoverRect.width / 2;
+    let left = anchorRect.right - popoverRect.width;
     left = Math.max(8, Math.min(left, window.innerWidth - popoverRect.width - 8));
 
     reactionPickerPopover.style.top = `${Math.max(8, top)}px`;
@@ -158,6 +188,13 @@ export function createHistoryReactionController({
         cleanup();
         suppressClick = true;
         if (typeof navigator.vibrate === "function") navigator.vibrate(30);
+        // O seletor abre perto de onde o dedo está (ancorado no selo); o clique
+        // fantasma que o navegador sintetiza ao soltar o toque usa essas MESMAS
+        // coordenadas, então pode cair em cima de um botão do seletor e escolher
+        // uma reação sozinho. suppressClick (acima) só protege o clique do PRÓPRIO
+        // registro - isto aqui intercepta o fantasma antes que ele alcance
+        // qualquer elemento, inclusive os botões do seletor recém-aberto.
+        if (origin.isTouch) suppressGhostClick();
         openPicker(event.id, button);
       }, pressMs);
 

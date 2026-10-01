@@ -1,18 +1,30 @@
 export const REACTIONS = [
   { id: "terrible", icon: "🤢", label: "Péssimo" },
-  { id: "disliked", icon: "😕", label: "Não gostei" },
+  { id: "sad", icon: "😢", label: "Triste" },
+  { id: "meh", icon: "🙄", label: "Indiferente" },
   { id: "liked", icon: "🙂", label: "Gostei" },
   { id: "great", icon: "🤩", label: "Ótimo" },
 ];
 
-export const REACTION_IDS = new Set(REACTIONS.map((reaction) => reaction.id));
+// "disliked" (😕 "Não gostei") saiu do seletor, substituída por "sad"/"meh" -
+// mas um registro antigo pode ter esse id salvo. Nunca remova uma entrada
+// daqui: só pare de oferecê-la em REACTIONS (o seletor). Mantém o id válido
+// (normalizeReaction) e exibível (getReactionById) para não perder a reação
+// de quem já tinha escolhido antes da mudança.
+const LEGACY_REACTIONS = [
+  { id: "disliked", icon: "😕", label: "Não gostei" },
+];
+
+const ALL_REACTIONS = [...REACTIONS, ...LEGACY_REACTIONS];
+
+export const REACTION_IDS = new Set(ALL_REACTIONS.map((reaction) => reaction.id));
 
 export function normalizeReaction(value) {
   return typeof value === "string" && REACTION_IDS.has(value) ? value : null;
 }
 
 export function getReactionById(id) {
-  return REACTIONS.find((reaction) => reaction.id === id) || null;
+  return ALL_REACTIONS.find((reaction) => reaction.id === id) || null;
 }
 
 // Selo do histórico quando o registro ainda não tem reação - traço fino, sem cor

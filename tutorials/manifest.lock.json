@@ -1,5 +1,5 @@
 {
-  "versaoApp": "2.23.10",
+  "versaoApp": "2.23.11",
   "topicos": {
     "introducao": {
       "cobre": {
@@ -60,22 +60,22 @@
       "cobre": {
         "#history-view": "3933dac618bd",
         "#event-dialog": "1c62457a171f",
-        "#reaction-picker-popover": "cbbfbdfa2d8a",
+        "#reaction-picker-popover": "3217ba650803",
         "#app-confirm-dialog": "2e2c7fada09c",
         ".bottom-nav": "d968a0871419",
         "#drink-card-template": "f606a5358fe0"
       },
       "midia": {
-        "01.35054089.mp4": "3505408952e4f118f3638a5abc05c5048287ca49",
-        "01.poster.b697ee61.webp": "b697ee614649392c923bba4dc6b5a65d5e7afa0d",
-        "02.59cd621c.mp4": "59cd621cedc51bed768ac5d916f9f813dd50c85f",
-        "02.poster.5861c76e.webp": "5861c76e6f07c39446f591133f02ea9ba42a697e",
-        "03.84a84550.mp4": "84a84550d9340b75ba6cf5f4e7b12967c45e61b0",
-        "03.poster.dc6cd552.webp": "dc6cd5523ea73d5be3e1bbc44ba7609895c511f2",
-        "04.8e1b88ab.mp4": "8e1b88ab70b4de1a2715448ddda728cdcc899c6c",
-        "04.poster.326b220e.webp": "326b220e2775b3cd43c2427edbce26ed14de7f44",
-        "05.d516e5ab.mp4": "d516e5abf144723f18ff6f3c99113d0aa14fc21c",
-        "05.poster.7b300375.webp": "7b300375853637c9fa7c69e65effbadc1aec9a71"
+        "01.b1eb2e27.mp4": "b1eb2e27ffcba1159d51bf089b7db9c44e220c71",
+        "01.poster.2162e024.webp": "2162e024f31530cccbf4bf59a25ebfe44baa0d15",
+        "02.bbf715b9.mp4": "bbf715b96fe210cf18c1144783c4d61901e70b45",
+        "02.poster.f37be5c2.webp": "f37be5c2c8c5284d0004374f85a48c9256ed6ec9",
+        "03.7299df17.mp4": "7299df17d6dc385ee31550d5dd7d5d5e63e5c4b1",
+        "03.poster.1e7d055d.webp": "1e7d055df0031d491bec095e3d2121dd3091dbc0",
+        "04.aafcd199.mp4": "aafcd1990cf0c26e437e31725fb448de06c8552c",
+        "04.poster.6c0115c1.webp": "6c0115c1e0bfe05d203856b2cdaee7f3d3e49661",
+        "05.05cabcc5.mp4": "05cabcc57702d82a9ec929cc6745eab213ea36e2",
+        "05.poster.b2111dc0.webp": "b2111dc0c78a411c1dfac8d7885a5c3a6922a378"
       }
     },
     "privacidade": {

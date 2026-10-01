@@ -1,4 +1,12 @@
-# FunTime — V2.23.10
+# FunTime — V2.23.11
+
+## V2.23.11 — seletor de reação com pergunta e 5 níveis
+
+- **O seletor agora pergunta "Como está se sentindo?"** acima dos ícones.
+- **5 níveis em vez de 4**: 🤢 Péssimo, 😢 Triste, 🙄 Indiferente, 🙂 Gostei, 🤩 Ótimo (antes só havia 😕 "Não gostei" entre Péssimo e Gostei).
+- **O seletor abre mais perto do selo**, alinhado à direita, em vez de centralizado no card inteiro.
+- Quem já tinha escolhido "Não gostei" (😕) antes desta versão continua vendo essa reação normalmente no registro — só não aparece mais como opção para novas escolhas.
+- Sem mudança de regras do Firestore nem de políticas; `DATA_VERSION` permanece 11 (o enum de reações é validado em código, não faz parte do schema).
 
 ## V2.23.10 — ícone de "adicionar reação" no selo vazio
 
