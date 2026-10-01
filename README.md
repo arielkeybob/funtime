@@ -1,4 +1,10 @@
-# FunTime — V2.23.2
+# FunTime — V2.23.3
+
+## V2.23.3 — corrige seletor de reação preso na tela
+
+- **O seletor "Reagir à dose" (2.23.2) podia ficar preso na tela**, sem fechar ao tocar fora nem ao trocar de aba, e nesse estado também impedia reagir de novo a qualquer registro. Causa: o seletor usava a Popover API do navegador, que no aparelho do usuário não se comportou como esperado ao fechar manualmente. Reescrito para não depender dela: agora é um elemento comum, mostrado e escondido pelo próprio app, e fecha explicitamente também ao trocar de tela.
+- Mudar uma reação já escolhida (segurar de novo e tocar noutro ícone) volta a funcionar.
+- Sem mudança de dados, de regras do Firestore nem de políticas; `DATA_VERSION` permanece 11.
 
 ## V2.23.2 — seletor de reação mais leve, igual a apps de mensagem
 

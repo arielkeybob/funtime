@@ -315,7 +315,7 @@ document.addEventListener("visibilitychange", () => {
 const DATA_STORAGE_KEY = "funtime-v1-data";
 const LEGACY_DRINKS_STORAGE_KEY = "balada-v1-drinks";
 const DATA_VERSION = 11;
-const APP_VERSION = "2.23.2";
+const APP_VERSION = "2.23.3";
 const DRINK_EXPORT_TYPE = "funtime-drinks";
 const DRINK_EXPORT_FORMAT_VERSION = 1;
 const BACKUP_EXPORT_TYPE = "funtime-backup";
@@ -1029,6 +1029,7 @@ function refreshHomeGreeting() {
 
 function setCurrentView(view) {
   state.currentView = view;
+  historyReaction?.closePicker();
   homeHeader.hidden = view !== "home";
   homeView.hidden = view !== "home";
   historyHeader.hidden = view !== "history";

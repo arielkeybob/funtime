@@ -48,36 +48,34 @@ export function createHistoryReactionController({
   function openPicker(eventId, targetButton) {
     const event = state.events.find((item) => item.id === eventId);
     if (!event) return;
+    // Trocar de reação reabre sobre o mesmo card: fecha a instância anterior primeiro
+    // para não deixar destaque/estado da vez passada para trás.
+    closePicker();
     activeEventId = eventId;
     activeTargetButton = targetButton;
     targetButton.classList.add("is-reacting");
     updateSelection(event.reaction || null);
-    reactionPickerPopover.showPopover();
+    reactionPickerPopover.hidden = false;
     positionPopover(targetButton);
   }
 
   function closePicker() {
-    if (reactionPickerPopover.matches(":popover-open")) reactionPickerPopover.hidePopover();
-  }
-
-  // Cobre tanto o fechamento explícito (escolher uma reação) quanto o fechar manual
-  // abaixo (tocar fora, Esc) - um único lugar para desfazer o destaque do card.
-  reactionPickerPopover.addEventListener("toggle", (toggleEvent) => {
-    if (toggleEvent.newState !== "closed") return;
+    if (reactionPickerPopover.hidden) return;
+    reactionPickerPopover.hidden = true;
     activeTargetButton?.classList.remove("is-reacting");
     activeTargetButton = null;
     activeEventId = null;
-  });
+  }
 
-  // popover="manual" (como o #toast) para fechar nós mesmos ao tocar fora, em vez de
-  // "auto": o navegador fecharia sozinho no primeiro toque fora detectado, e o próprio
-  // touchend do gesto de segurar - que termina no card original, fora do popover -
-  // contaria como esse toque, fechando o popover no instante em que o dedo soltasse,
-  // antes de qualquer escolha. Ouvir o INÍCIO de um toque novo (não o clique que o
-  // navegador sintetiza ao final de um toque já em andamento) evita essa corrida sem
-  // precisar de nenhuma janela de tempo arbitrária.
+  // Elemento simples com `hidden` (não a Popover API): em teste automatizado o
+  // showPopover()/fechar manual funcionava, mas no aparelho real o popover ficava
+  // preso na tela - não fechava ao tocar fora nem ao trocar de tela, e por tabela
+  // impedia reagir de novo (o gesto já considerava um seletor sempre aberto). Esta
+  // versão não depende de nenhum comportamento nativo de popover: abrir/fechar é
+  // só a flag `hidden`, e quem decide fechar somos nós, nos dois lugares abaixo e
+  // em setCurrentView() (troca de tela) em app.js.
   const handleOutsideStart = (event) => {
-    if (!reactionPickerPopover.matches(":popover-open")) return;
+    if (reactionPickerPopover.hidden) return;
     if (reactionPickerPopover.contains(event.target)) return;
     closePicker();
   };
@@ -87,7 +85,7 @@ export function createHistoryReactionController({
     handleOutsideStart(event);
   });
   document.addEventListener("keydown", (event) => {
-    if (event.key === "Escape" && reactionPickerPopover.matches(":popover-open")) closePicker();
+    if (event.key === "Escape" && !reactionPickerPopover.hidden) closePicker();
   });
 
   function setReaction(reactionId) {
@@ -114,7 +112,7 @@ export function createHistoryReactionController({
     let suppressClick = false;
 
     const start = (point) => {
-      if (state.pendingHistoryReactionId || reactionPickerPopover.matches(":popover-open")) return;
+      if (state.pendingHistoryReactionId || !reactionPickerPopover.hidden) return;
       const origin = { ...point };
       state.pendingHistoryReactionId = event.id;
       button.classList.add("is-reaction-pressing");

@@ -53,10 +53,10 @@ module.exports = {
       async gravar(t) {
         await t.esperar(1400);
         await t.segurarComDedo('#history-list button');
-        await t.page.waitForFunction(() => document.querySelector('#reaction-picker-popover')?.matches(':popover-open'));
+        await t.page.waitForFunction(() => document.querySelector('#reaction-picker-popover')?.hidden === false);
         await t.esperar(700);
         await t.tocarComDedo('.reaction-picker-button[data-reaction="great"]');
-        await t.page.waitForFunction(() => !document.querySelector('#reaction-picker-popover')?.matches(':popover-open'));
+        await t.page.waitForFunction(() => document.querySelector('#reaction-picker-popover')?.hidden !== false);
         await t.esperar(1800);
       },
     },
