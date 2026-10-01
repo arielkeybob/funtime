@@ -1,4 +1,13 @@
-# FunTime — V2.23.8
+# FunTime — V2.23.9
+
+## V2.23.9 — animação de atualização do abacaxi
+
+- **Atualizar agora tem uma animação.** Ao tocar em **Atualizar** — no balão do rodapé ou na tela de início que bloqueia o app —, o abacaxi do ícone troca os óculos (o antigo sai pela esquerda e o novo entra pela direita) e, depois de uma pausa, o canudo (o antigo sai para cima e para a esquerda e o novo entra). É só uma ilustração de que algo está mudando.
+- **Uma execução de 8 s, sem loop.** Se a atualização terminar antes, a recarga espera o fim da animação; se demorar mais, o abacaxi fica parado no estado final até recarregar. Com "reduzir movimento" ligado no sistema não há animação e a recarga é imediata.
+- No balão do rodapé, o abacaxi aparece no centro da tela, sem cartão, sobre um fundo opaco. A tela de início bloqueante ganhou o visual do balão (cartão com borda verde e botão **Atualizar** verde).
+- A primeira versão da animação (em loop, com recarga imediata) já veio na 2.23.8: quem está nela ainda a vê na atualização para esta versão; a nova aparece nas atualizações seguintes.
+- Novo teste de navegador `tests/update-animation-browser.test.cjs` (os dois fluxos, o tempo mínimo de 8 s e o estado final parado).
+- Sem mudança de dados, de regras do Firestore nem de políticas; `DATA_VERSION` permanece 11.
 
 ## V2.23.8 — tocar no selo do histórico também reage
 

@@ -935,11 +935,15 @@ A partir desta versão:
 2. o worker novo permanece em `waiting`;
 3. `app.js` detecta `registration.waiting` ou um worker recém-instalado;
 4. a interface exibe `#update-toast`;
-5. o usuário toca em **Atualizar**;
+5. o usuário toca em **Atualizar**; o app cobre a tela com `#updating-overlay` (fundo opaco) e inicia a animação do abacaxi trocando óculos e canudo;
 6. o app envia `{ type: "SKIP_WAITING" }` ao worker aguardando;
 7. o worker executa `self.skipWaiting()`;
 8. `controllerchange` é disparado;
-9. a página recarrega uma única vez e passa a usar os arquivos da nova versão.
+9. a página recarrega uma única vez, **só depois do fim da animação**, e passa a usar os arquivos da nova versão.
+
+A animação (`.updating-art`, ilustração em SVG no `<template id="updating-art">` do `index.html`; keyframes `pine-glasses-swap` e `pine-straw-swap` em `styles.css`) tem uma única execução de 8 s, sem loop: o óculos antigo sai pela esquerda e o novo entra pela direita; depois, com uma pausa, o canudo antigo sai para cima e para a esquerda e o novo entra. Se a atualização terminar antes, a recarga espera o fim da animação (`getAnimations()` + `finished`, em `app.js` e `boot.js`); se demorar mais, o abacaxi fica parado no estado final até a recarga. Com movimento reduzido não há animação e a recarga é imediata. Sem recarga em 15 s, o overlay fecha, o aviso volta e aparece uma mensagem de falha. Ao mudar a duração, ajuste os keyframes (percentuais sobre 8 s) e a constante `ANIMATION_MS` de `tests/update-animation-browser.test.cjs`.
+
+A tela de início bloqueante (`boot.js`, quando o worker ativo é mais velho que o boot) usa a mesma ilustração e a mesma espera: o abacaxi fica parado até o toque em **Atualizar** e a animação começa nesse toque.
 
 ### Verificação de atualização
 

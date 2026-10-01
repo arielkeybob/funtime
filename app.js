@@ -315,7 +315,7 @@ document.addEventListener("visibilitychange", () => {
 const DATA_STORAGE_KEY = "funtime-v1-data";
 const LEGACY_DRINKS_STORAGE_KEY = "balada-v1-drinks";
 const DATA_VERSION = 11;
-const APP_VERSION = "2.23.8";
+const APP_VERSION = "2.23.9";
 const DRINK_EXPORT_TYPE = "funtime-drinks";
 const DRINK_EXPORT_FORMAT_VERSION = 1;
 const BACKUP_EXPORT_TYPE = "funtime-backup";
@@ -3345,7 +3345,9 @@ if ("serviceWorker" in navigator) {
     if (!state.updateReloadRequested) return;
 
     state.updateReloadRequested = false;
-    window.location.reload();
+    // A animação do abacaxi roda uma única vez: se a atualização foi mais rápida, espera o fim dela.
+    const running = updatingOverlay.querySelector(".updating-art")?.getAnimations?.({ subtree: true }) ?? [];
+    Promise.allSettled(running.map((animation) => animation.finished)).then(() => window.location.reload());
   });
 
   if (document.readyState === "complete") initializeServiceWorker();

@@ -23,8 +23,13 @@
       if (event.data?.type === "FUNTIME_BOOT_CHECK") event.ports[0]?.postMessage({ protocol: 2 });
     });
     navigator.serviceWorker.addEventListener("controllerchange", () => {
-      if (!booted) window.location.reload();
+      if (!booted) afterUpdateArt(() => window.location.reload());
     });
+  }
+  // Se a animação de atualização está rodando, espera ela terminar (uma única execução) antes de continuar.
+  function afterUpdateArt(callback) {
+    const running = document.querySelector("#startup-art .updating-art")?.getAnimations?.({ subtree: true }) ?? [];
+    Promise.allSettled(running.map(animation => animation.finished)).then(callback);
   }
   // Troca o ícone estático da tela de início pela ilustração do abacaxi e usa o visual do aviso de atualização.
   function showUpdateArt() {
@@ -49,7 +54,7 @@
       return false;
     }
     const version = await request(worker, "GET_VERSION");
-    if (version?.version !== "2.23.8") {
+    if (version?.version !== "2.23.9") {
       // Não ativar uma atualização sem a ação explícita do usuário.
       await registration.update();
       show("Há uma atualização necessária para abrir o FunTime. Seus dados locais serão preservados.");
@@ -65,7 +70,7 @@
           retry.textContent = "Atualizando…";
           art?.classList.add("is-updating");
           registration.waiting?.postMessage({ type: "SKIP_WAITING" });
-          // Sem recarga em 15 s: devolve o botão em vez de deixar a tela parada.
+          // Sem recarga em 15 s (a espera pela animação não passa de 8 s): devolve o botão em vez de deixar a tela parada.
           setTimeout(() => {
             if (booted) return;
             art?.classList.remove("is-updating");
