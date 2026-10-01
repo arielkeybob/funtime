@@ -1,4 +1,10 @@
-# FunTime — V2.23.4
+# FunTime — V2.23.5
+
+## V2.23.5 — ajuste fino da animação de reação
+
+- **O ícone agora sobe de cima do botão tocado no seletor de reação** (não mais do canto do registro no histórico) — mais natural, já que é ali que o dedo está no momento do toque.
+- **Duração um pouco maior** (0,75s → 1,1s), com uma subida levemente mais alta para acompanhar.
+- Sem mudança de dados, de regras do Firestore nem de políticas; `DATA_VERSION` permanece 11.
 
 ## V2.23.4 — animação ao escolher uma reação
 

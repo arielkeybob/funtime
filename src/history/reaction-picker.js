@@ -15,7 +15,7 @@ export function createHistoryReactionController({
     button.setAttribute("aria-pressed", "false");
     button.setAttribute("aria-label", reaction.label);
     button.textContent = reaction.icon;
-    button.addEventListener("click", () => setReaction(reaction.id));
+    button.addEventListener("click", () => setReaction(reaction.id, button));
     reactionPickerPopover.appendChild(button);
   });
 
@@ -45,22 +45,20 @@ export function createHistoryReactionController({
     reactionPickerPopover.style.left = `${left}px`;
   }
 
-  // Emoji efêmero que sobe e some, no mesmo canto onde o selo permanente vai ficar -
-  // mesma técnica do balão "N BPM" do easter egg (elemento fixo em document.body,
-  // anima por CSS puro, se autodestrói por setTimeout), só que mais sutil e rápido.
-  // Precisa rodar com o card AINDA no DOM: refreshDataViews() reconstrói o histórico
-  // logo em seguida e o botão atual deixa de existir.
-  function spawnReactionPop(icon, targetButton) {
-    const card = targetButton.querySelector(".history-event-body") || targetButton;
-    const rect = card.getBoundingClientRect();
+  // Emoji efêmero que sobe e some de cima do botão tocado no seletor - mesma técnica
+  // do balão "N BPM" do easter egg (elemento fixo em document.body, anima por CSS
+  // puro, se autodestrói por setTimeout), só que mais sutil. Precisa rodar com o
+  // seletor AINDA visível: refreshDataViews()/closePicker() rodam logo em seguida.
+  function spawnReactionPop(icon, anchorElement) {
+    const rect = anchorElement.getBoundingClientRect();
     const pop = document.createElement("div");
     pop.className = "reaction-pop";
     pop.textContent = icon;
     pop.setAttribute("aria-hidden", "true");
-    pop.style.left = `${rect.right - 10}px`;
-    pop.style.top = `${rect.bottom - 11}px`;
+    pop.style.left = `${rect.left + rect.width / 2}px`;
+    pop.style.top = `${rect.top + rect.height / 2}px`;
     document.body.appendChild(pop);
-    setTimeout(() => pop.remove(), 750);
+    setTimeout(() => pop.remove(), 1100);
   }
 
   function openPicker(eventId, targetButton) {
@@ -106,11 +104,10 @@ export function createHistoryReactionController({
     if (event.key === "Escape" && !reactionPickerPopover.hidden) closePicker();
   });
 
-  function setReaction(reactionId) {
+  function setReaction(reactionId, sourceButton) {
     const event = state.events.find((item) => item.id === activeEventId);
     if (!event) { closePicker(); return; }
 
-    const targetButton = activeTargetButton;
     const nextReaction = event.reaction === reactionId ? null : reactionId;
     const nextEvents = state.events.map((item) => (item.id === event.id ? { ...item, reaction: nextReaction } : item));
     try {
@@ -121,9 +118,9 @@ export function createHistoryReactionController({
     }
     // Só anima ao escolher/trocar, não ao remover (tocar de nova no ícone já
     // selecionado) - desfazer não precisa de celebração visual.
-    if (nextReaction && targetButton) {
+    if (nextReaction && sourceButton) {
       const reaction = REACTIONS.find((item) => item.id === nextReaction);
-      if (reaction) spawnReactionPop(reaction.icon, targetButton);
+      if (reaction) spawnReactionPop(reaction.icon, sourceButton);
     }
     refreshDataViews();
     closePicker();
