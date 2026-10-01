@@ -3,8 +3,8 @@
 module.exports = {
   id: 'historico',
   titulo: 'Histórico e correções',
-  resumo: 'Geral, por bebida e correções.',
-  cobre: ['#history-view', '#event-dialog', '#app-confirm-dialog', '.bottom-nav', '#drink-card-template'],
+  resumo: 'Geral, por bebida, correções e reações.',
+  cobre: ['#history-view', '#event-dialog', '#reaction-picker-dialog', '#app-confirm-dialog', '.bottom-nav', '#drink-card-template'],
   seed: 'demo',
   passos: [
     {
@@ -43,6 +43,21 @@ module.exports = {
         await t.esperar(600);
         await t.destacar('.event-datetime-grid');
         await t.esperar(2600);
+      },
+    },
+    {
+      tipo: 'video',
+      legenda: 'Segure um registro para reagir à dose.',
+      alt: 'Um registro do Histórico recebe um toque e segurar; abre um seletor com até quatro reações, de "Péssimo" a "Ótimo"; a reação "Ótimo" é tocada, o seletor fecha e o selo da reação aparece ao lado do registro.',
+      async preparar(t) { await t.tocar('#open-history'); await t.esperar(400); },
+      async gravar(t) {
+        await t.esperar(1400);
+        await t.segurarComDedo('#history-list button');
+        await t.page.waitForSelector('#reaction-picker-dialog[open]');
+        await t.esperar(700);
+        await t.tocarComDedo('.reaction-picker-button[data-reaction="great"]');
+        await t.page.waitForFunction(() => !document.querySelector('#reaction-picker-dialog').open);
+        await t.esperar(1800);
       },
     },
     {

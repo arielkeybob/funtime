@@ -58,7 +58,7 @@
     <footer class="browser-gate-footer">
       <span>App para estudo · não é controle de segurança</span>
       <a class="policies-link" href="./policies.html">Políticas e informações</a>
-      <span>v2.22.0 · By: arielkeybob</span>
+      <span>v2.23.0 · By: arielkeybob</span>
     </footer>
   </section>
 
@@ -147,7 +147,7 @@
       <section class="history-intro">
         <div>
           <strong id="history-count">0 registros</strong>
-          <span id="history-description">Toque em um registro para corrigir o horário ou excluí-lo.</span>
+          <span id="history-description">Toque em um registro para corrigir o horário ou excluí-lo. Segure para reagir.</span>
         </div>
       </section>
 
@@ -352,7 +352,7 @@
           </div>
         </div>
 
-        <p class="settings-description">Versão instalada: <strong>v2.22.0</strong></p>
+        <p class="settings-description">Versão instalada: <strong>v2.23.0</strong></p>
         <button id="check-app-update" class="settings-secondary-button" type="button">Verificar atualizações</button>
       </section>
 
@@ -477,7 +477,7 @@
     <footer class="app-footer">
       <span class="app-footer-disclaimer">App para estudo · não é controle de segurança</span>
       <a class="policies-link" href="./policies.html">Políticas e informações</a>
-      <span class="app-footer-meta">v2.22.0 · By: arielkeybob</span>
+      <span class="app-footer-meta">v2.23.0 · By: arielkeybob</span>
     </footer>
   </div>
 
@@ -901,6 +901,20 @@
           <strong>Inteira</strong>
         </button>
       </div>
+    </form>
+  </dialog>
+
+  <dialog id="reaction-picker-dialog" class="dialog reaction-picker-dialog">
+    <form method="dialog">
+      <div class="dialog-header reaction-picker-header">
+        <div>
+          <p class="eyebrow">Reagir à dose</p>
+          <h2 id="reaction-picker-drink-name">Bebida</h2>
+        </div>
+        <button id="close-reaction-picker-dialog" class="icon-button secondary" type="button" aria-label="Fechar">×</button>
+      </div>
+
+      <div id="reaction-picker-options" class="reaction-picker-options" role="group" aria-label="Como essa dose te fez sentir"></div>
     </form>
   </dialog>
 

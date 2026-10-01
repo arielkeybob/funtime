@@ -9,7 +9,8 @@ function extract(name) {
   return source.slice(start, next < 0 ? source.length : start + 1 + next);
 }
 function context(extra = {}) {
-  const ctx = vm.createContext({ console, Blob, File, crypto: require('node:crypto').webcrypto, FunTimeOccasions: require("../occasions.js"), ...extra });
+  const { normalizeReaction, REACTION_IDS } = require("../src/history/reactions.js");
+  const ctx = vm.createContext({ console, Blob, File, crypto: require('node:crypto').webcrypto, FunTimeOccasions: require("../occasions.js"), normalizeReaction, REACTION_IDS, ...extra });
   vm.runInContext(`const DATA_VERSION=11, PICKER_ICONS=["🍺","💧"], DEFAULT_ICON='🍺', DRINK_EXPORT_TYPE='funtime-drinks', DRINK_EXPORT_FORMAT_VERSION=1, BACKUP_EXPORT_TYPE='funtime-backup', BACKUP_EXPORT_FORMAT_VERSION=2, DATA_STORAGE_KEY='funtime-v1-data';`, ctx);
   vm.runInContext('function commitAppData(key,current,patch){const next={...current,...patch};localStorage.setItem(key,JSON.stringify(next));return next;}', ctx);
   for (const name of ['normalizeIconCatalog', 'persistIconCatalog', 'createId', 'normalizeIcon', 'normalizeIntervalMinutes', 'normalizeDoseSize', 'normalizeData', 'normalizeImportedDrink', 'validateDrinkExportPayload', 'validateBackupPayload', 'confirmBackupRestore', 'buildCurrentAppData', 'persistDrinkList']) vm.runInContext(extract(name), ctx);

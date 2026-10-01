@@ -1,4 +1,10 @@
-# FunTime — V2.22.0
+# FunTime — V2.23.0
+
+## V2.23.0 — reações por dose no Histórico
+
+- **Toque e segure um registro no Histórico para reagir àquela dose.** Abre um seletor com até 4 ícones — Péssimo, Não gostei, Gostei e Ótimo —; tocar em um salva na hora e mostra o selo ao lado do registro na lista; tocar de novo no mesmo ícone remove a reação. Cada dose guarda sua própria reação, então duas doses da mesma bebida podem ter reações diferentes (ex.: a primeira foi bem, a terceira fez mal).
+- A reação de cada dose também aparece para quem acompanha o evento compartilhado ao vivo.
+- Sem mudança de regras do Firestore ou de políticas; `DATA_VERSION` permanece 11 (campo novo, opcional e compatível).
 
 ## V2.22.0 — saudação animada no Início e vídeos de fundo renovados
 

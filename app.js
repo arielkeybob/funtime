@@ -23,6 +23,8 @@ import { createFieldErrorController, createFormErrorController } from "./src/ui/
 import { createDrinkReorderController } from "./src/ui/drink-reorder.js";
 import { createIconCatalog } from "./src/ui/icon-catalog.js";
 import { createEventDialog } from "./src/history/event-dialog.js";
+import { REACTIONS, REACTION_IDS, normalizeReaction, getReactionById } from "./src/history/reactions.js";
+import { createHistoryReactionController } from "./src/history/reaction-picker.js";
 import { createDrinkInteractions } from "./src/drinks/interactions.js";
 import { initEasterEggs } from "./src/easter-eggs/index.js";
 import { validateDrinkDraft } from "./src/drinks/validate.js";
@@ -313,7 +315,7 @@ document.addEventListener("visibilitychange", () => {
 const DATA_STORAGE_KEY = "funtime-v1-data";
 const LEGACY_DRINKS_STORAGE_KEY = "balada-v1-drinks";
 const DATA_VERSION = 11;
-const APP_VERSION = "2.22.0";
+const APP_VERSION = "2.23.0";
 const DRINK_EXPORT_TYPE = "funtime-drinks";
 const DRINK_EXPORT_FORMAT_VERSION = 1;
 const BACKUP_EXPORT_TYPE = "funtime-backup";
@@ -339,6 +341,8 @@ const REORDER_ANIMATION_EASING = "cubic-bezier(0.22, 1, 0.36, 1)";
 
 const DRINK_REORDER_PRESS_MS = 500;
 const DRINK_REORDER_MOVE_TOLERANCE = 18;
+const HISTORY_REACTION_PRESS_MS = 500;
+const HISTORY_REACTION_MOVE_TOLERANCE = 18;
 const DOUBLE_TAP_MAX_DELAY_MS = 430;
 const DOUBLE_TAP_FEEDBACK_MS = 430;
 const COMPLETED_DOUBLE_TAP_COOLDOWN_MS = 520;
@@ -513,6 +517,10 @@ const doseSizeDialog = document.querySelector("#dose-size-dialog");
 const doseSizeDrinkName = document.querySelector("#dose-size-drink-name");
 const doseHalfButton = document.querySelector("#dose-half-button");
 const doseFullButton = document.querySelector("#dose-full-button");
+
+const reactionPickerDialog = document.querySelector("#reaction-picker-dialog");
+const reactionPickerDrinkName = document.querySelector("#reaction-picker-drink-name");
+const reactionPickerOptions = document.querySelector("#reaction-picker-options");
 
 const toast = document.querySelector("#toast");
 const toastMessage = document.querySelector("#toast-message");
@@ -1347,6 +1355,7 @@ function normalizeData(data) {
         occasionId: event.occasionId ?? null,
         intervalMinutes: normalizeIntervalMinutes(event.intervalMinutes),
         doseSize: normalizeDoseSize(event.doseSize),
+        reaction: normalizeReaction(event.reaction),
         ...(typeof event.countingStoppedAt === 'number' && Number.isFinite(event.countingStoppedAt) ? { countingStoppedAt: event.countingStoppedAt } : {}),
       };
     });
@@ -1401,6 +1410,7 @@ function migrateLegacyData() {
       consumedAt: Number(drink.lastConsumedAt),
       intervalMinutes: normalizeIntervalMinutes(drink.intervalMinutes),
       doseSize: null,
+      reaction: null,
     }));
 
   const migrated = {
@@ -1848,7 +1858,8 @@ function validateBackupPayload(payload) {
         !Number.isInteger(event.intervalMinutes) || event.intervalMinutes < 1 || event.intervalMinutes > 1440 ||
         (event.drinkName !== undefined && !validText(event.drinkName, 80)) ||
         (event.drinkIcon !== undefined && !validText(event.drinkIcon, 64)) ||
-        (event.doseSize != null && !["half", "full"].includes(event.doseSize))) invalid();
+        (event.doseSize != null && !["half", "full"].includes(event.doseSize)) ||
+        (event.reaction != null && !REACTION_IDS.has(event.reaction))) invalid();
     if (!ids.has(event.drinkId) && (!validText(event.drinkName, 80) || !validText(event.drinkIcon, 64))) invalid();
     eventIds.add(event.id);
   }
@@ -2643,8 +2654,8 @@ function renderHistory() {
 
   historyCount.textContent = `${entries.length} registro${entries.length === 1 ? "" : "s"}`;
   historyDescription.textContent = filterDrink
-    ? `${filterDrink.icon} ${filterDrink.name} · toque em um registro para corrigir o horário ou excluí-lo.`
-    : "Toque em um registro para corrigir o horário ou excluí-lo.";
+    ? `${filterDrink.icon} ${filterDrink.name} · toque em um registro para corrigir o horário ou excluí-lo. Segure para reagir.`
+    : "Toque em um registro para corrigir o horário ou excluí-lo. Segure para reagir.";
   historyEmptyState.hidden = entries.length > 0;
 
   if (!entries.length) {
@@ -2718,6 +2729,17 @@ function renderHistory() {
       identity.appendChild(doseBadge);
     }
 
+    if (event.reaction) {
+      const reaction = getReactionById(event.reaction);
+      if (reaction) {
+        const reactionBadge = document.createElement("span");
+        reactionBadge.className = "history-reaction-badge";
+        reactionBadge.textContent = reaction.icon;
+        reactionBadge.setAttribute("aria-label", reaction.label);
+        identity.appendChild(reactionBadge);
+      }
+    }
+
     const mobileTime = document.createElement("span");
     mobileTime.className = "history-event-mobile-time";
     setHistoryClockLabel(mobileTime, event.consumedAt);
@@ -2770,7 +2792,7 @@ function renderHistory() {
     }
 
     button.append(marker, time, body);
-    button.addEventListener("click", () => openEventDialog(event.id));
+    historyReaction.attachEventButton(button, event);
     currentTimeline.appendChild(button);
   });
 
@@ -2891,6 +2913,14 @@ const { openEventDialog, closeEventDialog } = createEventDialog({
   createWheelPicker, setWheelPickerValue, beginFormDraft,
   showEventFormError, commitAppData, buildCurrentAppData, dataStorageKey: DATA_STORAGE_KEY,
   refreshDataViews, showToast, showAppNotification, showAppConfirmation,
+});
+
+const historyReaction = createHistoryReactionController({
+  state, pressMs: HISTORY_REACTION_PRESS_MS, moveTolerance: HISTORY_REACTION_MOVE_TOLERANCE,
+  reactionPickerDialog, reactionPickerDrinkName, reactionPickerOptions,
+  getEventDrinkIdentity, openEventDialog,
+  commitAppData, buildCurrentAppData, dataStorageKey: DATA_STORAGE_KEY,
+  showAppNotification, refreshDataViews, REACTIONS,
 });
 
 // Editor de bebida (cadastro/edição/exclusão) e registro de consumo (menu da

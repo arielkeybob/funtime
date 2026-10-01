@@ -38,7 +38,7 @@ test('leva só os campos previstos da dose', () => {
   const payload = montar([dose({ countingStoppedAt: 4000 })]);
 
   assert.deepEqual(Object.keys(payload.events[0]).sort(), [
-    'consumedAt', 'countingStoppedAt', 'doseSize', 'drinkIcon', 'drinkName', 'id', 'intervalMinutes',
+    'consumedAt', 'countingStoppedAt', 'doseSize', 'drinkIcon', 'drinkName', 'id', 'intervalMinutes', 'reaction',
   ]);
 });
 

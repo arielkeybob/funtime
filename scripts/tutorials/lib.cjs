@@ -445,6 +445,23 @@ function criarT(page, context) {
       await t.limparDestaque();
       await page.locator(seletor).first().click();
     },
+    // Toque e segurar real (sem arrastar): o anel aparece, o dedo desce e "aperta", mas só
+    // solta depois de `segurar` ms — tempo suficiente para passar do limite de toque-e-segurar
+    // do app (500 ms) e o resultado do gesto já aparecer na tela antes do dedo sumir.
+    async segurarComDedo(seletor, { antes = 700, descida = 850, distancia = 150, segurar = 700 } = {}) {
+      await t.destacar(seletor);
+      await page.waitForTimeout(antes);
+      await page.evaluate(aproximarDedo, { seletor, distancia, duracao: descida });
+      const ponto = await centro(seletor);
+      await toque('touchStart', ponto);
+      await page.evaluate(() => {
+        const dedo = document.querySelector('.__tut[data-tut="dedo"]');
+        return dedo ? dedo.animate([{ transform: 'scale(1)' }, { transform: 'scale(.72)' }], { duration: 150, fill: 'forwards' }).finished : null;
+      });
+      await page.waitForTimeout(segurar);
+      await toque('touchEnd');
+      await t.limparDestaque();
+    },
     // Como tocarComDedo, mas o gesto é o duplo toque real (dois toques de tela seguidos, o que o app exige
     // para registrar uma dose): o anel aparece, o dedo desce até o alvo e "aperta" duas vezes.
     async duploToqueComDedo(seletor, { antes = 700, descida = 850, distancia = 150, pausa = 300 } = {}) {

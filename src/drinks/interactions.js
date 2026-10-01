@@ -287,6 +287,7 @@ export function createDrinkInteractions({
       occasionId: (() => { if (!state.preferences.eventsEnabled) return null; const match = state.occasions.find((item) => globalThis.FunTimeOccasions.contains(item, timestamp)); return match ? match.id : null; })(),
       intervalMinutes: drink.intervalMinutes,
       doseSize: drink.askDoseSize ? (normalizeDoseSize(doseSize) || "full") : null,
+      reaction: null,
     };
 
     const events = [...state.events, event];

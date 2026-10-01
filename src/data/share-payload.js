@@ -1,4 +1,5 @@
 import { summarizeOccasionDoses } from "../occasions/summary.js";
+import { REACTION_IDS } from "../history/reactions.js";
 
 // Este módulo é onde mora a minimização de dados: é a única coisa que decide o que sai
 // do aparelho de quem compartilha. Tudo que não estiver montado aqui, não sai.
@@ -33,6 +34,7 @@ function minimalDose(record) {
     intervalMinutes: finite(record.intervalMinutes) ? record.intervalMinutes : null,
     // "half" | "full" (texto) — antes exigia número e por isso o tamanho nunca saía.
     doseSize: record.doseSize === "half" || record.doseSize === "full" ? record.doseSize : null,
+    reaction: REACTION_IDS.has(record.reaction) ? record.reaction : null,
   };
 
   if (finite(record.countingStoppedAt)) dose.countingStoppedAt = record.countingStoppedAt;
