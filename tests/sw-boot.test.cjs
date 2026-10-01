@@ -12,6 +12,16 @@ function worker(extra={}){
   const ctx=vm.createContext({URL,Request,Response,File,MessageChannel,setTimeout,clearTimeout,self,...extra});
   vm.runInContext(SW_SOURCE,ctx);return {ctx,self,handlers};
 }
+// boot.js trava a versão esperada do worker num texto separado de APP_VERSION (não
+// importa sw.js). Esquecer de sincronizar os dois (incidente real na 2.23.0) faz quem
+// já está com o Service Worker novo ativo travar para sempre em "Há uma atualização
+// necessária", sem nunca mostrar o botão Atualizar: registration.waiting nunca é
+// preenchido porque não existe de fato nenhuma versão mais nova para instalar.
+test('boot.js espera a mesma versão que sw.js anuncia em GET_VERSION',()=>{
+  const BOOT_SOURCE=fs.readFileSync('boot.js','utf8');
+  const bootExpected=BOOT_SOURCE.match(/if \(version\?\.version !== "([^"]+)"\)/)[1];
+  assert.equal(bootExpected,APP_VERSION);
+});
 test('ativação limpa apenas shells antigos da própria v2 e conserva caches de outros apps',async()=>{
   const removed=[];
   const {handlers}=worker({caches:{keys:async()=>['funtime-v2-0-0-dev-2','funtime-v1-14-9','funtime-v1-16-0',CACHE_NAME,'funtime-share-target-v1','other-app-cache'],delete:async key=>removed.push(key)}});

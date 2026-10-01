@@ -1,4 +1,10 @@
-# FunTime — V2.23.0
+# FunTime — V2.23.1
+
+## V2.23.1 — corrige trava ao abrir, causada pela 2.23.0
+
+- **A 2.23.0 travava a abertura do app** com "Há uma atualização necessária para abrir o FunTime", sem nunca oferecer o botão Atualizar. Causa: `boot.js` guarda a versão esperada do Service Worker num texto fixo separado de `APP_VERSION`; a 2.23.0 atualizou `app.js`/`sw.js`/footer, mas não esse texto, então assim que o novo Service Worker assumia, `boot.js` comparava a versão nova contra a antiga esperada, nunca batia e não havia nenhuma versão "mais nova" de verdade para oferecer — bloqueio permanente, sem saída pela interface. Corrigido.
+- Quem ficou preso na 2.23.0 sai fechando e reabrindo o app depois que esta versão estiver publicada.
+- Sem mudança de dados, de regras do Firestore nem de políticas (`DATA_VERSION` 11).
 
 ## V2.23.0 — reações por dose no Histórico
 
