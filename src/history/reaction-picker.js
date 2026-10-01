@@ -123,6 +123,12 @@ export function createHistoryReactionController({
   const handleOutsideStart = (event) => {
     if (reactionPickerPopover.hidden) return;
     if (reactionPickerPopover.contains(event.target)) return;
+    // O selo (de qualquer registro) não conta como "fora": ele é a própria
+    // entrada para abrir/trocar/fechar o seletor. Sem isso, o pointerdown do
+    // segundo toque no mesmo selo fechava aqui, ANTES do click de alternar
+    // (abaixo, em attachReactionBadge) rodar - que então via "já fechado" e
+    // reabria, parecendo que tocar de novo nunca fechava.
+    if (event.target.closest?.(".history-reaction-badge")) return;
     closePicker();
   };
   document.addEventListener("touchstart", handleOutsideStart, true);
@@ -240,10 +246,17 @@ export function createHistoryReactionController({
 
   // Selo no canto do card: clicável independente do toque-e-segurar, segundo
   // caminho até o mesmo seletor. stopPropagation() evita que o clique "vaze" pro
-  // botão do registro inteiro (que abriria "Editar registro" junto).
+  // botão do registro inteiro (que abriria "Editar registro" junto). Alterna:
+  // tocar de novo no mesmo selo com o seletor já aberto para ESTE registro fecha
+  // em vez de só fechar-e-reabrir (openPicker() já faz closePicker() primeiro,
+  // então sem essa checagem o segundo toque parecia não fazer nada).
   function attachReactionBadge(badge, event, rowButton) {
     badge.addEventListener("click", (clickEvent) => {
       clickEvent.stopPropagation();
+      if (!reactionPickerPopover.hidden && activeEventId === event.id) {
+        closePicker();
+        return;
+      }
       openPicker(event.id, rowButton);
     });
   }

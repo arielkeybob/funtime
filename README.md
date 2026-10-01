@@ -1,4 +1,10 @@
-# FunTime — V2.23.11
+# FunTime — V2.23.12
+
+## V2.23.12 — seletor de reação mais compacto e corrige fechar ao tocar de novo no selo
+
+- **Seletor mais compacto**: menos espaço entre a pergunta e os ícones, menos margem ao redor.
+- **Corrige**: tocar de novo no selo com o seletor já aberto para aquele registro agora fecha, em vez de só reabrir. A própria checagem interna de "fechar ao tocar fora" estava disparando antes da checagem de alternar, sempre vendo o seletor como "já fechado".
+- Sem mudança de dados, de regras do Firestore nem de políticas; `DATA_VERSION` permanece 11.
 
 ## V2.23.11 — seletor de reação com pergunta e 5 níveis
 
