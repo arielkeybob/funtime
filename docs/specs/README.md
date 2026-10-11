@@ -39,6 +39,7 @@ Contexto geral do refactor: ver o plano aprovado em
 | [0024](0024-janela-de-sincronizacao.md) | Janela de sincronização: escutar na nuvem só os últimos 90 dias, com download completo único por aparelho | implementada |
 | [0025](0025-evento-compartilhado.md) | Evento compartilhado entre amigos: convite pela nuvem (cópia com vínculo), marcas ✉/✔, intenção de compartilhar doses em evento futuro; custo do compartilhamento de doses | implementada (v2.17.0) |
 | [0026](0026-tutoriais.md) | Tutoriais: introdução no primeiro acesso e "Como usar" em Configurações, com mídia gerada por roteiro e aviso de desatualização | implementada (M1 v2.18.0, M2 v2.19.0, M3 v2.20.0) |
+| [0027](0027-conta-desconectada.md) | Conta desconectada sem pedir: lembrar, avisar na Home (Conectar / Mais tarde / Não perguntar mais), nuvem cortada em laranja e retomada após abrir sem internet | implementada |
 
 Status possíveis: `proposta` (escrita, aguardando aprovação) · `aprovada` (pode
 implementar) · `implementada` (já no código, commit referenciado).

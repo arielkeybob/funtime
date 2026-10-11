@@ -287,21 +287,21 @@ export const TUTORIALS = [
     "passos": [
       {
         "tipo": "imagem",
-        "src": "./tutorials/media/amigos/01.3cb25e77.webp",
+        "src": "./tutorials/media/amigos/01.ce510372.webp",
         "alt": "Tela Backup e conta com o botão Entrar com Google, no cartão Sincronizar entre aparelhos, em destaque.",
         "legenda": "A função Amigos precisa da Conta Google: entre em Backup e conta."
       },
       {
         "tipo": "video",
-        "src": "./tutorials/media/amigos/02.f7d8ae6a.mp4",
-        "poster": "./tutorials/media/amigos/02.poster.058e705d.webp",
+        "src": "./tutorials/media/amigos/02.2b042a6c.mp4",
+        "poster": "./tutorials/media/amigos/02.poster.b9d878ab.webp",
         "alt": "Na tela inicial, o ícone Amigos, no canto superior direito, é tocado e abre a tela Amigos com Bia, Caio e Duda.",
         "legenda": "Com a conta conectada, toque no ícone Amigos da tela inicial."
       },
       {
         "tipo": "video",
-        "src": "./tutorials/media/amigos/03.d7458e3d.mp4",
-        "poster": "./tutorials/media/amigos/03.poster.74feb5ec.webp",
+        "src": "./tutorials/media/amigos/03.d8bb1736.mp4",
+        "poster": "./tutorials/media/amigos/03.poster.43e9b8d9.webp",
         "alt": "Na tela Amigos, o botão + é tocado e abre Adicionar amigo; o botão Gerar código é tocado e aparecem o código com QR e o tempo de validade.",
         "legenda": "Toque em + e mostre o código à outra pessoa, ou digite o dela."
       },
@@ -334,8 +334,8 @@ export const TUTORIALS = [
       },
       {
         "tipo": "video",
-        "src": "./tutorials/media/amigos/07.fa8d6c93.mp4",
-        "poster": "./tutorials/media/amigos/07.poster.8e7feb22.webp",
+        "src": "./tutorials/media/amigos/07.31c66551.mp4",
+        "poster": "./tutorials/media/amigos/07.poster.12f13ba6.webp",
         "alt": "Um amigo é tocado, depois a aba Compartilhando e o botão Compartilhar; o evento passa a aparecer como ao vivo para essa pessoa, com o botão Parar.",
         "legenda": "Toque no amigo, em Compartilhando e em Compartilhar."
       },
@@ -398,28 +398,28 @@ export const TUTORIALS = [
       },
       {
         "tipo": "imagem",
-        "src": "./tutorials/media/backup-e-bebidas/02.894c3f85.webp",
+        "src": "./tutorials/media/backup-e-bebidas/02.2d90f7ae.webp",
         "alt": "Tela Backup e conta com dois cartões em destaque: Exportar e importar, rotulado Só as bebidas, e Dados do aplicativo, rotulado Bebidas + histórico.",
         "legenda": "Em Backup e conta, os dois ficam em cartões separados."
       },
       {
         "tipo": "video",
-        "src": "./tutorials/media/backup-e-bebidas/03.d64fb992.mp4",
-        "poster": "./tutorials/media/backup-e-bebidas/03.poster.b2fec5d9.webp",
+        "src": "./tutorials/media/backup-e-bebidas/03.0563deaf.mp4",
+        "poster": "./tutorials/media/backup-e-bebidas/03.poster.e06a4d42.webp",
         "alt": "O botão Exportar bebidas é tocado e o app avisa que o arquivo de bebidas foi exportado.",
         "legenda": "Exportar bebidas gera um arquivo para compartilhar ou guardar."
       },
       {
         "tipo": "video",
-        "src": "./tutorials/media/backup-e-bebidas/04.e5ae0aad.mp4",
-        "poster": "./tutorials/media/backup-e-bebidas/04.poster.6bca91c8.webp",
+        "src": "./tutorials/media/backup-e-bebidas/04.16f7fc99.mp4",
+        "poster": "./tutorials/media/backup-e-bebidas/04.poster.a1d7ee53.webp",
         "alt": "O botão Importar bebidas é tocado e abre a prévia do arquivo, com as opções Adicionar às bebidas atuais e Substituir minha lista de bebidas em destaque.",
         "legenda": "Importar mostra uma prévia: adicionar ou substituir a lista."
       },
       {
         "tipo": "video",
-        "src": "./tutorials/media/backup-e-bebidas/05.8c6e7bbb.mp4",
-        "poster": "./tutorials/media/backup-e-bebidas/05.poster.d9fbe946.webp",
+        "src": "./tutorials/media/backup-e-bebidas/05.d1412f8d.mp4",
+        "poster": "./tutorials/media/backup-e-bebidas/05.poster.11c8b73f.webp",
         "alt": "O botão Fazer backup é tocado e o app avisa que o backup foi criado e que o arquivo deve ser guardado em local privado.",
         "legenda": "Fazer backup salva bebidas, histórico e preferências."
       },

@@ -46,6 +46,9 @@
   --success-soft: rgb(94 233 155 / 0.08);
   --info: #5eb4e9;
   --neutral-action: #e4e4e7;
+  --warning: #f7b155;
+  --warning-soft: rgb(247 177 85 / 0.10);
+  --warning-border: rgb(247 177 85 / 0.45);
 }
 
 /* Informações públicas e primeiro aceite compartilham a tipografia do app. */
@@ -3997,6 +4000,21 @@ button.field-check:active { transform: scale(.94); }
 .settings-menu--danger { border-color: rgb(255 67 77 / .28); }
 .settings-nav-row--danger .settings-nav-icon { background: rgb(255 67 77 / .14); color: #ff9da2; }
 .settings-nav-row--danger .settings-nav-text strong { color: #ff9da2; }
+/* Conta: nuvem cortada sem conta; laranja quando pede atenção (não em "Conectando…"). */
+.settings-nav-icon .sync-icon-off, .settings-nav-row.is-disconnected .sync-icon-on { display: none; }
+.settings-nav-row.is-disconnected .sync-icon-off { display: block; }
+.settings-nav-row--warning .settings-nav-icon { background: var(--warning-soft); color: var(--warning); }
+.settings-nav-row--warning .settings-nav-text small { color: var(--warning); }
+.sync-state-note { display: flex; align-items: flex-start; gap: 8px; margin: 0; color: var(--muted); font-size: .84rem; line-height: 1.45; }
+.sync-state-note.is-warning { color: var(--warning); }
+.sync-state-note svg, .sync-lost-notice svg { flex: 0 0 18px; width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.sync-lost-notice { display: grid; gap: 8px; margin-bottom: 14px; padding: 10px 12px; border: 1px solid var(--warning-border); border-radius: 12px; background: var(--warning-soft); }
+.sync-lost-notice p { display: flex; align-items: center; gap: 8px; margin: 0; color: var(--warning); font-size: .84rem; line-height: 1.35; }
+.sync-lost-actions { display: flex; flex-wrap: wrap; gap: 6px; }
+.sync-lost-actions button { min-height: 32px; padding: 4px 10px; border: 1px solid var(--border); border-radius: 999px; background: transparent; color: var(--muted); font: inherit; font-size: .78rem; cursor: pointer; }
+.sync-lost-actions .sync-lost-connect { border-color: var(--warning); background: var(--warning); color: #1c1305; font-weight: 650; }
+.sync-lost-actions button:disabled { opacity: .55; cursor: default; }
+.sync-lost-actions button:focus-visible { outline: 2px solid var(--text); outline-offset: 2px; }
 .settings-page { display: grid; gap: 14px; animation: settings-page-in .16s ease-out; }
 .settings-page .settings-section-heading h2 { font-size: 1.05rem; }
 .settings-link-card { padding: 0; }

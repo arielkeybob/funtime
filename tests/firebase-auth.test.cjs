@@ -114,3 +114,31 @@ test('sair encerra a sessão no Firebase', async () => {
   await auth.signOut();
   assert.equal(calls.signOut, 1);
 });
+
+// Abrir o app sem internet fazia o import do SDK falhar uma vez e a falha ficar guardada:
+// nem o botão "Entrar" funcionava até reabrir o app.
+test('uma falha ao baixar o SDK não trava as tentativas seguintes', async () => {
+  let falhar = true;
+  let imports = 0;
+  const authModule = {
+    getAuth: () => ({}),
+    GoogleAuthProvider: class { setCustomParameters() {} },
+    onAuthStateChanged: () => {},
+    getRedirectResult: async () => null,
+    signInWithPopup: async () => {},
+  };
+  const auth = createFirebaseAuth({
+    firebaseConfig: {}, onSignedIn() {}, onSignedOut() {},
+    importModule: async (url) => {
+      imports += 1;
+      if (falhar) throw new Error('sem rede');
+      return url.includes('firebase-app.js') ? { initializeApp: () => ({}) } : authModule;
+    },
+  });
+
+  await assert.rejects(() => auth.init(), /sem rede/);
+  falhar = false;
+  await auth.init();
+  await auth.signIn();
+  assert.equal(imports, 4, 'a segunda tentativa baixou o SDK de novo, e o login não baixou outra vez');
+});

@@ -1,4 +1,12 @@
-# FunTime — V2.23.12
+# FunTime — V2.23.13
+
+## V2.23.13 — conta desconectada avisa em vez de sumir
+
+- **Corrige**: quando a sessão da Conta Google caía sozinha ao abrir o app (o Firebase não conseguia renovar), o app tratava como "Sair" e esquecia a conta. Não tentava mais voltar, e o único sinal era o ícone de Amigos sumido do topo. Agora a conta continua lembrada e o app tenta retomar a cada abertura.
+- **Aviso compacto na tela inicial** quando a conta cai: **Conectar**, **Mais tarde** (pergunta de novo em 12 h) ou **Não perguntar mais** (Configurações continua mostrando a queda).
+- **Desconectado fica visível**: em Configurações, "Backup e conta" mostra a nuvem cortada e o resumo em laranja; o cartão "Sincronizar entre aparelhos" diz o motivo. Durante a retomada aparece "Conectando…" em vez de "Sem conta conectada".
+- **Abrir sem internet** não trava mais o login até reabrir o app: mostra "Sem internet para conectar a conta" e reconecta sozinho quando a rede volta.
+- Detalhes em `docs/specs/0027-conta-desconectada.md`. Sem mudança de dados, de regras do Firestore nem de políticas; `DATA_VERSION` permanece 11.
 
 ## V2.23.12 — seletor de reação mais compacto e corrige fechar ao tocar de novo no selo
 

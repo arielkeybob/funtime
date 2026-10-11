@@ -1,5 +1,5 @@
 {
-  "versaoApp": "2.23.12",
+  "versaoApp": "2.23.13",
   "topicos": {
     "introducao": {
       "cobre": {
@@ -126,14 +126,14 @@
         "#shared-detail-dialog": "c44e36a0ed86"
       },
       "midia": {
-        "01.3cb25e77.webp": "3cb25e77994a59edacfa2c61b307340f0b5c9a49",
-        "02.f7d8ae6a.mp4": "f7d8ae6a6451a6a17134f7000afbdf1e11a3ae2b",
-        "02.poster.058e705d.webp": "058e705d23a9b47fdd042c0463083c1885166496",
-        "03.d7458e3d.mp4": "d7458e3d8d615f1985d49eea3de94007f547834e",
-        "03.poster.74feb5ec.webp": "74feb5ecaca24a383c94c6a9fde1b049b92d9570",
+        "01.ce510372.webp": "ce510372dff21d045961c5bd1c82fa13554a23a5",
+        "02.2b042a6c.mp4": "2b042a6c3fb8d53b4f78f25248e75b77eb2ddea8",
+        "02.poster.b9d878ab.webp": "b9d878abda58d4b30851c6c4c8ef22aa88152b03",
+        "03.d8bb1736.mp4": "d8bb1736ee27cf3b2df01a53fb6db743b34a2da1",
+        "03.poster.43e9b8d9.webp": "43e9b8d91f2231097ffb3010bcd3ea4a7171efcf",
         "05.849921ef.webp": "849921efe9f4ca7d335fc0c58bfa4d9b4b1e365b",
-        "07.fa8d6c93.mp4": "fa8d6c938349ec3057105784b94d2dcc2175ab50",
-        "07.poster.8e7feb22.webp": "8e7feb22f0b6fcc780c99985db8b4df436d54746",
+        "07.31c66551.mp4": "31c665518fa471c17ee68920f242d22bea9501f1",
+        "07.poster.12f13ba6.webp": "12f13ba662e301887f4977ba6b3d28d732580137",
         "08.4f09ee13.webp": "4f09ee134f8ce03e03d945b5f68f0ad26a2b12be"
       }
     },
@@ -163,13 +163,13 @@
         "#backup-restore-dialog": "95fcb8d219ed"
       },
       "midia": {
-        "02.894c3f85.webp": "894c3f8500ea38d67cfd4ab7d24965c3970b995a",
-        "03.d64fb992.mp4": "d64fb992721b1b9271cc7c3647a8b033e2bc079d",
-        "03.poster.b2fec5d9.webp": "b2fec5d95efc060f90e12d0bf54db39cee8f18bb",
-        "04.e5ae0aad.mp4": "e5ae0aadf89b2aa2f9dba28dccdbd8d2ced2e67d",
-        "04.poster.6bca91c8.webp": "6bca91c873955bab81df79c74cb38430e8201d6c",
-        "05.8c6e7bbb.mp4": "8c6e7bbb583a68af43b9d732b9689e2064396e16",
-        "05.poster.d9fbe946.webp": "d9fbe9469d62841a168b3373d19d9fbc51c7d20b",
+        "02.2d90f7ae.webp": "2d90f7aed182d7b2a16d02d52806fa5c0ebf1cec",
+        "03.0563deaf.mp4": "0563deaf17b4c62dcde459095f78d53fee6909cd",
+        "03.poster.e06a4d42.webp": "e06a4d42ae4ded39a33232b03fbd1337fe08ffb5",
+        "04.16f7fc99.mp4": "16f7fc999d1a214715e2c8a402f4d27f45c48e6d",
+        "04.poster.a1d7ee53.webp": "a1d7ee53cf0a391978b7e199cf4e733b3cbd65ef",
+        "05.d1412f8d.mp4": "d1412f8df7e0c532b0d1759124474567b105632e",
+        "05.poster.11c8b73f.webp": "11c8b73fcec8e7e4ab73da768ac87ec4f607cb8e",
         "06.d4d38cba.webp": "d4d38cbafb5a560668d0eab8d3e3df7c048000ea"
       }
     }

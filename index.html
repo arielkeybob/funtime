@@ -59,7 +59,7 @@
     <footer class="browser-gate-footer">
       <span>App para estudo · não é controle de segurança</span>
       <a class="policies-link" href="./policies.html">Políticas e informações</a>
-      <span>v2.23.12 · By: arielkeybob</span>
+      <span>v2.23.13 · By: arielkeybob</span>
     </footer>
   </section>
 
@@ -116,6 +116,17 @@
     </header>
 
     <main id="home-view">
+      <div id="sync-lost-notice" class="sync-lost-notice" role="status" hidden>
+        <p>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9.5 18H7a4.7 4.7 0 0 1-.6-9.37M10.4 6.4A5.5 5.5 0 0 1 17.6 10a4 4 0 0 1 2.1 6.9M14 18h3"/><path d="m4 4 16 16"/></svg>
+          <span id="sync-lost-text">Conta desconectada. Amigos e sincronização pausados.</span>
+        </p>
+        <div class="sync-lost-actions">
+          <button id="sync-lost-connect" class="sync-lost-connect" type="button">Conectar</button>
+          <button id="sync-lost-later" type="button">Mais tarde</button>
+          <button id="sync-lost-never" type="button">Não perguntar mais</button>
+        </div>
+      </div>
       <div id="occasion-reminder" class="occasion-reminder" hidden></div>
       <button id="home-occasion" class="occasion-context" type="button"></button>
       <section id="empty-state" class="empty-state" hidden>
@@ -176,7 +187,7 @@
         <span class="settings-nav-chevron" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg></span>
       </button>
       <button type="button" class="settings-nav-row" data-settings-open="backup">
-        <span class="settings-nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M7 18h10a4 4 0 0 0 .6-7.96A5.5 5.5 0 0 0 7.1 8.6 4.7 4.7 0 0 0 7 18Z"/></svg></span>
+        <span class="settings-nav-icon" aria-hidden="true"><svg class="sync-icon-on" viewBox="0 0 24 24"><path d="M7 18h10a4 4 0 0 0 .6-7.96A5.5 5.5 0 0 0 7.1 8.6 4.7 4.7 0 0 0 7 18Z"/></svg><svg class="sync-icon-off" viewBox="0 0 24 24"><path d="M9.5 18H7a4.7 4.7 0 0 1-.6-9.37M10.4 6.4A5.5 5.5 0 0 1 17.6 10a4 4 0 0 1 2.1 6.9M14 18h3"/><path d="m4 4 16 16"/></svg></span>
         <span class="settings-nav-text"><strong>Backup e conta</strong><small id="settings-summary-backup"></small></span>
         <span class="settings-nav-chevron" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg></span>
       </button>
@@ -309,6 +320,11 @@
 
         <p id="sync-unavailable" class="settings-description" hidden>A sincronização não está configurada nesta instalação.</p>
 
+        <p id="sync-state-note" class="sync-state-note" hidden>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9.5 18H7a4.7 4.7 0 0 1-.6-9.37M10.4 6.4A5.5 5.5 0 0 1 17.6 10a4 4 0 0 1 2.1 6.9M14 18h3"/><path d="m4 4 16 16"/></svg>
+          <span id="sync-state-text"></span>
+        </p>
+
         <div class="settings-row" id="sync-status-row" hidden>
           <span>Conta</span>
           <strong id="sync-account-label">—</strong>
@@ -353,7 +369,7 @@
           </div>
         </div>
 
-        <p class="settings-description">Versão instalada: <strong>v2.23.12</strong></p>
+        <p class="settings-description">Versão instalada: <strong>v2.23.13</strong></p>
         <button id="check-app-update" class="settings-secondary-button" type="button">Verificar atualizações</button>
       </section>
 
@@ -478,7 +494,7 @@
     <footer class="app-footer">
       <span class="app-footer-disclaimer">App para estudo · não é controle de segurança</span>
       <a class="policies-link" href="./policies.html">Políticas e informações</a>
-      <span class="app-footer-meta">v2.23.12 · By: arielkeybob</span>
+      <span class="app-footer-meta">v2.23.13 · By: arielkeybob</span>
     </footer>
   </div>
 

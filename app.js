@@ -315,7 +315,7 @@ document.addEventListener("visibilitychange", () => {
 const DATA_STORAGE_KEY = "funtime-v1-data";
 const LEGACY_DRINKS_STORAGE_KEY = "balada-v1-drinks";
 const DATA_VERSION = 11;
-const APP_VERSION = "2.23.12";
+const APP_VERSION = "2.23.13";
 const DRINK_EXPORT_TYPE = "funtime-drinks";
 const DRINK_EXPORT_FORMAT_VERSION = 1;
 const BACKUP_EXPORT_TYPE = "funtime-backup";
@@ -400,6 +400,13 @@ const state = {
 // `updateSyncSettingsUI` leem estas variáveis e podem rodar antes daquele bloco.
 let cloudSync = null;
 let firebaseAuth = null;
+// "pending": retomando a conta lembrada; "failed": não deu para baixar o SDK (sem
+// internet); "ready": o Firebase já respondeu se há sessão. Sem isto, os segundos de
+// carregamento apareciam como "Sem conta conectada".
+let syncAuthState = "idle";
+// Marca que a próxima sessão encerrada foi pedida pela pessoa (Sair, Apagar dados na
+// nuvem), não uma queda.
+let syncSigningOut = false;
 let shareWriter = null;
 let shareUI = null;
 let sharedViewReader = null;
@@ -547,6 +554,10 @@ const syncDeleteCloudButton = document.querySelector("#sync-delete-cloud");
 const syncStatusRow = document.querySelector("#sync-status-row");
 const syncAccountLabel = document.querySelector("#sync-account-label");
 const syncUnavailableNotice = document.querySelector("#sync-unavailable");
+const syncStateNote = document.querySelector("#sync-state-note");
+const syncStateText = document.querySelector("#sync-state-text");
+const syncLostNotice = document.querySelector("#sync-lost-notice");
+const syncLostText = document.querySelector("#sync-lost-text");
 const sharingNodes = {
   friendsAdd: document.querySelector("#friends-add"),
   pairingDialog: document.querySelector("#pairing-dialog"),
@@ -1060,8 +1071,7 @@ function updateSettingsMenuSummary() {
   const counting = state.preferences.countingMode === "normal" ? "Contagem normal" : "Contagem regressiva";
   set("appearance", counting + " · " + (state.preferences.eventsEnabled ? "Eventos ativos" : "Eventos desligados"));
   set("privacy", state.securityConfig?.enabled ? "Bloqueio ativo · " + getSecurityMethodLabel() + " · " + describeRelock() : "Bloqueio desativado");
-  const user = firebaseAuth?.getCurrentUser() || null;
-  set("backup", user ? "Conta: " + (user.email || user.displayName || "conectada") : "Sem conta conectada");
+  updateSyncMenuSummary();
   const topics = TUTORIALS.filter((item) => !item.intro).length;
   set("tutorials", topics === 1 ? "1 tutorial" : topics + " tutoriais");
   set("about", "Versão " + APP_VERSION);
@@ -3471,12 +3481,52 @@ function isSyncConnected() {
   return readSyncMemory().connected === true;
 }
 
+function writeSyncMemory(memory) {
+  try { localStorage.setItem(SYNC_STORAGE_KEY, JSON.stringify(memory)); }
+  catch { /* A preferência de sincronizar é secundária: nunca derruba o app. */ }
+}
+
+// Login concluído: guarda a conta (para o aviso poder dizer qual caiu) e zera o que
+// sobrou de uma queda anterior.
+function rememberSyncConnection(user) {
+  const { lost, lostAt, snoozedUntil, dontAsk, redirecting, ...rest } = readSyncMemory();
+  writeSyncMemory({ ...rest, connected: true, account: user?.email || user?.displayName || rest.account || "" });
+}
+
 // Sair da conta apaga a chave inteira, então o próximo login refaz o download completo.
-function rememberSyncConnection(connected) {
-  try {
-    if (connected) localStorage.setItem(SYNC_STORAGE_KEY, JSON.stringify({ ...readSyncMemory(), connected: true }));
-    else localStorage.removeItem(SYNC_STORAGE_KEY);
-  } catch { /* A preferência de sincronizar é secundária: nunca derruba o app. */ }
+function forgetSyncConnection() {
+  try { localStorage.removeItem(SYNC_STORAGE_KEY); }
+  catch { /* idem */ }
+}
+
+// A sessão acabou sem a pessoa pedir (o Firebase não conseguiu renovar ao abrir, por
+// exemplo). Antes isto apagava a lembrança como um "Sair" e o app nem tentava mais
+// voltar: a conta sumia em silêncio. Agora continua tentando a cada abertura e avisa.
+function markSyncConnectionLost() {
+  const memory = readSyncMemory();
+  if (memory.connected !== true) return;
+  // Primeiro login por redirect abandonado lá no Google: nunca houve conta, não há o que avisar.
+  if (memory.redirecting && !memory.account) return forgetSyncConnection();
+  const { redirecting, ...rest } = memory;
+  writeSyncMemory({ ...rest, lost: true, lostAt: memory.lostAt || Date.now() });
+}
+
+const SYNC_LOST_SNOOZE_MS = 12 * 60 * 60 * 1000;
+
+function shouldAskToReconnect() {
+  const memory = readSyncMemory();
+  return memory.lost === true && memory.dontAsk !== true && !(memory.snoozedUntil > Date.now());
+}
+
+function resumeSync() {
+  if (!firebaseAuth || !isSyncConnected() || syncAuthState === "pending" || syncAuthState === "ready") return;
+  syncAuthState = "pending";
+  updateSyncSettingsUI();
+  firebaseAuth.init().catch((error) => {
+    console.error("Falha ao retomar a sincronização.", error);
+    if (syncAuthState === "pending") syncAuthState = "failed";
+    updateSyncSettingsUI();
+  });
 }
 
 // Este aparelho já baixou o histórico completo desta conta? Por conta: entrar com outra
@@ -3491,21 +3541,65 @@ function fullHistoryMemory(uid) {
   };
 }
 
+// Um só retrato do estado da conta, para o menu, o cartão e o aviso da Home dizerem a
+// mesma coisa. "connected" e "pending" são os únicos que não pedem atenção.
+function describeSyncState() {
+  const user = firebaseAuth?.getCurrentUser() || null;
+  if (user) return { kind: "connected", summary: "Conta: " + (user.email || user.displayName || "conectada"), user };
+  const memory = readSyncMemory();
+  if (firebaseAuth && memory.connected === true) {
+    if (syncAuthState === "failed") return { kind: "offline", summary: "Sem internet para conectar a conta" };
+    if (syncAuthState !== "ready") return { kind: "pending", summary: "Conectando…" };
+    if (memory.lost) return { kind: "lost", summary: "Conta desconectada", account: memory.account || "" };
+  }
+  return { kind: "none", summary: "Sem conta conectada" };
+}
+
+const SYNC_STATE_NOTES = {
+  none: () => "Nenhuma conta conectada.",
+  pending: () => "Conectando à conta…",
+  offline: () => "Sem internet para conectar a conta. O app tenta de novo quando a conexão voltar.",
+  lost: ({ account }) => (account ? `A conta ${account} foi desconectada` : "Sua conta foi desconectada")
+    + " deste aparelho. Entre de novo para voltar a sincronizar e ver seus amigos.",
+};
+
 function updateSyncSettingsUI() {
   if (!syncSignInButton) return;
 
   const available = Boolean(firebaseAuth);
-  const user = firebaseAuth?.getCurrentUser() || null;
+  const sync = describeSyncState();
+  const user = sync.user || null;
 
   if (syncUnavailableNotice) syncUnavailableNotice.hidden = available;
-  syncSignInButton.hidden = !available || Boolean(user);
+  syncSignInButton.hidden = !available || Boolean(user) || sync.kind === "pending";
   syncSignOutButton.hidden = !user;
   syncDeleteCloudButton.hidden = !user;
   syncStatusRow.hidden = !user;
   if (user) syncAccountLabel.textContent = user.email || user.displayName || "Conectado";
+  if (syncStateNote) {
+    syncStateNote.hidden = !available || Boolean(user);
+    syncStateNote.classList.toggle("is-warning", sync.kind !== "pending");
+    if (!syncStateNote.hidden) syncStateText.textContent = SYNC_STATE_NOTES[sync.kind](sync);
+  }
   // Compartilhar exige conta: sem login não há com quem nem como. A tela Amigos (e
   // o "+" de adicionar dentro dela) só é alcançável por este ícone.
   if (sharingNodes.homeFriendsButton) sharingNodes.homeFriendsButton.hidden = !user;
+  // Sem este aviso, a queda só se notava pelo ícone de Amigos sumido do topo.
+  if (syncLostNotice) {
+    syncLostNotice.hidden = !(sync.kind === "lost" && shouldAskToReconnect());
+    if (!syncLostNotice.hidden) syncLostText.textContent = sync.account
+      ? `Conta ${sync.account} desconectada. Amigos e sincronização pausados.`
+      : "Conta desconectada. Amigos e sincronização pausados.";
+  }
+  updateSyncMenuSummary(sync);
+}
+
+function updateSyncMenuSummary(sync = describeSyncState()) {
+  const summary = document.querySelector("#settings-summary-backup");
+  if (summary) summary.textContent = sync.summary;
+  const row = document.querySelector('[data-settings-open="backup"]');
+  row?.classList.toggle("is-disconnected", sync.kind !== "connected");
+  row?.classList.toggle("settings-nav-row--warning", sync.kind !== "connected" && sync.kind !== "pending");
 }
 
 // Aplica em memória o que chegou de outro aparelho. Grava pelo núcleo cru
@@ -3810,7 +3904,8 @@ function closeSharedView() {
 firebaseAuth = IS_STANDALONE_APP && isFirebaseConfigured() ? createFirebaseAuth({
   firebaseConfig: getFirebaseConfig(),
   onSignedIn: async ({ user, app }) => {
-    rememberSyncConnection(true);
+    syncAuthState = "ready";
+    rememberSyncConnection(user);
     updateSyncSettingsUI();
     // onAuthStateChanged pode disparar de novo na mesma sessão; sem isto, os listeners
     // do Firestore seriam duplicados.
@@ -3915,24 +4010,43 @@ firebaseAuth = IS_STANDALONE_APP && isFirebaseConfigured() ? createFirebaseAuth(
     shareUI?.setSharedEntries([]);
     shareUI?.closeShareOccasionDialog();
     if (state.currentView === "shared") closeSharedView();
-    rememberSyncConnection(false);
+    syncAuthState = "ready";
+    const voluntary = syncSigningOut;
+    syncSigningOut = false;
+    if (voluntary) forgetSyncConnection();
+    else markSyncConnectionLost();
     updateSyncSettingsUI();
   },
   // Marca a intenção antes do redirect levar a página embora, para que o app volte
-  // reiniciando a autenticação. Se o login for abandonado lá, `onSignedOut` limpa.
-  onRedirectStart: () => rememberSyncConnection(true),
+  // reiniciando a autenticação. Se o primeiro login for abandonado lá,
+  // `markSyncConnectionLost` reconhece pelo `redirecting` sem conta e limpa.
+  onRedirectStart: () => writeSyncMemory({ ...readSyncMemory(), connected: true, redirecting: true }),
 }) : null;
 
-syncSignInButton?.addEventListener("click", async () => {
-  syncSignInButton.disabled = true;
+async function signInWithGoogle(button) {
+  if (button) button.disabled = true;
   try {
     await firebaseAuth.signIn();
   } catch (error) {
     console.error("Falha ao entrar com a Conta Google.", error);
     showToast("Não foi possível entrar. Tente de novo.");
   } finally {
-    syncSignInButton.disabled = false;
+    if (button) button.disabled = false;
   }
+}
+
+syncSignInButton?.addEventListener("click", () => signInWithGoogle(syncSignInButton));
+
+document.querySelector("#sync-lost-connect")?.addEventListener("click", (event) => signInWithGoogle(event.currentTarget));
+document.querySelector("#sync-lost-later")?.addEventListener("click", () => {
+  writeSyncMemory({ ...readSyncMemory(), snoozedUntil: Date.now() + SYNC_LOST_SNOOZE_MS });
+  updateSyncSettingsUI();
+});
+// Só cala o aviso da Home: o menu e o cartão da conta continuam mostrando a queda.
+document.querySelector("#sync-lost-never")?.addEventListener("click", () => {
+  writeSyncMemory({ ...readSyncMemory(), dontAsk: true });
+  updateSyncSettingsUI();
+  showToast("Tudo bem. Dá para entrar quando quiser em Configurações › Backup e conta.");
 });
 
 syncSignOutButton?.addEventListener("click", async () => {
@@ -3950,9 +4064,11 @@ syncSignOutButton?.addEventListener("click", async () => {
     console.error("Falha ao encerrar compartilhamentos antes de sair.", error);
   }
   try {
+    syncSigningOut = true;
     await firebaseAuth.signOut();
     showToast("Sincronização desligada. Seus dados continuam neste aparelho.");
   } catch (error) {
+    syncSigningOut = false;
     console.error("Falha ao sair da conta.", error);
     showToast("Não foi possível sair agora.");
   }
@@ -3974,9 +4090,11 @@ syncDeleteCloudButton?.addEventListener("click", async () => {
     await shareWriter?.deleteAllSharingData();
     await cloudSync?.deleteCloudData();
     cloudSync = null;
+    syncSigningOut = true;
     await firebaseAuth.signOut();
     showToast("Dados apagados da nuvem.");
   } catch (error) {
+    syncSigningOut = false;
     console.error("Falha ao apagar os dados na nuvem.", error);
     showToast("Não foi possível apagar os dados na nuvem.");
   } finally {
@@ -4038,9 +4156,15 @@ setInterval(() => {
   runShareIntents().catch(() => { /* tenta de novo no próximo ciclo */ });
 }, 60000);
 
-if (firebaseAuth && isSyncConnected()) {
-  firebaseAuth.init().catch((error) => console.error("Falha ao retomar a sincronização.", error));
-}
+resumeSync();
+// Abriu sem internet: a conta volta sozinha quando a conexão voltar ou o app voltar à frente.
+window.addEventListener("online", () => { if (syncAuthState === "failed") resumeSync(); });
+document.addEventListener("visibilitychange", () => {
+  if (document.hidden) return;
+  if (syncAuthState === "failed") resumeSync();
+  // O app pode passar dias aberto em segundo plano: o "Mais tarde" vencido volta a perguntar.
+  else updateSyncSettingsUI();
+});
 
 updateSyncSettingsUI();
 

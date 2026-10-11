@@ -9,9 +9,17 @@ const REDIRECT_FALLBACK_CODES = new Set([
   "auth/web-storage-unsupported",
 ]);
 
+// O navegador guarda a falha de um import() dinâmico: pedir a mesma URL de novo falha na
+// hora, sem rede, até recarregar a página. Testar a conexão com um fetch antes impede
+// que abrir o app sem internet trave a reconexão de quando a rede voltar.
+async function importWhenReachable(url) {
+  await fetch(url, { mode: "no-cors" });
+  return import(url);
+}
+
 export function createFirebaseAuth({
   firebaseConfig, onSignedIn, onSignedOut, onRedirectStart,
-  importModule = (url) => import(url),
+  importModule = importWhenReachable,
 }) {
   let loaded = null;
   let currentUser = null;
@@ -36,6 +44,9 @@ export function createFirebaseAuth({
 
         return { app, auth, authModule };
       })();
+      // Sem internet na abertura o carregamento falha. Guardar a promessa rejeitada
+      // travaria o login (e a retomada) até reabrir o app; zerada, a próxima tentativa refaz.
+      loaded.catch(() => { loaded = null; });
     }
 
     return loaded;
