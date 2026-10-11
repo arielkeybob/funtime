@@ -73,8 +73,35 @@ export function createShareUI({
     nodes.pairingError.hidden = !mensagem;
   }
 
+  // Some junto com o QR: os dois só existem enquanto há um código válido na tela.
   function limparQr() {
     if (nodes.pairingQr) { nodes.pairingQr.hidden = true; nodes.pairingQr.removeAttribute("src"); }
+    if (nodes.pairingCopy) nodes.pairingCopy.hidden = true;
+  }
+
+  // Para mandar o código por mensagem quando não dá para mostrar a tela. Copia com o
+  // traço, como aparece: o campo de quem recebe aceita colar assim e conecta sozinho.
+  async function copiarCodigo() {
+    if (!codigoAtual) return;
+    const texto = formatPairingCode(codigoAtual.code);
+    try {
+      await navigator.clipboard.writeText(texto);
+    } catch (falha) {
+      // Sem a API (ou sem permissão), copia selecionando o próprio código na tela.
+      const selecao = window.getSelection();
+      const trecho = document.createRange();
+      trecho.selectNodeContents(nodes.pairingCodeDisplay);
+      selecao.removeAllRanges();
+      selecao.addRange(trecho);
+      const copiou = document.execCommand?.("copy");
+      selecao.removeAllRanges();
+      if (!copiou) {
+        console.error("Falha ao copiar o código.", falha);
+        showToast("Não foi possível copiar. Mostre o código ou o QR.");
+        return;
+      }
+    }
+    showToast("Código copiado.", null, { type: "success" });
   }
 
   function pararContagem() {
@@ -108,6 +135,7 @@ export function createShareUI({
     try {
       codigoAtual = await shareWriter.createPairingCode();
       nodes.pairingCodeDisplay.textContent = formatPairingCode(codigoAtual.code);
+      if (nodes.pairingCopy) nodes.pairingCopy.hidden = false;
       renderQrDataUrl(buildPairingQrPayload(codigoAtual.code)).then((url) => {
         if (nodes.pairingQr && codigoAtual) { nodes.pairingQr.src = url; nodes.pairingQr.hidden = false; }
       }).catch((falha) => console.error("Falha ao desenhar o QR.", falha));
@@ -849,6 +877,7 @@ export function createShareUI({
     nodes.pairingAliasSave?.addEventListener("click", salvarApelido);
     nodes.pairingAlias?.addEventListener("input", atualizarBotaoApelido);
     nodes.pairingGenerate?.addEventListener("click", gerarCodigo);
+    nodes.pairingCopy?.addEventListener("click", copiarCodigo);
     nodes.pairingScan?.addEventListener("click", lerComCamera);
     nodes.pairingScanCancel?.addEventListener("click", pararLeituraCamera);
     if (nodes.pairingScan) nodes.pairingScan.hidden = !cameraAvailable();

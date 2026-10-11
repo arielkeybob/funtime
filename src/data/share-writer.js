@@ -3,7 +3,9 @@ import { buildPairId, generatePairingCode, otherUidOf, pointerToList, listToPoin
 import { buildSharePayload } from "./share-payload.js";
 import { stableJson } from "./sync-merge.js";
 
-export const PAIRING_CODE_TTL_MS = 5 * 60 * 1000;
+// A regra de `pairingCodes` aceita até 15 min: a folga cobre o relógio do celular
+// adiantado em relação ao do servidor, que compara com o próprio horário.
+export const PAIRING_CODE_TTL_MS = 10 * 60 * 1000;
 const SHARE_PUSH_DEBOUNCE_MS = 800;
 
 // Lado de quem convida e de quem compartilha. Escreve; o lado que só lê é
@@ -75,7 +77,7 @@ export function createShareWriter({
   // Apagar aqui é o que torna o código de uso único na prática: sem Cloud Functions
   // não dá pra invalidar atomicamente no instante do resgate, mas isso fecha a
   // janela assim que este aparelho perceber o pareamento novo (tipicamente
-  // segundos, via onSnapshot) — bem menor que os 5 minutos de validade do código.
+  // segundos, via onSnapshot) — bem menor que os 10 minutos de validade do código.
   async function invalidateUsedCodes(paresAtuais) {
     const { firestore, db } = await load();
     for (const par of paresAtuais) {

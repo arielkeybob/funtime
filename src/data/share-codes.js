@@ -1,6 +1,6 @@
 // Código de pareamento: mostrado por quem convida, digitado por quem entra. Curto de
 // propósito — é lido em voz alta ou de uma tela para outra, muitas vezes num lugar
-// barulhento. A segurança vem da validade de 5 minutos e do aceite dos dois lados,
+// barulhento. A segurança vem da validade de 10 minutos e do aceite dos dois lados,
 // não do comprimento.
 
 export const PAIRING_CODE_LENGTH = 6;

@@ -1,4 +1,12 @@
-# FunTime — V2.23.13
+# FunTime — V2.24.0
+
+## V2.24.0 — copiar o código de amizade, que agora vale 10 minutos
+
+- **Botão Copiar código** em Adicionar amigo, logo abaixo do código gerado: dá para mandar por mensagem quando não dá para mostrar a tela. Copia com o traço (`7AB-S77`); colar no campo de quem recebe já conecta.
+- **O código vale 10 minutos** (eram 5). A regra do Firestore passou a aceitar até 15 min, com folga para o relógio do celular adiantado; ela continua aceitando códigos de 5 min de quem ainda está na versão anterior. Regras publicadas antes do app.
+- **Políticas 1.0.8**: o texto do código de amizade diz 10 minutos e "mostra (ou envia por mensagem)". Sem dado novo nem destino novo; quem já aceitou não precisa aceitar de novo (1.0.7 em `TERMS_VERSIONS_STILL_VALID`, a pedido do usuário).
+- Tutorial "Amigos e compartilhar doses" atualizado (legenda e vídeo do passo de adicionar amigo).
+- Sem mudança de dados; `DATA_VERSION` permanece 11.
 
 ## V2.23.13 — conta desconectada avisa em vez de sumir
 

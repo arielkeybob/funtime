@@ -109,7 +109,7 @@ function definirAuxiliaresDePagina() {
     let fichas = [...fichasIniciais];
     const escritor = {
       start: async () => {}, stop() {},
-      createPairingCode: async () => ({ code: 'K7M4XP', expiresAtMs: Date.now() + 5 * MIN }),
+      createPairingCode: async () => ({ code: 'K7M4XP', expiresAtMs: Date.now() + 10 * MIN }),
       cancelPairingCode: async () => {}, redeemPairingCode: async () => ({ ok: true }), acceptPairing: async () => {},
       setAlias: async () => {}, removePairing: async () => {}, getGlobalAlias: async () => 'Eu', setGlobalAlias: async (apelido) => apelido || 'Eu',
       startShare: async ({ occasion, viewerUid }) => {

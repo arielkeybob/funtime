@@ -107,6 +107,16 @@ test('só dá para criar código em nome próprio, e com prazo curto', async () 
   await assertFails(setDoc(doc(como(ANA), 'pairingCodes', 'XX2222'), { ...base, ownerUid: ANA, expiresAt: daquiA(24 * 60 * MINUTO) }));
 });
 
+// O app pede 10 min; a regra aceita até 15 para o relógio do aparelho adiantado não
+// barrar a geração, e recusa além disso.
+test('código de 10 min é aceito, mesmo com o relógio do aparelho um pouco adiantado', async () => {
+  const base = { createdAt: Timestamp.now(), ownerUid: ANA };
+
+  await assertSucceeds(setDoc(doc(como(ANA), 'pairingCodes', 'DEZ100'), { ...base, expiresAt: daquiA(10 * MINUTO) }));
+  await assertSucceeds(setDoc(doc(como(ANA), 'pairingCodes', 'DEZ200'), { ...base, expiresAt: daquiA(12 * MINUTO) }));
+  await assertFails(setDoc(doc(como(ANA), 'pairingCodes', 'XX3333'), { ...base, expiresAt: daquiA(20 * MINUTO) }));
+});
+
 // --- Pareamento --------------------------------------------------------------
 
 test('criar pareamento exige posse de um código válido do outro', async () => {

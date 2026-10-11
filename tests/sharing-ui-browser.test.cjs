@@ -113,6 +113,38 @@ test('o diálogo de pareamento abre e fecha pelos próprios controles', { timeou
   });
 });
 
+// Para mandar por mensagem quando não dá para mostrar a tela. Copia com o traço (como
+// aparece), e o campo de quem recebe aceita colar assim. O prazo é de 10 minutos.
+test('o código gerado pode ser copiado e vale por 10 minutos', { timeout: 30000 }, async () => {
+  await withPage(async (page, erros) => {
+    await page.context().grantPermissions(['clipboard-read', 'clipboard-write'], { origin: new URL(page.url()).origin });
+    // Escritor falso pela ponte da prévia (a mesma dos tutoriais): sem Firebase nem login.
+    await page.evaluate(() => __funtimeCaptura.instalar({
+      uid: 'eu', usuario: { uid: 'eu', email: 'eu@exemplo.com' }, eventos: null,
+      escritor: {
+        createPairingCode: async () => ({ code: 'AB7K29', expiresAtMs: Date.now() + 10 * 60 * 1000 }),
+        cancelPairingCode: async () => {}, getGlobalAlias: async () => '', setGlobalAlias: async (apelido) => apelido,
+      },
+    }));
+    await page.locator('#home-friends-button').click();
+    await page.locator('#friends-add').click();
+    assert.equal(await page.locator('#pairing-copy').isVisible(), false, 'sem código, não há o que copiar');
+
+    await page.locator('#pairing-generate').click();
+    await page.locator('#pairing-copy').waitFor({ state: 'visible' });
+    assert.match(await page.locator('#pairing-code-countdown').textContent(), /^Vale por mais (10:00|9:5\d)$/);
+
+    await page.locator('#pairing-copy').click();
+    await page.waitForFunction(() => document.querySelector('#toast-message')?.textContent === 'Código copiado.');
+    assert.equal(await page.evaluate(() => navigator.clipboard.readText()), 'AB7-K29');
+
+    await page.locator('#pairing-done').click();
+    await page.locator('#friends-add').click();
+    assert.equal(await page.locator('#pairing-copy').isVisible(), false, 'reabrir começa sem código');
+    assert.deepEqual(erros, []);
+  });
+});
+
 // Prova as duas bibliotecas embutidas e o payload ponta a ponta: o QR gerado pelo app
 // tem que ser lido de volta pelo leitor do app, com o mesmo código.
 test('o QR gerado é lido de volta pelo leitor embutido', { timeout: 30000 }, async () => {

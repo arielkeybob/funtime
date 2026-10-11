@@ -98,6 +98,8 @@ test('gerar código grava só uid e validade, com prazo curto', async () => {
 
   assert.equal(code, 'AB7K29');
   assert.equal(expiresAtMs, 1_000_000 + PAIRING_CODE_TTL_MS);
+  // 10 min, abaixo do teto de 15 da regra (firestore.rules): a folga é do relógio do aparelho.
+  assert.equal(PAIRING_CODE_TTL_MS, 10 * 60 * 1000);
 
   const gravacao = firestore.escritas.find((item) => item.path === 'pairingCodes/AB7K29');
   assert.deepEqual(Object.keys(gravacao.data).sort(), ['createdAt', 'expiresAt', 'ownerUid']);

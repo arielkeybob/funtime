@@ -628,3 +628,9 @@ Mudanças: o ponteiro é escrito como a lista completa dos shares ativos com aqu
 **Tamanho da dose:** `minimalDose` fazia `finite(record.doseSize)`, mas `doseSize` é `"half"`/`"full"` (texto), então sempre virava `null` e o tamanho nunca saía. Passou a aceitar só esses dois valores (na escrita e na leitura, que compartilham `minimalDose`). É um campo a mais na lista do que atravessa; não identifica nada além do que o histórico já mostra.
 
 **Tela:** título com situação em parênteses (verde "Em andamento" / cinza "Encerrado às hh:mm"); "Começou…" e o resumo por bebida somem na interface limpa; os encerrados dentro das 24h aparecem direto na linha do tempo, sem dropdown e sem escrever o prazo (quem **envia** continua vendo "ainda visível até…", porque precisa saber por quanto tempo o dado segue exposto); o chip "há X" é neutro, pois o verde do Histórico significa "intervalo já passou".
+
+## Nota pós-implementação (v2.24.0) — código de 10 minutos e copiável
+
+A pedido do usuário, o código de pareamento passou a valer 10 minutos (`PAIRING_CODE_TTL_MS`, eram 5) e ganhou o botão **Copiar código**, para mandar por mensagem quando não dá para mostrar a tela. O texto do diálogo deixou de dizer "Vocês precisam estar juntos". O modelo de consentimento não muda: gerar e passar o código continua sendo o consentimento de quem gera.
+
+`expiresAt` é calculado no aparelho, e a regra compara com o horário do servidor. Por isso o teto da regra subiu de `< 10 min` para `< 15 min`: com o teto igual ao prazo, um relógio de celular adiantado em um segundo já barraria a geração. A regra nova aceita os códigos de 5 min da versão anterior, então foi publicada antes do app. Políticas 1.0.8, sem novo aceite (decisão do usuário).

@@ -35,8 +35,8 @@ module.exports = {
     {
       tipo: 'video',
       seed: 'demoAmigos',
-      legenda: 'Toque em + e mostre o código à outra pessoa, ou digite o dela.',
-      alt: 'Na tela Amigos, o botão + é tocado e abre Adicionar amigo; o botão Gerar código é tocado e aparecem o código com QR e o tempo de validade.',
+      legenda: 'Toque em + e mostre ou copie o código para a outra pessoa, ou digite o dela.',
+      alt: 'Na tela Amigos, o botão + é tocado e abre Adicionar amigo; o botão Gerar código é tocado e aparecem o código com QR, o botão Copiar código e o tempo de validade.',
       async preparar(t) { await t.tocar('#home-friends-button'); await t.esperar(400); },
       async gravar(t) {
         await t.esperar(1400);

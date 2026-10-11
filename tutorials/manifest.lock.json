@@ -1,5 +1,5 @@
 {
-  "versaoApp": "2.23.13",
+  "versaoApp": "2.24.0",
   "topicos": {
     "introducao": {
       "cobre": {
@@ -122,18 +122,18 @@
         "#sync-sign-in": "14af3de8ebab",
         "#home-friends-button": "1a5718480582",
         "#shared-view": "dcd6e4c78d98",
-        "#pairing-dialog": "e438cf8e371d",
+        "#pairing-dialog": "286f7f575d7f",
         "#shared-detail-dialog": "c44e36a0ed86"
       },
       "midia": {
-        "01.ce510372.webp": "ce510372dff21d045961c5bd1c82fa13554a23a5",
-        "02.2b042a6c.mp4": "2b042a6c3fb8d53b4f78f25248e75b77eb2ddea8",
-        "02.poster.b9d878ab.webp": "b9d878abda58d4b30851c6c4c8ef22aa88152b03",
-        "03.d8bb1736.mp4": "d8bb1736ee27cf3b2df01a53fb6db743b34a2da1",
-        "03.poster.43e9b8d9.webp": "43e9b8d91f2231097ffb3010bcd3ea4a7171efcf",
+        "01.12dc1052.webp": "12dc10520d53d82cd14a5aa15451a6a20e12003f",
+        "02.8f2876b7.mp4": "8f2876b7c4fbf5da7119bf8b5a9d597cf0a53026",
+        "02.poster.85561a60.webp": "85561a601f647ac12758b390bbb751277ce36e68",
+        "03.0a0f09ac.mp4": "0a0f09ac67f586f659743b54ab6e7d0a2f6d1ff2",
+        "03.poster.95a9db4a.webp": "95a9db4acf4f0ae569f906bf6fb46f6c81e74e2f",
         "05.849921ef.webp": "849921efe9f4ca7d335fc0c58bfa4d9b4b1e365b",
-        "07.31c66551.mp4": "31c665518fa471c17ee68920f242d22bea9501f1",
-        "07.poster.12f13ba6.webp": "12f13ba662e301887f4977ba6b3d28d732580137",
+        "07.032cdfa0.mp4": "032cdfa0d550ece4aa2d883e88bfbb8e527443d3",
+        "07.poster.9b06f1e8.webp": "9b06f1e8fc807945ace92121f5e295c8902c0325",
         "08.4f09ee13.webp": "4f09ee134f8ce03e03d945b5f68f0ad26a2b12be"
       }
     },
@@ -164,12 +164,12 @@
       },
       "midia": {
         "02.2d90f7ae.webp": "2d90f7aed182d7b2a16d02d52806fa5c0ebf1cec",
-        "03.0563deaf.mp4": "0563deaf17b4c62dcde459095f78d53fee6909cd",
-        "03.poster.e06a4d42.webp": "e06a4d42ae4ded39a33232b03fbd1337fe08ffb5",
-        "04.16f7fc99.mp4": "16f7fc999d1a214715e2c8a402f4d27f45c48e6d",
-        "04.poster.a1d7ee53.webp": "a1d7ee53cf0a391978b7e199cf4e733b3cbd65ef",
-        "05.d1412f8d.mp4": "d1412f8df7e0c532b0d1759124474567b105632e",
-        "05.poster.11c8b73f.webp": "11c8b73fcec8e7e4ab73da768ac87ec4f607cb8e",
+        "03.5f17e21b.mp4": "5f17e21bd3b27eb41ec9d42d128aa89759561322",
+        "03.poster.8342c6d5.webp": "8342c6d5831d1f718a2e5a9af72579f110669a1e",
+        "04.1397dd3b.mp4": "1397dd3bf0a5b04cb8d9116de10c65117fb1e2af",
+        "04.poster.d3924217.webp": "d3924217b39803f257faf53b9420f46687abf4d5",
+        "05.5dc7f3fa.mp4": "5dc7f3fa14ca7e435d8baaeb98d606cf444c7585",
+        "05.poster.ef2390d9.webp": "ef2390d949b0741e0fb226054fce8a15f9600f90",
         "06.d4d38cba.webp": "d4d38cbafb5a560668d0eab8d3e3df7c048000ea"
       }
     }

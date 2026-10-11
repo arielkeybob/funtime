@@ -59,7 +59,7 @@
     <footer class="browser-gate-footer">
       <span>App para estudo · não é controle de segurança</span>
       <a class="policies-link" href="./policies.html">Políticas e informações</a>
-      <span>v2.23.13 · By: arielkeybob</span>
+      <span>v2.24.0 · By: arielkeybob</span>
     </footer>
   </section>
 
@@ -369,7 +369,7 @@
           </div>
         </div>
 
-        <p class="settings-description">Versão instalada: <strong>v2.23.13</strong></p>
+        <p class="settings-description">Versão instalada: <strong>v2.24.0</strong></p>
         <button id="check-app-update" class="settings-secondary-button" type="button">Verificar atualizações</button>
       </section>
 
@@ -494,7 +494,7 @@
     <footer class="app-footer">
       <span class="app-footer-disclaimer">App para estudo · não é controle de segurança</span>
       <a class="policies-link" href="./policies.html">Políticas e informações</a>
-      <span class="app-footer-meta">v2.23.13 · By: arielkeybob</span>
+      <span class="app-footer-meta">v2.24.0 · By: arielkeybob</span>
     </footer>
   </div>
 
@@ -508,7 +508,7 @@
         <button id="close-pairing" class="icon-button secondary" type="button" aria-label="Fechar">×</button>
       </div>
 
-      <p class="settings-description clean-optional">Uma pessoa mostra o código, a outra digita — a conexão já se completa na hora, sem mais nada a confirmar. Vocês precisam estar juntos: o código vale por 5 minutos e não há busca por nome ou e-mail.</p>
+      <p class="settings-description clean-optional">Uma pessoa mostra ou envia o código, a outra digita — a conexão já se completa na hora, sem mais nada a confirmar. O código vale por 10 minutos e não há busca por nome ou e-mail: envie só para quem você quer adicionar.</p>
 
       <label class="settings-field field" for="pairing-alias">
         <span>Seu apelido (o mesmo para todo mundo que você conectar)</span>
@@ -523,6 +523,10 @@
           <strong>Mostrar meu código</strong>
           <img id="pairing-qr" class="pairing-qr" alt="QR Code do seu código de amizade" hidden>
           <p id="pairing-code-display" class="pairing-code">— — —</p>
+          <button id="pairing-copy" class="pairing-copy-button" type="button" hidden>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V6a2 2 0 0 1 2-2h9"/></svg>
+            <span>Copiar código</span>
+          </button>
           <p id="pairing-code-countdown" class="settings-description"></p>
           <button id="pairing-generate" class="settings-secondary-button" type="button">Gerar código</button>
           <p class="settings-description clean-optional">Um código por pessoa. Depois que alguém usar o código, gere outro para convidar a próxima.</p>
