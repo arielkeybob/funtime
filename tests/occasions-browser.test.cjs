@@ -41,7 +41,7 @@ test('agenda compacta, evento, edição, agendamento automático, aviso e persis
   assert.equal(await page.locator('#history-occasion-filter').isVisible(),false);
   assert.equal(await page.locator('.history-event').count(),1);
   assert.equal(await page.locator('.history-event-detail').count(),0);
-  assert.match(await page.locator('.history-event-mobile-time').textContent(),/^em \d{2}\/\d{2}\/\d{2}$/);
+  assert.match(await page.locator('.history-event-mobile-time').textContent(),/^em \d{2}\/\d{2}\/\d{2} às \d{2}:\d{2}h$/);
   await page.locator('.history-event').click();
   assert.equal(await page.locator('#record-occasion').isVisible(),false);
   await page.keyboard.press('Escape');

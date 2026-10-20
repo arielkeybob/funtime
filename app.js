@@ -315,7 +315,7 @@ document.addEventListener("visibilitychange", () => {
 const DATA_STORAGE_KEY = "funtime-v1-data";
 const LEGACY_DRINKS_STORAGE_KEY = "balada-v1-drinks";
 const DATA_VERSION = 11;
-const APP_VERSION = "2.24.0";
+const APP_VERSION = "2.24.1";
 const DRINK_EXPORT_TYPE = "funtime-drinks";
 const DRINK_EXPORT_FORMAT_VERSION = 1;
 const BACKUP_EXPORT_TYPE = "funtime-backup";
@@ -2068,9 +2068,23 @@ function changeCountingMode(mode) {
   }
 }
 
+// Até 24h basta a hora ("às 14:09h"); depois disso a data vem em cima e a hora
+// embaixo ("em 18/10/26" / "às 21:30h"), para caber na coluna estreita do histórico.
 function setHistoryClockLabel(element, timestamp, now = Date.now()) {
   element.dataset.historyTimestamp = String(timestamp);
-  setPreviousStatus(element, timestamp, "", now, now - timestamp < 86400000 ? "às" : "em");
+  const dated = now - timestamp >= 86400000;
+  element.classList.toggle("is-dated", dated);
+  if (!dated) {
+    setClockStatus(element, "às", timestamp);
+    return;
+  }
+  const date = document.createElement("span");
+  date.className = "history-clock-date";
+  date.textContent = "em " + new Date(timestamp).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "2-digit" });
+  const hour = document.createElement("span");
+  hour.className = "history-clock-hour";
+  setClockStatus(hour, "às", timestamp);
+  element.replaceChildren(date, " ", hour);
 }
 
 function updateHistoryElapsedLabels() {
@@ -2706,7 +2720,10 @@ function renderHistory() {
     button.type = "button";
     button.className = "history-event";
     if (context?.isViolation) button.classList.add("violation");
-    button.setAttribute("aria-label", `Editar anotação de ${drink.name}, tomada às ${formatClock(event.consumedAt)}h, ${formatHistoryElapsed(event.consumedAt)}${reaction ? `, reação: ${reaction.label}` : ""}`);
+    const takenOn = Date.now() - event.consumedAt >= 86400000
+      ? `em ${new Date(event.consumedAt).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "2-digit" })} `
+      : "";
+    button.setAttribute("aria-label", `Editar anotação de ${drink.name}, tomada ${takenOn}às ${formatClock(event.consumedAt)}h, ${formatHistoryElapsed(event.consumedAt)}${reaction ? `, reação: ${reaction.label}` : ""}`);
 
     const marker = document.createElement("span");
     marker.className = "history-marker";

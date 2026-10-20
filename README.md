@@ -1,4 +1,10 @@
-# FunTime — V2.24.0
+# FunTime — V2.24.1
+
+## V2.24.1 — histórico mostra data e hora nos registros antigos
+
+- **Data e hora no histórico**: registros com mais de 24h deixavam só a data ("em 18/10/26"); agora mostram também a hora, em duas linhas ("em 18/10/26" / "às 15:59h"). Os de menos de 24h continuam com só "às 14:09h". O rótulo para leitor de tela também ganhou a data.
+- **Corrigido no desktop**: o horário do histórico caía na coluna estreita do marcador e ficava escondido atrás do card; agora aparece à esquerda da linha do tempo.
+- Sem mudança de dados; `DATA_VERSION` permanece 11.
 
 ## V2.24.0 — copiar o código de amizade, que agora vale 10 minutos
 

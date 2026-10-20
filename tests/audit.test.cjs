@@ -336,19 +336,30 @@ test('Anterior mostra horário antes de 24h e data local curta a partir de 24h',
   assert.equal(element.textContent, 'Anterior: 06/09/26');
 });
 
-test('histórico troca horário por data no limite de 24h durante a atualização', () => {
+test('histórico passa a mostrar data e hora no limite de 24h durante a atualização', () => {
   const timestamp = new Date(2026, 8, 6, 23, 30).getTime();
-  const element = { dataset: {} };
+  const fakeNode = () => {
+    const node = { dataset: {}, textContent: '', classes: new Set() };
+    node.classList = { toggle: (name, on) => { if (on) node.classes.add(name); else node.classes.delete(name); } };
+    node.replaceChildren = (...kids) => { node.textContent = kids.map(kid => typeof kid === 'string' ? kid : kid.textContent).join(''); };
+    return node;
+  };
+  const element = fakeNode();
   const c = context({
     setClockStatus: (el, prefix) => { el.textContent = prefix + ' horário'; },
-    document: { querySelectorAll: selector => selector === '[data-history-timestamp]' ? [element] : [] },
+    document: {
+      createElement: () => fakeNode(),
+      querySelectorAll: selector => selector === '[data-history-timestamp]' ? [element] : [],
+    },
   });
-  for (const name of ['setPreviousStatus', 'setHistoryClockLabel', 'updateHistoryElapsedLabels']) vm.runInContext(extract(name), c);
+  for (const name of ['setHistoryClockLabel', 'updateHistoryElapsedLabels']) vm.runInContext(extract(name), c);
   c.setHistoryClockLabel(element, timestamp, timestamp + 86400000 - 1);
   assert.equal(element.textContent, 'às horário');
+  assert.equal(element.classes.has('is-dated'), false);
   vm.runInContext(`Date.now = () => ${timestamp + 86400000}`, c);
   c.updateHistoryElapsedLabels();
-  assert.equal(element.textContent, 'em 06/09/26');
+  assert.equal(element.textContent, 'em 06/09/26 às horário');
+  assert.equal(element.classes.has('is-dated'), true);
 });
 
 function shapeContext() {
