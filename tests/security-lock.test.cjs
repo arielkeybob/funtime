@@ -13,10 +13,28 @@ function el(overrides = {}) {
     classList: { add() {}, remove() {}, contains: () => false }, focus() {}, close() {}, ...overrides };
 }
 
-function fakeDocument(dialogs = []) {
+// hidden/hasFocus/listeners: o pedido automático da biometria só sai com a página à
+// vista e com foco, e observa se ela se esconde enquanto o pedido está aberto.
+function fakeDocument(dialogs = [], { hidden = false, focused = true } = {}) {
+  const listeners = new Set();
   return {
+    hidden,
+    focused,
+    hasFocus() { return this.focused; },
+    addEventListener: (type, fn) => { if (type === 'visibilitychange') listeners.add(fn); },
+    removeEventListener: (type, fn) => { if (type === 'visibilitychange') listeners.delete(fn); },
+    setHidden(value) { this.hidden = value; listeners.forEach((fn) => fn()); },
     body: { classList: { added: [], removed: [], add(c) { this.added.push(c); }, remove(c) { this.removed.push(c); } } },
     querySelectorAll: (selector) => selector === 'dialog[open]' ? dialogs : [],
+  };
+}
+
+function fakeWindow() {
+  const focusListeners = [];
+  return {
+    focusListeners,
+    addEventListener: (type, fn) => { if (type === 'focus') focusListeners.push(fn); },
+    focus() { focusListeners.splice(0).forEach((fn) => fn()); },
   };
 }
 
@@ -29,8 +47,9 @@ function baseState(overrides = {}) {
   };
 }
 
-function securityLockInstance({ state, dialogs, ...overrides }) {
-  global.document = fakeDocument(dialogs);
+function securityLockInstance({ state, dialogs, documentState, ...overrides }) {
+  global.document = fakeDocument(dialogs, documentState);
+  global.window = fakeWindow();
   global.setTimeout = () => 0;
   global.clearTimeout = () => {};
   return createSecurityLock({
@@ -231,4 +250,162 @@ test('handleDeviceUnlock: falha genérica mostra a mensagem do erro', async () =
   });
   await lock.handleDeviceUnlock();
   assert.equal(lockError.textContent, 'Credencial inválida.');
+});
+
+// --- pedido automático da biometria (promptDevice) ---
+
+const deviceState = (overrides = {}) => baseState({ securityConfig: { enabled: true, method: 'device' }, ...overrides });
+const settle = () => new Promise((resolve) => setImmediate(resolve));
+function cancelled() { const e = new Error('x'); e.name = 'NotAllowedError'; return e; }
+
+test('lockApp com promptDevice: já pede a biometria e desbloqueia sem tocar em Entrar', async () => {
+  const state = deviceState();
+  let asked = 0;
+  const lock = securityLockInstance({ state, verifyDeviceCredential: async () => { asked++; return true; } });
+  lock.lockApp({ promptDevice: true });
+  await settle();
+  assert.equal(asked, 1);
+  assert.equal(state.securityLocked, false);
+});
+
+test('lockApp sem promptDevice (Bloquear agora, inatividade) não pede a biometria', async () => {
+  let asked = 0;
+  const lock = securityLockInstance({ state: deviceState(), verifyDeviceCredential: async () => { asked++; return true; } });
+  lock.lockApp();
+  await settle();
+  assert.equal(asked, 0);
+});
+
+test('promptDevice com método PIN não pede biometria', async () => {
+  let asked = 0;
+  const lock = securityLockInstance({ state: baseState(), verifyDeviceCredential: async () => { asked++; return true; } });
+  lock.lockApp({ promptDevice: true });
+  await settle();
+  assert.equal(asked, 0);
+});
+
+test('promptDevice com a página escondida não pede (fica para a volta)', async () => {
+  let asked = 0;
+  const lock = securityLockInstance({
+    state: deviceState(), documentState: { hidden: true },
+    verifyDeviceCredential: async () => { asked++; return true; },
+  });
+  lock.lockApp({ promptDevice: true });
+  await settle();
+  assert.equal(asked, 0);
+});
+
+test('promptDevice sem foco espera o foco da janela para pedir', async () => {
+  const state = deviceState();
+  let asked = 0;
+  const lock = securityLockInstance({
+    state, documentState: { focused: false },
+    verifyDeviceCredential: async () => { asked++; return true; },
+  });
+  lock.lockApp({ promptDevice: true });
+  lock.showLockScreen({ promptDevice: true });
+  await settle();
+  assert.equal(asked, 0);
+  assert.equal(global.window.focusListeners.length, 1, 'um só listener, mesmo pedindo duas vezes');
+  global.document.focused = true;
+  global.window.focus();
+  await settle();
+  assert.equal(asked, 1);
+  assert.equal(state.securityLocked, false);
+});
+
+test('pedido automático cancelado não mostra erro e deixa o Entrar', async () => {
+  const state = deviceState();
+  const lockError = el(); const deviceUnlockButton = el();
+  const lock = securityLockInstance({
+    state, lockError, deviceUnlockButton,
+    verifyDeviceCredential: async () => { throw cancelled(); },
+  });
+  lock.lockApp({ promptDevice: true });
+  await settle();
+  assert.equal(state.securityLocked, true);
+  assert.equal(lockError.hidden, true);
+  assert.equal(deviceUnlockButton.disabled, false);
+  assert.equal(deviceUnlockButton.textContent, 'Entrar');
+});
+
+test('pedido automático com falha que não é cancelamento mostra o erro', async () => {
+  const lockError = el();
+  const lock = securityLockInstance({
+    state: deviceState(), lockError,
+    verifyDeviceCredential: async () => false,
+  });
+  lock.lockApp({ promptDevice: true });
+  await settle();
+  assert.equal(lockError.hidden, false);
+  assert.match(lockError.textContent, /Não foi possível confirmar/);
+});
+
+test('não pede de novo enquanto um pedido está aberto', async () => {
+  const state = deviceState();
+  let asked = 0; let finish;
+  const lock = securityLockInstance({
+    state, verifyDeviceCredential: () => { asked++; return new Promise((resolve) => { finish = resolve; }); },
+  });
+  lock.lockApp({ promptDevice: true });
+  lock.showLockScreen({ promptDevice: true });
+  await lock.handleDeviceUnlock();
+  assert.equal(asked, 1);
+  finish(true);
+  await settle();
+  assert.equal(state.securityLocked, false);
+});
+
+test('se o pedido esconde a página e é cancelado, a volta não pede de novo (sem laço); a seguinte pede', async () => {
+  const state = deviceState({ securityLocked: true });
+  let asked = 0;
+  const lock = securityLockInstance({ state, verifyDeviceCredential: async () => { asked++; throw cancelled(); } });
+  // Pedido da abertura: a folha do sistema esconde a página e o cancelamento chega antes da volta.
+  const pending = lock.handleDeviceUnlock({ automatic: true });
+  global.document.setHidden(true);
+  await pending;
+  global.document.setHidden(false);
+  lock.showLockScreen({ promptDevice: true });
+  await settle();
+  assert.equal(asked, 1, 'a volta causada pelo próprio pedido não dispara outro');
+  // Sair do app de verdade e voltar pede de novo.
+  global.document.setHidden(true);
+  global.document.setHidden(false);
+  lock.showLockScreen({ promptDevice: true });
+  await settle();
+  assert.equal(asked, 2);
+});
+
+test('se a volta chega antes do cancelamento, também não pede de novo', async () => {
+  const state = deviceState();
+  let asked = 0; let reject;
+  const lock = securityLockInstance({
+    state, verifyDeviceCredential: () => { asked++; return new Promise((_, r) => { reject = r; }); },
+  });
+  lock.lockApp({ promptDevice: true });
+  global.document.setHidden(true);
+  global.document.setHidden(false);
+  lock.showLockScreen({ promptDevice: true });
+  reject(cancelled());
+  await settle();
+  assert.equal(asked, 1);
+  // A volta seguinte (saída real do app) pede normalmente.
+  lock.showLockScreen({ promptDevice: true });
+  await settle();
+  assert.equal(asked, 2);
+});
+
+test('desbloquear com a página escondida não atrapalha o pedido do próximo bloqueio', async () => {
+  const state = deviceState();
+  let asked = 0;
+  const lock = securityLockInstance({ state, verifyDeviceCredential: async () => { asked++; return true; } });
+  state.securityLocked = true;
+  const pending = lock.handleDeviceUnlock({ automatic: true });
+  global.document.setHidden(true);
+  await pending;
+  global.document.setHidden(false);
+  assert.equal(state.securityLocked, false);
+  lock.lockApp({ promptDevice: true });
+  await settle();
+  assert.equal(asked, 2);
 });

@@ -315,7 +315,7 @@ document.addEventListener("visibilitychange", () => {
 const DATA_STORAGE_KEY = "funtime-v1-data";
 const LEGACY_DRINKS_STORAGE_KEY = "balada-v1-drinks";
 const DATA_VERSION = 11;
-const APP_VERSION = "2.24.1";
+const APP_VERSION = "2.24.2";
 const DRINK_EXPORT_TYPE = "funtime-drinks";
 const DRINK_EXPORT_FORMAT_VERSION = 1;
 const BACKUP_EXPORT_TYPE = "funtime-backup";
@@ -1283,7 +1283,7 @@ async function initializeSecurity() {
       hidePrivacyShield();
       markSecurityActive();
     } else {
-      lockApp();
+      lockApp({ promptDevice: true });
     }
   } else {
     clearSecuritySession();
@@ -3279,7 +3279,7 @@ pinSetupValue.addEventListener("input", () => normalizePinInput(pinSetupValue));
 pinSetupConfirm.addEventListener("input", () => normalizePinInput(pinSetupConfirm));
 pinUnlockForm.addEventListener("submit", handlePinUnlock);
 pinUnlockValue.addEventListener("input", () => normalizePinInput(pinUnlockValue, getConfiguredPinLength()));
-deviceUnlockButton.addEventListener("click", handleDeviceUnlock);
+deviceUnlockButton.addEventListener("click", () => handleDeviceUnlock());
 
 wireDialogDismissal(drinkDialog, closeDrinkDialog);
 wireDialogDismissal(deleteDrinkDialog, () => closeDeleteDrinkDialog(), { cancel: true });
@@ -3315,9 +3315,10 @@ document.addEventListener("visibilitychange", () => {
 
   if (state.securityConfig.enabled && state.securityLocked) {
     // Ao voltar para um app que já estava bloqueado, restaura explicitamente a
-    // lock screen. Isso evita o privacy shield permanecer por cima do botão Entrar.
+    // lock screen (e já pede a biometria). Isso evita o privacy shield permanecer
+    // por cima do botão Entrar.
     hidePrivacyShield();
-    showLockScreen();
+    showLockScreen({ promptDevice: true });
     checkForAppUpdate();
     return;
   }
@@ -3328,7 +3329,7 @@ document.addEventListener("visibilitychange", () => {
   if (state.securityConfig.enabled && state.securityHiddenAt) {
     const elapsedSeconds = (Date.now() - state.securityHiddenAt) / 1000;
     if (!eventUnlockActive && elapsedSeconds >= state.securityConfig.relockSeconds) {
-      lockApp();
+      lockApp({ promptDevice: true });
     } else {
       state.securityHiddenAt = null;
       hidePrivacyShield();

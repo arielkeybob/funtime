@@ -1,4 +1,12 @@
-# FunTime — V2.24.1
+# FunTime — V2.24.2
+
+## V2.24.2 — abrir o app já pede a biometria
+
+- **Biometria sem tocar em Entrar**: com o bloqueio pela biometria do aparelho, abrir o app (ou voltar a ele depois do tempo de bloqueio) já mostra o pedido do sistema. O **Entrar** continua na tela para quando o pedido é cancelado.
+- **Bloquear agora** e o bloqueio por inatividade não pedem sozinhos: o app está à vista e a pessoa não está tentando entrar (ex.: bloqueou para emprestar o celular).
+- Cancelar o pedido automático (ou o navegador exigir um toque antes) não mostra erro: a tela fica como antes, com o Entrar. A volta ao app causada pelo próprio pedido não pede de novo, para cancelar não virar um laço. Com o app escondido ou sem foco o pedido espera, porque o navegador o recusaria.
+- Bloqueio por PIN inalterado (o campo já recebia o foco sozinho).
+- Sem mudança de dados; `DATA_VERSION` permanece 11.
 
 ## V2.24.1 — histórico mostra data e hora nos registros antigos
 
