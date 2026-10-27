@@ -15,7 +15,7 @@ test('agenda compacta, evento, edição, agendamento automático, aviso e persis
   await page.locator('label[for=events-enabled]').click();
   assert.equal(await page.locator('#nav-occasion').isVisible(),true);
   await page.locator('#nav-occasion').click();
-  assert.deepEqual(await page.locator('.agenda-tabs button').allTextContents(), ['Anteriores', 'Próximos']);
+  assert.deepEqual(await page.locator('.agenda-tabs button').allTextContents(), ['Passados', 'Próximos']);
   await page.locator('#occasion-new').click();
   assert.equal(await page.locator('#occasion-start').evaluate(el=>el.parentElement.hidden),true);
   await page.locator('#occasion-mode').selectOption('scheduled');
@@ -92,7 +92,7 @@ test('agenda compacta, evento, edição, agendamento automático, aviso e persis
   await page.emulateMedia({reducedMotion:'no-preference'});
   await page.locator('#home-occasion').click();
   assert.equal(await page.locator('#occasion-detail-dialog').isVisible(),true);
-  assert.equal(await page.locator('#occasion-detail-content h2').textContent(),'Aniversário do João');
+  assert.equal(await page.locator('#occasion-detail-name').textContent(),'Aniversário do João');
   await page.screenshot({path:require('node:path').join(require('node:os').tmpdir(),'funtime-event-unlock.png')});
   assert.equal(await page.getByRole('checkbox',{name:/Manter app desbloqueado/}).isVisible(),true);
   assert.equal(await page.getByRole('checkbox',{name:/Manter app desbloqueado/}).isChecked(),true);
@@ -111,16 +111,16 @@ test('agenda compacta, evento, edição, agendamento automático, aviso e persis
   await page.locator('#nav-occasion').click(); await page.locator('#occasion-current .agenda-row').click();
   await page.getByRole('button',{name:'Ver registros',exact:true}).click(); assert.equal(await page.locator('.history-event').count(),1);
   await page.locator('#nav-occasion').click(); await page.locator('#occasion-current .agenda-row').click();
-  await page.getByRole('button',{name:'Encerrar evento',exact:true}).click(); await page.locator('#app-confirm-accept').click(); await page.waitForFunction(()=>state.currentView==='home');
+  await page.getByRole('button',{name:'O evento acabou',exact:true}).click(); await page.locator('#app-confirm-accept').click(); await page.waitForFunction(()=>state.currentView==='home');
   assert.equal(await page.evaluate(()=>state.securityConfig.eventUnlockOccasionId),null);
   assert.ok((await page.locator('[data-drink-id=d]').getAttribute('class')).includes('waiting'));
   await page.locator('#nav-occasion').click(); await page.locator('#agenda-past').click(); await page.locator('#occasion-list .agenda-row').click();
   assert.equal(await page.getByText('Mais opções',{exact:true}).count(),0);
-  assert.equal(await page.getByRole('button',{name:'Editar',exact:true}).isVisible(),true);
+  assert.equal(await page.getByRole('button',{name:'Editar evento',exact:true}).isVisible(),true);
   assert.equal(await page.getByRole('button',{name:'Reabrir',exact:true}).isVisible(),true);
   assert.equal(await page.getByRole('button',{name:'Excluir evento',exact:true}).isVisible(),true);
   await page.screenshot({path:require('node:path').join(require('node:os').tmpdir(),'funtime-event-actions.png')});
-  await page.getByRole('button',{name:'Editar',exact:true}).click();
+  await page.getByRole('button',{name:'Editar evento',exact:true}).click();
   await page.locator('#occasion-name').fill('João editado'); await page.locator('#occasion-submit').click();
   assert.equal(await page.evaluate(()=>state.occasions[0].name),'João editado');
   await page.locator('#occasion-new').click(); await page.locator('#occasion-mode').selectOption('scheduled'); await page.locator('#occasion-name').fill('Churrasco');

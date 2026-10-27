@@ -1,4 +1,4 @@
-import { formatTime, formatClock, formatHistoryElapsed, formatInterval, formatAgendaDateTime } from "./src/format/datetime.js";
+import { formatTime, formatClock, formatHistoryElapsed, formatInterval, formatAgendaDateTime, agendaDateParts, calendarDaysBetween, formatEventDuration } from "./src/format/datetime.js";
 import { resolveCountingMode } from "./src/format/counting-mode.js";
 import { derEcdsaSignatureToRaw } from "./src/security/webauthn-signature.js";
 import { derivePinHash, PIN_PBKDF2_ITERATIONS } from "./src/security/pin-crypto.js";
@@ -315,7 +315,7 @@ document.addEventListener("visibilitychange", () => {
 const DATA_STORAGE_KEY = "funtime-v1-data";
 const LEGACY_DRINKS_STORAGE_KEY = "balada-v1-drinks";
 const DATA_VERSION = 11;
-const APP_VERSION = "2.24.2";
+const APP_VERSION = "2.25.0";
 const DRINK_EXPORT_TYPE = "funtime-drinks";
 const DRINK_EXPORT_FORMAT_VERSION = 1;
 const BACKUP_EXPORT_TYPE = "funtime-backup";
@@ -1053,6 +1053,10 @@ function setCurrentView(view) {
   document.getElementById("occasion-view").hidden = view !== "occasion";
   if (sharedHeader) sharedHeader.hidden = view !== "shared";
   if (sharedViewMain) sharedViewMain.hidden = view !== "shared";
+  // Eventos é um módulo à parte, com fundo lilás escuro (styles.css, :root[data-view="occasion"]);
+  // a barra do sistema acompanha.
+  document.documentElement.dataset.view = view;
+  document.querySelector('meta[name="theme-color"]')?.setAttribute("content", view === "occasion" ? "#130e1c" : "#09090b");
   refreshHomeGreeting();
   document.querySelectorAll("[data-nav-view]").forEach(button => {
     if (button.dataset.navView === view) button.setAttribute("aria-current", "page");
@@ -3819,7 +3823,7 @@ async function releaseSharedEvent(item) {
   }
 }
 
-// "Sair do evento" (convidado): retira a presença, revoga as doses compartilhadas DESTE
+// "Deixar de participar" (convidado): retira a presença, revoga as doses compartilhadas DESTE
 // evento e desfaz o vínculo — a ocasião continua na agenda, só que da pessoa.
 async function leaveSharedEvent(occasionId) {
   const item = state.occasions.find((occasion) => occasion.id === occasionId);
@@ -3829,7 +3833,7 @@ async function leaveSharedEvent(occasionId) {
   // ação da pessoa não pode ficar presa à rede. As escritas ficam na fila e seguem sozinhas.
   const compartilhamentos = latestShares.filter((entry) => entry.occasionId === occasionId);
   globalThis.commitOccasions(state.occasions.map((occasion) => (occasion.id === occasionId ? withoutSharedLink(occasion) : occasion)));
-  showToast("Você saiu do evento. Ele continua na sua agenda.");
+  showToast("Você deixou de participar. O evento continua na sua agenda.");
 
   for (const share of compartilhamentos) shareWriter?.stopShare(share.shareId).catch((error) => console.error("Falha ao encerrar o compartilhamento ao sair.", error));
   sharedEvents.leave(item.sharedEventId).catch((error) => console.error("Falha ao retirar a presença ao sair.", error));
@@ -4206,7 +4210,7 @@ Object.assign(globalThis, {
   // Tela Eventos: quantos convites esperam resposta, redesenhar quando Eventos liga/desliga e a data da agenda.
   pendingInviteCount: () => inviteUI?.pendingCount() ?? 0,
   refreshInviteViews: () => inviteUI?.refresh(),
-  formatAgendaDateTime,
+  formatAgendaDateTime, agendaDateParts, calendarDaysBetween, formatEventDuration,
   currentSharedEventsUid: () => sharedEventsUid,
   openSharedView, closeSharedView,
   render, saveData, effectiveCountingMode, registerDrinkAt, tickDrinkCards,

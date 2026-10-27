@@ -3828,7 +3828,6 @@ body {
 /* Só a primeira letra em maiúscula: "Setembro de 2026", não "Setembro De 2026". */
 .agenda-month-heading::first-letter { text-transform: uppercase; }
 .agenda-empty { color: var(--muted); padding: 24px 4px; line-height: 1.6; }
-.agenda-options { margin-top: 24px; } .agenda-options button { display: block; width: 100%; margin: 10px 0; min-height: 44px; }
 #occasion-detail-content h2 { overflow-wrap: anywhere; }
 #occasion-header { align-items: center; justify-content: space-between; }
 #occasion-header .primary-button { padding: 10px 15px; font-size: .85rem; min-height: 44px; }
@@ -4134,3 +4133,115 @@ div.share-person { cursor: default; }
 @media (prefers-reduced-motion: reduce) {
   .occasion-current-card { animation: none; }
 }
+
+/* Módulo Eventos (v2.25.0, spec 0028): fundo lilás escuro na aba e em tudo que abre a partir dela,
+   lista com bloquinho de data, linha do tempo no detalhe e rodapé com ícones. Início ▶ verde e
+   fim ■ vermelho em todo lugar; vazado quando ainda não aconteceu (agendado ou programado). */
+:root[data-view="occasion"], .event-scope {
+  --bg: #130e1c;
+  --surface: #1d1728;
+  --surface-2: #2b2339;
+  --border: #3d3350;
+  --muted: #aaa3b8;
+  --event-field: #0e0a15;
+  --event-foot: #1b1525;
+  --event-tab: #352a47;
+  --event-nav: #17111f;
+  --event-start: #5ee99b;
+  --event-end: #ff5b62;
+}
+:root[data-view="occasion"] .bottom-nav { background: var(--event-nav); }
+:root[data-view="occasion"] .bottom-nav button[aria-current="page"], :root[data-view="occasion"] .agenda-tabs button[aria-pressed="true"] { background: var(--event-tab); }
+.dialog.event-scope { background: var(--bg); }
+.event-scope .field input[type="text"], .event-scope .field input[type="datetime-local"], .event-scope .date-time-editor { background: var(--event-field); }
+@media (max-width: 600px) {
+  dialog.dialog.app-dialog.event-scope .app-dialog-actions { background: var(--event-foot); border-top-color: var(--border); }
+}
+
+/* Ícones e marcadores */
+.occasion-icon { width: 20px; height: 20px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.occasion-marker { width: 10px; height: 10px; flex: none; fill: currentColor; }
+.is-start > .occasion-marker { color: var(--event-start); }
+.is-end > .occasion-marker { color: var(--event-end); }
+.is-planned > .occasion-marker { fill: none; stroke: currentColor; stroke-width: 3; }
+
+/* Selo da situação */
+.status-chip { display: inline-flex; align-items: center; gap: 6px; justify-self: start; width: fit-content; padding: 3px 10px; border-radius: 999px; font-size: .72rem; font-weight: 750; line-height: 1.4; letter-spacing: .02em; white-space: nowrap; }
+.status-chip:empty { display: none; }
+.status-chip .occasion-icon { width: 12px; height: 12px; stroke-width: 2.2; }
+.status-chip.is-small { padding: 1px 8px; font-size: .66rem; }
+.status-chip.is-live { color: var(--success); background: rgb(94 233 155 / .12); }
+.status-chip.is-planned { color: #c4b5fd; background: rgb(196 181 253 / .14); }
+.status-chip.is-waiting { color: var(--warning); background: rgb(247 177 85 / .14); }
+.status-chip.is-done { color: var(--muted); background: rgb(255 255 255 / .07); }
+.status-chip.is-cancelled { color: #ff9da2; background: rgb(255 91 98 / .13); }
+.status-chip-pulse { flex: none; width: 7px; height: 7px; border-radius: 999px; background: var(--success); animation: status-pulse 2s ease-out infinite; }
+@keyframes status-pulse {
+  0% { box-shadow: 0 0 0 0 rgb(94 233 155 / .55); }
+  70%, 100% { box-shadow: 0 0 0 7px rgb(94 233 155 / 0); }
+}
+@media (prefers-reduced-motion: reduce) { .status-chip-pulse { animation: none; } }
+
+/* Lista: bloquinho de data, nome, início/fim e selo + meta */
+.agenda-row.agenda-row--dated { grid-template-columns: 48px minmax(0, 1fr) auto; align-items: center; gap: 12px; padding: 11px 12px; }
+.agenda-row .agenda-date { display: grid; place-items: center; align-content: center; gap: 3px; height: 52px; border-radius: 11px; background: var(--surface-2); color: var(--text); line-height: 1; }
+.agenda-row .agenda-date small { color: var(--muted); font-size: .62rem; font-weight: 750; letter-spacing: .08em; line-height: 1; text-transform: uppercase; }
+.agenda-row .agenda-date b { font-size: 1.3rem; font-weight: 800; }
+.agenda-row .agenda-row-body { display: grid; gap: 4px; min-width: 0; color: var(--text); }
+.agenda-row .agenda-times { display: flex; flex-wrap: wrap; align-items: center; gap: 2px 12px; }
+.agenda-row .agenda-time { display: inline-flex; align-items: center; gap: 5px; color: var(--text); font-size: .8rem; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.agenda-row .agenda-next-day { margin-left: -2px; color: var(--event-end); font-size: .62rem; font-weight: 750; line-height: 0; }
+.agenda-row .agenda-row-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; }
+.agenda-row .agenda-row-label { display: inline-flex; align-items: center; gap: 7px; }
+
+/* Detalhe: nome no cabeçalho, linha do tempo, registros, opções e ações discretas */
+.occasion-detail-header { align-items: flex-start; }
+.occasion-detail-heading { display: grid; gap: 6px; min-width: 0; }
+#occasion-detail-name { font-size: 1.5rem; line-height: 1.12; overflow-wrap: anywhere; }
+.occasion-detail-host { margin: 0; color: var(--muted); font-size: .84rem; }
+#occasion-detail-content { display: grid; align-content: start; gap: 12px; }
+#occasion-detail-content > p { margin: 0; }
+
+.occasion-timeline { display: grid; padding: 2px 0; }
+.occasion-timeline-point { display: grid; grid-template-columns: 14px auto minmax(0, 1fr) auto; align-items: center; gap: 12px; font-variant-numeric: tabular-nums; }
+.occasion-timeline-point i { justify-self: center; width: 12px; height: 12px; border-radius: 999px; background: var(--event-start); }
+.occasion-timeline-point.is-end i { background: var(--event-end); }
+.occasion-timeline-point.is-planned i { border: 2px solid var(--event-start); background: transparent; }
+.occasion-timeline-point.is-end.is-planned i { border-color: var(--event-end); }
+.occasion-timeline-point b { font-size: 1.2rem; font-weight: 750; }
+.occasion-timeline-point span { color: var(--muted); font-size: .84rem; }
+.occasion-timeline-point em { color: var(--muted); font-size: .64rem; font-style: normal; font-weight: 750; letter-spacing: .1em; text-transform: uppercase; }
+.occasion-timeline-span { display: grid; grid-template-columns: 14px 1fr; align-items: center; gap: 12px; min-height: 34px; }
+.occasion-timeline-span > i { justify-self: center; width: 2px; height: 100%; min-height: 34px; border-radius: 2px; background: linear-gradient(var(--event-start), var(--event-end)); opacity: .6; }
+.occasion-timeline-span.is-planned > i { width: 0; border-left: 2px dotted var(--event-end); background: none; }
+.occasion-timeline-span > span { display: inline-flex; align-items: center; gap: 6px; color: var(--muted); font-size: .8rem; font-variant-numeric: tabular-nums; }
+.occasion-timeline-span .occasion-icon { width: 14px; height: 14px; }
+
+.occasion-records { display: grid; gap: 10px; width: 100%; padding: 13px 14px; border: 1px solid var(--border); border-radius: 14px; background: var(--surface); color: var(--text); text-align: left; font: inherit; }
+.occasion-records-head { display: flex; align-items: center; gap: 8px; }
+.occasion-records-head b { font-size: 1.5rem; font-weight: 800; line-height: 1; font-variant-numeric: tabular-nums; }
+.occasion-records-head span { flex: 1; color: var(--muted); font-size: .88rem; }
+.occasion-records-head .agenda-row-chevron { flex: none; font-size: 1.15rem; line-height: 1; }
+.occasion-records-drinks { display: flex; flex-wrap: wrap; gap: 6px; }
+.occasion-records-drinks span { display: inline-flex; align-items: center; gap: 5px; padding: 4px 10px; border-radius: 999px; background: var(--surface-2); font-size: .8rem; }
+.occasion-records-drinks b { font-variant-numeric: tabular-nums; }
+
+.occasion-menu { display: grid; border: 1px solid var(--border); border-radius: 14px; background: var(--surface); overflow: hidden; }
+.occasion-menu .occasion-menu-row { display: grid; grid-template-columns: 32px minmax(0, 1fr) auto; align-items: center; gap: 12px; width: 100%; min-height: 56px; margin: 0; padding: 8px 12px; border: 0; border-radius: 0; background: transparent; color: var(--text); text-align: left; font: inherit; cursor: pointer; }
+.occasion-menu .occasion-menu-row + .occasion-menu-row { border-top: 1px solid var(--border); }
+.occasion-menu-icon { display: grid; place-items: center; width: 32px; height: 32px; border-radius: 9px; background: var(--surface-2); }
+.occasion-menu-icon .occasion-icon { width: 17px; height: 17px; }
+.occasion-menu-row strong { font-size: .92rem; font-weight: 650; }
+.occasion-menu-row small { color: var(--muted); font-size: .8rem; white-space: nowrap; }
+.occasion-menu-row .occasion-unlock-copy small { white-space: normal; }
+
+.occasion-link { display: flex; align-items: center; gap: 10px; width: 100%; min-height: 44px; padding: 8px 4px; border: 0; background: transparent; color: var(--muted); font: inherit; font-size: .9rem; font-weight: 600; text-align: left; }
+.occasion-link .occasion-icon { width: 18px; height: 18px; }
+
+/* Rodapé: lápis e lixeira à esquerda, ação principal no resto */
+#occasion-detail-actions { display: flex; gap: 10px; }
+.occasion-icon-action { flex: none; width: 48px; height: 48px; border: 1px solid var(--border); border-radius: 12px; }
+.occasion-icon-action .occasion-icon { width: 22px; height: 22px; }
+.occasion-icon-action.is-danger { border-color: var(--danger-border); background: transparent; color: #ff9da2; }
+.occasion-icon-action.is-danger:active { background: var(--danger-soft); }
+.occasion-main-action { flex: 1; min-width: 0; }

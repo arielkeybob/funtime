@@ -234,28 +234,28 @@ export const TUTORIALS = [
       },
       {
         "tipo": "video",
-        "src": "./tutorials/media/eventos/02.686ab4d9.mp4",
-        "poster": "./tutorials/media/eventos/02.poster.afa1c830.webp",
+        "src": "./tutorials/media/eventos/02.21a45ad6.mp4",
+        "poster": "./tutorials/media/eventos/02.poster.f3083371.webp",
         "alt": "A opção Usar eventos, em Configurações → Aparência, é tocada e liga; o app avisa que os eventos foram ativados.",
         "legenda": "Em Configurações → Aparência, ative Usar eventos."
       },
       {
         "tipo": "imagem",
-        "src": "./tutorials/media/eventos/03.8c51c0c9.webp",
+        "src": "./tutorials/media/eventos/03.434a1f40.webp",
         "alt": "Tela inicial com a aba Evento, recém-criada, em destaque no menu de baixo.",
         "legenda": "A aba Evento aparece no menu de baixo."
       },
       {
         "tipo": "video",
-        "src": "./tutorials/media/eventos/04.4f7507bf.mp4",
-        "poster": "./tutorials/media/eventos/04.poster.22ff9cbb.webp",
+        "src": "./tutorials/media/eventos/04.5a7bade5.mp4",
+        "poster": "./tutorials/media/eventos/04.poster.a9b16fba.webp",
         "alt": "A aba Evento é tocada e, na lista de eventos, o botão + Novo é tocado e abre o formulário Novo evento.",
         "legenda": "Na aba Evento, toque em + Novo."
       },
       {
         "tipo": "video",
-        "src": "./tutorials/media/eventos/05.7ac7a17f.mp4",
-        "poster": "./tutorials/media/eventos/05.poster.fc6d845f.webp",
+        "src": "./tutorials/media/eventos/05.494319b7.mp4",
+        "poster": "./tutorials/media/eventos/05.poster.8fa7941b.webp",
         "alt": "O nome Churrasco do João é digitado no formulário Novo evento e o botão Iniciar evento é tocado.",
         "legenda": "Dê um nome e toque em Iniciar evento."
       },
@@ -267,16 +267,16 @@ export const TUTORIALS = [
       },
       {
         "tipo": "imagem",
-        "src": "./tutorials/media/eventos/07.082705d2.webp",
+        "src": "./tutorials/media/eventos/07.8fc1599d.webp",
         "alt": "Formulário Novo evento com a opção Escolher data selecionada em Quando começar?, em destaque.",
         "legenda": "Para agendar, troque para Escolher data."
       },
       {
         "tipo": "video",
-        "src": "./tutorials/media/eventos/08.4640d5a2.mp4",
-        "poster": "./tutorials/media/eventos/08.poster.437d6b31.webp",
-        "alt": "No detalhe do evento em andamento, o botão Encerrar evento é tocado e, na confirmação, o botão Encerrar também.",
-        "legenda": "No evento, toque em Encerrar evento e confirme."
+        "src": "./tutorials/media/eventos/08.841ccbfb.mp4",
+        "poster": "./tutorials/media/eventos/08.poster.0103a012.webp",
+        "alt": "No detalhe do evento em andamento, o botão O evento acabou, no rodapé, é tocado e, na confirmação, o botão Sim, acabou também.",
+        "legenda": "No evento, toque em “O evento acabou” e confirme."
       }
     ]
   },
@@ -354,27 +354,27 @@ export const TUTORIALS = [
     "passos": [
       {
         "tipo": "video",
-        "src": "./tutorials/media/evento-compartilhado/01.90f1f2c9.mp4",
-        "poster": "./tutorials/media/evento-compartilhado/01.poster.0b792f73.webp",
+        "src": "./tutorials/media/evento-compartilhado/01.e8b52398.mp4",
+        "poster": "./tutorials/media/evento-compartilhado/01.poster.69749c90.webp",
         "alt": "No formulário Novo evento, a linha Convidados é tocada; Bia e Caio são escolhidos e confirmados, e a linha passa a mostrar 2 pessoas.",
         "legenda": "No evento, toque em Convidados e escolha os amigos."
       },
       {
         "tipo": "imagem",
-        "src": "./tutorials/media/evento-compartilhado/02.65168e5e.webp",
+        "src": "./tutorials/media/evento-compartilhado/02.f452f770.webp",
         "alt": "Formulário Novo evento com as duas linhas em destaque: Convidados, que mostra só o evento, e Compartilhar doses, que é uma escolha separada.",
         "legenda": "Convidar mostra só o evento; as doses são outra escolha."
       },
       {
         "tipo": "video",
-        "src": "./tutorials/media/evento-compartilhado/03.3f1441ce.mp4",
-        "poster": "./tutorials/media/evento-compartilhado/03.poster.e74a5859.webp",
+        "src": "./tutorials/media/evento-compartilhado/03.7d2b5ffe.mp4",
+        "poster": "./tutorials/media/evento-compartilhado/03.poster.bfba63d1.webp",
         "alt": "A aba Evento é tocada e mostra, no topo de Próximos, o convite Festa Junina, da Bia, aguardando resposta; o botão Vou é tocado e o app avisa que o evento foi para a agenda.",
         "legenda": "Quem é convidado responde Vou ou Não vou na aba Evento."
       },
       {
         "tipo": "imagem",
-        "src": "./tutorials/media/evento-compartilhado/04.ed5647c4.webp",
+        "src": "./tutorials/media/evento-compartilhado/04.cffda5e0.webp",
         "alt": "Lista de convidados de uma festa agendada: a Bia tem o símbolo de envelope, convidada sem resposta; o Caio tem o símbolo de confirmado; a Duda não foi convidada.",
         "legenda": "✉ foi convidado; ✔ já confirmou que vai."
       }

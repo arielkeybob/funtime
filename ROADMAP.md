@@ -118,7 +118,7 @@ No modo de edição do catálogo, pressão longa arrasta o ícone até outra pos
 
 ### Eventos/ocasiões e agenda — V2.1.0 em diante
 
-Cards distinguem "consumido nesta ocasião" de "possui histórico"; eventos são opcionais, com no máximo um em andamento. A aba Evento é uma agenda compacta (Próximos/Anteriores) com agendamento manual/automático, aviso na Home antes do início e recuperação de eventos esquecidos após 48h sem registro. Detalhe técnico e histórico de versões em DEVELOPMENT.md; os documentos de planejamento originais (comparação de alternativas, casos de borda considerados) estão arquivados em [docs/history/EVENTOS-PLANEJAMENTO.md](docs/history/EVENTOS-PLANEJAMENTO.md) e [docs/history/EVENTOS-AGENDA-UX.md](docs/history/EVENTOS-AGENDA-UX.md).
+Cards distinguem "consumido nesta ocasião" de "possui histórico"; eventos são opcionais, com no máximo um em andamento. A aba Evento é uma agenda compacta (Próximos/Passados) com agendamento manual/automático, aviso na Home antes do início e recuperação de eventos esquecidos após 48h sem registro. Detalhe técnico e histórico de versões em DEVELOPMENT.md; os documentos de planejamento originais (comparação de alternativas, casos de borda considerados) estão arquivados em [docs/history/EVENTOS-PLANEJAMENTO.md](docs/history/EVENTOS-PLANEJAMENTO.md) e [docs/history/EVENTOS-AGENDA-UX.md](docs/history/EVENTOS-AGENDA-UX.md).
 
 ## Débito técnico
 

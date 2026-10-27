@@ -1,4 +1,16 @@
-# FunTime — V2.24.2
+# FunTime — V2.25.0
+
+## V2.25.0 — Eventos mais simples e com cara própria
+
+- **Módulo lilás**: a aba Eventos e tudo o que abre a partir dela (novo/editar, detalhe, convidados, convite, compartilhar doses) ganham fundo lilás bem escuro. A barra do sistema acompanha.
+- **Lista**: cada evento mostra um bloquinho com o dia e o início ▶ (verde) e o fim ■ (vermelho). Marcador vazado indica o que ainda não aconteceu, "+1" indica que termina no dia seguinte. A situação vira um selo (Automático, Inicia sozinho, Aguardando início, Cancelado). A aba **Anteriores** passa a se chamar **Passados**.
+- **Detalhe**: o nome vira o título, com o selo da situação. O período virou uma linha do tempo com a duração, só com o período efetivo. Os registros viram um cartão tocável com a contagem por bebida. Convidados, Compartilhar doses e Manter app desbloqueado ficam num bloco só.
+- **Rodapé com ícones**: lápis (editar) e lixeira (excluir, sempre com confirmação) à esquerda e a ação principal à direita: **O evento acabou** (antes "Encerrar evento"), **Iniciar agora**, **Reabrir** ou **Reagendar**. O botão **Voltar** saiu: o ✕ e o gesto de voltar fecham.
+- **Deixar de participar** substitui "Sair do evento" (só para convidados: retira sua presença do evento do amigo; o evento continua na sua agenda).
+- **Novo evento**: o nome vem primeiro.
+- **Menos texto**: as explicações longas (desbloqueio, registros preservados, motivo do encerramento automático) só aparecem com a interface detalhada; os avisos continuam sempre visíveis.
+- Tutoriais "Eventos e agenda" e "Evento compartilhado" atualizados. Spec 0028.
+- Sem mudança de dados; `DATA_VERSION` permanece 11.
 
 ## V2.24.2 — abrir o app já pede a biometria
 

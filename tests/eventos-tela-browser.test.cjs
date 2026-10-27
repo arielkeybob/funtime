@@ -55,11 +55,11 @@ test('convite recebido: grupo no topo de Próximos, com Vou / Não vou, e um pon
     assert.deepEqual(await linha.locator('.invite-row-actions button').allTextContents(), ['Vou', 'Não vou']);
     assert.equal(await linha.evaluate((no) => no.tagName), 'DIV', 'linha não é um botão: botões aninhados são inválidos');
 
-    // Em Anteriores o grupo some e a aba Próximos ganha um ponto.
+    // Em Passados o grupo some e a aba Próximos ganha um ponto.
     await page.locator('#agenda-past').click();
     assert.equal(await grupo.isVisible(), false);
     assert.equal(await page.locator('#agenda-upcoming-dot').isVisible(), true);
-    assert.deepEqual(await page.locator('.agenda-tabs button').allTextContents(), ['Anteriores', 'Próximos'], 'o ponto não muda o texto das abas');
+    assert.deepEqual(await page.locator('.agenda-tabs button').allTextContents(), ['Passados', 'Próximos'], 'o ponto não muda o texto das abas');
     await page.locator('#agenda-upcoming').click();
     assert.equal(await grupo.isVisible(), true);
     assert.equal(await page.locator('#agenda-upcoming-dot').isVisible(), false);
@@ -253,7 +253,7 @@ test('evento em andamento: cartão em destaque no topo, e não mais uma linha co
     const dados = (await cartao.innerText()).replace(/\s+/g, ' ');
     assert.match(dados, /Em andamento/i);
     assert.match(dados, /Churrasco do João/);
-    assert.match(dados, /desde (seg|ter|qua|qui|sex|sáb|dom) \d{2}\/\d{2} · \d{2}:\d{2}/);
+    assert.match(dados, /Início (seg|ter|qua|qui|sex|sáb|dom) \d{2}\/\d{2} · \d{2}:\d{2}/);
     assert.match(dados, /2 registros/);
     assert.notEqual(await cartao.evaluate((no) => getComputedStyle(no).boxShadow), 'none', 'tem o brilho de "em andamento"');
 

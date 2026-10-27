@@ -102,8 +102,8 @@ module.exports = {
     {
       tipo: 'video',
       seed: 'demoEventoAtivo',
-      legenda: 'No evento, toque em Encerrar evento e confirme.',
-      alt: 'No detalhe do evento em andamento, o botão Encerrar evento é tocado e, na confirmação, o botão Encerrar também.',
+      legenda: 'No evento, toque em “O evento acabou” e confirme.',
+      alt: 'No detalhe do evento em andamento, o botão O evento acabou, no rodapé, é tocado e, na confirmação, o botão Sim, acabou também.',
       async preparar(t) {
         await t.tocar('#nav-occasion');
         await t.tocar('#occasion-current button');
@@ -112,7 +112,7 @@ module.exports = {
       },
       async gravar(t) {
         await t.esperar(1400);
-        await t.tocarComDedo('#occasion-detail-content .occasion-actions .primary-button');
+        await t.tocarComDedo('#occasion-detail-actions .primary-button');
         await t.page.waitForSelector('#app-confirm-dialog[open]');
         await t.esperar(1200);
         await t.tocarComDedo('#app-confirm-accept', { antes: 400, descida: 700 });

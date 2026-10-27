@@ -198,7 +198,7 @@ async function changeOccasion(id, action) {
   const item = state.occasions.find(occasion => occasion.id === id); if (!item) return;
   const snapshot = JSON.stringify(item);
   const options = {
-    end: ['Encerrar evento', 'Encerrar', 'Encerrar ' + item.name + '? Registros e contagens serão preservados.'],
+    end: ['O evento acabou?', 'Sim, acabou', item.name + ' termina agora. Registros e contagens são preservados.'],
     reopen: ['Reabrir evento', 'Reabrir', 'Reabrir ' + item.name + '? O encerramento programado anterior será desativado.'],
     cancel: ['Cancelar agendamento', 'Cancelar agendamento', 'Cancelar o agendamento de ' + item.name + '?'],
     delete: ['Excluir evento', 'Excluir evento', 'Excluir ' + item.name + '? As doses serão preservadas no histórico, sem evento.'],
@@ -227,11 +227,36 @@ async function changeOccasion(id, action) {
   } catch { showAppNotification('Não foi possível aplicar. Verifique conflitos com outro evento ou tente novamente.', { type: 'error' }); }
 }
 function occasionButton(label, action, className = 'secondary-button') { const button = document.createElement('button'); button.type = 'button'; button.className = className; button.textContent = label; button.addEventListener('click', action); return button; }
-function occasionPeopleRow(title, summary, action) {
-  const row = occasionButton('', action, 'agenda-row occasion-people-row');
+// Ícones do módulo Eventos (SVG 24px, traço 1.8, como os da barra de baixo). Ficam aqui até o
+// rodapé com ícones valer também para o resto do app (spec 0028).
+const OCCASION_ICONS = {
+  edit: '<path d="M4 20h4L18.5 9.5a2.12 2.12 0 0 0-3-3L5 17v3Z"/><path d="m13.5 7.5 3 3"/>',
+  delete: '<path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 11v6M14 11v6"/>',
+  people: '<path d="M9 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/><path d="M16 8a2.5 2.5 0 1 0 0-5"/><path d="M15 14.2c2.3.4 4 2.4 4 5.8"/>',
+  share: '<path d="M7 17 17 7M9 7h8v8"/>',
+  unlock: '<rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 7.6-1.7"/>',
+  leave: '<path d="M10 4H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h4"/><path d="m15 8 4 4-4 4M19 12H9"/>',
+  cancel: '<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M7 3v4m10-4v4M3 11h18M10 14l4 4m0-4-4 4"/>',
+  clock: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+  auto: '<path d="M13 3 5 14h6l-1 7 8-11h-6l1-7Z"/>',
+  start: '<path d="M7 4.5v15l12.5-7.5z"/>',
+  end: '<rect x="5" y="5" width="14" height="14" rx="3"/>',
+};
+function occasionIcon(name, className = 'occasion-icon') {
+  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+  svg.setAttribute('viewBox', '0 0 24 24'); svg.setAttribute('aria-hidden', 'true'); svg.setAttribute('class', className);
+  svg.innerHTML = OCCASION_ICONS[name]; return svg;
+}
+function occasionIconButton(icon, label, action, className = '') {
+  const button = occasionButton('', action, ('icon-button secondary occasion-icon-action ' + className).trim());
+  button.setAttribute('aria-label', label); button.title = label; button.append(occasionIcon(icon)); return button;
+}
+function occasionPeopleRow(title, summary, action, icon) {
+  const row = occasionButton('', action, 'occasion-menu-row occasion-people-row');
+  const tile = document.createElement('span'); tile.className = 'occasion-menu-icon'; tile.append(occasionIcon(icon));
   const name = document.createElement('strong'); name.textContent = title;
   const info = document.createElement('small'); info.textContent = (summary ? summary + ' ' : '') + '›';
-  row.append(name, info); return row;
+  row.append(tile, name, info); return row;
 }
 // Quem aceita um convite ganha uma ocasião normal, só dele, com o vínculo ao evento do organizador.
 // Começa como agendamento de início manual — o padrão de qualquer agendamento; o início
@@ -257,14 +282,13 @@ function openOccasionHistory(id) { closeOccasionDetails(); openHistoryView(); st
 function occasionStatus(item) {
   if (item.startedAt === null) {
     if (item.closedAt != null) return item.endReason === 'cancelled' ? 'Agendamento cancelado' : 'Agendamento expirado';
-    if (item.scheduledStartAt <= Date.now()) return item.autoStart ? 'Aguardando revisão' : 'Aguardando início';
-    return item.autoStart ? 'Início automático' : 'Início manual';
+    if (item.scheduledStartAt <= Date.now()) return item.autoStart ? 'Precisa de revisão' : 'Aguardando início';
+    return item.autoStart ? 'Inicia sozinho' : 'Agendado';
   }
   return item.endedAt === null ? 'Em andamento' : item.endReason && item.endReason !== 'manual' ? 'Encerrado automaticamente' : 'Encerrado';
 }
-function agendaWhen(timestamp) { return globalThis.formatAgendaDateTime ? globalThis.formatAgendaDateTime(timestamp) : occasionDate(timestamp); }
-// O que a linha da agenda diz sobre a situação: só o que agrega. "Início manual" é o padrão e
-// "Encerrado" é o que a aba Anteriores já diz, então ficam de fora; o detalhe do evento mantém o texto completo.
+// O que a linha da agenda diz sobre a situação: só o que agrega. "Agendado" é o que a aba Próximos
+// já diz e "Encerrado" é o que a aba Passados já diz, então ficam de fora; o detalhe mantém o selo completo.
 // Agendamento que passou do horário continua em Próximos, só com o aviso "Aguardando início".
 function occasionRowStatus(item) {
   if (item.startedAt === null) {
@@ -273,7 +297,49 @@ function occasionRowStatus(item) {
     return item.scheduledStartAt <= Date.now() ? 'Aguardando início' : '';
   }
   if (item.endedAt === null) return 'Em andamento';
-  return item.endReason && item.endReason !== 'manual' ? 'Encerrado automaticamente' : '';
+  return item.endReason && item.endReason !== 'manual' ? 'Automático' : '';
+}
+// Selo da situação, na lista e no detalhe: a cor acompanha o texto, nunca o substitui.
+function occasionTone(item) {
+  if (item.startedAt === null) {
+    if (item.closedAt != null) return item.endReason === 'cancelled' ? 'cancelled' : 'done';
+    return item.scheduledStartAt <= Date.now() ? 'waiting' : 'planned';
+  }
+  return item.endedAt === null ? 'live' : 'done';
+}
+function occasionIsAuto(item) {
+  return item.startedAt === null ? Boolean(item.autoStart) && item.closedAt == null : item.endedAt !== null && Boolean(item.endReason) && item.endReason !== 'manual';
+}
+function fillStatusChip(chip, item, text, small = false) {
+  const tone = occasionTone(item);
+  chip.className = 'status-chip is-' + tone + (small ? ' is-small' : ''); chip.replaceChildren();
+  if (tone === 'live') { const pulse = document.createElement('i'); pulse.className = 'status-chip-pulse'; chip.append(pulse); }
+  else if (occasionIsAuto(item)) chip.append(occasionIcon('auto'));
+  chip.append(text); return chip;
+}
+const agendaParts = timestamp => globalThis.agendaDateParts(timestamp);
+// Um horário de início (▶ verde) ou fim (■ vermelho); vazado quando ainda não aconteceu. A data
+// completa vai num texto só para leitores de tela quando a linha mostra apenas a hora.
+function occasionTime(kind, planned, visible, spoken) {
+  const node = document.createElement('span'); node.className = 'agenda-time is-' + kind + (planned ? ' is-planned' : '');
+  const label = document.createElement('span'); label.className = 'visually-hidden';
+  label.textContent = (kind === 'start' ? 'Início' : 'Fim') + (planned ? ' programado' : '') + (spoken ? ' ' + spoken + ' ·' : '');
+  node.append(occasionIcon(kind, 'occasion-marker'), label, visible); return node;
+}
+// Início e fim de um evento numa linha. O fim mostra só a hora no mesmo dia, "+1" no dia
+// seguinte e a data quando passa disso.
+function occasionTimes(item, { withDate = false } = {}) {
+  const box = document.createElement('span'); box.className = 'agenda-times';
+  const start = item.startedAt ?? item.scheduledStartAt, end = item.endedAt ?? item.scheduledEndAt ?? null;
+  const s = agendaParts(start);
+  box.append(withDate ? occasionTime('start', item.startedAt === null, s.weekday + ' ' + s.date + ' · ' + s.time) : occasionTime('start', item.startedAt === null, s.time, s.weekday + ' ' + s.date));
+  if (end != null) {
+    const days = globalThis.calendarDaysBetween(start, end), e = agendaParts(end);
+    const node = days > 1 ? occasionTime('end', item.endedAt == null, e.weekday + ' ' + e.date + ' · ' + e.time) : occasionTime('end', item.endedAt == null, e.time, days === 1 ? e.weekday + ' ' + e.date : '');
+    if (days === 1) { const next = document.createElement('sup'); next.className = 'agenda-next-day'; next.setAttribute('aria-hidden', 'true'); next.textContent = '+1'; node.append(next); }
+    box.append(node);
+  }
+  return box;
 }
 // Terceira linha, só quando há o que dizer: de quem é o convite, quantos foram convidados/vão e os registros.
 function occasionMeta(item) {
@@ -288,59 +354,132 @@ function occasionMeta(item) {
   if (n) parts.push(n + (n === 1 ? ' registro' : ' registros'));
   return parts.join(' · ');
 }
+// Linha da agenda: bloquinho com o dia à esquerda, nome, início/fim e, se houver, selo e meta.
 function occasionRow(item) {
-  const button = occasionButton('', () => openOccasionDetails(item.id), 'agenda-row');
-  const head = document.createElement('span'); head.className = 'agenda-row-head';
+  const button = occasionButton('', () => openOccasionDetails(item.id), 'agenda-row agenda-row--dated');
+  const start = agendaParts(item.startedAt ?? item.scheduledStartAt);
+  const tile = document.createElement('span'); tile.className = 'agenda-date'; tile.setAttribute('aria-hidden', 'true');
+  const weekday = document.createElement('small'); weekday.textContent = start.weekday;
+  const day = document.createElement('b'); day.textContent = start.day;
+  tile.append(weekday, day);
+  const body = document.createElement('span'); body.className = 'agenda-row-body';
   const title = document.createElement('strong'); title.textContent = item.name;
+  body.append(title, occasionTimes(item));
+  const status = occasionRowStatus(item), meta = occasionMeta(item);
+  if (status || meta) {
+    const line = document.createElement('span'); line.className = 'agenda-row-meta';
+    if (status) line.append(fillStatusChip(document.createElement('span'), item, status, true));
+    if (meta) { const small = document.createElement('small'); small.textContent = meta; line.append(small); }
+    body.append(line);
+  }
   const chevron = document.createElement('span'); chevron.className = 'agenda-row-chevron'; chevron.setAttribute('aria-hidden', 'true'); chevron.textContent = '›';
-  head.append(title, chevron);
-  const status = occasionRowStatus(item), when = agendaWhen(item.startedAt ?? item.scheduledStartAt);
-  const sub = document.createElement('span'); sub.className = 'agenda-row-sub'; sub.textContent = status ? when + ' · ' + status : when;
-  button.append(head, sub);
-  const meta = occasionMeta(item);
-  if (meta) { const small = document.createElement('small'); small.textContent = meta; button.append(small); }
+  button.append(tile, body, chevron);
   return button;
 }
 // O evento em andamento vira um cartão em destaque no topo, com o mesmo brilho da Home.
 function occasionCurrentCard(item) {
   const button = occasionButton('', () => openOccasionDetails(item.id), 'agenda-row occasion-current-card');
-  const label = document.createElement('span'); label.className = 'agenda-row-label'; label.textContent = 'Em andamento';
+  const label = document.createElement('span'); label.className = 'agenda-row-label';
+  const pulse = document.createElement('i'); pulse.className = 'status-chip-pulse'; label.append(pulse, 'Em andamento');
   const title = document.createElement('strong'); title.textContent = item.name;
-  const sub = document.createElement('span'); sub.className = 'agenda-row-sub'; sub.textContent = 'desde ' + agendaWhen(item.startedAt);
-  button.append(label, title, sub);
+  button.append(label, title, occasionTimes(item, { withDate: true }));
   const meta = occasionMeta(item);
   if (meta) { const small = document.createElement('small'); small.textContent = meta; button.append(small); }
   return button;
 }
+// Linha do tempo do detalhe: início em cima, fim embaixo e a duração no meio. Só o período
+// efetivo; o que ainda não aconteceu (agendado, fim programado) aparece vazado.
+function occasionTimelinePoint(kind, timestamp, planned) {
+  const point = document.createElement('div'); point.className = 'occasion-timeline-point is-' + kind + (planned || timestamp == null ? ' is-planned' : '');
+  const dot = document.createElement('i'); const time = document.createElement('b'); const date = document.createElement('span'); const label = document.createElement('em');
+  if (timestamp == null) { time.textContent = '—'; date.textContent = 'sem fim definido'; }
+  else { const parts = agendaParts(timestamp); time.textContent = parts.time; date.textContent = parts.weekday + ' ' + parts.date; }
+  label.textContent = (kind === 'start' ? 'Início' : 'Fim') + (planned && timestamp != null ? ' programado' : '');
+  point.append(dot, time, date, label); return point;
+}
+function occasionTimeline(item) {
+  const start = item.startedAt ?? item.scheduledStartAt, end = item.endedAt ?? item.scheduledEndAt ?? null;
+  const startPlanned = item.startedAt === null, endPlanned = item.endedAt == null;
+  const box = document.createElement('div'); box.className = 'occasion-timeline';
+  // Agendamento cancelado ou expirado sem fim: só o horário que estava marcado.
+  if (end == null && startPlanned && item.closedAt != null) { box.append(occasionTimelinePoint('start', start, true)); return box; }
+  const span = document.createElement('div'); span.className = 'occasion-timeline-span' + (endPlanned ? ' is-planned' : '');
+  span.append(document.createElement('i'));
+  if (end != null) {
+    const duration = document.createElement('span');
+    duration.append(occasionIcon('clock'), (startPlanned || endPlanned ? 'previsto ' : '') + globalThis.formatEventDuration(end - start));
+    span.append(duration);
+  }
+  box.append(occasionTimelinePoint('start', start, startPlanned), span, occasionTimelinePoint('end', end, endPlanned));
+  return box;
+}
+function occasionWarning(text) { const note = document.createElement('p'); note.className = 'active-warning'; note.textContent = text; return note; }
 function openOccasionDetails(id) {
   const item = state.occasions.find(item => item.id === id); if (!item) return;
   detailOccasionId = id; const content = $occasion('occasion-detail-content'); content.replaceChildren();
-  const title = document.createElement('h2'); title.textContent = item.name;
-  const status = document.createElement('p'); status.className = 'eyebrow'; status.textContent = occasionStatus(item);
-  const dates = document.createElement('p'); dates.className = 'occasion-period'; dates.textContent = occasionDate(item.startedAt ?? item.scheduledStartAt) + ' — ' + (item.endedAt != null ? occasionDate(item.endedAt) : item.scheduledEndAt != null ? occasionDate(item.scheduledEndAt) + ' (programado)' : 'Sem fim programado');
-  content.append(status, title, dates);
   const shared = globalThis.getSharedEventInfo?.(item);
+  $occasion('occasion-detail-name').textContent = item.name;
+  fillStatusChip($occasion('occasion-detail-status'), item, occasionStatus(item));
+  const host = $occasion('occasion-detail-host'); host.textContent = shared && !shared.isHost && shared.hostAlias ? 'de ' + shared.hostAlias : ''; host.hidden = !host.textContent;
   // O organizador pode mudar ou cancelar o evento depois de você aceitar: nada é alterado em
   // silêncio, porque o início automático poderia disparar na hora errada.
-  if (shared?.cancelled) { const note = document.createElement('p'); note.className = 'active-warning'; note.textContent = 'O organizador cancelou este evento. Ele continua na sua agenda; cancele o agendamento se você não vai mais.'; content.append(note); }
-  else if (shared?.gone) { const note = document.createElement('p'); note.className = 'active-warning'; note.textContent = 'Você não está mais na lista de convidados deste evento.'; content.append(note); }
+  if (shared?.cancelled) content.append(occasionWarning('O organizador cancelou este evento. Ele continua na sua agenda; cancele o agendamento se você não vai mais.'));
+  else if (shared?.gone) content.append(occasionWarning('Você não está mais na lista de convidados deste evento.'));
   if (shared?.updateAvailable) {
     const box = document.createElement('div'); box.className = 'occasion-update-notice';
-    const note = document.createElement('p'); note.className = 'active-warning'; note.textContent = 'O organizador mudou o evento: ' + shared.view.name + ' · ' + occasionDate(shared.view.startAt) + '.'; box.append(note);
+    box.append(occasionWarning('O organizador mudou o evento: ' + shared.view.name + ' · ' + occasionDate(shared.view.startAt) + '.'));
     const row = document.createElement('div'); row.className = 'occasion-actions';
     row.append(occasionButton('Atualizar', () => { try { globalThis.applySharedEventUpdate?.(id); } catch { showAppNotification('Não foi possível atualizar. O evento foi mantido como estava.', { type: 'error' }); } }, 'primary-button'), occasionButton('Manter o meu', () => globalThis.applySharedEventUpdate?.(id, { keep: true })));
     box.append(row); content.append(box);
   }
-  if (item.startedAt != null && item.scheduledStartAt != null && item.startedAt !== item.scheduledStartAt) { const planned = document.createElement('p'); planned.className = 'settings-description'; planned.textContent = 'Início planejado: ' + occasionDate(item.scheduledStartAt) + '. O período acima mostra o início efetivo.'; content.append(planned); }
+  content.append(occasionTimeline(item));
   if (FunTimeOccasions.pending(item) && state.occasions.some(other => other.id !== item.id && FunTimeOccasions.pending(other) && other.scheduledStartAt < (item.scheduledEndAt ?? Infinity) && item.scheduledStartAt < (other.scheduledEndAt ?? Infinity))) {
-    const warning = document.createElement('p'); warning.className = 'active-warning'; warning.textContent = 'Há outro agendamento nesse período. Apenas um evento poderá ficar em andamento; conflitos exigirão revisão.'; content.append(warning);
+    content.append(occasionWarning('Há outro agendamento nesse período. Apenas um evento poderá ficar em andamento; conflitos exigirão revisão.'));
   }
-  if (item.timeZone && item.timeZone !== Intl.DateTimeFormat().resolvedOptions().timeZone) { const note = document.createElement('p'); note.textContent = 'Agendado no fuso ' + item.timeZone + '. Horários exibidos no fuso atual do aparelho.'; content.append(note); }
+  if (FunTimeOccasions.pending(item) && item.autoStart && item.scheduledStartAt <= Date.now()) content.append(occasionWarning('O início automático encontrou outro evento no período. Revise as datas ou inicie manualmente.'));
+  if (item.timeZone && item.timeZone !== Intl.DateTimeFormat().resolvedOptions().timeZone) { const note = document.createElement('p'); note.className = 'settings-description'; note.textContent = 'Agendado no fuso ' + item.timeZone + '. Horários exibidos no fuso atual do aparelho.'; content.append(note); }
+  // Como o evento foi encerrado sozinho fica para a interface detalhada; o selo já diz "automaticamente".
+  const explanations = { recovery48h: 'Após 48 horas, o evento foi encerrado no término da última contagem. Você pode revisar as datas.', empty48h: 'Encerrado após 48 horas sem registros.', expired: 'O período programado passou sem início. Não foi criado um evento em andamento.', scheduled: 'Encerrado na data programada. Contagens das doses continuam normalmente.' };
+  if (explanations[item.endReason]) { const note = document.createElement('p'); note.className = 'settings-description clean-optional'; note.textContent = explanations[item.endReason] + ' Processado em ' + occasionDate(item.closedAt) + '.'; content.append(note); }
+  // Registros: um cartão que leva ao Histórico filtrado, com a contagem por bebida.
+  const records = state.events.filter(record => record.occasionId === id);
+  if (item.startedAt !== null) {
+    const { count, totals } = globalThis.summarizeOccasionDoses(records, getEventDrinkIdentity);
+    const card = count ? occasionButton('', () => openOccasionHistory(id), 'occasion-records') : document.createElement('div');
+    if (!count) card.className = 'occasion-records is-empty';
+    const head = document.createElement('span'); head.className = 'occasion-records-head'; head.id = 'occasion-records-summary';
+    const number = document.createElement('b'); number.textContent = count;
+    const label = document.createElement('span'); label.textContent = count === 1 ? 'registro' : 'registros';
+    head.append(number, label); card.append(head);
+    if (count) {
+      card.setAttribute('aria-label', 'Ver registros'); card.setAttribute('aria-describedby', head.id);
+      const chevron = document.createElement('span'); chevron.className = 'agenda-row-chevron'; chevron.setAttribute('aria-hidden', 'true'); chevron.textContent = '›'; head.append(chevron);
+      const drinks = document.createElement('span'); drinks.className = 'occasion-records-drinks';
+      for (const entry of totals) { const pill = document.createElement('span'); const n = document.createElement('b'); n.textContent = entry.count; pill.append((entry.icon ? entry.icon + ' ' : '') + entry.name + ' ', n); drinks.append(pill); }
+      card.append(drinks);
+    }
+    content.append(card);
+  }
+  // Convidados, compartilhar doses e o desbloqueio: um bloco só, como o menu de Configurações.
+  // Pessoas só para quem tem amigos e enquanto o evento não acabou; cada linha abre a própria tela.
+  const menu = document.createElement('div'); menu.className = 'occasion-menu';
+  const finished = item.endedAt !== null || (item.startedAt === null && item.closedAt != null);
+  if (!finished && globalThis.hasSharingFriends?.()) {
+    const guest = shared && !shared.isHost;
+    const inviteSummary = shared ? (guest ? shared.goingCount + ' vão' : shared.invitedCount + (shared.invitedCount === 1 ? ' convidado' : ' convidados') + (shared.goingCount ? ' · ' + shared.goingCount + ' vão' : '')) : 'Ninguém';
+    menu.append(occasionPeopleRow(guest ? 'Quem vai' : 'Convidados', inviteSummary, () => globalThis.openInviteDialog?.({
+      occasion: item, selected: new Set(shared?.roster && !shared.gone ? shared.roster.invited : []),
+      onConfirm: chosen => globalThis.applyOccasionInvites?.(id, [...chosen]).catch(error => { console.error('Falha ao atualizar convidados.', error); showToast('Não foi possível atualizar os convidados agora. Tente de novo.'); }),
+    }), 'people'));
+    const shareCount = item.startedAt === null ? (item.shareWith?.length || 0) : null;
+    menu.append(occasionPeopleRow('Compartilhar doses', shareCount === null ? '' : shareCount ? shareCount + (shareCount === 1 ? ' pessoa' : ' pessoas') : 'Ninguém', () => globalThis.openShareOccasionDialog?.(item, records), 'share'));
+  }
   if (state.securityConfig.enabled && item.startedAt !== null && item.endedAt === null) {
-    const unlock = document.createElement('label'); unlock.className = 'setting-toggle occasion-unlock-toggle';
+    const unlock = document.createElement('label'); unlock.className = 'occasion-menu-row occasion-unlock-toggle';
+    const tile = document.createElement('span'); tile.className = 'occasion-menu-icon'; tile.append(occasionIcon('unlock'));
     const copy = document.createElement('span'); copy.className = 'occasion-unlock-copy';
-    const title = document.createElement('strong'); title.textContent = 'Manter app desbloqueado durante este evento';
-    const help = document.createElement('small'); help.textContent = 'Ao voltar ao app, não será necessário autenticar. A tela recente continua protegida.';
+    const title = document.createElement('strong'); title.textContent = 'Manter app desbloqueado';
+    const help = document.createElement('small'); help.className = 'clean-optional'; help.textContent = 'Ao voltar ao app, não será necessário autenticar. A tela recente continua protegida.';
     copy.append(title, help);
     const control = document.createElement('span'); control.className = 'setting-toggle-control';
     const input = document.createElement('input'); input.type = 'checkbox'; input.checked = globalThis.isSecurityEventUnlockActive?.(item.id) === true; input.setAttribute('aria-label', 'Manter app desbloqueado durante ' + item.name);
@@ -350,43 +489,27 @@ function openOccasionDetails(id) {
       if (!saved) input.checked = !input.checked;
       else showToast(input.checked ? 'O app ficará desbloqueado durante este evento.' : 'Bloqueio normal restaurado para este evento.');
     });
-    control.append(input, track); unlock.append(copy, control); content.append(unlock);
+    control.append(input, track); unlock.append(tile, copy, control); menu.append(unlock);
   }
-  const explanations = { recovery48h: 'Após 48 horas, o evento foi encerrado no término da última contagem. Você pode revisar as datas.', empty48h: 'Encerrado após 48 horas sem registros.', expired: 'O período programado passou sem início. Não foi criado um evento em andamento.', scheduled: 'Encerrado na data programada. Contagens das doses continuam normalmente.' };
-  if (explanations[item.endReason]) { const note = document.createElement('p'); note.className = 'settings-description'; note.textContent = explanations[item.endReason] + ' Processado em ' + occasionDate(item.closedAt) + '.'; content.append(note); }
-  if (FunTimeOccasions.pending(item) && item.autoStart && item.scheduledStartAt <= Date.now()) { const note = document.createElement('p'); note.className = 'active-warning'; note.textContent = 'O início automático encontrou outro evento no período. Revise as datas ou inicie manualmente.'; content.append(note); }
-  const records = state.events.filter(record => record.occasionId === id);
-  const { count, totals } = globalThis.summarizeOccasionDoses(records, getEventDrinkIdentity);
-  const summary = document.createElement('p'); summary.textContent = count + (count === 1 ? ' registro' : ' registros'); content.append(summary);
-  for (const entry of totals) { const line = document.createElement('p'); line.className = 'occasion-count'; line.textContent = entry.name + ' · ' + entry.count + ' registro(s)'; content.append(line); }
-  const actions = document.createElement('div'); actions.className = 'occasion-actions';
-  if (item.startedAt !== null && item.endedAt === null) { actions.classList.add('is-active'); actions.append(occasionButton('Encerrar evento', () => changeOccasion(id, 'end'), 'primary-button')); }
-  else if (FunTimeOccasions.pending(item)) actions.append(occasionButton('Iniciar agora', () => changeOccasion(id, 'start'), 'primary-button'));
-  if (item.startedAt !== null) actions.append(occasionButton('Ver registros', () => openOccasionHistory(id)));
-  content.append(actions);
-  // Convidados e compartilhar doses: duas linhas clicáveis, só para quem tem amigos e só
-  // enquanto o evento não acabou. Cada uma abre a própria tela (nada em linha).
-  const finished = item.endedAt !== null || (item.startedAt === null && item.closedAt != null);
-  if (!finished && globalThis.hasSharingFriends?.()) {
-    const people = document.createElement('div'); people.className = 'occasion-people';
-    const guest = shared && !shared.isHost;
-    const inviteSummary = shared ? (guest ? shared.goingCount + ' vão' : shared.invitedCount + (shared.invitedCount === 1 ? ' convidado' : ' convidados') + (shared.goingCount ? ' · ' + shared.goingCount + ' vão' : '')) : 'Ninguém';
-    people.append(occasionPeopleRow(guest ? 'Quem vai' : 'Convidados', inviteSummary, () => globalThis.openInviteDialog?.({
-      occasion: item, selected: new Set(shared?.roster && !shared.gone ? shared.roster.invited : []),
-      onConfirm: chosen => globalThis.applyOccasionInvites?.(id, [...chosen]).catch(error => { console.error('Falha ao atualizar convidados.', error); showToast('Não foi possível atualizar os convidados agora. Tente de novo.'); }),
-    })));
-    const shareCount = item.startedAt === null ? (item.shareWith?.length || 0) : null;
-    people.append(occasionPeopleRow('Compartilhar doses', shareCount === null ? '' : shareCount ? shareCount + (shareCount === 1 ? ' pessoa' : ' pessoas') : 'Ninguém', () => globalThis.openShareOccasionDialog?.(item, records)));
-    content.append(people);
-  }
-  const more = document.createElement('div'); more.className = 'agenda-options';
-  more.append(occasionButton(item.startedAt === null && item.closedAt != null ? 'Reagendar' : 'Editar', () => openOccasionEditor(id)));
-  if (item.endedAt !== null && !FunTimeOccasions.active(state.occasions)) more.append(occasionButton('Reabrir', () => changeOccasion(id, 'reopen')));
-  if (FunTimeOccasions.pending(item)) more.append(occasionButton('Cancelar agendamento', () => changeOccasion(id, 'cancel')));
-  if (shared && !shared.isHost) more.append(occasionButton('Sair do evento', async () => {
-    if (await showAppConfirmation('Sair de ' + item.name + '? Sua presença é retirada e as doses que você compartilha neste evento deixam de ser vistas. O evento continua na sua agenda.', { title: 'Sair do evento', confirmLabel: 'Sair' })) { await globalThis.leaveSharedEvent?.(id); if (occasionDetailDialog.open) openOccasionDetails(id); }
+  if (menu.childElementCount) content.append(menu);
+  // Ações que mudam a sua relação com o evento, discretas no fim; editar, excluir e a ação
+  // principal ficam no rodapé.
+  const link = (icon, label, action) => { const button = occasionButton('', action, 'occasion-link'); button.append(occasionIcon(icon), label); return button; };
+  if (FunTimeOccasions.pending(item)) content.append(link('cancel', 'Cancelar agendamento', () => changeOccasion(id, 'cancel')));
+  if (shared && !shared.isHost) content.append(link('leave', 'Deixar de participar', async () => {
+    if (await showAppConfirmation('Deixar de participar de ' + item.name + '? Sua presença é retirada e as doses que você compartilha neste evento deixam de ser vistas. O evento continua na sua agenda.', { title: 'Deixar de participar', confirmLabel: 'Deixar de participar' })) { await globalThis.leaveSharedEvent?.(id); if (occasionDetailDialog.open) openOccasionDetails(id); }
   }));
-  more.append(occasionButton('Excluir evento', () => changeOccasion(id, 'delete'), 'delete-event-button')); content.append(more);
+  // Rodapé: lápis e lixeira à esquerda, a ação principal da situação ocupando o resto.
+  const footer = $occasion('occasion-detail-actions'); footer.replaceChildren();
+  const lapsed = item.startedAt === null && item.closedAt != null;
+  if (!lapsed) footer.append(occasionIconButton('edit', 'Editar evento', () => openOccasionEditor(id)));
+  footer.append(occasionIconButton('delete', 'Excluir evento', () => changeOccasion(id, 'delete'), 'is-danger'));
+  let main = null;
+  if (item.startedAt !== null && item.endedAt === null) main = occasionButton('O evento acabou', () => changeOccasion(id, 'end'), 'primary-button');
+  else if (FunTimeOccasions.pending(item)) main = occasionButton('Iniciar agora', () => changeOccasion(id, 'start'), 'primary-button');
+  else if (lapsed) main = occasionButton('Reagendar', () => openOccasionEditor(id));
+  else if (item.endedAt !== null && !FunTimeOccasions.active(state.occasions)) main = occasionButton('Reabrir', () => changeOccasion(id, 'reopen'));
+  if (main) { main.classList.add('occasion-main-action'); footer.append(main); }
   if (!occasionDetailDialog.open) occasionDetailDialog.showModal();
 }
 function renderOccasions() {
@@ -394,7 +517,7 @@ function renderOccasions() {
   const active = FunTimeOccasions.active(state.occasions); if (active) current.append(occasionCurrentCard(active));
   agendaTab ||= state.occasions.some(FunTimeOccasions.pending) ? 'upcoming' : 'past';
   $occasion('agenda-upcoming').setAttribute('aria-pressed', String(agendaTab === 'upcoming')); $occasion('agenda-past').setAttribute('aria-pressed', String(agendaTab === 'past'));
-  // Convite esperando resposta mora no topo de Próximos; em Anteriores, um ponto na aba avisa que há um.
+  // Convite esperando resposta mora no topo de Próximos; em Passados, um ponto na aba avisa que há um.
   const invites = globalThis.pendingInviteCount?.() || 0;
   $occasion('occasion-invites').hidden = !(invites > 0 && agendaTab === 'upcoming');
   $occasion('agenda-upcoming-dot').hidden = !(invites > 0 && agendaTab !== 'upcoming');
@@ -418,7 +541,7 @@ function renderOccasions() {
     }
     list.append(occasionRow(item));
   }
-  if (!items.length) { const empty = document.createElement('p'); empty.className = 'agenda-empty'; empty.textContent = search ? 'Nenhum evento encontrado.' : agendaTab === 'upcoming' ? 'Nenhum evento agendado. Use + Novo para planejar ou iniciar um.' : 'Seus eventos anteriores aparecerão aqui.'; list.append(empty); }
+  if (!items.length) { const empty = document.createElement('p'); empty.className = 'agenda-empty'; empty.textContent = search ? 'Nenhum evento encontrado.' : agendaTab === 'upcoming' ? 'Nenhum evento agendado. Use + Novo para planejar ou iniciar um.' : 'Seus eventos passados aparecerão aqui.'; list.append(empty); }
   $occasion('agenda-more').hidden = items.length <= agendaLimit;
 }
 function refreshOccasionContext() {
@@ -511,7 +634,7 @@ $occasion('record-occasion').addEventListener('change', () => {
 // O próprio seletor não redispara: reconstruir as opções no meio da escolha a desfaria.
 for (const type of ['input', 'change']) $occasion('event-form').addEventListener(type, event => { if (event.target.id !== 'record-occasion') refreshRecordOccasion(); });
 $occasion('occasion-close').addEventListener('click', closeOccasionEditor); $occasion('occasion-cancel').addEventListener('click', closeOccasionEditor);
-$occasion('occasion-detail-close').addEventListener('click', closeOccasionDetails); $occasion('occasion-detail-back').addEventListener('click', closeOccasionDetails);
+$occasion('occasion-detail-close').addEventListener('click', closeOccasionDetails);
 $occasion('occasion-new').addEventListener('click', () => openOccasionEditor());
 $occasion('home-occasion').addEventListener('click', openHomeOccasion); $occasion('nav-occasion').addEventListener('click', openOccasionView); $occasion('nav-home').addEventListener('click', closeHistoryView);
 function closeHistoryOccasionFilter({ restoreFocus = false } = {}) {
