@@ -489,7 +489,8 @@ export function createDrinkInteractions({
     }
 
     state.pendingDrinkId = drinkId;
-    intervalWarningDrinkName.textContent = drink.name;
+    // A bebida é o título; o alerta diz quanto falta.
+    document.querySelector("#interval-warning-title").textContent = `${drink.icon} ${drink.name}`;
     intervalWarningDialog.showModal();
     updateIntervalWarningDialog();
   }
@@ -537,7 +538,7 @@ export function createDrinkInteractions({
     const activity = getDrinkActivity(drink);
 
     state.selectedDrinkId = drinkId;
-    logDrinkName.textContent = drink.name;
+    logDrinkName.textContent = `${drink.icon} ${drink.name}`;
     document.querySelector("#log-dose-field").hidden = !drink.askDoseSize;
     document.querySelector('input[name="logDoseSize"][value="full"]').checked = true;
     setLogDurationPicker(0, 0);
@@ -552,7 +553,15 @@ export function createDrinkInteractions({
     }
 
     beginFormDraft(logForm);
+    updateLogSubmitLabel();
     logDialog.showModal();
+  }
+
+  // O botão diz a hora que vai ser anotada ("Anotar às 20:10"); ele só aparece depois de mexer nas roletas.
+  function updateLogSubmitLabel() {
+    const minutes = Number(logHoursAgoInput.value) * 60 + Number(logMinutesAgoInput.value);
+    const button = document.querySelector("#log-submit-button");
+    if (button && Number.isFinite(minutes)) button.textContent = `Anotar às ${formatClock(Date.now() - minutes * 60000)}`;
   }
 
   function closeLogDialog() {
@@ -647,7 +656,6 @@ export function createDrinkInteractions({
   document.querySelector("#delete-drink-keep-history").addEventListener("click", deleteDrinkKeepingHistory);
   document.querySelector("#delete-drink-with-history").addEventListener("click", deleteDrinkWithHistory);
 
-  document.querySelector("#close-interval-warning-dialog").addEventListener("click", closeIntervalWarningDialog);
   document.querySelector("#cancel-interval-warning-dialog").addEventListener("click", closeIntervalWarningDialog);
   document.querySelector("#confirm-interval-warning").addEventListener("click", continueFromIntervalWarning);
 
@@ -659,7 +667,7 @@ export function createDrinkInteractions({
   document.querySelector("#drink-menu-edit").addEventListener("click", editDrinkFromDrinkMenu);
 
   document.querySelector("#close-log-dialog").addEventListener("click", closeLogDialog);
-  document.querySelector("#cancel-log-dialog").addEventListener("click", closeLogDialog);
+  for (const type of ["input", "change"]) logForm.addEventListener(type, updateLogSubmitLabel);
   logForm.addEventListener("submit", handleLogSubmit);
 
   document.querySelector("#close-dose-size-dialog").addEventListener("click", closeDoseSizeDialog);

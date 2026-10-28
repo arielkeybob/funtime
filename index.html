@@ -59,7 +59,7 @@
     <footer class="browser-gate-footer">
       <span>App para estudo · não é controle de segurança</span>
       <a class="policies-link" href="./policies.html">Políticas e informações</a>
-      <span>v2.26.7 · By: arielkeybob</span>
+      <span>v2.26.8 · By: arielkeybob</span>
     </footer>
   </section>
 
@@ -359,7 +359,7 @@
 
     <section class="settings-page" data-settings-page="about" data-title="Sobre o app" hidden>
       <section class="settings-card">
-        <p class="settings-description">Versão instalada: <strong>v2.26.7</strong></p>
+        <p class="settings-description">Versão instalada: <strong>v2.26.8</strong></p>
         <button id="check-app-update" class="settings-secondary-button" type="button">Verificar atualizações</button>
         <a class="settings-link-row" href="./policies.html"><span>Políticas e informações</span><span class="settings-nav-chevron" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg></span></a>
       </section>
@@ -473,7 +473,7 @@
     <footer class="app-footer">
       <span class="app-footer-disclaimer">App para estudo · não é controle de segurança</span>
       <a class="policies-link" href="./policies.html">Políticas e informações</a>
-      <span class="app-footer-meta">v2.26.7 · By: arielkeybob</span>
+      <span class="app-footer-meta">v2.26.8 · By: arielkeybob</span>
     </footer>
   </div>
 
@@ -725,30 +725,29 @@
     </form>
   </dialog>
 
-  <dialog id="interval-warning-dialog" class="dialog interval-warning-dialog">
+  <dialog id="interval-warning-dialog" class="dialog interval-warning-dialog compact-dialog">
     <form method="dialog">
       <div class="dialog-header">
         <div>
-          <p class="eyebrow danger-eyebrow">Atenção</p>
-          <h2>Intervalo em andamento</h2>
+          <p class="eyebrow danger-eyebrow">Intervalo em andamento</p>
+          <h2 id="interval-warning-title">Bebida</h2>
         </div>
-        <button id="close-interval-warning-dialog" class="icon-button secondary" type="button" aria-label="Fechar">×</button>
       </div>
 
       <div class="warning-hero" role="alert">
         <span class="warning-hero-icon" aria-hidden="true">⚠</span>
         <div>
-          <strong id="interval-warning-drink-name">Bebida</strong>
+          <strong id="interval-warning-drink-name">Ainda em intervalo</strong>
           <span id="interval-warning-remaining">O intervalo ainda não terminou.</span>
         </div>
       </div>
 
       <p id="interval-warning-context" class="warning-context" hidden></p>
-      <p id="interval-warning-message" class="warning-copy"></p>
+      <p id="interval-warning-message" class="warning-copy clean-optional"></p>
 
       <div class="warning-actions">
         <button id="cancel-interval-warning-dialog" class="primary-button" type="button">Voltar</button>
-        <button id="confirm-interval-warning" class="danger-button" type="button">Já consumi — anotar</button>
+        <button id="confirm-interval-warning" class="secondary-button" type="button">Já consumi — anotar</button>
       </div>
     </form>
   </dialog>
@@ -807,7 +806,7 @@
       <div class="log-dialog-scroll">
         <div class="dialog-header">
           <div>
-            <p class="eyebrow">Anotar consumo</p>
+            <p class="eyebrow">Anotar dose</p>
             <h2 id="log-drink-name">Bebida</h2>
           </div>
           <button id="close-log-dialog" class="icon-button secondary" type="button" aria-label="Fechar">×</button>
@@ -815,7 +814,7 @@
 
         <div id="active-interval-warning" class="active-warning" hidden>
           <strong id="active-interval-warning-title">O registro anterior será mantido</strong>
-          <span id="active-interval-warning-text">Este consumo será adicionado ao histórico.</span>
+          <span id="active-interval-warning-text" class="clean-optional">Este consumo será adicionado ao histórico.</span>
         </div>
 
         <fieldset id="log-dose-field" class="field event-dose-field" hidden>
@@ -867,8 +866,7 @@
       </div>
 
       <div class="dialog-actions log-dialog-actions">
-        <button id="cancel-log-dialog" class="secondary-button" type="button">Cancelar</button>
-        <button class="primary-button" type="submit">Anotar dose</button>
+        <button id="log-submit-button" class="primary-button" type="submit">Anotar dose</button>
       </div>
     </form>
   </dialog>

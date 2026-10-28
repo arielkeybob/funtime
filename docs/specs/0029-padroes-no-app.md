@@ -1,6 +1,6 @@
 # 0029 — Padrões de Eventos no resto do app
 
-Status: em andamento (C na v2.26.0, D na v2.26.1, A na v2.26.2, B na v2.26.3, G na v2.26.4, H na v2.26.5, I na v2.26.6, J na v2.26.7)
+Status: em andamento (C na v2.26.0, D na v2.26.1, A na v2.26.2, B na v2.26.3, G na v2.26.4, H na v2.26.5, I na v2.26.6, J na v2.26.7, K na v2.26.8)
 
 ## Contexto
 
@@ -33,7 +33,7 @@ tutoriais e versão.
 | 6 | H — Compartilhar doses e Convidados: nome do evento no título, botão diz o efeito | feito (v2.26.5) |
 | 7 | I — Configurações num componente único de linhas | feito (v2.26.6) |
 | 8 | J — Backup e conta: selo de estado, ações discretas | feito (v2.26.7) |
-| 9 | K — Anotar dose ("Anotar às 20:10") e aviso de intervalo | a fazer |
+| 9 | K — Anotar dose ("Anotar às 20:10") e aviso de intervalo | feito (v2.26.8) |
 | 10 | L — Importar bebidas, Criar PIN e Redefinir: botão diz o efeito | a fazer |
 | 11 | M — Botões de perigo unificados | a fazer |
 | 12 | N — Correções (erros de conta como erro, voltar para Amigos, textos do tutorial, DEVELOPMENT.md) | a fazer |
@@ -119,6 +119,7 @@ Pendentes:
 - desde H: `evento-compartilhado`.
 - desde I: `privacidade`.
 - desde J: `backup-e-bebidas`.
+- desde K: `registrar-dose`.
 
 ## Pacote G (v2.26.4)
 
@@ -170,3 +171,16 @@ Pendentes:
 - `#sync-state-note` continua para "sem conta", "desconectada" e "sem internet", porque é um aviso.
 - **Decisão 4:** o handler de `#sync-sign-out` pede `showAppConfirmation` quando `latestShares` não está vazio.
   Teste em `tests/confirmacoes-browser.test.cjs`.
+
+## Pacote K (v2.26.8)
+
+- `#interval-warning-dialog`:
+  - `.compact-dialog` e título `#interval-warning-title` (ícone + nome);
+  - `#close-interval-warning-dialog` removido;
+  - `#confirm-interval-warning` como `.secondary-button` (decisão 3);
+  - `#interval-warning-message` em `clean-optional`. O alerta (`.warning-hero`) e o contexto de sequência continuam visíveis.
+- `#log-dialog`:
+  - título com ícone;
+  - `#cancel-log-dialog` removido;
+  - `#log-submit-button` com `updateLogSubmitLabel()` (eventos `input`/`change` do formulário e na abertura);
+  - texto do aviso em `clean-optional`.

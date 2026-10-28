@@ -1,4 +1,12 @@
-# FunTime — V2.26.7
+# FunTime — V2.26.8
+
+## V2.26.8 — Anotar dose e aviso de intervalo mais diretos
+
+- **Aviso de intervalo**: janela pequena no meio da tela, com o ícone e o nome da bebida no título e o alerta do tempo que falta. Sem o ✕: **Voltar** fica em destaque de propósito; **Já consumi — anotar** virou um botão neutro. A frase longa fica para a interface detalhada.
+- **Anotar dose**: ícone da bebida no título; sai o Cancelar que repetia o ✕; o botão do rodapé aparece ao mexer nas roletas e diz a hora que vai ser anotada (**Anotar às 20:10**). O aviso "O registro anterior será mantido" ficou numa linha.
+- Pacote K da spec 0029. Tutoriais afetados ficam para a regravação no fim da série.
+- Sem mudança de dados; `DATA_VERSION` permanece 11.
+
 
 ## V2.26.7 — Backup e conta mais organizado
 
