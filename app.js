@@ -22,6 +22,7 @@ import { createDurationPicker, createWheelPicker, setWheelPickerValue } from "./
 import { createFieldErrorController, createFormErrorController } from "./src/ui/field-errors.js";
 import { createDrinkReorderController } from "./src/ui/drink-reorder.js";
 import { createIconCatalog } from "./src/ui/icon-catalog.js";
+import { encodeBackgroundImage, parseStoredBackground, serializeBackground } from "./src/ui/app-background.js";
 import { createEventDialog } from "./src/history/event-dialog.js";
 import { REACTIONS, REACTION_IDS, normalizeReaction, getReactionById, ADD_REACTION_ICON_SVG } from "./src/history/reactions.js";
 import { createHistoryReactionController } from "./src/history/reaction-picker.js";
@@ -315,7 +316,7 @@ document.addEventListener("visibilitychange", () => {
 const DATA_STORAGE_KEY = "funtime-v1-data";
 const LEGACY_DRINKS_STORAGE_KEY = "balada-v1-drinks";
 const DATA_VERSION = 11;
-const APP_VERSION = "2.29.1";
+const APP_VERSION = "2.30.0";
 const DRINK_EXPORT_TYPE = "funtime-drinks";
 const DRINK_EXPORT_FORMAT_VERSION = 1;
 const BACKUP_EXPORT_TYPE = "funtime-backup";
@@ -327,6 +328,7 @@ const SHARE_IMPORT_REQUEST_PATH = "./__shared-drinks-import__";
 const SHARE_IMPORT_MAX_AGE_MS = 24 * 60 * 60 * 1000;
 const SECURITY_STORAGE_KEY = "funtime-security-v1";
 const SECURITY_SESSION_KEY = "funtime-security-session-v1";
+const BACKGROUND_STORAGE_KEY = "funtime-background-v1";
 
 const PICKER_ICONS = [
   "🍬", "💊", "🍍", "🍭", "🥃", "🍺", "🍷", "🥂",
@@ -547,6 +549,12 @@ const settingsView = document.querySelector("#settings-view");
 const countingModeInput = document.querySelector("#counting-mode");
 const cleanInterfaceInput = document.querySelector("#clean-interface");
 const prioritizeRecentDrinksInput = document.querySelector("#prioritize-recent-drinks");
+const appBackgroundLayer = document.querySelector("#app-background");
+const appBackgroundPreview = document.querySelector("#app-background-preview");
+const appBackgroundStatus = document.querySelector("#app-background-status");
+const appBackgroundChoose = document.querySelector("#app-background-choose");
+const appBackgroundInput = document.querySelector("#app-background-file");
+const appBackgroundRemove = document.querySelector("#app-background-remove");
 const exportDrinksButton = document.querySelector("#export-drinks");
 const importDrinksButton = document.querySelector("#import-drinks");
 const drinkImportFileInput = document.querySelector("#drink-import-file");
@@ -1046,6 +1054,8 @@ function refreshHomeGreeting() {
   homeGreetingTimer = setTimeout(fadeOut, HOLD_MS);
 }
 
+const MODULE_THEME_COLORS = { occasion: "#130e1c", shared: "#16130b" };
+
 function setCurrentView(view) {
   state.currentView = view;
   historyReaction?.closePicker();
@@ -1059,10 +1069,10 @@ function setCurrentView(view) {
   document.getElementById("occasion-view").hidden = view !== "occasion";
   if (sharedHeader) sharedHeader.hidden = view !== "shared";
   if (sharedViewMain) sharedViewMain.hidden = view !== "shared";
-  // Eventos é um módulo à parte, com fundo lilás escuro (styles.css, :root[data-view="occasion"]);
-  // a barra do sistema acompanha.
+  // Eventos (lilás) e Amigos (ouro) são módulos à parte, com fundo próprio
+  // (styles.css, :root[data-view="occasion"|"shared"]); a barra do sistema acompanha.
   document.documentElement.dataset.view = view;
-  document.querySelector('meta[name="theme-color"]')?.setAttribute("content", view === "occasion" ? "#130e1c" : "#09090b");
+  document.querySelector('meta[name="theme-color"]')?.setAttribute("content", MODULE_THEME_COLORS[view] || "#09090b");
   refreshHomeGreeting();
   document.querySelectorAll("[data-nav-view]").forEach(button => {
     if (button.dataset.navView === view) button.setAttribute("aria-current", "page");
@@ -3301,6 +3311,53 @@ prioritizeRecentDrinksInput.addEventListener("change", () => {
   }
 });
 
+// Imagem de fundo (spec 0031): chave própria, fora dos dados e do backup. É do aparelho, como a
+// proteção local, e pesada demais para viajar em cada backup.
+function readAppBackground() {
+  try { return parseStoredBackground(localStorage.getItem(BACKGROUND_STORAGE_KEY)); } catch { return null; }
+}
+
+function applyAppBackground(image = readAppBackground()) {
+  const css = image ? `url("${image}")` : "";
+  document.documentElement.toggleAttribute("data-app-background", Boolean(image));
+  if (appBackgroundLayer) appBackgroundLayer.style.backgroundImage = css;
+  if (appBackgroundPreview) appBackgroundPreview.style.backgroundImage = css;
+  if (appBackgroundStatus) appBackgroundStatus.textContent = image ? "Imagem escolhida" : "Nenhuma imagem";
+  if (appBackgroundChoose) appBackgroundChoose.textContent = image ? "Trocar imagem" : "Escolher imagem";
+  if (appBackgroundRemove) appBackgroundRemove.hidden = !image;
+}
+
+function clearAppBackground() {
+  try { localStorage.removeItem(BACKGROUND_STORAGE_KEY); } catch { /* Sem armazenamento: some só da tela. */ }
+  applyAppBackground(null);
+}
+
+appBackgroundChoose?.addEventListener("click", () => appBackgroundInput.click());
+appBackgroundInput?.addEventListener("change", async () => {
+  const [file] = appBackgroundInput.files;
+  appBackgroundInput.value = "";
+  if (!file) return;
+  appBackgroundChoose.disabled = true;
+  try {
+    const image = await encodeBackgroundImage(file);
+    try {
+      localStorage.setItem(BACKGROUND_STORAGE_KEY, serializeBackground(image));
+    } catch {
+      throw new Error("Não há espaço neste aparelho para guardar a imagem. Tente uma menor.");
+    }
+    applyAppBackground(image);
+    showToast("Imagem de fundo aplicada.");
+  } catch (error) {
+    showAppNotification(error?.message || "Não foi possível usar esta imagem.", { type: "error", persistent: true });
+  } finally {
+    appBackgroundChoose.disabled = false;
+  }
+});
+appBackgroundRemove?.addEventListener("click", () => {
+  clearAppBackground();
+  showToast("Imagem de fundo removida.");
+});
+
 exportDrinksButton.addEventListener("click", exportDrinks);
 importDrinksButton.addEventListener("click", () => {
   drinkImportFileInput.value = "";
@@ -3540,6 +3597,7 @@ function maybeShowIntroTutorial() {
 async function bootstrapApp() {
   await requireTermsAcceptance();
   applyInterfacePreferences();
+  applyAppBackground();
   updateDataSettingsUI();
   initializeDurationPickers();
   initializeLogDurationPickers();
@@ -4312,7 +4370,7 @@ Object.assign(globalThis, {
   state, DATA_STORAGE_KEY, buildCurrentAppData, refreshDataViews, showToast,
   showAppNotification, setCurrentView, createId, closeHistoryView, openHistoryView, leaveHistoryView, setHistoryReturnOccasion, leaveSettingsView,
   renderHistory, getEventDrinkIdentity, toLocalDateInputValue, toLocalTimeInputValue,
-  PICKER_ICONS, SECURITY_STORAGE_KEY, hideToast, applyInterfacePreferences,
+  PICKER_ICONS, SECURITY_STORAGE_KEY, hideToast, applyInterfacePreferences, clearAppBackground,
   updateDataSettingsUI, LEGACY_DRINKS_STORAGE_KEY, SHARE_IMPORT_CACHE_NAME,
   SECURITY_SESSION_KEY, getDefaultSecurityConfig, getConfiguredPinLength,
   getPinLockoutRemainingMs, normalizePinInput, verifyPin, PIN_LOCKOUT_ATTEMPTS,

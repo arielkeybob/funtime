@@ -14,6 +14,7 @@
   <link rel="stylesheet" href="./styles.css">
 </head>
 <body class="clean-mode security-booting boot-pending">
+  <div id="app-background" class="app-background" aria-hidden="true"></div>
   <section id="startup-screen" class="startup-screen" role="status" aria-live="polite">
     <img id="startup-icon" src="./icons/icon-192-v2.png" width="96" height="96" alt="" style="border-radius: 22px">
     <div id="startup-art" hidden></div>
@@ -59,7 +60,7 @@
     <footer class="browser-gate-footer">
       <span>App para estudo · não é controle de segurança</span>
       <a class="policies-link" href="./policies.html">Políticas e informações</a>
-      <span>v2.29.1 · By: arielkeybob</span>
+      <span>v2.30.0 · By: arielkeybob</span>
     </footer>
   </section>
 
@@ -244,6 +245,21 @@
           </span>
         </label>
       </section>
+      <section class="settings-card app-background-card" aria-labelledby="app-background-title">
+        <div class="app-background-row">
+          <span id="app-background-preview" class="app-background-preview" aria-hidden="true"><svg class="occasion-icon" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><path d="m21 16-5-5-9 9"/></svg></span>
+          <div class="settings-toggle-copy">
+            <strong id="app-background-title">Imagem de fundo</strong>
+            <span id="app-background-status">Nenhuma imagem</span>
+            <span class="clean-optional">Aparece escurecida no Início, no Histórico e nas Configurações. Eventos e Amigos mantêm a cor própria. Fica só neste aparelho e não entra no backup.</span>
+          </div>
+        </div>
+        <div class="app-background-actions">
+          <button id="app-background-choose" class="secondary-button" type="button">Escolher imagem</button>
+          <button id="app-background-remove" class="occasion-link" type="button" hidden><svg class="occasion-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>Remover</button>
+          <input id="app-background-file" type="file" accept="image/*" hidden>
+        </div>
+      </section>
     </section>
 
     <section class="settings-page" data-settings-page="privacy" data-title="Privacidade" hidden>
@@ -360,7 +376,7 @@
 
     <section class="settings-page" data-settings-page="about" data-title="Sobre o app" hidden>
       <section class="settings-card">
-        <p class="settings-description">Versão instalada: <strong>v2.29.1</strong></p>
+        <p class="settings-description">Versão instalada: <strong>v2.30.0</strong></p>
         <button id="check-app-update" class="settings-secondary-button" type="button">Verificar atualizações</button>
         <a class="settings-link-row" href="./policies.html"><span>Políticas e informações</span><span class="settings-nav-chevron" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg></span></a>
       </section>
@@ -425,7 +441,7 @@
       </div>
     </main>
 
-    <dialog id="shared-detail-dialog" class="dialog data-dialog">
+    <dialog id="shared-detail-dialog" class="dialog data-dialog friends-scope">
       <form method="dialog">
         <div class="dialog-header">
           <div>
@@ -451,7 +467,7 @@
       </form>
     </dialog>
 
-    <dialog id="friend-info-dialog" class="dialog data-dialog">
+    <dialog id="friend-info-dialog" class="dialog data-dialog friends-scope">
       <form method="dialog">
         <div class="dialog-header">
           <div>
@@ -474,11 +490,11 @@
     <footer class="app-footer">
       <span class="app-footer-disclaimer">App para estudo · não é controle de segurança</span>
       <a class="policies-link" href="./policies.html">Políticas e informações</a>
-      <span class="app-footer-meta">v2.29.1 · By: arielkeybob</span>
+      <span class="app-footer-meta">v2.30.0 · By: arielkeybob</span>
     </footer>
   </div>
 
-  <dialog id="pairing-dialog" class="dialog data-dialog">
+  <dialog id="pairing-dialog" class="dialog data-dialog friends-scope">
     <form method="dialog">
       <div class="dialog-header">
         <div>

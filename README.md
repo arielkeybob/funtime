@@ -1,8 +1,15 @@
-# FunTime — V2.29.1
+# FunTime — V2.30.0
 
-## V2.29.1 — Experimento: Eventos com acento violeta
+## V2.30.0 — Amigos em ouro e imagem de fundo
 
-Teste visual do módulo Eventos em "médio + brilho": botões principais, aba e item ativo da barra em violeta (#9668ff), com leve brilho. Fundo e cartões continuam #130e1c / #1d1728. Pode ser revertido.
+- Amigos ganhou cor própria, bem longe do roxo de Eventos: fundo #16130b, cartões #221d10 e brilho ouro #f2c94c (botões com texto escuro). Convidados e Compartilhar doses continuam lilás, porque abrem a partir de um evento.
+- Configurações > Aparência > **Imagem de fundo**: uma foto escolhida por você aparece escurecida no Início, no Histórico e nas Configurações. Eventos e Amigos mantêm a cor própria. A imagem fica só neste aparelho e não entra no backup; "Apagar tudo deste aparelho" também a remove.
+- O violeta de Eventos (v2.29.1) deixa de ser experimento.
+- Sem mudança de dados; `DATA_VERSION` permanece 11. Tutoriais ficam para a próxima versão.
+
+## V2.29.1 — Eventos com acento violeta
+
+Teste visual do módulo Eventos em "médio + brilho": botões principais, aba e item ativo da barra em violeta (#9668ff), com leve brilho. Fundo e cartões continuam #130e1c / #1d1728.
 
 ## V2.29.0 — Doses direto no detalhe do evento
 

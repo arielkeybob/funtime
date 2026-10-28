@@ -4054,7 +4054,7 @@ div.share-person { cursor: default; }
   --event-nav: #17111f;
   --event-start: #5ee99b;
   --event-end: #ff5b62;
-  /* Experimento v2.29.1: "médio + brilho" — acento violeta nos botões principais e na aba ativa. */
+  /* v2.29.1, "médio + brilho": acento violeta nos botões principais e na aba ativa. */
   --event-glow: #9668ff;
   --accent: var(--event-glow);
   --accent-text: #ffffff;
@@ -4067,6 +4067,32 @@ div.share-person { cursor: default; }
 .event-scope .field input[type="text"], .event-scope .field input[type="datetime-local"], .event-scope .date-time-editor { background: var(--event-field); }
 @media (max-width: 600px) {
   dialog.dialog.app-dialog.event-scope .app-dialog-actions { background: var(--event-foot); border-top-color: var(--border); }
+}
+
+/* Módulo Amigos (v2.30.0, spec 0031): o mesmo esquema de Eventos em ouro, o lado quente do círculo,
+   bem longe do roxo. A cor segue a tela de onde o diálogo abriu: Convidados e Compartilhar doses
+   abrem de um evento e continuam lilás. Botões em ouro levam texto escuro (branco não tem contraste). */
+:root[data-view="shared"], .friends-scope {
+  --bg: #16130b;
+  --surface: #221d10;
+  --surface-2: #302918;
+  --border: #473d25;
+  --muted: #bdb49d;
+  --friends-field: #0e0c06;
+  --friends-foot: #1d190e;
+  --friends-tab: #3d351c;
+  --friends-nav: #1a160b;
+  --friends-glow: #f2c94c;
+  --accent: var(--friends-glow);
+  --accent-text: #1a1300;
+}
+:root[data-view="shared"] .bottom-nav { background: var(--friends-nav); }
+.friends-scope .shared-detail-tabs button[aria-pressed="true"] { background: var(--friends-tab); box-shadow: inset 0 0 0 1px var(--friends-glow); color: #fff; }
+.friends-scope .primary-button, :root[data-view="shared"] .primary-button { box-shadow: 0 0 16px #f2c94c40; }
+.dialog.friends-scope { background: var(--bg); }
+.friends-scope .field input[type="text"] { background: var(--friends-field); }
+@media (max-width: 600px) {
+  dialog.dialog.app-dialog.friends-scope .app-dialog-actions { background: var(--friends-foot); border-top-color: var(--border); }
 }
 
 /* Ícones e marcadores */
@@ -4285,3 +4311,22 @@ div.share-person { cursor: default; }
     gap: 18px 16px;
   }
 }
+
+/* Imagem de fundo (v2.30.0, spec 0031): escolhida em Aparência, vale para as telas de cor neutra
+   (Início, Histórico, Configurações). Eventos e Amigos mantêm a cor do módulo. A camada fica atrás
+   de tudo e leva um véu preto para o texto direto sobre o fundo continuar legível. */
+.app-background { position: fixed; inset: 0; z-index: -1; display: none; background: center / cover no-repeat; pointer-events: none; }
+.app-background::after, .app-background-preview::after { content: ""; position: absolute; inset: 0; background: rgb(0 0 0 / .7); }
+:root[data-app-background]:not([data-view="occasion"]):not([data-view="shared"]) .app-background { display: block; }
+:root[data-app-background]:not([data-view="occasion"]):not([data-view="shared"]) body { background: transparent; }
+/* O aviso do rodapé fica direto sobre a imagem: precisa continuar legível em qualquer foto. */
+:root[data-app-background]:not([data-view="occasion"]):not([data-view="shared"]) .app-footer { color: var(--muted); text-shadow: 0 1px 3px rgb(0 0 0 / .9); }
+:root[data-app-background]:not([data-view="occasion"]):not([data-view="shared"]) .app-footer-disclaimer { color: var(--muted); }
+.app-background-row { display: flex; align-items: center; gap: 14px; }
+.app-background-preview { position: relative; flex: none; display: grid; place-items: center; width: 56px; height: 84px; overflow: hidden; border: 1px solid var(--border); border-radius: 12px; background: var(--surface-2) center / cover no-repeat; color: var(--muted); }
+.app-background-preview::after { display: none; }
+:root[data-app-background] .app-background-preview::after { display: block; }
+:root[data-app-background] .app-background-preview svg { display: none; }
+.app-background-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; }
+.app-background-actions .secondary-button { flex: 1 1 160px; }
+.app-background-actions .occasion-link { width: auto; }

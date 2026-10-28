@@ -1,4 +1,4 @@
-const APP_VERSION = "2.29.1";
+const APP_VERSION = "2.30.0";
 const CACHE_NAME = "funtime-v2-29-0";
 const BACKGROUND_CACHE_NAME = "funtime-bg-v1";
 // Mídia dos tutoriais (spec 0026): baixada na primeira vez que é vista. O nome acompanha a versão
@@ -44,6 +44,7 @@ const APP_SHELL = [
   "./src/ui/drink-reorder.js",
   "./src/ui/icon-reorder.js",
   "./src/ui/icon-catalog.js",
+  "./src/ui/app-background.js",
   "./src/easter-eggs/index.js",
   "./src/drinks/validate.js",
   "./src/history/event-dialog.js",
