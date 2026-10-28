@@ -315,7 +315,7 @@ document.addEventListener("visibilitychange", () => {
 const DATA_STORAGE_KEY = "funtime-v1-data";
 const LEGACY_DRINKS_STORAGE_KEY = "balada-v1-drinks";
 const DATA_VERSION = 11;
-const APP_VERSION = "2.26.0";
+const APP_VERSION = "2.26.1";
 const DRINK_EXPORT_TYPE = "funtime-drinks";
 const DRINK_EXPORT_FORMAT_VERSION = 1;
 const BACKUP_EXPORT_TYPE = "funtime-backup";
@@ -2996,7 +2996,7 @@ const drinkInteractions = createDrinkInteractions({
   commitAppData, buildCurrentAppData, dataStorageKey: DATA_STORAGE_KEY,
   refreshDataViews, showToast, showAppNotification, hideToast, closeHistoryView,
   normalizeIcon, normalizeDoseSize, createId,
-  getEventDrinkIdentity, getDoseLabel, getDrinkActivity, formatClock, formatTime,
+  getEventDrinkIdentity, getDoseLabel, getDrinkActivity, formatClock, formatTime, formatInterval,
   buildIconPicker, cancelIconReorder, beginFormDraft, captureDrinkCardPositions, animateDrinkReorder,
   wireDialogDismissal,
 });

@@ -46,13 +46,13 @@ export const TUTORIALS = [
       },
       {
         "tipo": "imagem",
-        "src": "./tutorials/media/cadastrar-bebida/02.5eb86629.webp",
+        "src": "./tutorials/media/cadastrar-bebida/02.ae0a98cf.webp",
         "alt": "Formulário de cadastro com o nome Cerveja e a lista de ícones em destaque.",
         "legenda": "Dê um nome e escolha um ícone."
       },
       {
         "tipo": "imagem",
-        "src": "./tutorials/media/cadastrar-bebida/03.b51bcdfa.webp",
+        "src": "./tutorials/media/cadastrar-bebida/03.032228f1.webp",
         "alt": "Formulário de cadastro com as rodas de horas e minutos do intervalo em destaque.",
         "legenda": "Defina o intervalo entre as doses girando horas e minutos."
       },
@@ -64,29 +64,29 @@ export const TUTORIALS = [
       },
       {
         "tipo": "video",
-        "src": "./tutorials/media/cadastrar-bebida/05.ff8f4ec9.mp4",
-        "poster": "./tutorials/media/cadastrar-bebida/05.poster.8fcba985.webp",
+        "src": "./tutorials/media/cadastrar-bebida/05.723311b6.mp4",
+        "poster": "./tutorials/media/cadastrar-bebida/05.poster.89ae8563.webp",
         "alt": "O botão Salvar é tocado e o cadastro fecha, mostrando o cartão da Cerveja na tela inicial.",
         "legenda": "Toque em Salvar: a bebida aparece na tela inicial."
       },
       {
         "tipo": "video",
-        "src": "./tutorials/media/cadastrar-bebida/06.313f5807.mp4",
-        "poster": "./tutorials/media/cadastrar-bebida/06.poster.4651c547.webp",
+        "src": "./tutorials/media/cadastrar-bebida/06.9ffc5208.mp4",
+        "poster": "./tutorials/media/cadastrar-bebida/06.poster.ca6ee264.webp",
         "alt": "O botão ⋮ do cartão da Cerveja é tocado e abre o menu com as opções Anotar dose e Editar bebida.",
         "legenda": "Toque em ⋮ no cartão para anotar uma dose ou editar a bebida."
       },
       {
         "tipo": "video",
-        "src": "./tutorials/media/cadastrar-bebida/07.92f266e1.mp4",
-        "poster": "./tutorials/media/cadastrar-bebida/07.poster.0225182b.webp",
+        "src": "./tutorials/media/cadastrar-bebida/07.134eb239.mp4",
+        "poster": "./tutorials/media/cadastrar-bebida/07.poster.4c588cda.webp",
         "alt": "A Água é segurada e arrastada para o topo da lista de bebidas.",
         "legenda": "Segure uma bebida e arraste para mudar a ordem."
       },
       {
         "tipo": "video",
-        "src": "./tutorials/media/cadastrar-bebida/08.7958d5e0.mp4",
-        "poster": "./tutorials/media/cadastrar-bebida/08.poster.e8f96f3a.webp",
+        "src": "./tutorials/media/cadastrar-bebida/08.d9a6c286.mp4",
+        "poster": "./tutorials/media/cadastrar-bebida/08.poster.254bb5b1.webp",
         "alt": "Da tela inicial, o botão ⋮ da Água é tocado, depois Editar bebida e a lixeira do rodapé; a pergunta sobre o histórico mostra as duas opções, e a opção de manter o histórico é tocada; a Água some da lista e o app avisa que ela foi excluída e o histórico mantido.",
         "legenda": "Para excluir a bebida, escolha manter ou apagar o histórico dela."
       }
@@ -99,8 +99,8 @@ export const TUTORIALS = [
     "passos": [
       {
         "tipo": "video",
-        "src": "./tutorials/media/registrar-dose/01.199f9554.mp4",
-        "poster": "./tutorials/media/registrar-dose/01.poster.7770d35b.webp",
+        "src": "./tutorials/media/registrar-dose/01.01e9022f.mp4",
+        "poster": "./tutorials/media/registrar-dose/01.poster.f2a0bb29.webp",
         "alt": "O cartão da Cerveja recebe o destaque azul e dois toques rápidos o registram; a contagem do intervalo começa e o app avisa que o consumo foi anotado.",
         "legenda": "Dê dois toques na bebida para registrar a dose."
       },
@@ -112,13 +112,13 @@ export const TUTORIALS = [
       },
       {
         "tipo": "imagem",
-        "src": "./tutorials/media/registrar-dose/03.1b76fdb6.webp",
+        "src": "./tutorials/media/registrar-dose/03.9432a2a3.webp",
         "alt": "Aviso Intervalo em andamento com os botões Voltar e Já consumi — anotar.",
         "legenda": "Registrar outra dose antes de terminar a anterior mostra um aviso; você decide."
       },
       {
         "tipo": "imagem",
-        "src": "./tutorials/media/registrar-dose/04.b7fe37fa.webp",
+        "src": "./tutorials/media/registrar-dose/04.a01b8c74.webp",
         "alt": "Menu da bebida com a opção Anotar dose em destaque.",
         "legenda": "Esqueceu de registrar? Use o menu ⋮ e anote a dose em outro horário."
       }

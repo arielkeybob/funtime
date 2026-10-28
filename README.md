@@ -1,4 +1,12 @@
-# FunTime — V2.26.0
+# FunTime — V2.26.1
+
+## V2.26.1 — menu ⋮ da bebida em linhas
+
+- O menu **⋮** do cartão virou uma janela pequena no meio da tela, com as opções em linhas: **Anotar dose**, **Cancelar contagem** (em vermelho, com o tempo que falta, só durante a contagem) e **Editar bebida** (com o intervalo ao lado).
+- **Corrige**: depois de editar a bebida pelo menu, ele ficava aberto por trás com o nome antigo. Agora fecha junto com o editor.
+- Pacote D da spec 0029. Tutoriais "Cadastrar e organizar bebidas" e "Registrar doses e intervalos" regerados.
+- Sem mudança de dados; `DATA_VERSION` permanece 11.
+
 
 ## V2.26.0 — lixeira no rodapé dos editores
 

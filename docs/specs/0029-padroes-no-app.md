@@ -1,6 +1,6 @@
 # 0029 — Padrões de Eventos no resto do app
 
-Status: em andamento (pacote C na v2.26.0)
+Status: em andamento (C na v2.26.0, D na v2.26.1)
 
 ## Contexto
 
@@ -26,7 +26,7 @@ tutoriais e versão.
 | # | Pacote | Situação |
 |---|---|---|
 | 1 | C — Rodapé com lixeira nos editores (Editar bebida, Editar registro) | feito (v2.26.0) |
-| 2 | D — Menu ⋮ da bebida em linhas, numa janela compacta; fechar o menu depois de editar | a fazer |
+| 2 | D — Menu ⋮ da bebida em linhas, numa janela compacta; fechar o menu depois de editar | feito (v2.26.1) |
 | 3 | A — `window.confirm` (apagar nuvem, desfazer amizade, parar com todos) → confirmação compacta; tom neutro para confirmações que não apagam | a fazer |
 | 4 | B — Escolhas curtas em janela compacta: cancelar contagem, excluir bebida, meia/inteira, como desbloquear, restaurar backup, convite | a fazer |
 | 5 | G — Detalhe do amigo: selo, ▶, cartão-resumo; sem "Fechar" repetido; Sobre volta ao amigo | a fazer |
@@ -70,3 +70,15 @@ Redefinir em uma etapa só.
     por script fora de Eventos.
 - **Tutoriais:** 01 (texto alternativo) e 03 (legenda e texto alternativo, sem o "Desfazer" que não
   existe) foram regravados, com 00 e 01 por causa da marcação de `#drink-dialog`.
+
+## Pacote D (v2.26.1)
+
+- `#drink-menu-dialog` ganhou `.compact-dialog` e as opções viraram `.occasion-menu`, com linhas
+  `.occasion-menu-row`. Ids mantidos: `#drink-menu-other-time`, `#drink-menu-stop` (com `.danger`) e
+  `#drink-menu-edit`.
+- Saíram o rótulo "Bebida" e os títulos de seção.
+- `#drink-menu-remaining` mostra o tempo que falta e é atualizado no mesmo ciclo de
+  `updateDrinkMenuCountdown`. `#drink-menu-interval` mostra o intervalo.
+- Salvar a edição aberta pelo menu fecha o menu também.
+- Janela compacta sem rodapé ganhou padding inferior (`form.app-dialog-no-footer`).
+- Teste novo: `tests/drink-menu-browser.test.cjs`.

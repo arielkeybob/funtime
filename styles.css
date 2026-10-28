@@ -606,65 +606,11 @@ body {
   overflow-wrap: anywhere;
 }
 
-.drink-menu-actions {
-  display: grid;
-  gap: 8px;
-}
-
-.drink-menu-action {
-  display: grid;
-  grid-template-columns: 30px minmax(0, 1fr);
-  align-items: center;
-  gap: 10px;
-  width: 100%;
-  min-height: 52px;
-  padding: 10px 13px;
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  background: #09090b;
-  color: var(--text);
-  font-weight: 760;
-  text-align: left;
-}
-
-.drink-menu-action:active {
-  background: var(--surface-2);
-}
-
-.drink-menu-action.danger {
-  border-color: var(--danger-border);
-  color: #ff9da2;
-}
-
-.drink-menu-action-icon {
-  display: grid;
-  place-items: center;
-  color: var(--muted);
-  font-size: 1.15rem;
-}
-
-.drink-menu-action.danger .drink-menu-action-icon {
-  color: #ff9da2;
-}
-
 .drink-menu-hint {
   margin: -4px 0 0;
   color: var(--muted);
   font-size: 0.72rem;
   line-height: 1.4;
-}
-
-@media (max-width: 600px) {
-  .drink-menu-dialog {
-    width: min(calc(100% - 20px), 520px);
-    margin: auto auto max(10px, env(safe-area-inset-bottom));
-    border-radius: 20px;
-  }
-
-  .drink-menu-dialog form {
-    gap: 14px;
-    padding: 16px;
-  }
 }
 
 .empty-state {
@@ -2714,8 +2660,6 @@ body {
 }
 
 
-.drink-menu-section-title { margin: 0; color: var(--muted); font-size: .8rem; font-weight: 600; }
-.drink-menu-section-divider { border-top: 1px solid var(--border); padding-top: 18px; margin-top: 8px; }
 
 .security-support-note {
   padding-top: 2px;
@@ -4226,3 +4170,12 @@ div.share-person { cursor: default; }
 :is(#drink-dialog, #event-dialog) .editor-actions { display: flex; gap: 10px; }
 .editor-actions .primary-button { flex: 1; min-width: 0; }
 .editor-actions:not(:has(> button:not([hidden]))) { display: none !important; }
+
+/* Menu ⋮ da bebida (v2.26.1, spec 0029, pacote D): janela compacta com um bloco de linhas, como as
+   opções do evento. "Cancelar contagem" em vermelho, com o tempo que falta; "Editar bebida" com o intervalo. */
+.occasion-menu .occasion-menu-row.danger, .occasion-menu-row.danger .occasion-menu-icon { color: #ff9da2; }
+.occasion-menu-row.danger .occasion-menu-icon { background: rgb(255 91 98 / .12); }
+.occasion-menu-row.danger small { color: #ff9da2; font-variant-numeric: tabular-nums; }
+@media (max-width: 600px) {
+  dialog.dialog.app-dialog.compact-dialog > form.app-dialog-no-footer .app-dialog-scroll { padding-bottom: 20px; }
+}

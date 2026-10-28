@@ -59,7 +59,7 @@
     <footer class="browser-gate-footer">
       <span>App para estudo · não é controle de segurança</span>
       <a class="policies-link" href="./policies.html">Políticas e informações</a>
-      <span>v2.26.0 · By: arielkeybob</span>
+      <span>v2.26.1 · By: arielkeybob</span>
     </footer>
   </section>
 
@@ -369,7 +369,7 @@
           </div>
         </div>
 
-        <p class="settings-description">Versão instalada: <strong>v2.26.0</strong></p>
+        <p class="settings-description">Versão instalada: <strong>v2.26.1</strong></p>
         <button id="check-app-update" class="settings-secondary-button" type="button">Verificar atualizações</button>
       </section>
 
@@ -494,7 +494,7 @@
     <footer class="app-footer">
       <span class="app-footer-disclaimer">App para estudo · não é controle de segurança</span>
       <a class="policies-link" href="./policies.html">Políticas e informações</a>
-      <span class="app-footer-meta">v2.26.0 · By: arielkeybob</span>
+      <span class="app-footer-meta">v2.26.1 · By: arielkeybob</span>
     </footer>
   </div>
 
@@ -776,30 +776,25 @@
     </form>
   </dialog>
 
-  <dialog id="drink-menu-dialog" class="dialog drink-menu-dialog">
+  <dialog id="drink-menu-dialog" class="dialog drink-menu-dialog compact-dialog">
     <form method="dialog">
       <div class="dialog-header">
-        <div>
-          <p class="eyebrow">Bebida</p>
-          <h2 id="drink-menu-name">Bebida</h2>
-        </div>
+        <h2 id="drink-menu-name">Bebida</h2>
         <button id="close-drink-menu-dialog" class="icon-button secondary" type="button" aria-label="Fechar">×</button>
       </div>
 
-      <div class="drink-menu-actions">
-        <h3 class="drink-menu-section-title">Dose</h3>
-        <button id="drink-menu-other-time" class="drink-menu-action" type="button">
-          <span class="drink-menu-action-icon" aria-hidden="true">◷</span>
-          <span>Anotar dose</span>
+      <div class="drink-menu-actions occasion-menu">
+        <button id="drink-menu-other-time" class="occasion-menu-row drink-menu-action" type="button">
+          <span class="occasion-menu-icon" aria-hidden="true"><svg class="occasion-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span>
+          <strong>Anotar dose</strong><small aria-hidden="true">›</small>
         </button>
-        <button id="drink-menu-stop" class="drink-menu-action danger" type="button" hidden>
-          <span class="drink-menu-action-icon" aria-hidden="true">↶</span>
-          <span>Cancelar contagem atual</span>
+        <button id="drink-menu-stop" class="occasion-menu-row drink-menu-action danger" type="button" hidden>
+          <span class="occasion-menu-icon" aria-hidden="true"><svg class="occasion-icon" viewBox="0 0 24 24"><path d="M9 14 4 9l5-5"/><path d="M4 9h11a5 5 0 0 1 0 10h-3"/></svg></span>
+          <strong>Cancelar contagem</strong><small id="drink-menu-remaining"></small>
         </button>
-        <h3 class="drink-menu-section-title drink-menu-section-divider">Cadastro</h3>
-        <button id="drink-menu-edit" class="drink-menu-action" type="button">
-          <span class="drink-menu-action-icon" aria-hidden="true">✎</span>
-          <span>Editar bebida</span>
+        <button id="drink-menu-edit" class="occasion-menu-row drink-menu-action" type="button">
+          <span class="occasion-menu-icon" aria-hidden="true"><svg class="occasion-icon" viewBox="0 0 24 24"><path d="M4 20h4L18.5 9.5a2.12 2.12 0 0 0-3-3L5 17v3Z"/><path d="m13.5 7.5 3 3"/></svg></span>
+          <strong>Editar bebida</strong><small id="drink-menu-interval"></small>
         </button>
       </div>
 

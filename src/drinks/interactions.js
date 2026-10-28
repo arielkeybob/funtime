@@ -23,7 +23,7 @@ export function createDrinkInteractions({
   commitAppData, buildCurrentAppData, dataStorageKey,
   refreshDataViews, showToast, showAppNotification, hideToast, closeHistoryView,
   normalizeIcon, normalizeDoseSize, createId,
-  getEventDrinkIdentity, getDoseLabel, getDrinkActivity, formatClock, formatTime,
+  getEventDrinkIdentity, getDoseLabel, getDrinkActivity, formatClock, formatTime, formatInterval,
   buildIconPicker, cancelIconReorder, beginFormDraft, captureDrinkCardPositions, animateDrinkReorder,
   wireDialogDismissal,
 }) {
@@ -240,6 +240,8 @@ export function createDrinkInteractions({
         return;
       }
       closeDrinkDialog();
+      // Editou pelo menu ⋮: o menu atrás mostraria o nome e o intervalo antigos.
+      if (drinkMenuDialog.open) closeDrinkMenuDialog();
       refreshDataViews();
       showToast(`${name} atualizada. Novas anotações usarão o novo intervalo.`);
       return;
@@ -399,6 +401,7 @@ export function createDrinkInteractions({
 
     state.menuDrinkId = drinkId;
     drinkMenuName.textContent = `${drink.icon} ${drink.name}`;
+    document.querySelector('#drink-menu-interval').textContent = formatInterval(drink.intervalMinutes) + ' ›';
     updateDrinkMenuCountdown();
     drinkMenuDialog.showModal();
   }
@@ -406,8 +409,11 @@ export function createDrinkInteractions({
   let pendingCountdownStop = null;
 
   function updateDrinkMenuCountdown() {
+    // A linha "Cancelar contagem" só existe durante a contagem e mostra quanto falta.
     const drink = state.drinks.find(item => item.id === state.menuDrinkId);
-    document.querySelector('#drink-menu-stop').hidden = !drink || getDrinkActivity(drink).remainingMs <= 0;
+    const remainingMs = drink ? getDrinkActivity(drink).remainingMs : 0;
+    document.querySelector('#drink-menu-stop').hidden = remainingMs <= 0;
+    document.querySelector('#drink-menu-remaining').textContent = remainingMs > 0 ? formatTime(remainingMs) : '';
   }
 
   function openStopCountdownDialog() {
