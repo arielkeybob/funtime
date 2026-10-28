@@ -63,7 +63,7 @@ function updateResetPreview() {
 function openDataReset(action) {
   resetForm.reset();
   document.querySelector('#reset-step').textContent = '1 de 2 · Revisar';
-  document.querySelector('#reset-submit').className = 'reset-confirm';
+  document.querySelector('#reset-submit').className = 'primary-button';
   document.querySelector('#reset-history-option').hidden = action !== 'drinks';
   resetPending = { action, confirmed: false };
   resetBusy = false;
@@ -160,7 +160,7 @@ async function submitDataReset(event) {
     pending.confirmed = true;
     document.querySelector('#reset-history-option').hidden = true;
     document.querySelector('#reset-step').textContent = '2 de 2 · Autenticar';
-    document.querySelector('#reset-submit').className = 'reset-danger';
+    document.querySelector('#reset-submit').className = 'danger-button';
     document.querySelector('#reset-step').focus();
     document.querySelector('#reset-options').hidden = true;
     document.querySelector('#reset-auth-note').hidden = false;
@@ -217,7 +217,7 @@ function returnToResetPreview() {
   resetBusy = false;
   document.querySelector('#reset-pin').value = '';
   document.querySelector('#reset-step').textContent = '1 de 2 · Revisar';
-  document.querySelector('#reset-submit').className = 'reset-confirm';
+  document.querySelector('#reset-submit').className = 'primary-button';
   document.querySelector('#reset-submit').textContent = 'Continuar';
   document.querySelector('#reset-cancel').hidden = true;
   document.querySelector('#reset-options').hidden = false;

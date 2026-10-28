@@ -42,6 +42,7 @@
   --danger-border: rgb(255 91 98 / 0.72);
   --danger-strong: #ff434d;
   --danger-strong-soft: rgb(255 67 77 / 0.18);
+  --danger-text: #ff9da2;
   --success: #5ee99b;
   --success-soft: rgb(94 233 155 / 0.08);
   --info: #5eb4e9;
@@ -661,7 +662,7 @@ body {
   border: 1px solid var(--danger-strong);
   border-radius: 12px;
   background: rgb(255 67 77 / 0.12);
-  color: #ff9da2;
+  color: var(--danger-text);
   font-weight: 800;
 }
 
@@ -1312,7 +1313,7 @@ body {
 .history-event-elapsed.is-within-interval {
   border-color: rgb(255 91 98 / 0.28);
   background: rgb(255 91 98 / 0.13);
-  color: #ff9da2;
+  color: var(--danger-text);
 }
 
 .history-event-elapsed.is-after-interval {
@@ -1350,7 +1351,7 @@ body {
   padding: 3px 7px;
   border-radius: 7px;
   background: rgb(255 67 77 / 0.16);
-  color: #ff9da2;
+  color: var(--danger-text);
   font-size: 0.72rem;
   font-weight: 850;
   line-height: 1.35;
@@ -1362,7 +1363,7 @@ body {
 }
 
 .history-event.violation .history-event-time {
-  color: #ff9da2;
+  color: var(--danger-text);
 }
 
 .history-event.violation .history-event-body {
@@ -1468,7 +1469,7 @@ body {
   }
 
   .history-event.violation .history-event-mobile-time {
-    color: #ff9da2;
+    color: var(--danger-text);
   }
 
   .history-event-alert {
@@ -2812,7 +2813,7 @@ body {
 .lock-error {
   min-height: 1.4em;
   margin: 2px 0 0;
-  color: #ff9da2;
+  color: var(--danger-text);
   font-size: 0.82rem;
   line-height: 1.4;
 }
@@ -3436,7 +3437,7 @@ body {
 }
 
 .restore-warning strong {
-  color: #ffb0b4;
+  color: var(--danger-text);
   font-size: 0.88rem;
 }
 
@@ -3450,17 +3451,6 @@ body {
   color: var(--muted);
   font-size: 0.74rem;
   line-height: 1.45;
-}
-
-.danger-confirm-button {
-  min-height: 48px;
-  padding: 0 16px;
-  border: 1px solid rgb(255 91 98 / 0.7);
-  border-radius: 12px;
-  background: rgb(255 91 98 / 0.14);
-  color: #ffb0b4;
-  font: inherit;
-  font-weight: 800;
 }
 
 @media (max-width: 600px) {
@@ -3481,15 +3471,15 @@ body {
   background: #26262b; color: #ddd; border: 1px solid #555;
   font-size: 16px; line-height: 1; z-index: 1;
 }
-.icon-option .icon-remove { background: #4a2028; color: #ffb4b4; border-color: #a54e5d; }
+.icon-option .icon-remove { background: var(--danger-strong-soft); color: var(--danger-text); border-color: var(--danger-border); }
 .icon-option .icon-remove:hover { background: #702b39; }
 .icon-options .icon-add, .icon-options .icon-edit {
   margin-left: 8px; padding: 0; min-height: 0; border-radius: 11px;
   border: 1px dashed #777; background: #19191f; color: #ddd; font-size: 1.8rem;
 }
 .icon-options .icon-add { grid-row: 1; }
-.icon-options .icon-edit { grid-row: 2; font-size: 1.5rem; color: #ffb4b4; border-color: #a54e5d; }
-.icon-options .icon-edit[aria-pressed="true"] { border-style: solid; background: #4a2028; }
+.icon-options .icon-edit { grid-row: 2; font-size: 1.5rem; color: var(--danger-text); border-color: var(--danger-border); }
+.icon-options .icon-edit[aria-pressed="true"] { border-style: solid; background: var(--danger-strong-soft); }
 .icon-options { padding-right: 12px; }
 .icon-options-reordering [data-catalog-icon] { transition: transform 160ms ease-out; }
 .icon-options [data-catalog-icon] > label { -webkit-touch-callout: none; user-select: none; }
@@ -3526,7 +3516,6 @@ body {
 
 .reset-settings summary { cursor: pointer; font-weight: 650; padding: 6px 0; }
 .reset-settings .settings-description { margin: 14px 0; }
-.reset-danger { color: #ffb4b4 !important; background: #382025 !important; border: 1px solid #84434c !important; }
 #reset-form { display: grid; gap: 16px; }
 #reset-dialog { max-height: calc(100dvh - 24px); overflow-y: auto; }
 #reset-drinks-list { display: grid; gap: 8px; max-height: 180px; overflow-y: auto; }
@@ -3536,7 +3525,7 @@ body {
 #reset-form .dialog-actions { position: sticky; bottom: 0; background: var(--surface, #18181b); padding: 10px 0; }
 
 #reset-form .dialog-actions button, #reset-setup { min-height: 46px; padding: 10px 14px; border-radius: 10px; font-weight: 600; }
-#reset-form .dialog-actions .secondary, #reset-setup { background: #29292e; color: #eee; border: 1px solid var(--border); }
+#reset-setup { background: #29292e; color: #eee; border: 1px solid var(--border); }
 
 /* Padrões de diálogo e feedback reutilizados no aplicativo. */
 .app-dialog-scroll { display: grid; align-content: start; gap: 16px; min-width: 0; }
@@ -3547,7 +3536,6 @@ body {
 #reset-drinks-list .reset-check { min-height: 52px; box-sizing: border-box; margin: 0; }
 #reset-list-hint { color: #ddd; padding: 4px 0; font-weight: 600; }
 .reset-history-option { border-top: 1px solid #49494f; margin-top: 8px; padding-top: 18px; }
-#reset-submit.reset-confirm { background: #f5f5f5; color: #161619; border: 1px solid #f5f5f5; }
 #reset-submit:disabled { opacity: .4; cursor: default; }
 #toast.app-notification {
   position: fixed; inset: auto 16px max(18px, env(safe-area-inset-bottom)) auto;
@@ -3882,7 +3870,7 @@ body {
 .share-active-text { display: grid; gap: 2px; min-width: 0; }
 .share-active-text strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .share-active-text span { color: var(--muted); font-size: .76rem; }
-.share-stop-button { flex-shrink: 0; min-height: 40px; padding: 0 16px; border: 1px solid var(--danger-strong); border-radius: 12px; background: rgb(255 67 77 / 0.12); color: #ff9da2; font-weight: 800; }
+.share-stop-button { flex-shrink: 0; min-height: 40px; padding: 0 16px; border: 1px solid var(--danger-strong); border-radius: 12px; background: var(--danger-soft); color: var(--danger-text); font-weight: 800; }
 .share-stop-button:active { background: rgb(255 67 77 / 0.22); }
 #shared-detail-body .history-day { margin-top: 16px; }
 .share-badge { position: absolute; right: -6px; width: 22px; height: 22px; border-radius: 999px; border: 2px solid var(--bg); display: grid; place-items: center; color: #06121c; }
@@ -3932,8 +3920,8 @@ button.field-check:active { transform: scale(.94); }
 .settings-nav-chevron { display: grid; place-items: center; color: var(--muted); }
 .settings-nav-chevron svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 .settings-menu--danger { border-color: rgb(255 67 77 / .28); }
-.settings-nav-row--danger .settings-nav-icon { background: rgb(255 67 77 / .14); color: #ff9da2; }
-.settings-nav-row--danger .settings-nav-text strong { color: #ff9da2; }
+.settings-nav-row--danger .settings-nav-icon { background: rgb(255 67 77 / .14); color: var(--danger-text); }
+.settings-nav-row--danger .settings-nav-text strong { color: var(--danger-text); }
 /* Conta: nuvem cortada sem conta; laranja quando pede atenção (não em "Conectando…"). */
 .settings-nav-icon .sync-icon-off, .settings-nav-row.is-disconnected .sync-icon-on { display: none; }
 .settings-nav-row.is-disconnected .sync-icon-off { display: block; }
@@ -4082,7 +4070,7 @@ div.share-person { cursor: default; }
 .status-chip.is-planned { color: #c4b5fd; background: rgb(196 181 253 / .14); }
 .status-chip.is-waiting { color: var(--warning); background: rgb(247 177 85 / .14); }
 .status-chip.is-done { color: var(--muted); background: rgb(255 255 255 / .07); }
-.status-chip.is-cancelled { color: #ff9da2; background: rgb(255 91 98 / .13); }
+.status-chip.is-cancelled { color: var(--danger-text); background: rgb(255 91 98 / .13); }
 .status-chip-pulse { flex: none; width: 7px; height: 7px; border-radius: 999px; background: var(--success); animation: status-pulse 2s ease-out infinite; }
 @keyframes status-pulse {
   0% { box-shadow: 0 0 0 0 rgb(94 233 155 / .55); }
@@ -4149,7 +4137,7 @@ div.share-person { cursor: default; }
 #occasion-detail-actions { display: flex; gap: 10px; }
 .occasion-icon-action { flex: none; width: 48px; height: 48px; border: 1px solid var(--border); border-radius: 12px; }
 .occasion-icon-action .occasion-icon { width: 22px; height: 22px; }
-.occasion-icon-action.is-danger { border-color: var(--danger-border); background: transparent; color: #ff9da2; }
+.occasion-icon-action.is-danger { border-color: var(--danger-border); background: transparent; color: var(--danger-text); }
 .occasion-icon-action.is-danger:active { background: var(--danger-soft); }
 .occasion-main-action { flex: 1; min-width: 0; }
 
@@ -4174,9 +4162,9 @@ div.share-person { cursor: default; }
 
 /* Menu ⋮ da bebida (v2.26.1, spec 0029, pacote D): janela compacta com um bloco de linhas, como as
    opções do evento. "Cancelar contagem" em vermelho, com o tempo que falta; "Editar bebida" com o intervalo. */
-.occasion-menu .occasion-menu-row.danger, .occasion-menu-row.danger .occasion-menu-icon { color: #ff9da2; }
+.occasion-menu .occasion-menu-row.danger, .occasion-menu-row.danger .occasion-menu-icon { color: var(--danger-text); }
 .occasion-menu-row.danger .occasion-menu-icon { background: rgb(255 91 98 / .12); }
-.occasion-menu-row.danger small { color: #ff9da2; font-variant-numeric: tabular-nums; }
+.occasion-menu-row.danger small { color: var(--danger-text); font-variant-numeric: tabular-nums; }
 @media (max-width: 600px) {
   dialog.dialog.app-dialog.compact-dialog > form.app-dialog-no-footer .app-dialog-scroll { padding-bottom: 20px; }
 }
@@ -4194,7 +4182,7 @@ div.share-person { cursor: default; }
 .share-vendo-start .occasion-marker { color: var(--success); }
 .share-vendo-resumo { margin-bottom: 12px; }
 .share-active-text .status-chip { margin-top: 4px; }
-.occasion-link.is-danger { color: #ff9da2; }
+.occasion-link.is-danger { color: var(--danger-text); }
 #friend-info-body { display: grid; gap: 12px; }
 
 /* Rodapé com um só botão visível (os outros escondidos): ele ocupa a largura toda (v2.26.5). */
@@ -4222,3 +4210,10 @@ div.share-person { cursor: default; }
 #drink-import-drinks { margin-top: 8px; }
 #drink-import-drinks .is-duplicate { opacity: .5; text-decoration: line-through; }
 #confirm-drink-import:disabled, #pin-setup-form button[type="submit"]:disabled { opacity: .45; cursor: default; }
+
+/* Botões de perigo (v2.26.10, spec 0029, pacote M): três formas para a mesma ideia.
+   - Cheio, .danger-button: confirma algo que apaga (confirmação, Excluir junto com os registros, Restaurar backup,
+     Apagar no passo 2 de Redefinir). .share-stop-button é a versão menor ("Parar").
+   - Contorno: a porta de entrada para excluir. Lixeira .occasion-icon-action.is-danger nos rodapés.
+   - Linha de perigo: .occasion-menu-row.danger, .settings-nav-row--danger e .occasion-link.is-danger em menus e listas.
+   Todos usam --danger-text, --danger-border e --danger-soft/--danger-strong-soft. */

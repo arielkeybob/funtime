@@ -1,4 +1,13 @@
-# FunTime — V2.26.9
+# FunTime — V2.26.10
+
+## V2.26.10 — um só jeito de mostrar perigo
+
+- Botões e ações que apagam passam a usar o mesmo vermelho em todo o app, em três formas: **cheio** para confirmar algo que apaga, **contorno** (a lixeira) para abrir a confirmação e **linha de perigo** em menus e listas.
+- **Redefinir dados** passa a usar os botões comuns do app (branco para continuar, vermelho para apagar).
+- O catálogo de ícones (remover, editar) usa o mesmo vermelho do resto.
+- Pacote M da spec 0029. Tutoriais afetados ficam para a regravação no fim da série.
+- Sem mudança de dados; `DATA_VERSION` permanece 11.
+
 
 ## V2.26.9 — importar bebidas, criar PIN e redefinir dizem o que vão fazer
 

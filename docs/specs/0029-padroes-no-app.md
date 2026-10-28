@@ -1,6 +1,6 @@
 # 0029 — Padrões de Eventos no resto do app
 
-Status: em andamento (C na v2.26.0, D na v2.26.1, A na v2.26.2, B na v2.26.3, G na v2.26.4, H na v2.26.5, I na v2.26.6, J na v2.26.7, K na v2.26.8, L na v2.26.9)
+Status: em andamento (C na v2.26.0, D na v2.26.1, A na v2.26.2, B na v2.26.3, G na v2.26.4, H na v2.26.5, I na v2.26.6, J na v2.26.7, K na v2.26.8, L na v2.26.9, M na v2.26.10)
 
 ## Contexto
 
@@ -35,7 +35,7 @@ tutoriais e versão.
 | 8 | J — Backup e conta: selo de estado, ações discretas | feito (v2.26.7) |
 | 9 | K — Anotar dose ("Anotar às 20:10") e aviso de intervalo | feito (v2.26.8) |
 | 10 | L — Importar bebidas, Criar PIN e Redefinir: botão diz o efeito | feito (v2.26.9) |
-| 11 | M — Botões de perigo unificados | a fazer |
+| 11 | M — Botões de perigo unificados | feito (v2.26.10) |
 | 12 | N — Correções (erros de conta como erro, voltar para Amigos, textos do tutorial, DEVELOPMENT.md) | a fazer |
 | 13 | E (parcial) — Só o lembrete de evento na Home (bloquinho, ▶ vazado, sem "Deseja iniciar agora?"). A faixa do evento em andamento **não** muda. | a fazer |
 | 14 | F (parcial) — Cartão-resumo no Histórico **só quando filtrado por um evento**; evento não se repete nas linhas; datas do seletor como "sáb 13/06" | a fazer |
@@ -203,3 +203,14 @@ Pendentes:
   - no passo 2 vira "Voltar" (`returnToResetPreview`);
   - o envio diz o efeito (`RESET_ACTION_LABELS`).
 - O visual próprio do reset (`.reset-confirm`, `.reset-danger`) fica para o pacote M.
+
+## Pacote M (v2.26.10)
+
+- Token `--danger-text` (`#ff9da2`) no lugar de `#ff9da2`, `#ffb0b4` e `#ffb4b4`.
+- Removidos `.danger-confirm-button`, `.reset-danger` e `#reset-submit.reset-confirm`. `#reset-submit` usa
+  `.primary-button` / `.danger-button`, e `#reset-cancel` usa `.secondary-button`.
+- `.share-stop-button` usa `--danger-soft`. O catálogo de ícones usa `--danger-strong-soft` e `--danger-border`.
+- As três formas estão documentadas num comentário no fim de `styles.css`:
+  - cheio: `.danger-button`;
+  - contorno: `.occasion-icon-action.is-danger`;
+  - linha: `.occasion-menu-row.danger`, `.settings-nav-row--danger` e `.occasion-link.is-danger`.
