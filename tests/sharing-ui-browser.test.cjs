@@ -233,6 +233,8 @@ test('a aba Compartilhando oferece o que dá para fazer conforme os eventos', { 
 
 test('a aba Vendo explica o estado em vez de mensagens técnicas', { timeout: 30000 }, async () => {
   await withPage(async (page, erros) => {
+    // Relógio fixo no meio do dia: com o relógio real, perto da meia-noite "1 hora atrás" vira "ontem".
+    await page.clock.setFixedTime(new Date(2026, 5, 13, 15, 0));
     const r = await page.evaluate(async () => {
       const { createShareUI } = await import('/funtime/src/sharing/share-ui.js');
       const n = (s) => document.querySelector(s);
@@ -303,6 +305,8 @@ test('evento encerrado deixa de aparecer como ao vivo', { timeout: 30000 }, asyn
 // vivo em cima e o anterior sob "Anteriores" — e o selo é o melhor estado dos dois.
 test('evento novo dentro das 24h do anterior: os dois aparecem', { timeout: 30000 }, async () => {
   await withPage(async (page, erros) => {
+    // Relógio fixo no meio do dia: com o relógio real, perto da meia-noite "1 hora atrás" vira "ontem".
+    await page.clock.setFixedTime(new Date(2026, 5, 13, 15, 0));
     const r = await page.evaluate(async () => {
       const { createShareUI } = await import('/funtime/src/sharing/share-ui.js');
       const n = (s) => document.querySelector(s);

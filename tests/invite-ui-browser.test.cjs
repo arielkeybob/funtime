@@ -548,6 +548,8 @@ test('linha de convite: Vou e Não vou a um toque, motivo dentro da própria lin
 
 test('convite que já começou diz "começou às", e o consentimento aparece uma vez por lista', { timeout: 40000 }, async () => {
   await withPage(async (page, erros) => {
+    // Relógio fixo no meio do dia: com o relógio real, perto da meia-noite "1 hora atrás" vira "ontem".
+    await page.clock.setFixedTime(new Date(2026, 5, 13, 15, 0));
     const saida = await page.evaluate(async () => {
       const { createInviteUI } = await import('/funtime/src/sharing/invite-ui.js');
       const { n, nodes, par } = window.__t;
