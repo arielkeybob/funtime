@@ -315,7 +315,7 @@ document.addEventListener("visibilitychange", () => {
 const DATA_STORAGE_KEY = "funtime-v1-data";
 const LEGACY_DRINKS_STORAGE_KEY = "balada-v1-drinks";
 const DATA_VERSION = 11;
-const APP_VERSION = "2.26.8";
+const APP_VERSION = "2.26.9";
 const DRINK_EXPORT_TYPE = "funtime-drinks";
 const DRINK_EXPORT_FORMAT_VERSION = 1;
 const BACKUP_EXPORT_TYPE = "funtime-backup";
@@ -1132,9 +1132,15 @@ function openPinSetupDialog() {
   pinSetupValue.value = "";
   pinSetupConfirm.value = "";
   pinSetupError.hidden = true;
-  beginFormDraft(pinSetupForm);
+  updatePinSetupSubmit();
   pinSetupDialog.showModal();
   setTimeout(() => pinSetupValue.focus(), 50);
+}
+
+// "Salvar PIN" fica sempre à vista, desligado até os dois PINs estarem completos.
+function updatePinSetupSubmit() {
+  const submit = pinSetupForm.querySelector('button[type="submit"]');
+  submit.disabled = pinSetupValue.value.length < 4 || pinSetupConfirm.value.length < 4;
 }
 
 function closePinSetupDialog({ cancelEnable = true } = {}) {
@@ -1229,8 +1235,8 @@ async function handlePinSetupSubmit(event) {
     pinSetupError.textContent = "Não foi possível criar o PIN neste navegador.";
     pinSetupError.hidden = false;
   } finally {
-    submit.disabled = false;
     submit.textContent = "Salvar PIN";
+    updatePinSetupSubmit();
   }
 }
 
@@ -1701,6 +1707,18 @@ function getDrinkImportSignature(drink) {
   ].join("\u001f");
 }
 
+// O botão diz o efeito: quantas bebidas entram ao adicionar, ou a troca pela lista do arquivo.
+function updateDrinkImportLabel() {
+  const pending = state.pendingDrinkImport;
+  if (!pending) return;
+  const mode = drinkImportDialog.querySelector('input[name="drink-import-mode"]:checked')?.value || "add";
+  const novas = getDrinkImportAnalysis(pending.drinks).newCount;
+  confirmDrinkImportButton.disabled = mode === "add" && novas === 0;
+  confirmDrinkImportButton.textContent = mode === "replace"
+    ? `Substituir pela lista (${pending.drinks.length})`
+    : novas ? `Adicionar ${novas} bebida${novas === 1 ? "" : "s"}` : "Nenhuma bebida nova";
+}
+
 function getDrinkImportAnalysis(importedDrinks) {
   const existingSignatures = new Set(state.drinks.map(getDrinkImportSignature));
   let exactDuplicates = 0;
@@ -1744,12 +1762,21 @@ function openDrinkImportPreview({ fileName, drinks, source = "file" }) {
     pieces.push(`${analysis.exactDuplicates} duplicata${analysis.exactDuplicates === 1 ? "" : "s"} exata${analysis.exactDuplicates === 1 ? "" : "s"}`);
   }
   drinkImportFileSummary.textContent = pieces.join(" · ");
+  // Quais bebidas entram: as que você já tem aparecem apagadas (ficam de fora ao adicionar).
+  const existentes = new Set(state.drinks.map(getDrinkImportSignature));
+  document.querySelector("#drink-import-drinks").replaceChildren(...drinks.map((drink) => {
+    const pill = document.createElement("span");
+    pill.textContent = `${drink.icon || ""} ${drink.name}`.trim();
+    if (existentes.has(getDrinkImportSignature(drink))) pill.classList.add("is-duplicate");
+    return pill;
+  }));
 
   drinkImportError.hidden = true;
   drinkImportError.textContent = "";
 
   const addOption = drinkImportDialog.querySelector('input[name="drink-import-mode"][value="add"]');
   if (addOption) addOption.checked = true;
+  updateDrinkImportLabel();
 
   drinkImportDialog.showModal();
 }
@@ -3261,7 +3288,7 @@ backupRestoreFileInput.addEventListener("change", () => {
 checkAppUpdateButton.addEventListener("click", checkForAppUpdateManually);
 
 document.querySelector("#close-drink-import").addEventListener("click", closeDrinkImportDialog);
-document.querySelector("#cancel-drink-import").addEventListener("click", closeDrinkImportDialog);
+drinkImportDialog.addEventListener("change", updateDrinkImportLabel);
 confirmDrinkImportButton.addEventListener("click", confirmDrinkImport);
 
 document.querySelector("#close-backup-restore").addEventListener("click", closeBackupRestoreDialog);
@@ -3297,7 +3324,7 @@ document.querySelector("#close-security-method").addEventListener("click", () =>
 chooseDeviceAuthButton.addEventListener("click", chooseDeviceSecurity);
 choosePinAuthButton.addEventListener("click", choosePinSecurity);
 document.querySelector("#close-pin-setup").addEventListener("click", () => closePinSetupDialog());
-document.querySelector("#cancel-pin-setup").addEventListener("click", () => closePinSetupDialog());
+pinSetupForm.addEventListener("input", updatePinSetupSubmit);
 pinSetupForm.addEventListener("submit", handlePinSetupSubmit);
 pinSetupValue.addEventListener("input", () => normalizePinInput(pinSetupValue));
 pinSetupConfirm.addEventListener("input", () => normalizePinInput(pinSetupConfirm));

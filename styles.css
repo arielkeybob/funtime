@@ -4217,3 +4217,8 @@ div.share-person { cursor: default; }
 .settings-sync-data-card .occasion-link { min-height: 40px; padding: 4px 2px; }
 .status-chip.is-steady .status-chip-pulse { display: none; }
 #sync-account-label { overflow-wrap: anywhere; }
+
+/* Importar bebidas, Criar PIN e Redefinir (v2.26.9, spec 0029, pacote L). */
+#drink-import-drinks { margin-top: 8px; }
+#drink-import-drinks .is-duplicate { opacity: .5; text-decoration: line-through; }
+#confirm-drink-import:disabled, #pin-setup-form button[type="submit"]:disabled { opacity: .45; cursor: default; }

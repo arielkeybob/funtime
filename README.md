@@ -1,4 +1,13 @@
-# FunTime — V2.26.8
+# FunTime — V2.26.9
+
+## V2.26.9 — importar bebidas, criar PIN e redefinir dizem o que vão fazer
+
+- **Importar bebidas**: a prévia mostra as bebidas do arquivo (as que você já tem aparecem riscadas) e o botão diz o efeito: **Adicionar 2 bebidas** ou **Substituir pela lista (3)**. Sai o Cancelar que repetia o ✕. "Seu histórico não será apagado" continua à vista.
+- **Criar PIN**: sai o Cancelar; **Salvar PIN** fica sempre à vista, desligado até os dois PINs estarem completos.
+- **Redefinir dados**: o passo 1 termina em **Continuar**; no passo 2 o botão diz o efeito (**Apagar registros**, **Apagar bebidas**, **Apagar tudo**, **Restaurar ícones**) e um **Voltar** leva de volta à revisão.
+- Pacote L da spec 0029. Tutoriais afetados ficam para a regravação no fim da série.
+- Sem mudança de dados; `DATA_VERSION` permanece 11.
+
 
 ## V2.26.8 — Anotar dose e aviso de intervalo mais diretos
 

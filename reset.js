@@ -73,7 +73,8 @@ function openDataReset(action) {
   document.querySelector('#reset-auth-note').hidden = true;
   document.querySelector('#reset-pin-field').hidden = true;
   document.querySelector('#reset-setup').hidden = true;
-  document.querySelector('#reset-submit').textContent = 'Confirmar seleção';
+  document.querySelector('#reset-submit').textContent = 'Continuar';
+  document.querySelector('#reset-cancel').hidden = true;
   document.querySelector('#reset-period-field').hidden = action !== 'history';
   document.querySelector('#reset-drinks-field').hidden = action !== 'drinks';
   const list = document.querySelector('#reset-drinks-list');
@@ -137,6 +138,7 @@ async function executeDataReset(pending) {
   showAppNotification(message, { title: pending.action === 'icons' ? 'Ícones restaurados' : 'Exclusão concluída', type: 'success', persistent: true });
 }
 
+const RESET_ACTION_LABELS = { icons: 'Restaurar ícones', history: 'Apagar registros', drinks: 'Apagar bebidas', all: 'Apagar tudo' };
 async function submitDataReset(event) {
   event.preventDefault();
   if (!resetPending || resetBusy) return;
@@ -164,7 +166,9 @@ async function submitDataReset(event) {
     document.querySelector('#reset-auth-note').hidden = false;
     document.querySelector('#reset-pin-field').hidden = state.securityConfig.method !== 'pin';
     document.querySelector('#reset-pin').maxLength = getConfiguredPinLength();
-    document.querySelector('#reset-submit').textContent = 'Autenticar e executar';
+    // O botão diz o efeito; "Voltar" leva de volta à revisão (o ✕ fecha tudo).
+    document.querySelector('#reset-submit').textContent = RESET_ACTION_LABELS[pending.action];
+    document.querySelector('#reset-cancel').hidden = false;
     if (state.securityConfig.method === 'pin') document.querySelector('#reset-pin').focus();
     return;
   }
@@ -193,7 +197,7 @@ async function submitDataReset(event) {
     await executeDataReset(pending);
   } catch (error) {
     if (resetPending === pending && resetDialog.open) {
-      resetError(pending.applied ? 'Os dados principais foram apagados, mas a limpeza complementar não terminou. Feche e repita APAGAR TUDO para concluir.' : error.name === 'NotAllowedError' ? 'Autenticação cancelada. Nenhum dado foi alterado.' : (error.message || 'Não foi possível executar a ação.'));
+      resetError(pending.applied ? 'Os dados principais foram apagados, mas a limpeza complementar não terminou. Feche e repita "Apagar tudo deste aparelho" para concluir.' : error.name === 'NotAllowedError' ? 'Autenticação cancelada. Nenhum dado foi alterado.' : (error.message || 'Não foi possível executar a ação.'));
     }
   } finally {
     resetBusy = false;
@@ -214,7 +218,8 @@ function returnToResetPreview() {
   document.querySelector('#reset-pin').value = '';
   document.querySelector('#reset-step').textContent = '1 de 2 · Revisar';
   document.querySelector('#reset-submit').className = 'reset-confirm';
-  document.querySelector('#reset-submit').textContent = 'Confirmar seleção';
+  document.querySelector('#reset-submit').textContent = 'Continuar';
+  document.querySelector('#reset-cancel').hidden = true;
   document.querySelector('#reset-options').hidden = false;
   document.querySelector('#reset-history-option').hidden = resetPending.action !== 'drinks';
   document.querySelector('#reset-auth-note').hidden = true;
@@ -229,7 +234,7 @@ function closeDataReset() {
   resetDialog.close();
 }
 document.querySelector('#reset-close').addEventListener('click', closeDataReset);
-document.querySelector('#reset-cancel').addEventListener('click', closeDataReset);
+document.querySelector('#reset-cancel').addEventListener('click', returnToResetPreview);
 resetDialog.addEventListener('cancel', closeDataReset);
 resetDialog.addEventListener('close', () => { resetPending = null; document.querySelector('#reset-pin').value = ''; });
 document.querySelector('#reset-setup').addEventListener('click', () => { openSecurityMethodDialog('enable'); });

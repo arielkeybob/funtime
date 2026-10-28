@@ -59,7 +59,7 @@
     <footer class="browser-gate-footer">
       <span>App para estudo · não é controle de segurança</span>
       <a class="policies-link" href="./policies.html">Políticas e informações</a>
-      <span>v2.26.8 · By: arielkeybob</span>
+      <span>v2.26.9 · By: arielkeybob</span>
     </footer>
   </section>
 
@@ -359,7 +359,7 @@
 
     <section class="settings-page" data-settings-page="about" data-title="Sobre o app" hidden>
       <section class="settings-card">
-        <p class="settings-description">Versão instalada: <strong>v2.26.8</strong></p>
+        <p class="settings-description">Versão instalada: <strong>v2.26.9</strong></p>
         <button id="check-app-update" class="settings-secondary-button" type="button">Verificar atualizações</button>
         <a class="settings-link-row" href="./policies.html"><span>Políticas e informações</span><span class="settings-nav-chevron" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg></span></a>
       </section>
@@ -473,7 +473,7 @@
     <footer class="app-footer">
       <span class="app-footer-disclaimer">App para estudo · não é controle de segurança</span>
       <a class="policies-link" href="./policies.html">Políticas e informações</a>
-      <span class="app-footer-meta">v2.26.8 · By: arielkeybob</span>
+      <span class="app-footer-meta">v2.26.9 · By: arielkeybob</span>
     </footer>
   </div>
 
@@ -1008,6 +1008,7 @@
       <div class="data-file-summary">
         <strong id="drink-import-file-name">Arquivo selecionado</strong>
         <span id="drink-import-file-summary">—</span>
+        <span id="drink-import-drinks" class="occasion-records-drinks"></span>
       </div>
 
       <fieldset class="data-choice-group">
@@ -1017,7 +1018,7 @@
           <input type="radio" name="drink-import-mode" value="add" checked>
           <span>
             <strong>Adicionar às bebidas atuais</strong>
-            <small>Mantém sua lista e acrescenta as novas. Duplicatas exatas são ignoradas.</small>
+            <small>Mantém sua lista e acrescenta as novas.<span class="clean-optional"> Duplicatas exatas são ignoradas.</span></small>
           </span>
         </label>
 
@@ -1033,7 +1034,6 @@
       <p id="drink-import-error" class="form-error" role="alert" hidden></p>
 
       <div class="dialog-actions">
-        <button id="cancel-drink-import" class="secondary-button" type="button">Cancelar</button>
         <button id="confirm-drink-import" class="primary-button" type="button">Importar</button>
       </div>
     </form>
@@ -1096,12 +1096,12 @@
     <form id="pin-setup-form" novalidate>
       <div class="dialog-header">
         <div>
-          <p class="eyebrow">Segurança</p>
+          <p class="eyebrow">Privacidade</p>
           <h2>Criar PIN</h2>
         </div>
         <button id="close-pin-setup" class="icon-button secondary" type="button" aria-label="Fechar">×</button>
       </div>
-      <p class="settings-description">Use 4 dígitos. O PIN não é salvo em texto puro no aparelho.</p>
+      <p class="settings-description">Use 4 dígitos.<span class="clean-optional"> O PIN não é salvo em texto puro no aparelho.</span></p>
       <label class="field">
         <span>Novo PIN</span>
         <input id="pin-setup-value" class="pin-input" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="4" autocomplete="new-password" placeholder="••••">
@@ -1112,7 +1112,6 @@
       </label>
       <p id="pin-setup-error" class="form-error" role="alert" hidden></p>
       <div class="dialog-actions">
-        <button id="cancel-pin-setup" class="secondary-button" type="button">Cancelar</button>
         <button class="primary-button" type="submit">Salvar PIN</button>
       </div>
     </form>
@@ -1253,7 +1252,7 @@
       <label id="reset-pin-field" class="field" hidden><span>PIN do aplicativo</span><input id="reset-pin" type="password" inputmode="numeric" autocomplete="off" maxlength="6"></label>
       <p id="reset-error" class="form-error" role="alert" hidden></p>
       <button id="reset-setup" type="button" class="secondary" hidden>Configurar proteção</button>
-      <div class="dialog-actions"><button id="reset-cancel" type="button" class="secondary">Cancelar</button><button id="reset-submit" type="submit" class="reset-confirm">Continuar</button></div>
+      <div class="dialog-actions"><button id="reset-cancel" type="button" class="secondary" hidden>Voltar</button><button id="reset-submit" type="submit" class="reset-confirm">Continuar</button></div>
     </form>
   </dialog>
   <script src="./boot.js" defer></script>

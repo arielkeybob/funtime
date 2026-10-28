@@ -1,6 +1,6 @@
 # 0029 — Padrões de Eventos no resto do app
 
-Status: em andamento (C na v2.26.0, D na v2.26.1, A na v2.26.2, B na v2.26.3, G na v2.26.4, H na v2.26.5, I na v2.26.6, J na v2.26.7, K na v2.26.8)
+Status: em andamento (C na v2.26.0, D na v2.26.1, A na v2.26.2, B na v2.26.3, G na v2.26.4, H na v2.26.5, I na v2.26.6, J na v2.26.7, K na v2.26.8, L na v2.26.9)
 
 ## Contexto
 
@@ -34,7 +34,7 @@ tutoriais e versão.
 | 7 | I — Configurações num componente único de linhas | feito (v2.26.6) |
 | 8 | J — Backup e conta: selo de estado, ações discretas | feito (v2.26.7) |
 | 9 | K — Anotar dose ("Anotar às 20:10") e aviso de intervalo | feito (v2.26.8) |
-| 10 | L — Importar bebidas, Criar PIN e Redefinir: botão diz o efeito | a fazer |
+| 10 | L — Importar bebidas, Criar PIN e Redefinir: botão diz o efeito | feito (v2.26.9) |
 | 11 | M — Botões de perigo unificados | a fazer |
 | 12 | N — Correções (erros de conta como erro, voltar para Amigos, textos do tutorial, DEVELOPMENT.md) | a fazer |
 | 13 | E (parcial) — Só o lembrete de evento na Home (bloquinho, ▶ vazado, sem "Deseja iniciar agora?"). A faixa do evento em andamento **não** muda. | a fazer |
@@ -120,6 +120,7 @@ Pendentes:
 - desde I: `privacidade`.
 - desde J: `backup-e-bebidas`.
 - desde K: `registrar-dose`.
+- desde L: `privacidade` (Criar PIN) e `backup-e-bebidas` (Importar), já na lista.
 
 ## Pacote G (v2.26.4)
 
@@ -184,3 +185,21 @@ Pendentes:
   - `#cancel-log-dialog` removido;
   - `#log-submit-button` com `updateLogSubmitLabel()` (eventos `input`/`change` do formulário e na abertura);
   - texto do aviso em `clean-optional`.
+
+## Pacote L (v2.26.9)
+
+- **Importar bebidas:**
+  - `#drink-import-drinks` (pílulas, duplicatas com `.is-duplicate`) e `updateDrinkImportLabel()`, que roda na
+    abertura e no `change` do diálogo;
+  - adicionar sem nada novo desliga o botão;
+  - `#cancel-drink-import` removido, botão e listener.
+- **Criar PIN:**
+  - sem `beginFormDraft`;
+  - `updatePinSetupSubmit()` desliga o envio até 4+4 dígitos;
+  - `#cancel-pin-setup` removido;
+  - rótulo de cima "Privacidade", como em Como desbloquear.
+- **Redefinir:**
+  - `#reset-cancel` fica escondido no passo 1;
+  - no passo 2 vira "Voltar" (`returnToResetPreview`);
+  - o envio diz o efeito (`RESET_ACTION_LABELS`).
+- O visual próprio do reset (`.reset-confirm`, `.reset-danger`) fica para o pacote M.
