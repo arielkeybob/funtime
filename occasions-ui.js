@@ -579,8 +579,20 @@ function refreshOccasionReminder() {
   if (!upcoming || dismissed || FunTimeOccasions.active(state.occasions)) { box.hidden = true; return; }
   if (box.dataset.key === key && !box.hidden) return;
   box.dataset.key = key; box.replaceChildren(); box.hidden = false;
-  const text = document.createElement('p'); text.textContent = upcoming.name + ' · ' + occasionDate(upcoming.scheduledStartAt) + '. Deseja iniciar agora?';
-  box.append(text, occasionButton('Iniciar agora', () => changeOccasion(upcoming.id, 'start'), 'primary-button'), occasionButton('Agora não', () => { try { sessionStorage.setItem('funtime-agenda-dismissed', key); } catch {} box.dataset.dismissed = key; box.hidden = true; }));
+  // Bloquinho com o dia, o nome e o horário programado (▶ vazado: ainda não começou). O botão já diz o que fazer.
+  const parts = agendaParts(upcoming.scheduledStartAt);
+  const tile = document.createElement('span'); tile.className = 'agenda-date'; tile.setAttribute('aria-hidden', 'true');
+  const weekday = document.createElement('small'); weekday.textContent = parts.weekday;
+  const day = document.createElement('b'); day.textContent = parts.day;
+  tile.append(weekday, day);
+  const body = document.createElement('div'); body.className = 'occasion-reminder-body';
+  const name = document.createElement('strong'); name.textContent = upcoming.name;
+  const when = document.createElement('span'); when.className = 'agenda-times';
+  when.append(occasionTime('start', true, parts.time, parts.weekday + ' ' + parts.date));
+  body.append(name, when);
+  const actions = document.createElement('div'); actions.className = 'occasion-reminder-actions';
+  actions.append(occasionButton('Iniciar agora', () => changeOccasion(upcoming.id, 'start'), 'primary-button'), occasionButton('Agora não', () => { try { sessionStorage.setItem('funtime-agenda-dismissed', key); } catch {} box.dataset.dismissed = key; box.hidden = true; }, 'occasion-link'));
+  box.append(tile, body, actions);
 }
 function refreshOccasionFilters() {
   const field = $occasion('history-occasion-field');

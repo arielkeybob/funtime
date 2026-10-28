@@ -43,6 +43,9 @@
   --danger-strong: #ff434d;
   --danger-strong-soft: rgb(255 67 77 / 0.18);
   --danger-text: #ff9da2;
+  /* Início ▶ e fim ■ de um evento, em qualquer tela (spec 0028). */
+  --event-start: #5ee99b;
+  --event-end: #ff5b62;
   --success: #5ee99b;
   --success-soft: rgb(94 233 155 / 0.08);
   --info: #5eb4e9;
@@ -4217,3 +4220,16 @@ div.share-person { cursor: default; }
    - Contorno: a porta de entrada para excluir. Lixeira .occasion-icon-action.is-danger nos rodapés.
    - Linha de perigo: .occasion-menu-row.danger, .settings-nav-row--danger e .occasion-link.is-danger em menus e listas.
    Todos usam --danger-text, --danger-border e --danger-soft/--danger-strong-soft. */
+
+/* Lembrete de evento na Home (v2.26.12, spec 0029, pacote E parcial): bloquinho de data, nome e o
+   horário programado; "Iniciar agora" é o botão principal e "Agora não", uma ação discreta. */
+.occasion-reminder { display: grid; grid-template-columns: 48px minmax(0, 1fr); align-items: center; gap: 12px; }
+.occasion-reminder .agenda-date { display: grid; place-items: center; align-content: center; gap: 3px; height: 52px; border-radius: 11px; background: var(--surface-2); line-height: 1; }
+.occasion-reminder .agenda-date small { color: var(--muted); font-size: .62rem; font-weight: 750; letter-spacing: .08em; text-transform: uppercase; }
+.occasion-reminder .agenda-date b { font-size: 1.3rem; font-weight: 800; }
+.occasion-reminder-body { display: grid; gap: 4px; min-width: 0; }
+.occasion-reminder-body strong { overflow-wrap: anywhere; }
+.occasion-reminder .agenda-time { display: inline-flex; align-items: center; gap: 5px; font-size: .84rem; font-variant-numeric: tabular-nums; }
+.occasion-reminder-actions { grid-column: 1 / -1; display: flex; align-items: center; gap: 12px; }
+.occasion-reminder-actions .primary-button { flex: 1; min-height: 44px; margin: 0; padding: 0 14px; font-size: .9rem; }
+.occasion-reminder-actions .occasion-link { width: auto; min-height: 44px; margin: 0; padding: 8px 10px; }

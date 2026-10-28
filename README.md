@@ -1,4 +1,12 @@
-# FunTime — V2.26.11
+# FunTime — V2.26.12
+
+## V2.26.12 — lembrete de evento com o bloquinho de data
+
+- O lembrete de evento agendado na Home mostra o bloquinho com o dia, o nome do evento e o horário programado (▶ vazado, porque ainda não começou), no lugar de "Show no parque · 13/06/26, 23:00. Deseja iniciar agora?".
+- **Iniciar agora** é o botão principal; **Agora não** virou uma ação discreta. A faixa do evento em andamento não mudou.
+- Pacote E da spec 0029. Tutoriais afetados ficam para a regravação no fim da série.
+- Sem mudança de dados; `DATA_VERSION` permanece 11.
+
 
 ## V2.26.11 — correções encontradas no levantamento
 
