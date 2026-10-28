@@ -251,6 +251,10 @@ const OCCASION_ICONS = {
 // desligado por enquanto: o conceito ainda confunde. Quem não vai mais tem Cancelar agendamento
 // e Excluir evento, que também retiram a presença. Para liberar, trocar para true (spec 0028).
 const OCCASION_LEAVE_ENABLED = false;
+// Reabrir só nas 24h depois do encerramento; depois o evento é passado de vez (as datas ainda se
+// corrigem pelo lápis). Conta do mais tarde entre o fim e o momento em que o app encerrou, para o
+// encerramento automático não tirar a opção antes de a pessoa ver.
+const OCCASION_REOPEN_WINDOW_MS = 24 * 3600000;
 function occasionIcon(name, className = 'occasion-icon') {
   const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
   svg.setAttribute('viewBox', '0 0 24 24'); svg.setAttribute('aria-hidden', 'true'); svg.setAttribute('class', className);
@@ -335,8 +339,8 @@ function occasionTime(kind, planned, visible, spoken) {
   label.textContent = (kind === 'start' ? 'Início' : 'Fim') + (planned ? ' programado' : '') + (spoken ? ' ' + spoken + ' ·' : '');
   node.append(occasionIcon(kind, 'occasion-marker'), label, visible); return node;
 }
-// Início e fim de um evento numa linha. O fim mostra só a hora no mesmo dia, "+1" no dia
-// seguinte e a data quando passa disso.
+// Início e fim de um evento numa linha. O fim mostra só a hora no mesmo dia, o dia da semana
+// no dia seguinte ("seg 01:08") e a data quando passa disso.
 function occasionTimes(item, { withDate = false } = {}) {
   const box = document.createElement('span'); box.className = 'agenda-times';
   const start = item.startedAt ?? item.scheduledStartAt, end = item.endedAt ?? item.scheduledEndAt ?? null;
@@ -344,9 +348,8 @@ function occasionTimes(item, { withDate = false } = {}) {
   box.append(withDate ? occasionTime('start', item.startedAt === null, s.weekday + ' ' + s.date + ' · ' + s.time) : occasionTime('start', item.startedAt === null, s.time, s.weekday + ' ' + s.date));
   if (end != null) {
     const days = globalThis.calendarDaysBetween(start, end), e = agendaParts(end);
-    const node = days > 1 ? occasionTime('end', item.endedAt == null, e.weekday + ' ' + e.date + ' · ' + e.time) : occasionTime('end', item.endedAt == null, e.time, days === 1 ? e.weekday + ' ' + e.date : '');
-    if (days === 1) { const next = document.createElement('sup'); next.className = 'agenda-next-day'; next.setAttribute('aria-hidden', 'true'); next.textContent = '+1'; node.append(next); }
-    box.append(node);
+    const label = days > 1 ? e.weekday + ' ' + e.date + ' · ' + e.time : days === 1 ? e.weekday + ' ' + e.time : e.time;
+    box.append(occasionTime('end', item.endedAt == null, label));
   }
   return box;
 }
@@ -517,7 +520,7 @@ function openOccasionDetails(id) {
   if (item.startedAt !== null && item.endedAt === null) main = occasionButton('O evento acabou', () => changeOccasion(id, 'end'), 'primary-button');
   else if (FunTimeOccasions.pending(item)) main = occasionButton('Iniciar agora', () => changeOccasion(id, 'start'), 'primary-button');
   else if (lapsed) main = occasionButton('Reagendar', () => openOccasionEditor(id));
-  else if (item.endedAt !== null && !FunTimeOccasions.active(state.occasions)) main = occasionButton('Reabrir', () => changeOccasion(id, 'reopen'));
+  else if (item.endedAt !== null && !FunTimeOccasions.active(state.occasions) && Date.now() - Math.max(item.endedAt, item.closedAt ?? item.endedAt) < OCCASION_REOPEN_WINDOW_MS) main = occasionButton('Reabrir', () => changeOccasion(id, 'reopen'));
   if (main) { main.classList.add('occasion-main-action'); footer.append(main); }
   if (!occasionDetailDialog.open) occasionDetailDialog.showModal();
 }

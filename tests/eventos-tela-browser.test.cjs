@@ -323,3 +323,58 @@ test('editar evento: mudar só os convidados mostra o "Salvar alterações"', { 
     assert.deepEqual(erros, []);
   });
 });
+
+test('linha da agenda: o fim mostra só a hora no mesmo dia, o dia da semana no dia seguinte e a data depois disso', { timeout: 90000 }, async () => {
+  await comApp('vazio', async (page, erros) => {
+    await page.evaluate(() => {
+      const proximo = FunTimeOccasions.configure(buildCurrentAppData(), true);
+      commitOccasions(proximo.occasions, proximo.events, proximo.preferences);
+      const as = (dia, hora, minuto) => new Date(2026, 5, dia, hora, minuto).getTime();
+      commitOccasions([
+        { id: 'mesmo-dia', name: 'Almoço', startedAt: as(1, 13, 4), endedAt: as(1, 18, 30), closedAt: as(1, 18, 30), endReason: 'manual' },
+        { id: 'varios-dias', name: 'Festival', startedAt: as(3, 18, 0), endedAt: as(5, 23, 0), closedAt: as(5, 23, 0), endReason: 'manual' },
+        { id: 'virada', name: 'Festa', startedAt: as(6, 22, 0), endedAt: as(7, 2, 10), closedAt: as(7, 2, 10), endReason: 'manual' },
+      ], []);
+    });
+    await page.locator('#nav-occasion').click();
+    await page.locator('#agenda-past').click();
+    const fim = (nome) => texto(page, `#occasion-list .agenda-row:has-text("${nome}") .agenda-time.is-end`);
+    assert.equal(await fim('Almoço'), 'Fim 18:30');
+    assert.equal(await fim('Festa'), 'Fim dom 02:10', 'no dia seguinte, o dia da semana em vez de "+1"');
+    assert.equal(await fim('Festival'), 'Fim sex 05/06 · 23:00');
+    assert.deepEqual(erros, []);
+  });
+});
+
+test('Reabrir some 24h depois do encerramento, e a confirmação é uma janela pequena no meio da tela', { timeout: 90000 }, async () => {
+  await comApp('vazio', async (page, erros) => {
+    await page.evaluate(() => {
+      const proximo = FunTimeOccasions.configure(buildCurrentAppData(), true);
+      commitOccasions(proximo.occasions, proximo.events, proximo.preferences);
+      const agora = Date.now(), H = 3600000;
+      commitOccasions([
+        { id: 'recente', name: 'Acabou há pouco', startedAt: agora - 5 * H, endedAt: agora - 2 * H, closedAt: agora - 2 * H, endReason: 'manual' },
+        { id: 'antigo', name: 'Acabou ontem', startedAt: agora - 30 * H, endedAt: agora - 25 * H, closedAt: agora - 25 * H, endReason: 'manual' },
+        { id: 'sozinho', name: 'Fechado pelo app', startedAt: agora - 60 * H, endedAt: agora - 40 * H, closedAt: agora - H, endReason: 'recovery48h' },
+      ], []);
+    });
+    await page.locator('#nav-occasion').click();
+    const reabrir = async (id) => { await page.evaluate((alvo) => openOccasionDetails(alvo), id); return page.getByRole('button', { name: 'Reabrir', exact: true }).count(); };
+    assert.equal(await reabrir('recente'), 1, 'nas primeiras 24h ainda dá para reabrir');
+    assert.equal(await reabrir('antigo'), 0, 'depois de 24h, não');
+    assert.equal(await page.getByRole('button', { name: 'Editar evento', exact: true }).count(), 1, 'corrigir as datas continua possível');
+    assert.equal(await reabrir('sozinho'), 1, 'encerrado pelo app há 1h: conta a partir de quando o app encerrou');
+
+    await page.getByRole('button', { name: 'Excluir evento', exact: true }).click();
+    await page.waitForSelector('#app-confirm-dialog[open]');
+    const caixa = await page.locator('#app-confirm-dialog').boundingBox();
+    const tela = page.viewportSize();
+    assert.ok(caixa.height < tela.height / 2, `confirmação compacta, não tela cheia (altura ${caixa.height})`);
+    assert.ok(caixa.x >= 12 && caixa.x + caixa.width <= tela.width - 12, 'com margem dos lados');
+    assert.ok(Math.abs(caixa.y + caixa.height / 2 - tela.height / 2) < 4, 'no meio da tela');
+    await page.locator('#app-confirm-dialog .secondary-button').click();
+    await page.waitForFunction(() => !document.querySelector('#app-confirm-dialog').open);
+    assert.equal(await page.evaluate(() => state.occasions.length), 3, 'cancelar não exclui');
+    assert.deepEqual(erros, []);
+  });
+});

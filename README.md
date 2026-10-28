@@ -1,4 +1,12 @@
-# FunTime — V2.25.1
+# FunTime — V2.25.2
+
+## V2.25.2 — confirmação compacta, Reabrir só por 24h e fim com o dia da semana
+
+- **Confirmação compacta**: os pedidos de confirmação (excluir evento, excluir registro, o evento acabou, cancelar agendamento…) aparecem numa janela pequena no meio da tela, em vez de ocupar a tela inteira. Fica como padrão para as próximas confirmações.
+- **Reabrir só nas primeiras 24h** depois do encerramento. Depois disso o evento é passado; as datas continuam corrigíveis pelo lápis. Para evento encerrado automaticamente, as 24h contam a partir de quando o app o encerrou.
+- **Lista de eventos**: quando o evento termina no dia seguinte, o fim mostra o dia da semana e a hora ("■ seg 01:08") em vez de "+1". No mesmo dia continua só a hora; depois disso, a data ("■ sex 05/06 · 23:00").
+- Tutoriais "Histórico" e "Eventos e agenda" regerados (só a janela de confirmação mudou).
+- Sem mudança de dados; `DATA_VERSION` permanece 11.
 
 ## V2.25.1 — voltar dos registros para o evento e salvar convidados
 

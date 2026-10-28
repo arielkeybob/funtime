@@ -35,8 +35,9 @@ Também trocou dois rótulos:
   - A classe `.event-scope` fica nos diálogos do módulo: novo/editar, detalhe, convidados, convite e
     compartilhar doses. Assim o detalhe aberto pela Home também fica lilás.
 - **Lista**:
-  - Cada linha tem o bloquinho com dia da semana e dia, o nome, o início ▶ e o fim ■ (só a
-    hora; "+1" se termina no dia seguinte; a data se passar disso), e o selo + meta.
+  - Cada linha tem o bloquinho com dia da semana e dia, o nome, o início ▶ e o fim ■, e o
+    selo + meta. O fim mostra só a hora no mesmo dia, o dia da semana e a hora no dia seguinte
+    ("seg 01:08") e a data quando passa disso. Até a v2.25.1, o dia seguinte aparecia como "+1".
   - Marcador vazado indica o que ainda não aconteceu: agendado ou fim programado.
   - A data completa vai num texto só para leitores de tela.
   - Abas **Passados | Próximos**.
@@ -101,6 +102,18 @@ textos de Encerrar e Sair foram reescritos com os rótulos novos) e o formato do
   evento) e Excluir evento (a qualquer momento): os dois chamam `releaseSharedEvent`, que retira
   a presença. Num evento já encerrado, sair só tirava o nome da lista "Quem vai" e não tinha
   volta. O link, a confirmação e `leaveSharedEvent` continuam no código para religar depois.
+
+## Ajustes da v2.25.2
+
+- **Reabrir só nas 24h depois do encerramento** (`OCCASION_REOPEN_WINDOW_MS`). Conta do mais tarde
+  entre `endedAt` e `closedAt`, para o encerramento automático (que grava um fim anterior ao
+  momento em que o app encerrou) não tirar a opção antes de a pessoa ver. Depois disso, o lápis
+  continua corrigindo as datas.
+- **Confirmação compacta** (`.compact-dialog` em `#app-confirm-dialog`): no celular, a confirmação
+  vira uma janela pequena centralizada (`height: fit-content`; com `height: auto` o diálogo modal
+  esticava até a altura máxima), sem o rodapé fixo das folhas. Vale para tudo que usa
+  `showAppConfirmation`. Diálogos de sim/não que hoje são folhas próprias (ex.: excluir bebida,
+  cancelar contagem) podem adotar a mesma classe depois.
 
 ## Plano de teste
 

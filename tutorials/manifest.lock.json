@@ -1,5 +1,5 @@
 {
-  "versaoApp": "2.25.1",
+  "versaoApp": "2.25.2",
   "topicos": {
     "introducao": {
       "cobre": {
@@ -61,21 +61,21 @@
         "#history-view": "3933dac618bd",
         "#event-dialog": "1c62457a171f",
         "#reaction-picker-popover": "3217ba650803",
-        "#app-confirm-dialog": "2e2c7fada09c",
+        "#app-confirm-dialog": "a67d5c3cfd1a",
         ".bottom-nav": "d968a0871419",
         "#drink-card-template": "f606a5358fe0"
       },
       "midia": {
-        "01.1b172782.mp4": "1b172782ce77fe4db02309e3b992882e6bc8bcd6",
-        "01.poster.3a1012f3.webp": "3a1012f331590fe79c94da6539e861b134eab37b",
-        "02.e3b2a32d.mp4": "e3b2a32d9b3a7ac807b0871827c37d5241971678",
-        "02.poster.71e538b3.webp": "71e538b308802e2f242aaaebfdf4a4fbbf34a25b",
-        "03.e8af93eb.mp4": "e8af93eba1ea4333a8c55a0762bbaed2e9448f64",
-        "03.poster.9fe8a5ab.webp": "9fe8a5ab3bb64264d3c64eea5f8ab8d7df218294",
-        "04.17b6a80d.mp4": "17b6a80d731ced881359eeffbe2e253e36fe80a2",
-        "04.poster.74e28455.webp": "74e2845517470cbc579769ae7e3c7932afeb1b2a",
-        "05.71487d54.mp4": "71487d54f73aa8fced6ab4e8d0460ce0c622c816",
-        "05.poster.5ad73986.webp": "5ad739862315163dbe77b3d9b650c6c9a3c36ff9"
+        "01.af9dee3a.mp4": "af9dee3a91cbaca5cfa47def5dc286a2eee9a0d8",
+        "01.poster.1920f0e9.webp": "1920f0e9e57424a5a5b54842462639b592dca853",
+        "02.a1668d6c.mp4": "a1668d6c05a549357e375bafe656da2cae9a70cf",
+        "02.poster.346be6f6.webp": "346be6f6b4aef878c87065cc0523172c35ec36f3",
+        "03.ad682dc6.mp4": "ad682dc699f1a212fbc4619493f05062522287af",
+        "03.poster.e8198d9b.webp": "e8198d9bd5861acd3c3baf0ff5852a7b29866a5b",
+        "04.9354f68e.mp4": "9354f68eb8ddb745b10f0bf0c112c083d25c5531",
+        "04.poster.ee027723.webp": "ee0277233f319267a43377f0930c2ddd16968187",
+        "05.04b0c88f.mp4": "04b0c88f6cc37aa50d00713b9c1790161d3c99d8",
+        "05.poster.2f239f37.webp": "2f239f37b88ef1ffb9bf239e36ce3cef8b2ec1b2"
       }
     },
     "privacidade": {
@@ -100,21 +100,21 @@
         "#occasion-view": "d2e9dee21e89",
         "#occasion-dialog": "f78bf5008482",
         "#occasion-detail-dialog": "c40a225274ea",
-        "#app-confirm-dialog": "2e2c7fada09c",
+        "#app-confirm-dialog": "a67d5c3cfd1a",
         "#nav-occasion": "b1f31b720a06"
       },
       "midia": {
-        "02.e8de1998.mp4": "e8de199831997c807f5dc8e61486a01924dc6c9b",
-        "02.poster.2c1014ae.webp": "2c1014aef6b3851ea0792f675eac2ec70fde60af",
-        "03.434a1f40.webp": "434a1f408eaf36f1b77725b2329c10c3dda13e34",
-        "04.124bfa62.mp4": "124bfa626b44a3c513887d79f7c1effdf043425c",
-        "04.poster.bd0f26bb.webp": "bd0f26bb25f2c4d54f2673668c240723d08dce76",
-        "05.204d1ed9.mp4": "204d1ed942f7bcfa546f6e3d569125c20ad985bb",
-        "05.poster.6017952d.webp": "6017952db005fceaec2d8f36902f6895f03a8637",
+        "02.17ac9390.mp4": "17ac9390cfc6e84a6ddc76cf6c3c39d87a41a602",
+        "02.poster.d3a9c245.webp": "d3a9c245b1595a9312f0fb9df0578220ff3304b1",
+        "03.8c51c0c9.webp": "8c51c0c9517d0f9c8fcbee611be97b68f9a98497",
+        "04.1877a981.mp4": "1877a9819c40dd5186c8a3e787580722d4540b6b",
+        "04.poster.b01e2982.webp": "b01e29822e7d42929e8cda905abcfc831c221307",
+        "05.b844ac18.mp4": "b844ac18ab6267011d9a5446a27108a4d14924f6",
+        "05.poster.ca844df0.webp": "ca844df084cd4b073f679551d4e88339538fa6f6",
         "06.20507289.webp": "2050728922b857c3a523f238cc600020026690e1",
         "07.8fc1599d.webp": "8fc1599d34531f5bff0e499e4f7c32355c55a0c6",
-        "08.80a535c4.mp4": "80a535c43e93556a3f294f1d05dce28f995b8f99",
-        "08.poster.ce5f9f09.webp": "ce5f9f0978a923235b2217fc6f6d401807d5adbd"
+        "08.820b5533.mp4": "820b55332f37c2ee0467ca2e1afc59202f18d48e",
+        "08.poster.2485731a.webp": "2485731a339383fc8098859796107ac71410e6c6"
       }
     },
     "amigos": {

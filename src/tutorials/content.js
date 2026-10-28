@@ -131,36 +131,36 @@ export const TUTORIALS = [
     "passos": [
       {
         "tipo": "video",
-        "src": "./tutorials/media/historico/01.1b172782.mp4",
-        "poster": "./tutorials/media/historico/01.poster.3a1012f3.webp",
+        "src": "./tutorials/media/historico/01.af9dee3a.mp4",
+        "poster": "./tutorials/media/historico/01.poster.1920f0e9.webp",
         "alt": "Na tela inicial, o botão Histórico do menu de baixo recebe o destaque azul e é tocado; abre a lista com todos os registros, do mais recente ao mais antigo.",
         "legenda": "Toque em Histórico no menu para ver todos os registros."
       },
       {
         "tipo": "video",
-        "src": "./tutorials/media/historico/02.e3b2a32d.mp4",
-        "poster": "./tutorials/media/historico/02.poster.71e538b3.webp",
+        "src": "./tutorials/media/historico/02.a1668d6c.mp4",
+        "poster": "./tutorials/media/historico/02.poster.346be6f6.webp",
         "alt": "O botão Histórico do cartão da Cerveja é tocado e abre a lista só com os registros dessa bebida.",
         "legenda": "No card, o botão Histórico mostra só aquela bebida."
       },
       {
         "tipo": "video",
-        "src": "./tutorials/media/historico/03.e8af93eb.mp4",
-        "poster": "./tutorials/media/historico/03.poster.9fe8a5ab.webp",
+        "src": "./tutorials/media/historico/03.ad682dc6.mp4",
+        "poster": "./tutorials/media/historico/03.poster.e8198d9b.webp",
         "alt": "Um registro do Histórico é tocado e abre o editor, com a data e as rodas de hora e minuto em destaque.",
         "legenda": "Toque num registro para corrigir o horário."
       },
       {
         "tipo": "video",
-        "src": "./tutorials/media/historico/04.17b6a80d.mp4",
-        "poster": "./tutorials/media/historico/04.poster.74e28455.webp",
+        "src": "./tutorials/media/historico/04.9354f68e.mp4",
+        "poster": "./tutorials/media/historico/04.poster.ee027723.webp",
         "alt": "Um registro do Histórico recebe um toque e segurar; um seletor flutuante com até quatro reações, de \"Péssimo\" a \"Ótimo\", aparece perto dele; a reação \"Ótimo\" é tocada, o seletor fecha e o selo da reação aparece no canto do registro.",
         "legenda": "Segure um registro para reagir à dose."
       },
       {
         "tipo": "video",
-        "src": "./tutorials/media/historico/05.71487d54.mp4",
-        "poster": "./tutorials/media/historico/05.poster.5ad73986.webp",
+        "src": "./tutorials/media/historico/05.04b0c88f.mp4",
+        "poster": "./tutorials/media/historico/05.poster.2f239f37.webp",
         "alt": "Da tela inicial, o botão Histórico é tocado e depois um registro; no editor, o botão Excluir este registro é tocado e a exclusão é confirmada; o registro some da lista e o app avisa que foi excluído, com a opção Desfazer.",
         "legenda": "Para excluir um registro, toque nele, em Excluir e confirme."
       }
@@ -234,28 +234,28 @@ export const TUTORIALS = [
       },
       {
         "tipo": "video",
-        "src": "./tutorials/media/eventos/02.e8de1998.mp4",
-        "poster": "./tutorials/media/eventos/02.poster.2c1014ae.webp",
+        "src": "./tutorials/media/eventos/02.17ac9390.mp4",
+        "poster": "./tutorials/media/eventos/02.poster.d3a9c245.webp",
         "alt": "A opção Usar eventos, em Configurações → Aparência, é tocada e liga; o app avisa que os eventos foram ativados.",
         "legenda": "Em Configurações → Aparência, ative Usar eventos."
       },
       {
         "tipo": "imagem",
-        "src": "./tutorials/media/eventos/03.434a1f40.webp",
+        "src": "./tutorials/media/eventos/03.8c51c0c9.webp",
         "alt": "Tela inicial com a aba Evento, recém-criada, em destaque no menu de baixo.",
         "legenda": "A aba Evento aparece no menu de baixo."
       },
       {
         "tipo": "video",
-        "src": "./tutorials/media/eventos/04.124bfa62.mp4",
-        "poster": "./tutorials/media/eventos/04.poster.bd0f26bb.webp",
+        "src": "./tutorials/media/eventos/04.1877a981.mp4",
+        "poster": "./tutorials/media/eventos/04.poster.b01e2982.webp",
         "alt": "A aba Evento é tocada e, na lista de eventos, o botão + Novo é tocado e abre o formulário Novo evento.",
         "legenda": "Na aba Evento, toque em + Novo."
       },
       {
         "tipo": "video",
-        "src": "./tutorials/media/eventos/05.204d1ed9.mp4",
-        "poster": "./tutorials/media/eventos/05.poster.6017952d.webp",
+        "src": "./tutorials/media/eventos/05.b844ac18.mp4",
+        "poster": "./tutorials/media/eventos/05.poster.ca844df0.webp",
         "alt": "O nome Churrasco do João é digitado no formulário Novo evento e o botão Iniciar evento é tocado.",
         "legenda": "Dê um nome e toque em Iniciar evento."
       },
@@ -273,8 +273,8 @@ export const TUTORIALS = [
       },
       {
         "tipo": "video",
-        "src": "./tutorials/media/eventos/08.80a535c4.mp4",
-        "poster": "./tutorials/media/eventos/08.poster.ce5f9f09.webp",
+        "src": "./tutorials/media/eventos/08.820b5533.mp4",
+        "poster": "./tutorials/media/eventos/08.poster.2485731a.webp",
         "alt": "No detalhe do evento em andamento, o botão O evento acabou, no rodapé, é tocado e, na confirmação, o botão Sim, acabou também.",
         "legenda": "No evento, toque em “O evento acabou” e confirme."
       }

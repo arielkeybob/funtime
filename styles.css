@@ -4190,7 +4190,6 @@ div.share-person { cursor: default; }
 .agenda-row .agenda-row-body { display: grid; gap: 4px; min-width: 0; color: var(--text); }
 .agenda-row .agenda-times { display: flex; flex-wrap: wrap; align-items: center; gap: 2px 12px; }
 .agenda-row .agenda-time { display: inline-flex; align-items: center; gap: 5px; color: var(--text); font-size: .8rem; white-space: nowrap; font-variant-numeric: tabular-nums; }
-.agenda-row .agenda-next-day { margin-left: -2px; color: var(--event-end); font-size: .62rem; font-weight: 750; line-height: 0; }
 .agenda-row .agenda-row-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; }
 .agenda-row .agenda-row-label { display: inline-flex; align-items: center; gap: 7px; }
 
@@ -4245,3 +4244,15 @@ div.share-person { cursor: default; }
 .occasion-icon-action.is-danger { border-color: var(--danger-border); background: transparent; color: #ff9da2; }
 .occasion-icon-action.is-danger:active { background: var(--danger-soft); }
 .occasion-main-action { flex: 1; min-width: 0; }
+
+/* Confirmação compacta (v2.25.2): uma janela pequena no meio da tela, não a tela cheia das folhas.
+   Vale para todo pedido de sim/não (showAppConfirmation) e é o padrão para as próximas
+   confirmações que hoje ocupam a tela inteira. */
+.dialog.compact-dialog { width: min(calc(100% - 32px), 420px); }
+.compact-dialog .app-dialog-scroll > p { margin: 0; line-height: 1.5; }
+@media (max-width: 600px) {
+  dialog.dialog.app-dialog.compact-dialog { width: min(calc(100% - 32px), 420px); height: fit-content; max-height: min(80dvh, 560px) !important; margin: auto; border: 1px solid var(--border); border-radius: 20px; }
+  dialog.dialog.app-dialog.compact-dialog > form { height: auto; }
+  dialog.dialog.app-dialog.compact-dialog .app-dialog-scroll { padding: 20px 20px 4px; }
+  dialog.dialog.app-dialog.compact-dialog .app-dialog-actions { padding: 16px 20px 20px !important; border-top: 0; background: transparent; }
+}
