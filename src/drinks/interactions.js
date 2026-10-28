@@ -5,7 +5,7 @@ export function createDrinkInteractions({
   // DOM — editor de bebida
   drinkForm, nameInput, drinkNameField, drinkIconField, formError,
   drinkDialogEyebrow, drinkDialogTitle, drinkSubmitButton, deleteDrinkFromEditorButton,
-  drinkDangerZone, drinkIntervalEditNote, askDoseSizeInput, drinkDialog,
+  drinkIntervalEditNote, askDoseSizeInput, drinkDialog,
   deleteDrinkDialog, deleteDrinkName, deleteDrinkSummary,
   // DOM — registro de consumo (menu/dose/log/aviso de intervalo)
   intervalWarningDialog, intervalWarningDrinkName, intervalWarningRemaining,
@@ -39,7 +39,6 @@ export function createDrinkInteractions({
     drinkDialogTitle.textContent = "Cadastrar";
     drinkSubmitButton.textContent = "Salvar";
     deleteDrinkFromEditorButton.hidden = true;
-    drinkDangerZone.hidden = true;
     drinkIntervalEditNote.hidden = true;
     askDoseSizeInput.checked = false;
 
@@ -63,10 +62,9 @@ export function createDrinkInteractions({
     drinkForm.reset();
     formError.hidden = true;
     drinkDialogEyebrow.textContent = "Editar bebida";
-    drinkDialogTitle.textContent = drink.name;
+    drinkDialogTitle.textContent = `${drink.icon} ${drink.name}`;
     drinkSubmitButton.textContent = "Salvar alterações";
     deleteDrinkFromEditorButton.hidden = false;
-    drinkDangerZone.hidden = false;
     drinkIntervalEditNote.hidden = false;
 
     nameInput.value = drink.name;
@@ -627,7 +625,6 @@ export function createDrinkInteractions({
   document.querySelector("#empty-add-button").addEventListener("click", openDrinkDialog);
   document.querySelector("#empty-add-icon").addEventListener("click", openDrinkDialog);
   document.querySelector("#close-dialog").addEventListener("click", closeDrinkDialog);
-  document.querySelector("#cancel-dialog").addEventListener("click", closeDrinkDialog);
   deleteDrinkFromEditorButton.addEventListener("click", () => {
     if (state.editingDrinkId) openDeleteDrinkDialog(state.editingDrinkId, { returnToEditorOnCancel: true });
   });

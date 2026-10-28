@@ -315,7 +315,7 @@ document.addEventListener("visibilitychange", () => {
 const DATA_STORAGE_KEY = "funtime-v1-data";
 const LEGACY_DRINKS_STORAGE_KEY = "balada-v1-drinks";
 const DATA_VERSION = 11;
-const APP_VERSION = "2.25.2";
+const APP_VERSION = "2.26.0";
 const DRINK_EXPORT_TYPE = "funtime-drinks";
 const DRINK_EXPORT_FORMAT_VERSION = 1;
 const BACKUP_EXPORT_TYPE = "funtime-backup";
@@ -481,7 +481,6 @@ const drinkDialogEyebrow = document.querySelector("#drink-dialog-eyebrow");
 const drinkDialogTitle = document.querySelector("#drink-dialog-title");
 const drinkSubmitButton = document.querySelector("#drink-submit-button");
 const deleteDrinkFromEditorButton = document.querySelector("#delete-drink-from-editor");
-const drinkDangerZone = document.querySelector("#drink-danger-zone");
 const drinkIntervalEditNote = document.querySelector("#drink-interval-edit-note");
 const askDoseSizeInput = document.querySelector("#ask-dose-size");
 const cardTemplate = document.querySelector("#drink-card-template");
@@ -2981,7 +2980,7 @@ const drinkInteractions = createDrinkInteractions({
   state,
   drinkForm, nameInput, drinkNameField, drinkIconField, formError,
   drinkDialogEyebrow, drinkDialogTitle, drinkSubmitButton, deleteDrinkFromEditorButton,
-  drinkDangerZone, drinkIntervalEditNote, askDoseSizeInput, drinkDialog,
+  drinkIntervalEditNote, askDoseSizeInput, drinkDialog,
   deleteDrinkDialog, deleteDrinkName, deleteDrinkSummary,
   intervalWarningDialog, intervalWarningDrinkName, intervalWarningRemaining,
   intervalWarningMessage, intervalWarningContext,

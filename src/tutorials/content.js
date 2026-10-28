@@ -8,14 +8,14 @@ export const TUTORIALS = [
     "passos": [
       {
         "tipo": "imagem",
-        "src": "./tutorials/media/introducao/01.977bf241.webp",
+        "src": "./tutorials/media/introducao/01.032228f1.webp",
         "alt": "Tela de cadastro de bebida com nome, ícones e as rodas de horas e minutos do intervalo.",
         "legenda": "Cadastre suas bebidas e escolha o intervalo entre as doses."
       },
       {
         "tipo": "video",
-        "src": "./tutorials/media/introducao/02.5e08aac3.mp4",
-        "poster": "./tutorials/media/introducao/02.poster.f67e5140.webp",
+        "src": "./tutorials/media/introducao/02.600512e6.mp4",
+        "poster": "./tutorials/media/introducao/02.poster.c8ad2721.webp",
         "alt": "O cartão da Cerveja recebe o destaque azul e dois toques seguidos o registram; o cartão passa a mostrar a contagem do intervalo e o app avisa que o consumo foi anotado.",
         "legenda": "Dê dois toques na bebida para registrar. O intervalo começa a contar."
       },
@@ -27,7 +27,7 @@ export const TUTORIALS = [
       },
       {
         "tipo": "imagem",
-        "src": "./tutorials/media/introducao/04.170f3d46.webp",
+        "src": "./tutorials/media/introducao/04.7c90e074.webp",
         "alt": "Menu de Configurações com a linha Como usar o App em destaque.",
         "legenda": "Mais detalhes em Configurações → Como usar o App."
       }
@@ -40,54 +40,54 @@ export const TUTORIALS = [
     "passos": [
       {
         "tipo": "imagem",
-        "src": "./tutorials/media/cadastrar-bebida/01.596efc52.webp",
+        "src": "./tutorials/media/cadastrar-bebida/01.89be4c59.webp",
         "alt": "Tela inicial vazia com o botão Adicionar bebida em destaque.",
         "legenda": "Na tela inicial, toque em Adicionar bebida para começar."
       },
       {
         "tipo": "imagem",
-        "src": "./tutorials/media/cadastrar-bebida/02.499ce156.webp",
+        "src": "./tutorials/media/cadastrar-bebida/02.5eb86629.webp",
         "alt": "Formulário de cadastro com o nome Cerveja e a lista de ícones em destaque.",
         "legenda": "Dê um nome e escolha um ícone."
       },
       {
         "tipo": "imagem",
-        "src": "./tutorials/media/cadastrar-bebida/03.977bf241.webp",
+        "src": "./tutorials/media/cadastrar-bebida/03.b51bcdfa.webp",
         "alt": "Formulário de cadastro com as rodas de horas e minutos do intervalo em destaque.",
         "legenda": "Defina o intervalo entre as doses girando horas e minutos."
       },
       {
         "tipo": "imagem",
-        "src": "./tutorials/media/cadastrar-bebida/04.f11ed3c9.webp",
+        "src": "./tutorials/media/cadastrar-bebida/04.a24af8b4.webp",
         "alt": "Formulário de cadastro com a opção Perguntar se é dose inteira ou meia ligada e em destaque.",
         "legenda": "Ative para escolher dose inteira ou meia a cada registro."
       },
       {
         "tipo": "video",
-        "src": "./tutorials/media/cadastrar-bebida/05.557e75fb.mp4",
-        "poster": "./tutorials/media/cadastrar-bebida/05.poster.e25c366e.webp",
+        "src": "./tutorials/media/cadastrar-bebida/05.ff8f4ec9.mp4",
+        "poster": "./tutorials/media/cadastrar-bebida/05.poster.8fcba985.webp",
         "alt": "O botão Salvar é tocado e o cadastro fecha, mostrando o cartão da Cerveja na tela inicial.",
         "legenda": "Toque em Salvar: a bebida aparece na tela inicial."
       },
       {
         "tipo": "video",
-        "src": "./tutorials/media/cadastrar-bebida/06.ca3e0865.mp4",
-        "poster": "./tutorials/media/cadastrar-bebida/06.poster.ed0d6589.webp",
+        "src": "./tutorials/media/cadastrar-bebida/06.313f5807.mp4",
+        "poster": "./tutorials/media/cadastrar-bebida/06.poster.4651c547.webp",
         "alt": "O botão ⋮ do cartão da Cerveja é tocado e abre o menu com as opções Anotar dose e Editar bebida.",
         "legenda": "Toque em ⋮ no cartão para anotar uma dose ou editar a bebida."
       },
       {
         "tipo": "video",
-        "src": "./tutorials/media/cadastrar-bebida/07.513a3d69.mp4",
-        "poster": "./tutorials/media/cadastrar-bebida/07.poster.f6637880.webp",
+        "src": "./tutorials/media/cadastrar-bebida/07.92f266e1.mp4",
+        "poster": "./tutorials/media/cadastrar-bebida/07.poster.0225182b.webp",
         "alt": "A Água é segurada e arrastada para o topo da lista de bebidas.",
         "legenda": "Segure uma bebida e arraste para mudar a ordem."
       },
       {
         "tipo": "video",
-        "src": "./tutorials/media/cadastrar-bebida/08.1c3f6240.mp4",
-        "poster": "./tutorials/media/cadastrar-bebida/08.poster.3e13b43d.webp",
-        "alt": "Da tela inicial, o botão ⋮ da Água é tocado, depois Editar bebida e Excluir bebida; a pergunta sobre o histórico mostra as duas opções, e a opção de manter o histórico é tocada; a Água some da lista e o app avisa que ela foi excluída e o histórico mantido.",
+        "src": "./tutorials/media/cadastrar-bebida/08.7958d5e0.mp4",
+        "poster": "./tutorials/media/cadastrar-bebida/08.poster.e8f96f3a.webp",
+        "alt": "Da tela inicial, o botão ⋮ da Água é tocado, depois Editar bebida e a lixeira do rodapé; a pergunta sobre o histórico mostra as duas opções, e a opção de manter o histórico é tocada; a Água some da lista e o app avisa que ela foi excluída e o histórico mantido.",
         "legenda": "Para excluir a bebida, escolha manter ou apagar o histórico dela."
       }
     ]
@@ -131,38 +131,38 @@ export const TUTORIALS = [
     "passos": [
       {
         "tipo": "video",
-        "src": "./tutorials/media/historico/01.af9dee3a.mp4",
-        "poster": "./tutorials/media/historico/01.poster.1920f0e9.webp",
+        "src": "./tutorials/media/historico/01.b6f19d0a.mp4",
+        "poster": "./tutorials/media/historico/01.poster.af264240.webp",
         "alt": "Na tela inicial, o botão Histórico do menu de baixo recebe o destaque azul e é tocado; abre a lista com todos os registros, do mais recente ao mais antigo.",
         "legenda": "Toque em Histórico no menu para ver todos os registros."
       },
       {
         "tipo": "video",
-        "src": "./tutorials/media/historico/02.a1668d6c.mp4",
-        "poster": "./tutorials/media/historico/02.poster.346be6f6.webp",
+        "src": "./tutorials/media/historico/02.e5428860.mp4",
+        "poster": "./tutorials/media/historico/02.poster.46ceae75.webp",
         "alt": "O botão Histórico do cartão da Cerveja é tocado e abre a lista só com os registros dessa bebida.",
         "legenda": "No card, o botão Histórico mostra só aquela bebida."
       },
       {
         "tipo": "video",
-        "src": "./tutorials/media/historico/03.ad682dc6.mp4",
-        "poster": "./tutorials/media/historico/03.poster.e8198d9b.webp",
+        "src": "./tutorials/media/historico/03.ea955c9b.mp4",
+        "poster": "./tutorials/media/historico/03.poster.be12a02e.webp",
         "alt": "Um registro do Histórico é tocado e abre o editor, com a data e as rodas de hora e minuto em destaque.",
         "legenda": "Toque num registro para corrigir o horário."
       },
       {
         "tipo": "video",
-        "src": "./tutorials/media/historico/04.9354f68e.mp4",
-        "poster": "./tutorials/media/historico/04.poster.ee027723.webp",
+        "src": "./tutorials/media/historico/04.6fc115b5.mp4",
+        "poster": "./tutorials/media/historico/04.poster.3a604573.webp",
         "alt": "Um registro do Histórico recebe um toque e segurar; um seletor flutuante com até quatro reações, de \"Péssimo\" a \"Ótimo\", aparece perto dele; a reação \"Ótimo\" é tocada, o seletor fecha e o selo da reação aparece no canto do registro.",
         "legenda": "Segure um registro para reagir à dose."
       },
       {
         "tipo": "video",
-        "src": "./tutorials/media/historico/05.04b0c88f.mp4",
-        "poster": "./tutorials/media/historico/05.poster.2f239f37.webp",
-        "alt": "Da tela inicial, o botão Histórico é tocado e depois um registro; no editor, o botão Excluir este registro é tocado e a exclusão é confirmada; o registro some da lista e o app avisa que foi excluído, com a opção Desfazer.",
-        "legenda": "Para excluir um registro, toque nele, em Excluir e confirme."
+        "src": "./tutorials/media/historico/05.b810ebb0.mp4",
+        "poster": "./tutorials/media/historico/05.poster.f890c680.webp",
+        "alt": "Da tela inicial, o botão Histórico é tocado e depois um registro; no editor, a lixeira do rodapé é tocada e a exclusão é confirmada; o registro some da lista e o app avisa que foi excluído.",
+        "legenda": "Para excluir um registro, toque nele, na lixeira e confirme."
       }
     ]
   },

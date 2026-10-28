@@ -62,8 +62,8 @@ module.exports = {
     },
     {
       tipo: 'video',
-      legenda: 'Para excluir um registro, toque nele, em Excluir e confirme.',
-      alt: 'Da tela inicial, o botão Histórico é tocado e depois um registro; no editor, o botão Excluir este registro é tocado e a exclusão é confirmada; o registro some da lista e o app avisa que foi excluído, com a opção Desfazer.',
+      legenda: 'Para excluir um registro, toque nele, na lixeira e confirme.',
+      alt: 'Da tela inicial, o botão Histórico é tocado e depois um registro; no editor, a lixeira do rodapé é tocada e a exclusão é confirmada; o registro some da lista e o app avisa que foi excluído.',
       async preparar(t) { await t.esperar(300); },
       async gravar(t) {
         await t.esperar(1400);

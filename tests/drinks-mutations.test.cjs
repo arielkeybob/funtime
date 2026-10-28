@@ -100,7 +100,7 @@ function drinkInteractionsInstance(c, overrides = {}) {
     drinkForm: stubEl(), nameInput: stubEl(), drinkNameField: stubEl(), drinkIconField: stubEl(),
     formError: stubEl({ hidden: true }),
     drinkDialogEyebrow: stubEl(), drinkDialogTitle: stubEl(), drinkSubmitButton: stubEl(), deleteDrinkFromEditorButton: stubEl(),
-    drinkDangerZone: stubEl(), drinkIntervalEditNote: stubEl(), askDoseSizeInput: stubEl(), drinkDialog: stubEl(),
+    drinkIntervalEditNote: stubEl(), askDoseSizeInput: stubEl(), drinkDialog: stubEl(),
     deleteDrinkDialog: stubEl(), deleteDrinkName: stubEl(), deleteDrinkSummary: stubEl(),
     intervalWarningDialog: stubEl(), intervalWarningDrinkName: stubEl(), intervalWarningRemaining: stubEl(),
     intervalWarningMessage: stubEl(), intervalWarningContext: stubEl(),

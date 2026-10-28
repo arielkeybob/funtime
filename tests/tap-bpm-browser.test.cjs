@@ -145,7 +145,7 @@ test('vídeo: segurar o aviso abre um player temporário ao fundo', { timeout: 6
     await page.locator('#empty-add-button').click();
     assert.equal(await page.locator('#drink-dialog').getAttribute('open'), '');
     assert.equal(await page.locator('.youtube-easter-egg').count(), 1);
-    await page.locator('#cancel-dialog').click();
+    await page.locator('#close-dialog').click();
     await page.waitForSelector('.youtube-easter-egg', { state: 'detached', timeout: 8000 });
     await page.waitForFunction(async source => Boolean(await (await caches.open('funtime-bg-v1')).match(new URL(source, location.href).href)), firstSource);
     await page.evaluate(() => { window.backgroundTestRandom = 0; });

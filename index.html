@@ -59,7 +59,7 @@
     <footer class="browser-gate-footer">
       <span>App para estudo · não é controle de segurança</span>
       <a class="policies-link" href="./policies.html">Políticas e informações</a>
-      <span>v2.25.2 · By: arielkeybob</span>
+      <span>v2.26.0 · By: arielkeybob</span>
     </footer>
   </section>
 
@@ -369,7 +369,7 @@
           </div>
         </div>
 
-        <p class="settings-description">Versão instalada: <strong>v2.25.2</strong></p>
+        <p class="settings-description">Versão instalada: <strong>v2.26.0</strong></p>
         <button id="check-app-update" class="settings-secondary-button" type="button">Verificar atualizações</button>
       </section>
 
@@ -494,7 +494,7 @@
     <footer class="app-footer">
       <span class="app-footer-disclaimer">App para estudo · não é controle de segurança</span>
       <a class="policies-link" href="./policies.html">Políticas e informações</a>
-      <span class="app-footer-meta">v2.25.2 · By: arielkeybob</span>
+      <span class="app-footer-meta">v2.26.0 · By: arielkeybob</span>
     </footer>
   </div>
 
@@ -715,13 +715,10 @@
 
       <p id="form-error" class="form-error" role="alert" hidden></p>
 
-      <div id="drink-danger-zone" class="editor-danger-zone">
-        <button id="delete-drink-from-editor" class="editor-delete-button" type="button" hidden>Excluir bebida</button>
-      </div>
       </div>
 
-      <div class="dialog-actions drink-dialog-actions">
-        <button id="cancel-dialog" class="secondary-button" type="button">Cancelar</button>
+      <div class="dialog-actions drink-dialog-actions editor-actions">
+        <button id="delete-drink-from-editor" class="icon-button secondary occasion-icon-action is-danger" type="button" aria-label="Excluir bebida" title="Excluir bebida" hidden><svg class="occasion-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 11v6M14 11v6"/></svg></button>
         <button id="drink-submit-button" class="primary-button" type="submit">Salvar</button>
       </div>
     </form>
@@ -1003,10 +1000,8 @@
       <p class="event-help clean-optional">Ao salvar, a ordem do histórico e os alertas dos cards serão recalculados automaticamente.</p>
       <p id="event-form-error" class="form-error" role="alert" hidden></p>
 
-      <button id="delete-event" class="delete-event-button" type="button">Excluir este registro</button>
-
-      <div class="dialog-actions">
-        <button id="cancel-event-dialog" class="secondary-button" type="button">Cancelar</button>
+      <div class="dialog-actions editor-actions">
+        <button id="delete-event" class="icon-button secondary occasion-icon-action is-danger" type="button" aria-label="Excluir registro" title="Excluir registro"><svg class="occasion-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 11v6M14 11v6"/></svg></button>
         <button class="primary-button" type="submit">Salvar alteração</button>
       </div>
     </form>

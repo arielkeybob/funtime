@@ -50,7 +50,7 @@ test('Mundo invertido: gesto, cancelamento, duração, isolamento e movimento re
       assert.equal(await page.locator('.upside-down-world').evaluate(el => getComputedStyle(el).pointerEvents), 'none');
       await page.locator('#empty-add-button').click();
       assert.equal(await page.locator('#drink-dialog').getAttribute('open'), '');
-      await page.locator('#cancel-dialog').click();
+      await page.locator('#close-dialog').click();
       await page.clock.runFor(19000);
       assert.equal(await active(), 1);
       await page.clock.runFor(1000);

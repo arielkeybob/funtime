@@ -90,7 +90,7 @@ module.exports = {
       tipo: 'video',
       seed: 'demo',
       legenda: 'Para excluir a bebida, escolha manter ou apagar o histórico dela.',
-      alt: 'Da tela inicial, o botão ⋮ da Água é tocado, depois Editar bebida e Excluir bebida; a pergunta sobre o histórico mostra as duas opções, e a opção de manter o histórico é tocada; a Água some da lista e o app avisa que ela foi excluída e o histórico mantido.',
+      alt: 'Da tela inicial, o botão ⋮ da Água é tocado, depois Editar bebida e a lixeira do rodapé; a pergunta sobre o histórico mostra as duas opções, e a opção de manter o histórico é tocada; a Água some da lista e o app avisa que ela foi excluída e o histórico mantido.',
       async preparar(t) { await t.esperar(300); },
       async gravar(t) {
         await t.esperar(1400);

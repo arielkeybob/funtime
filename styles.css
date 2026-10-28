@@ -1460,19 +1460,6 @@ body {
   line-height: 1.45;
 }
 
-.delete-event-button {
-  min-height: 46px;
-  border: 1px solid var(--danger-border);
-  border-radius: 12px;
-  background: transparent;
-  color: #ff9da2;
-  font-weight: 750;
-}
-
-.delete-event-button:active {
-  background: var(--danger-soft);
-}
-
 .event-warning {
   margin: 0;
 }
@@ -1566,25 +1553,6 @@ body {
 
 
 /* V1.4 — edição e exclusão de bebidas */
-.editor-danger-zone {
-  display: grid;
-  padding-top: 16px;
-  border-top: 1px solid var(--border);
-}
-
-.editor-delete-button {
-  min-height: 46px;
-  border: 1px solid var(--danger-border);
-  border-radius: 12px;
-  background: transparent;
-  color: #ff9da2;
-  font-weight: 780;
-}
-
-.editor-delete-button:active {
-  background: var(--danger-soft);
-}
-
 .edit-interval-note {
   padding: 9px 10px;
   border-left: 3px solid #71717a;
@@ -1911,10 +1879,6 @@ body {
   :is(#drink-dialog, #log-dialog) .wheel-picker-shell::before,
   :is(#drink-dialog, #log-dialog) .wheel-picker-shell::after {
     height: 56px;
-  }
-
-  #drink-dialog .editor-danger-zone {
-    padding-top: 12px;
   }
 
   :is(#drink-dialog .drink-dialog-actions, #log-dialog .log-dialog-actions) {
@@ -3760,7 +3724,7 @@ body {
 .occasion-symbol { display: block; color: #d3c5f7; font-size: 3rem; }
 .occasion-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 20px; }
 .occasion-actions button { min-height: 44px; font-size: .8rem; padding: 10px; }
-.occasion-actions .primary-button, .occasion-actions .delete-event-button { grid-column: 1 / -1; }
+.occasion-actions .primary-button { grid-column: 1 / -1; }
 .occasion-actions.is-active .primary-button { grid-column: auto; }
 .occasion-history > h2 { font-size: 1rem; margin: 26px 0 16px; }
 
@@ -4256,3 +4220,9 @@ div.share-person { cursor: default; }
   dialog.dialog.app-dialog.compact-dialog .app-dialog-scroll { padding: 20px 20px 4px; }
   dialog.dialog.app-dialog.compact-dialog .app-dialog-actions { padding: 16px 20px 20px !important; border-top: 0; background: transparent; }
 }
+
+/* Rodapé dos editores (v2.26.0, spec 0029, pacote C): lixeira à esquerda e Salvar ocupando o resto,
+   como no detalhe do evento. Sem o Cancelar, que repetia o ✕; sem nada a mostrar, o rodapé some. */
+:is(#drink-dialog, #event-dialog) .editor-actions { display: flex; gap: 10px; }
+.editor-actions .primary-button { flex: 1; min-width: 0; }
+.editor-actions:not(:has(> button:not([hidden]))) { display: none !important; }

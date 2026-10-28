@@ -141,7 +141,6 @@ export function createEventDialog({
   }
 
   document.querySelector("#close-event-dialog").addEventListener("click", closeEventDialog);
-  document.querySelector("#cancel-event-dialog").addEventListener("click", closeEventDialog);
   document.querySelector("#delete-event").addEventListener("click", deleteSelectedEvent);
   eventForm.addEventListener("submit", handleEventSubmit);
   eventDateInput.addEventListener("input", updateEventDateLabel);

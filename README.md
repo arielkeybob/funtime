@@ -1,4 +1,13 @@
-# FunTime — V2.25.2
+# FunTime — V2.26.0
+
+## V2.26.0 — lixeira no rodapé dos editores
+
+- **Editar bebida** e **Editar registro**: o botão vermelho de excluir saiu do meio do formulário e virou a **lixeira no rodapé**, à esquerda do Salvar, como no detalhe do evento. Excluir continua pedindo confirmação.
+- Sai o **Cancelar** desses editores, que repetia o ✕; o ✕ e o Voltar do aparelho fecham. Sem mudança, o rodapé mostra só a lixeira (ou some, no cadastro de bebida nova).
+- O título de Editar bebida ganhou o ícone da bebida.
+- Primeiro pacote da spec 0029 (padrões de Eventos no resto do app). Tutoriais "Bem-vindo ao FunTime", "Cadastrar bebida" e "Histórico" atualizados; o do Histórico deixou de citar um "Desfazer" que não existe.
+- Sem mudança de dados; `DATA_VERSION` permanece 11.
+
 
 ## V2.25.2 — confirmação compacta, Reabrir só por 24h e fim com o dia da semana
 

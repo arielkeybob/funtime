@@ -106,7 +106,7 @@ test('Voltar percorre telas, diálogos, subetapas e não acumula entradas vazias
 
     for (let i = 0; i < 3; i++) {
       await page.evaluate(() => openDrinkDialog()); await depth(1);
-      await page.locator('#cancel-dialog').click(); await depth(0);
+      await page.locator('#close-dialog').click(); await depth(0);
     }
     await page.evaluate(() => { openDrinkDialog(); closeDrinkDialog(); openSettingsView(); }); await depth(1);
     await page.reload(); await page.waitForFunction(() => typeof state !== 'undefined' && state.currentView === 'settings'); await depth(1);
