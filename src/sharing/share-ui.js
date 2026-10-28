@@ -210,7 +210,7 @@ export function createShareUI({
   }
 
   async function desfazer(pairId, alias) {
-    const certeza = window.confirm(`Desfazer amizade com ${alias || "essa pessoa"}? Os compartilhamentos em andamento entre vocês serão encerrados.`);
+    const certeza = await globalThis.showAppConfirmation(`Desfazer amizade com ${alias || "essa pessoa"}? Os compartilhamentos em andamento entre vocês serão encerrados.`, { title: "Desfazer amizade", confirmLabel: "Desfazer amizade" });
     if (!certeza) return;
 
     try {
@@ -785,7 +785,8 @@ export function createShareUI({
     if (!occasionAberta?.item) return;
     const ativos = shares.filter((share) => share.occasionId === occasionAberta.item.id);
     if (!ativos.length) return;
-    if (!window.confirm(`Parar de compartilhar este evento com todo mundo (${ativos.length})?`)) return;
+    const pessoas = ativos.length === 1 ? "a pessoa que está vendo" : `as ${ativos.length} pessoas que estão vendo`;
+    if (!(await globalThis.showAppConfirmation(`Parar de compartilhar este evento com ${pessoas}?`, { title: "Parar com todos", confirmLabel: "Parar com todos" }))) return;
 
     try {
       for (const share of ativos) await shareWriter.stopShare(share.shareId);

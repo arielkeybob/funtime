@@ -130,13 +130,16 @@ export function beginFormDraft(form) {
   }, true);
 }
 
-// Fechar pelo Voltar, Escape ou bloqueio equivale a cancelar.
-export function showAppConfirmation(message, { title = 'Confirmar', confirmLabel = 'Confirmar' } = {}) {
+// Fechar pelo Voltar, Escape ou bloqueio equivale a cancelar. `tone: 'primary'` é para o que não
+// apaga nada (reabrir, ativar): o botão fica branco, como toda ação principal; o padrão é vermelho.
+export function showAppConfirmation(message, { title = 'Confirmar', confirmLabel = 'Confirmar', tone = 'danger' } = {}) {
   const dialog = document.getElementById('app-confirm-dialog');
   if (dialog.open) return Promise.resolve(false);
   document.getElementById('app-confirm-title').textContent = title;
   document.getElementById('app-confirm-message').textContent = message;
-  document.getElementById('app-confirm-accept').textContent = confirmLabel;
+  const accept = document.getElementById('app-confirm-accept');
+  accept.textContent = confirmLabel;
+  accept.className = tone === 'primary' ? 'primary-button' : 'danger-button';
   dialog.returnValue = '';
   return new Promise(resolve => {
     dialog.addEventListener('close', () => resolve(dialog.returnValue === 'confirm'), { once: true });

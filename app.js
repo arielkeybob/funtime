@@ -315,7 +315,7 @@ document.addEventListener("visibilitychange", () => {
 const DATA_STORAGE_KEY = "funtime-v1-data";
 const LEGACY_DRINKS_STORAGE_KEY = "balada-v1-drinks";
 const DATA_VERSION = 11;
-const APP_VERSION = "2.26.1";
+const APP_VERSION = "2.26.2";
 const DRINK_EXPORT_TYPE = "funtime-drinks";
 const DRINK_EXPORT_FORMAT_VERSION = 1;
 const BACKUP_EXPORT_TYPE = "funtime-backup";
@@ -3738,7 +3738,7 @@ async function acceptSharedEvent(view) {
   // Sem "Usar eventos" não existe ocasião para receber o convite (o recurso vem desligado
   // por padrão): oferece ligar, em vez de falhar calado.
   if (state.preferences.eventsEnabled !== true) {
-    const ligar = await showAppConfirmation("Para ir a este evento, o recurso Eventos precisa estar ativo. Ativar agora?", { title: "Ativar eventos?", confirmLabel: "Ativar" });
+    const ligar = await showAppConfirmation("Para ir a este evento, o recurso Eventos precisa estar ativo. Ativar agora?", { title: "Ativar eventos?", confirmLabel: "Ativar", tone: "primary" });
     if (!ligar) return { ok: false, message: "Sem o recurso Eventos não dá para aceitar o convite." };
     const next = FunTimeOccasions.configure(buildCurrentAppData(), true);
     globalThis.commitOccasions(next.occasions, next.events, next.preferences);
@@ -4119,8 +4119,9 @@ syncSignOutButton?.addEventListener("click", async () => {
 });
 
 syncDeleteCloudButton?.addEventListener("click", async () => {
-  const confirmed = window.confirm(
-    "Apagar os dados guardados na nuvem? Isso também encerra suas conexões e compartilhamentos com outras pessoas. Os dados deste aparelho são mantidos, e a sincronização será desligada."
+  const confirmed = await showAppConfirmation(
+    "Isso também encerra suas conexões e compartilhamentos com outras pessoas. Os dados deste aparelho ficam, e a sincronização é desligada.",
+    { title: "Apagar dados na nuvem?", confirmLabel: "Apagar da nuvem" },
   );
   if (!confirmed) return;
 

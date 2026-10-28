@@ -208,7 +208,7 @@ async function changeOccasion(id, action) {
     cancel: ['Cancelar agendamento', 'Cancelar agendamento', 'Cancelar o agendamento de ' + item.name + '?'],
     delete: ['Excluir evento', 'Excluir evento', 'Excluir ' + item.name + '? As doses serão preservadas no histórico, sem evento.'],
   }[action];
-  if (action !== 'start' && !(await showAppConfirmation(options[2], { title: options[0], confirmLabel: options[1] }))) return;
+  if (action !== 'start' && !(await showAppConfirmation(options[2], { title: options[0], confirmLabel: options[1], tone: action === 'end' || action === 'reopen' ? 'primary' : 'danger' }))) return;
   if (state.securityLocked || JSON.stringify(state.occasions.find(occasion => occasion.id === id)) !== snapshot) return;
   try {
     // Tirar o evento da agenda também desfaz o vínculo na nuvem: quem organiza cancela o

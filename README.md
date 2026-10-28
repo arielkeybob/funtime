@@ -1,4 +1,12 @@
-# FunTime — V2.26.1
+# FunTime — V2.26.2
+
+## V2.26.2 — confirmações sempre do app
+
+- **Apagar dados na nuvem**, **Desfazer amizade** e **Parar com todos** deixam de usar a caixa do navegador e passam a usar a janela de confirmação do app, no meio da tela.
+- Confirmações que **não apagam nada** (**O evento acabou**, **Reabrir**, **Ativar eventos**) mostram o botão branco de ação principal; as que apagam continuam em vermelho.
+- Pacote A da spec 0029. Nenhum tutorial afetado.
+- Sem mudança de dados; `DATA_VERSION` permanece 11.
+
 
 ## V2.26.1 — menu ⋮ da bebida em linhas
 
