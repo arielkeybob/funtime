@@ -1,6 +1,6 @@
 # 0029 — Padrões de Eventos no resto do app
 
-Status: em andamento (C na v2.26.0, D na v2.26.1, A na v2.26.2, B na v2.26.3, G na v2.26.4)
+Status: em andamento (C na v2.26.0, D na v2.26.1, A na v2.26.2, B na v2.26.3, G na v2.26.4, H na v2.26.5)
 
 ## Contexto
 
@@ -30,7 +30,7 @@ tutoriais e versão.
 | 3 | A — `window.confirm` (apagar nuvem, desfazer amizade, parar com todos) → confirmação compacta; tom neutro para confirmações que não apagam | feito (v2.26.2) |
 | 4 | B — Escolhas curtas em janela compacta: cancelar contagem, excluir bebida, meia/inteira, como desbloquear, restaurar backup, convite | feito (v2.26.3) |
 | 5 | G — Detalhe do amigo: selo, ▶, cartão-resumo; sem "Fechar" repetido; Sobre volta ao amigo | feito (v2.26.4) |
-| 6 | H — Compartilhar doses e Convidados: nome do evento no título, botão diz o efeito | a fazer |
+| 6 | H — Compartilhar doses e Convidados: nome do evento no título, botão diz o efeito | feito (v2.26.5) |
 | 7 | I — Configurações num componente único de linhas | a fazer |
 | 8 | J — Backup e conta: selo de estado, ações discretas | a fazer |
 | 9 | K — Anotar dose ("Anotar às 20:10") e aviso de intervalo | a fazer |
@@ -116,6 +116,7 @@ mostrar telas antigas.
 
 Pendentes:
 - desde G: `amigos`.
+- desde H: `evento-compartilhado`.
 
 ## Pacote G (v2.26.4)
 
@@ -133,3 +134,14 @@ Pendentes:
   - "Amigos desde" fica numa linha `.occasion-menu`;
   - `#friend-info-unfriend` virou `.occasion-link.is-danger`.
 - **Decisões aplicadas:** 1 (aviso e consentimento continuam como estão) e 2 (a tela fica).
+
+## Pacote H (v2.26.5)
+
+- `#share-occasion-title` e `#event-invite-title` mostram o nome do evento ("Evento novo" no formulário). O rótulo de cima
+  (`.eyebrow`) diz "Compartilhar doses", "Convidados" ou "Quem vai".
+- Dica: `#share-occasion-hint` com uma frase e `#share-occasion-hint-more` (`clean-optional`) com o prazo.
+- `rotuloConfirmar()` (`share-ui.js`): "Compartilhar com N" ou "Parar de compartilhar" quando a seleção muda o que está ao
+  vivo; "Confirmar" no agendado e no formulário. Em Convidados, `openInviteDialog({ applyNow })`, que o detalhe do
+  evento passa, mostra "Enviar convites".
+- Regra global: rodapé com um só botão visível usa uma coluna.
+- "Parar com todos" continua como botão de texto ao lado: é claro e raro, e o ícone não ganharia nada.

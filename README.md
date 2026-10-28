@@ -1,4 +1,15 @@
-# FunTime — V2.26.4
+# FunTime — V2.26.5
+
+## V2.26.5 — Compartilhar doses e Convidados com o nome do evento
+
+- **Compartilhar doses** e **Convidados** mostram o **nome do evento** como título; "Compartilhar doses", "Convidados" ou "Quem vai" ficam no rótulo de cima.
+- A dica de Compartilhar doses virou uma frase ("Só quem você marcar vê suas doses deste evento, ao vivo."); o prazo de 24h e o "pode parar quando quiser" ficam para a interface detalhada.
+- O botão diz o que vai acontecer: **Compartilhar com 2**, **Parar de compartilhar**; em Convidados aberto pelo detalhe do evento, **Enviar convites**.
+- Corrige o texto "Adicione um amigo primeiro, nas Configurações": os amigos ficam na tela Amigos.
+- Rodapé com um só botão visível passa a ocupar a largura toda.
+- Pacote H da spec 0029. Tutoriais afetados ficam para a regravação no fim da série.
+- Sem mudança de dados; `DATA_VERSION` permanece 11.
+
 
 ## V2.26.4 — detalhe do amigo mais claro
 

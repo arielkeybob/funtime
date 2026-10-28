@@ -157,6 +157,7 @@ test('convidados: marcas ✉/✔ abaixo do avatar, afastadas dele, e só enquant
       const a = avatar.getBoundingClientRect(); const m = bia.querySelector('.share-mark').getBoundingClientRect();
       resultados.push({
         titulo: n('#event-invite-title').textContent,
+        rotuloCima: n('#event-invite-title').previousElementSibling.textContent,
         marcas: { bia: marca('Bia'), caio: marca('Caio'), dino: marca('Dino') },
         ordem: [...bia.children].map((el) => el.className.split(' ')[0]),
         abaixoDoAvatar: m.top - a.bottom,
@@ -183,7 +184,8 @@ test('convidados: marcas ✉/✔ abaixo do avatar, afastadas dele, e só enquant
     });
 
     const [inicial, aoConfirmar, aoCancelar, emAndamento] = saida;
-    assert.equal(inicial.titulo, 'Convidados');
+    assert.equal(inicial.titulo, 'Festa', 'o título é o evento');
+    assert.equal(inicial.rotuloCima, 'Convidados');
     assert.deepEqual(inicial.marcas, { bia: 'share-mark--going', caio: 'share-mark--invited', dino: null },
       'check = confirmou, envelope = convidado sem resposta, nada para quem não foi convidado');
     assert.deepEqual(inicial.ordem, ['share-avatar', 'share-marks', 'share-person-name'], 'a marca fica entre o avatar e o nome, fora do círculo');
@@ -214,6 +216,7 @@ test('quem foi convidado só olha: vê os próprios amigos e uma contagem dos de
       ui.openInviteDialog({ occasion: ocasiao, selected: new Set() });
       const visao = {
         titulo: n('#event-invite-title').textContent,
+        rotuloCima: n('#event-invite-title').previousElementSibling.textContent,
         nomes: [...all('#event-invite-grid .share-person-name')].map((el) => el.textContent),
         tocavel: n('#event-invite-grid').querySelector('button') !== null,
         confirmarOculto: n('#event-invite-confirm').hidden,
@@ -229,7 +232,8 @@ test('quem foi convidado só olha: vê os próprios amigos e uma contagem dos de
       return { visao, cancelado, retirado };
     });
 
-    assert.equal(saida.visao.titulo, 'Quem vai');
+    assert.equal(saida.visao.titulo, 'Festa', 'o título é o evento');
+    assert.equal(saida.visao.rotuloCima, 'Quem vai');
     assert.deepEqual(saida.visao.nomes, ['Bia'], 'só amigos dele que estão na lista; Caio não foi convidado');
     assert.equal(saida.visao.tocavel, false, 'convidado não convida nem tira ninguém');
     assert.equal(saida.visao.confirmarOculto, true);
@@ -284,8 +288,8 @@ test('compartilhar doses de um evento futuro guarda uma intenção e mostra o qu
       return { futuro, aposConfirmar, escolha, aposEscolher, emAndamento };
     });
 
-    assert.equal(saida.futuro.titulo, 'Compartilhar doses · Festa');
-    assert.match(saida.futuro.dica, /quando ele começar.*Nada é compartilhado antes disso/);
+    assert.equal(saida.futuro.titulo, 'Festa', 'o título é o evento; "Compartilhar doses" fica no rótulo');
+    assert.match(saida.futuro.dica, /verá suas doses deste evento, quando ele começar/);
     assert.equal(saida.futuro.botao, 'Confirmar');
     assert.deepEqual(saida.futuro.marcas, ['going', 'invited', '-'], 'as marcas do convite aparecem na tela de compartilhar doses');
     assert.deepEqual(saida.futuro.pressionados, ['false', 'false', 'true'], 'parte da intenção já guardada (Dino)');
@@ -293,7 +297,7 @@ test('compartilhar doses de um evento futuro guarda uma intenção e mostra o qu
     assert.equal(saida.aposConfirmar.aberto, false);
     assert.deepEqual(saida.aposConfirmar.chamadas, [['intencao', 'o1', ['bia', 'dino']]]);
     assert.match(saida.aposConfirmar.toast, /quando o evento começar/);
-    assert.equal(saida.escolha.titulo, 'Compartilhar doses');
+    assert.equal(saida.escolha.titulo, 'Evento novo');
     assert.equal(saida.escolha.marcasNovo, 0, 'evento novo ainda não foi convidado a ninguém');
     assert.deepEqual(saida.aposEscolher, { escolhido: ['caio'], aberto: false, chamadas: [] }, 'no formulário só devolve a escolha; nada é aplicado agora');
     assert.equal(saida.emAndamento.marcas, 0, 'com o evento em andamento as marcas de convite somem');
@@ -453,13 +457,13 @@ test('formulário do evento: as duas linhas abrem as telas de verdade, pelas pon
     await page.locator('#occasion-share-row').click();
     assert.equal(await page.locator('#share-occasion-dialog').evaluate((node) => node.open), true,
       'tocar em Compartilhar doses num evento NOVO precisa abrir a tela');
-    assert.equal(await page.locator('#share-occasion-title').textContent(), 'Compartilhar doses');
+    assert.equal(await page.locator('#share-occasion-title').textContent(), 'Evento novo');
     await page.locator('#close-share-occasion').click();
     assert.equal(await page.locator('#share-occasion-dialog').evaluate((node) => node.open), false);
 
     await page.locator('#occasion-invite-row').click();
     assert.equal(await page.locator('#event-invite-dialog').evaluate((node) => node.open), true);
-    assert.equal(await page.locator('#event-invite-title').textContent(), 'Convidados');
+    assert.equal(await page.locator('#event-invite-dialog .eyebrow').textContent(), 'Convidados');
     await page.locator('#close-event-invite').click();
 
     assert.equal(await page.locator('#occasion-dialog').evaluate((node) => node.open), true, 'o formulário continua aberto por baixo');
@@ -479,7 +483,7 @@ test('detalhe do evento: as linhas abrem as telas de verdade, com evento agendad
       window.hasSharingFriends = () => true;
     });
 
-    for (const [id, titulo] of [['futuro', 'Compartilhar doses · Festa futura'], ['agora', 'Compartilhar doses · Em andamento']]) {
+    for (const [id, titulo] of [['futuro', 'Festa futura'], ['agora', 'Em andamento']]) {
       await page.evaluate((alvo) => openOccasionDetails(alvo), id);
       await page.locator('#occasion-detail-content .occasion-people-row', { hasText: 'Compartilhar doses' }).click();
       assert.equal(await page.locator('#share-occasion-dialog').evaluate((node) => node.open), true, id);

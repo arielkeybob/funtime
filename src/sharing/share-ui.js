@@ -747,10 +747,24 @@ export function createShareUI({
     const roster = planned && item ? getEventRoster(item) : null;
     const semNinguem = renderFriendPicker(nodes.shareOccasionGrid, nodes.shareOccasionEmpty, selecionados, renderShareOccasionPeople,
       roster ? (par) => rosterStatus(par.otherUid, roster) : null);
-    if (nodes.shareOccasionConfirm) nodes.shareOccasionConfirm.hidden = semNinguem;
+    if (nodes.shareOccasionConfirm) {
+      nodes.shareOccasionConfirm.hidden = semNinguem;
+      nodes.shareOccasionConfirm.textContent = rotuloConfirmar();
+    }
     if (nodes.shareOccasionStopAll) {
       nodes.shareOccasionStopAll.hidden = planned || !item || activeViewersFor(item.id).size === 0;
     }
+  }
+
+  // O botão diz o que vai acontecer ao vivo: começar com N pessoas ou parar com todas. No
+  // formulário e no evento agendado, só guarda a escolha.
+  function rotuloConfirmar() {
+    const { item, planned, stage, selecionados } = occasionAberta;
+    if (planned || stage) return "Confirmar";
+    const antes = activeViewersFor(item.id);
+    const mudou = selecionados.size !== antes.size || [...selecionados].some((uid) => !antes.has(uid));
+    if (!mudou) return "Compartilhar";
+    return selecionados.size ? `Compartilhar com ${selecionados.size}` : "Parar de compartilhar";
   }
 
   // Inicia compartilhamento com uma lista já pronta de pessoas — usado quando um
@@ -849,13 +863,18 @@ export function createShareUI({
     const planned = item ? item.startedAt === null : options.planned === true;
     const inicial = stage ? stage.selected : planned ? (item?.shareWith || []) : activeViewersFor(item.id);
     occasionAberta = { item, events, planned, stage, selecionados: new Set(inicial) };
-    if (nodes.shareOccasionTitle) nodes.shareOccasionTitle.textContent = item?.name ? `Compartilhar doses · ${item.name}` : "Compartilhar doses";
+    // Título = o evento; "Compartilhar doses" fica no rótulo de cima (HTML). Uma frase à vista;
+    // o resto (prazo de 24h, parar quando quiser) só na interface detalhada.
+    if (nodes.shareOccasionTitle) nodes.shareOccasionTitle.textContent = item?.name || "Evento novo";
     if (nodes.shareOccasionHint) {
       nodes.shareOccasionHint.textContent = planned
-        ? "Toque para escolher quem verá suas doses deste evento quando ele começar. Nada é compartilhado antes disso, e o acesso termina sozinho 24h depois de o evento encerrar."
-        : "Toque para selecionar quem vê horários e bebidas deste evento em tempo real. O acesso de quem for selecionado termina sozinho 24h depois de o evento encerrar, e você pode parar quando quiser.";
+        ? "Só quem você marcar verá suas doses deste evento, quando ele começar."
+        : "Só quem você marcar vê suas doses deste evento, ao vivo.";
     }
-    if (nodes.shareOccasionConfirm) nodes.shareOccasionConfirm.textContent = planned || stage ? "Confirmar" : "Compartilhar";
+    const mais = document.getElementById("share-occasion-hint-more");
+    if (mais) mais.textContent = planned
+      ? "Nada é compartilhado antes disso, e o acesso termina sozinho 24h depois de o evento encerrar."
+      : "O acesso termina sozinho 24h depois de o evento encerrar, e você pode parar quando quiser.";
     renderShareOccasionPeople();
     if (!nodes.shareOccasionDialog.open) nodes.shareOccasionDialog.showModal();
   }

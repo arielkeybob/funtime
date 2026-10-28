@@ -276,7 +276,12 @@ export function createInviteUI({
     const convidado = Boolean(roster && !roster.gone && roster.view.isHost === false) || Boolean(occasion?.sharedHostUid && occasion.sharedHostUid !== getMyUid());
     const marcas = !occasion || occasion.startedAt === null;
 
-    nodes.eventInviteTitle.textContent = convidado ? "Quem vai" : "Convidados";
+    // Título = o evento; "Convidados" (quem organiza) ou "Quem vai" (convidado) no rótulo de cima.
+    nodes.eventInviteTitle.textContent = occasion?.name || "Evento novo";
+    const rotulo = nodes.eventInviteTitle.previousElementSibling;
+    if (rotulo) rotulo.textContent = convidado ? "Quem vai" : "Convidados";
+    // Do detalhe do evento a escolha é aplicada na hora; do formulário, só ao salvar.
+    nodes.eventInviteConfirm.textContent = dialogo.applyNow ? "Enviar convites" : "Confirmar";
     if (nodes.eventInviteHint) nodes.eventInviteHint.hidden = convidado;
     nodes.eventInviteConfirm.hidden = convidado;
     // Convidado só olha: sem rodapé (o ✕ fecha), em vez de um "Fechar" que repetia o ✕.
@@ -322,8 +327,8 @@ export function createInviteUI({
 
   // `selected` é o conjunto de convidados a partir do qual o organizador edita (uma cópia:
   // Cancelar não muda nada). `onConfirm(conjunto)` recebe o resultado.
-  function openInviteDialog({ occasion = null, selected = new Set(), onConfirm = () => {} } = {}) {
-    dialogo = { occasion, selected: new Set(selected), onConfirm };
+  function openInviteDialog({ occasion = null, selected = new Set(), onConfirm = () => {}, applyNow = false } = {}) {
+    dialogo = { occasion, selected: new Set(selected), onConfirm, applyNow };
     renderDialogo();
     if (!nodes.eventInviteDialog.open) nodes.eventInviteDialog.showModal();
   }

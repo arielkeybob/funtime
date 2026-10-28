@@ -4196,3 +4196,6 @@ div.share-person { cursor: default; }
 .share-active-text .status-chip { margin-top: 4px; }
 .occasion-link.is-danger { color: #ff9da2; }
 #friend-info-body { display: grid; gap: 12px; }
+
+/* Rodapé com um só botão visível (os outros escondidos): ele ocupa a largura toda (v2.26.5). */
+.app-dialog-actions:has(> button:not([hidden])):not(:has(> button:not([hidden]) ~ button:not([hidden]))) { grid-template-columns: 1fr; }

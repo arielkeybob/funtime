@@ -480,7 +480,7 @@ function openOccasionDetails(id) {
     const guest = shared && !shared.isHost;
     const inviteSummary = shared ? (guest ? shared.goingCount + ' vão' : shared.invitedCount + (shared.invitedCount === 1 ? ' convidado' : ' convidados') + (shared.goingCount ? ' · ' + shared.goingCount + ' vão' : '')) : 'Ninguém';
     menu.append(occasionPeopleRow(guest ? 'Quem vai' : 'Convidados', inviteSummary, () => globalThis.openInviteDialog?.({
-      occasion: item, selected: new Set(shared?.roster && !shared.gone ? shared.roster.invited : []),
+      occasion: item, selected: new Set(shared?.roster && !shared.gone ? shared.roster.invited : []), applyNow: true,
       onConfirm: chosen => globalThis.applyOccasionInvites?.(id, [...chosen]).catch(error => { console.error('Falha ao atualizar convidados.', error); showToast('Não foi possível atualizar os convidados agora. Tente de novo.'); }),
     }), 'people'));
     const shareCount = item.startedAt === null ? (item.shareWith?.length || 0) : null;
