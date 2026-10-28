@@ -1,4 +1,12 @@
-# FunTime — V2.25.0
+# FunTime — V2.25.1
+
+## V2.25.1 — voltar dos registros para o evento e salvar convidados
+
+- **Registros do evento com volta**: no detalhe de um evento, tocar nos registros abre o Histórico com o cabeçalho "Registros do evento" e o nome dele. O **←** (ou o Voltar do aparelho) volta para o detalhe do evento, e não mais para a Home. Trocar o filtro do Histórico para outra coisa vira o Histórico comum, e o ← volta à Home como antes.
+- **Corrige**: ao editar um evento, mudar só os convidados ou com quem compartilhar as doses não mostrava o **Salvar alterações**. Agora mostra.
+- Evento que já acabou não oferece mais **Convidados** ao editar (a nuvem recusava o convite).
+- **Deixar de participar fica escondido por enquanto**: sair da lista do amigo mantendo o evento na agenda ainda confunde. Quem não vai mais continua tendo **Cancelar agendamento** e **Excluir evento**, que também retiram a presença. A opção pode ser liberada depois (`OCCASION_LEAVE_ENABLED` em `occasions-ui.js`).
+- Sem mudança de dados; `DATA_VERSION` permanece 11.
 
 ## V2.25.0 — Eventos mais simples e com cara própria
 

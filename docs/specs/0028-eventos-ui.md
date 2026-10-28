@@ -84,11 +84,23 @@ textos de Encerrar e Sair foram reescritos com os rótulos novos) e o formato do
 - **Menos texto**: frase na tela só quando muda uma decisão. O resto vai para os tutoriais ou
   para `clean-optional`.
 
-## Fora desta rodada
+## Corrigido depois (v2.25.1)
 
-- Ao editar um evento e mudar só convidados/compartilhamento, o "Salvar alterações" não aparece
-  (as escolhas ficam fora dos campos do formulário).
-- "Ver registros" leva ao Histórico sem caminho de volta ao evento.
+- Ao editar um evento e mudar só convidados/compartilhamento, o "Salvar alterações" não
+  aparecia, porque as escolhas ficavam fora dos campos do formulário. Agora elas também vão para
+  dois campos ocultos (`#occasion-invite-draft`, `#occasion-share-draft`) que o rascunho do
+  formulário (`ui.js`, `updateFormDraft`) compara. Evento encerrado não mostra mais Convidados
+  no editor.
+- "Ver registros" levava ao Histórico sem caminho de volta ao evento. Agora
+  `state.historyReturnOccasionId` guarda o evento e `setHistoryReturnOccasion` (`app.js`) põe
+  "Registros do evento" e o nome dele no cabeçalho. `leaveHistoryView` faz o ← e o Voltar do
+  aparelho (`navigation.js`) voltarem ao detalhe. Trocar o filtro para outra coisa desfaz isso.
+- **Deixar de participar desligado** (`OCCASION_LEAVE_ENABLED = false` em `occasions-ui.js`), a
+  pedido do usuário: sair da lista do amigo mantendo o evento na agenda ainda confunde quem está
+  aprendendo os conceitos. O convidado continua podendo sair por Cancelar agendamento (antes do
+  evento) e Excluir evento (a qualquer momento): os dois chamam `releaseSharedEvent`, que retira
+  a presença. Num evento já encerrado, sair só tirava o nome da lista "Quem vai" e não tinha
+  volta. O link, a confirmação e `leaveSharedEvent` continuam no código para religar depois.
 
 ## Plano de teste
 

@@ -424,7 +424,7 @@ test('detalhe do evento: linhas, aviso de mudança do organizador e sair do even
 
     await page.evaluate(() => { window.__info = { ...window.__info, updateAvailable: false, cancelled: true }; openOccasionDetails('o1'); });
     assert.match(await texto(), /O organizador cancelou este evento/);
-    assert.equal(await page.locator('#occasion-detail-content').getByRole('button', { name: 'Deixar de participar' }).count(), 1);
+    assert.equal(await page.locator('#occasion-detail-content').getByRole('button', { name: 'Deixar de participar' }).count(), 0, 'Deixar de participar está desligado por enquanto (OCCASION_LEAVE_ENABLED)');
 
     await page.evaluate(() => { window.__info = null; openOccasionDetails('o1'); });
     conteudo = await texto();

@@ -80,7 +80,8 @@ function editorVisibility() {
   // começou é ao vivo e mora no detalhe do evento, não no formulário.
   const guest = Boolean(current?.sharedHostUid && current.sharedHostUid !== globalThis.currentSharedEventsUid?.());
   $occasion('occasion-people-field').hidden = !globalThis.hasSharingFriends?.();
-  $occasion('occasion-invite-row').hidden = guest;
+  // Evento que já acabou não recebe convidados (a nuvem recusaria); o detalhe também não mostra a linha.
+  $occasion('occasion-invite-row').hidden = guest || current?.endedAt != null;
   $occasion('occasion-share-row').hidden = Boolean(current && current.startedAt !== null);
   updatePeopleRows();
   $occasion('occasion-past-notice').hidden = !past;
@@ -120,6 +121,10 @@ function peopleSummary(count) { return (count ? count + (count === 1 ? ' pessoa'
 function updatePeopleRows() {
   $occasion('occasion-invite-summary').textContent = peopleSummary(occasionInviteSelected.size);
   $occasion('occasion-share-summary').textContent = peopleSummary(occasionShareSelected.size);
+  // Os escolhidos também vão para campos ocultos: é o que faz o rascunho do formulário perceber
+  // a mudança e mostrar o "Salvar alterações" quando só os convidados ou o compartilhamento mudaram.
+  $occasion('occasion-invite-draft').value = [...occasionInviteSelected].sort().join(',');
+  $occasion('occasion-share-draft').value = [...occasionShareSelected].sort().join(',');
 }
 function editorOccasionIsPlanned() {
   const current = state.occasions.find(item => item.id === editingOccasionId);
@@ -127,11 +132,11 @@ function editorOccasionIsPlanned() {
 }
 $occasion('occasion-invite-row').addEventListener('click', () => {
   const current = state.occasions.find(item => item.id === editingOccasionId) || null;
-  globalThis.openInviteDialog?.({ occasion: current, selected: occasionInviteSelected, onConfirm: chosen => { occasionInviteSelected = chosen; updatePeopleRows(); } });
+  globalThis.openInviteDialog?.({ occasion: current, selected: occasionInviteSelected, onConfirm: chosen => { occasionInviteSelected = chosen; updatePeopleRows(); updateFormDraft(occasionForm); } });
 });
 $occasion('occasion-share-row').addEventListener('click', () => {
   const current = state.occasions.find(item => item.id === editingOccasionId) || null;
-  globalThis.openShareOccasionDialog?.(current, [], { planned: editorOccasionIsPlanned(), stage: { selected: occasionShareSelected, onConfirm: chosen => { occasionShareSelected = chosen; updatePeopleRows(); } } });
+  globalThis.openShareOccasionDialog?.(current, [], { planned: editorOccasionIsPlanned(), stage: { selected: occasionShareSelected, onConfirm: chosen => { occasionShareSelected = chosen; updatePeopleRows(); updateFormDraft(occasionForm); } } });
 });
 $occasion('occasion-mode').addEventListener('change', () => {
   if ($occasion('occasion-mode').value === 'scheduled' && new Date($occasion('occasion-start').value).getTime() <= Date.now()) {
@@ -242,6 +247,10 @@ const OCCASION_ICONS = {
   start: '<path d="M7 4.5v15l12.5-7.5z"/>',
   end: '<rect x="5" y="5" width="14" height="14" rx="3"/>',
 };
+// "Deixar de participar" (convidado sai da lista do amigo e mantém o evento na agenda) fica
+// desligado por enquanto: o conceito ainda confunde. Quem não vai mais tem Cancelar agendamento
+// e Excluir evento, que também retiram a presença. Para liberar, trocar para true (spec 0028).
+const OCCASION_LEAVE_ENABLED = false;
 function occasionIcon(name, className = 'occasion-icon') {
   const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
   svg.setAttribute('viewBox', '0 0 24 24'); svg.setAttribute('aria-hidden', 'true'); svg.setAttribute('class', className);
@@ -278,7 +287,7 @@ function refreshSharedEventViews() {
   if (occasionDetailDialog.open && !occasionDialog.open && state.occasions.some(item => item.id === detailOccasionId)) openOccasionDetails(detailOccasionId);
   if (state.currentView === 'occasion') renderOccasions();
 }
-function openOccasionHistory(id) { closeOccasionDetails(); openHistoryView(); state.historyOccasionId = id; refreshOccasionFilters(); renderHistory(); }
+function openOccasionHistory(id) { const item = state.occasions.find(occasion => occasion.id === id); closeOccasionDetails(); openHistoryView(); state.historyOccasionId = id; globalThis.setHistoryReturnOccasion(item); refreshOccasionFilters(); renderHistory(); }
 function occasionStatus(item) {
   if (item.startedAt === null) {
     if (item.closedAt != null) return item.endReason === 'cancelled' ? 'Agendamento cancelado' : 'Agendamento expirado';
@@ -496,7 +505,7 @@ function openOccasionDetails(id) {
   // principal ficam no rodapé.
   const link = (icon, label, action) => { const button = occasionButton('', action, 'occasion-link'); button.append(occasionIcon(icon), label); return button; };
   if (FunTimeOccasions.pending(item)) content.append(link('cancel', 'Cancelar agendamento', () => changeOccasion(id, 'cancel')));
-  if (shared && !shared.isHost) content.append(link('leave', 'Deixar de participar', async () => {
+  if (OCCASION_LEAVE_ENABLED && shared && !shared.isHost) content.append(link('leave', 'Deixar de participar', async () => {
     if (await showAppConfirmation('Deixar de participar de ' + item.name + '? Sua presença é retirada e as doses que você compartilha neste evento deixam de ser vistas. O evento continua na sua agenda.', { title: 'Deixar de participar', confirmLabel: 'Deixar de participar' })) { await globalThis.leaveSharedEvent?.(id); if (occasionDetailDialog.open) openOccasionDetails(id); }
   }));
   // Rodapé: lápis e lixeira à esquerda, a ação principal da situação ocupando o resto.
@@ -655,6 +664,8 @@ $occasion('history-occasion-options').addEventListener('click', event => {
   if (!option) return;
   state.historyOccasionId = option.dataset.value;
   state.historyLimit = 20;
+  // Saiu dos registros do evento de onde veio: o cabeçalho volta a ser o do Histórico e o ← vai à Home.
+  if (state.historyReturnOccasionId && option.dataset.value !== state.historyReturnOccasionId) globalThis.setHistoryReturnOccasion(null);
   refreshOccasionFilters();
   renderHistory();
   $occasion('history-occasion-filter').focus();

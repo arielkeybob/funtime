@@ -34,7 +34,8 @@
   function readLayers() {
     if (state.securityLocked || document.body.classList.contains('terms-pending')) return [];
     const next = [];
-    if (state.currentView !== 'home') next.push({ id: state.currentView, close: () => closeHistoryView() });
+    // Histórico aberto por "Ver registros" volta ao evento; as outras telas voltam à Home.
+    if (state.currentView !== 'home') next.push({ id: state.currentView, close: () => state.currentView === 'history' ? leaveHistoryView() : closeHistoryView() });
     if (state.currentView === 'settings' && state.settingsPage) next.push({ id: 'settings-page', close: () => showSettingsPage(null) });
     if (state.currentView === 'settings') {
       document.querySelectorAll('#settings-view details[open]').forEach(details => {

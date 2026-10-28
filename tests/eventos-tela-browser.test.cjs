@@ -262,3 +262,64 @@ test('evento em andamento: cartão em destaque no topo, e não mais uma linha co
     assert.deepEqual(erros, []);
   });
 });
+
+test('"Ver registros" abre os registros do evento, e voltar (← ou Voltar do aparelho) leva de novo ao detalhe', { timeout: 90000 }, async () => {
+  await comApp('demo', async (page, erros) => {
+    await page.evaluate(() => globalThis.__semear({ eventoAtivo: true }));
+    await page.locator('#nav-occasion').click();
+    const verRegistros = async () => {
+      await page.getByRole('button', { name: 'Ver registros', exact: true }).click();
+      await page.waitForFunction(() => state.currentView === 'history');
+    };
+
+    await page.locator('#occasion-current .occasion-current-card').click();
+    await verRegistros();
+    assert.equal(await page.locator('#history-header-eyebrow').textContent(), 'Registros do evento');
+    assert.equal(await page.locator('#history-header-title').textContent(), 'Churrasco do João');
+    assert.equal(await page.locator('#close-history').getAttribute('aria-label'), 'Voltar para o evento');
+    assert.equal(await page.locator('.history-event').count(), 2, 'só os registros do evento');
+
+    await page.locator('#close-history').click();
+    await page.waitForFunction(() => document.querySelector('#occasion-detail-dialog').open);
+    assert.equal(await page.evaluate(() => state.currentView), 'occasion');
+    assert.equal(await page.locator('#occasion-detail-name').textContent(), 'Churrasco do João');
+
+    await verRegistros();
+    await page.goBack();
+    await page.waitForFunction(() => document.querySelector('#occasion-detail-dialog').open);
+    assert.equal(await page.evaluate(() => state.currentView), 'occasion', 'o Voltar do aparelho faz o mesmo que o ←');
+
+    // Trocar o filtro para outra coisa: vira o Histórico comum, e o ← vai para a Home.
+    await verRegistros();
+    await page.locator('#history-occasion-filter').click();
+    await page.getByRole('option', { name: 'Todos os eventos', exact: true }).click();
+    assert.equal(await page.locator('#history-header-title').textContent(), 'Histórico');
+    assert.equal(await page.locator('#close-history').getAttribute('aria-label'), 'Voltar para a tela principal');
+    await page.locator('#close-history').click();
+    assert.equal(await page.evaluate(() => state.currentView), 'home');
+    assert.equal(await page.locator('#occasion-detail-dialog').evaluate((no) => no.open), false);
+    assert.deepEqual(erros, []);
+  });
+});
+
+test('editar evento: mudar só os convidados mostra o "Salvar alterações"', { timeout: 90000 }, async () => {
+  await comApp('demoConviteEnviado', async (page, erros) => {
+    await page.locator('#nav-occasion').waitFor({ state: 'visible', timeout: 10000 });
+    await page.locator('#nav-occasion').click();
+    await page.locator('#agenda-upcoming').click();
+    await page.locator('#occasion-list .agenda-row', { hasText: 'Festa Junina' }).click();
+    await page.getByRole('button', { name: 'Editar evento', exact: true }).click();
+    await page.waitForSelector('#occasion-dialog[open]');
+    assert.equal(await page.locator('#occasion-submit').isVisible(), false, 'sem mudança, só o Cancelar');
+
+    await page.locator('#occasion-invite-row').click();
+    await page.waitForSelector('#event-invite-dialog[open]');
+    await page.locator('#event-invite-grid .share-person', { hasText: 'Duda' }).click();
+    await page.locator('#event-invite-confirm').click();
+    await page.waitForFunction(() => !document.querySelector('#event-invite-dialog').open);
+    assert.match(await page.locator('#occasion-invite-summary').textContent(), /^3 pessoas/);
+    assert.equal(await page.locator('#occasion-submit').isVisible(), true, 'convidado novo é uma mudança a salvar');
+    assert.equal(await page.locator('#occasion-submit').textContent(), 'Salvar alterações');
+    assert.deepEqual(erros, []);
+  });
+});

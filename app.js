@@ -315,7 +315,7 @@ document.addEventListener("visibilitychange", () => {
 const DATA_STORAGE_KEY = "funtime-v1-data";
 const LEGACY_DRINKS_STORAGE_KEY = "balada-v1-drinks";
 const DATA_VERSION = 11;
-const APP_VERSION = "2.25.0";
+const APP_VERSION = "2.25.1";
 const DRINK_EXPORT_TYPE = "funtime-drinks";
 const DRINK_EXPORT_FORMAT_VERSION = 1;
 const BACKUP_EXPORT_TYPE = "funtime-backup";
@@ -366,6 +366,8 @@ const state = {
   deleteReturnToEditor: false,
   menuDrinkId: null,
   historyDrinkId: null,
+  // Evento de onde o Histórico foi aberto ("Ver registros"): o ← volta para ele.
+  historyReturnOccasionId: null,
   currentView: "home",
   settingsPage: null,
   securityLastActivityAt: 0,
@@ -457,6 +459,7 @@ const historyDescription = document.querySelector("#history-description");
 const historyShowMore = document.querySelector("#history-show-more");
 const historyHeaderEyebrow = document.querySelector("#history-header-eyebrow");
 const historyHeaderTitle = document.querySelector("#history-header-title");
+const closeHistoryButton = document.querySelector("#close-history");
 
 const drinkList = document.querySelector("#drink-list");
 const emptyState = document.querySelector("#empty-state");
@@ -2837,6 +2840,8 @@ function refreshDataViews() {
 
 function openHistoryView(drinkId = null) {
   state.historyOccasionId = "all";
+  state.historyReturnOccasionId = null;
+  closeHistoryButton.setAttribute("aria-label", "Voltar para a tela principal");
   state.historyLimit = 20;
   const drink = drinkId ? state.drinks.find((item) => item.id === drinkId) : null;
   state.historyDrinkId = drink?.id || null;
@@ -2860,6 +2865,23 @@ historyShowMore.addEventListener("click", () => {
   state.historyLimit += 20;
   renderHistory();
 });
+
+// "Ver registros" de um evento: o cabeçalho diz de qual evento são os registros e o ← (ou o
+// Voltar do aparelho) volta para o detalhe dele. Trocar o filtro para outra coisa desfaz isso.
+function setHistoryReturnOccasion(occasion) {
+  state.historyReturnOccasionId = occasion?.id ?? null;
+  historyHeaderEyebrow.textContent = occasion ? "Registros do evento" : "Registros";
+  historyHeaderTitle.textContent = occasion ? occasion.name : "Histórico";
+  closeHistoryButton.setAttribute("aria-label", occasion ? "Voltar para o evento" : "Voltar para a tela principal");
+}
+
+function leaveHistoryView() {
+  const occasion = state.occasions.find((item) => item.id === state.historyReturnOccasionId);
+  state.historyReturnOccasionId = null;
+  if (!occasion || !state.preferences.eventsEnabled) { closeHistoryView(); return; }
+  globalThis.openOccasionView({ keepTab: true });
+  globalThis.openOccasionDetails(occasion.id);
+}
 
 function closeHistoryView() {
   state.currentView = "home";
@@ -3181,7 +3203,7 @@ function startClock() {
 }
 
 document.querySelector("#open-history").addEventListener("click", () => openHistoryView());
-document.querySelector("#close-history").addEventListener("click", closeHistoryView);
+closeHistoryButton.addEventListener("click", leaveHistoryView);
 document.querySelector("#open-settings").addEventListener("click", openSettingsView);
 document.querySelector("#close-settings").addEventListener("click", () => {
   if (state.settingsPage) showSettingsPage(null);
@@ -4218,7 +4240,7 @@ Object.assign(globalThis, {
   editDrinkFromDrinkMenu, getDrinkActivity, persistIconCatalog, unlockApp,
   openDeleteDrinkDialog, openEditDrinkDialog, BACKUP_EXPORT_TYPE,
   state, DATA_STORAGE_KEY, buildCurrentAppData, refreshDataViews, showToast,
-  showAppNotification, setCurrentView, createId, closeHistoryView, openHistoryView,
+  showAppNotification, setCurrentView, createId, closeHistoryView, openHistoryView, leaveHistoryView, setHistoryReturnOccasion,
   renderHistory, getEventDrinkIdentity, toLocalDateInputValue, toLocalTimeInputValue,
   PICKER_ICONS, SECURITY_STORAGE_KEY, hideToast, applyInterfacePreferences,
   updateDataSettingsUI, LEGACY_DRINKS_STORAGE_KEY, SHARE_IMPORT_CACHE_NAME,
