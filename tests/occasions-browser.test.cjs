@@ -64,7 +64,7 @@ test('agenda compacta, evento, edição, agendamento automático, aviso e persis
   });
   await page.locator('#history-occasion-filter').click();
   assert.deepEqual(await page.locator('.history-filter-option').allTextContents(), [
-    'Todos os eventos', 'Sem evento', 'Evento passado · ' + await page.evaluate(() => toLocalDateInputValue(state.occasions[0].startedAt))
+    'Todos os eventos', 'Sem evento', 'Evento passado · ' + await page.evaluate(() => { const dia = agendaDateParts(state.occasions[0].startedAt); return dia.weekday + ' ' + dia.date; })
   ]);
   assert.equal(await page.getByRole('option', {name:/Somente outra bebida/}).count(), 0);
   await page.getByRole('option', {name:'Sem evento', exact:true}).click();

@@ -606,7 +606,7 @@ function refreshOccasionFilters() {
   const items = [{ id: 'all', label: 'Todos os eventos' }];
   if (scopedEvents.some(event => !event.occasionId)) items.push({ id: 'none', label: 'Sem evento' });
   for (const item of [...state.occasions].filter(item => occasionIds.has(item.id)).sort((a,b) => b.startedAt-a.startedAt)) {
-    items.push({ id: item.id, label: item.name + ' · ' + toLocalDateInputValue(item.startedAt) });
+    const day = agendaParts(item.startedAt); items.push({ id: item.id, label: item.name + ' · ' + day.weekday + ' ' + day.date });
   }
   if (!items.some(item => item.id === state.historyOccasionId)) state.historyOccasionId = 'all';
   options.replaceChildren(...items.map(item => {
@@ -640,7 +640,7 @@ function refreshRecordOccasion() {
   select.parentElement.hidden = !candidate;
   select.replaceChildren(new Option('Sem evento', ''));
   if (!candidate) { select.value = ''; return; }
-  select.add(new Option(candidate.name + ' · ' + toLocalDateInputValue(candidate.startedAt), candidate.id));
+  const day = agendaParts(candidate.startedAt); select.add(new Option(candidate.name + ' · ' + day.weekday + ' ' + day.date, candidate.id));
   // Escolha manual vale enquanto o evento candidato for o mesmo; sem escolha: horário
   // inalterado mantém como está, horário novo entra no evento que o cobre.
   if (recordOccasionChoice && recordOccasionChoice.candidateId === candidate.id) select.value = recordOccasionChoice.value;

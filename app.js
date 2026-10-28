@@ -315,7 +315,7 @@ document.addEventListener("visibilitychange", () => {
 const DATA_STORAGE_KEY = "funtime-v1-data";
 const LEGACY_DRINKS_STORAGE_KEY = "balada-v1-drinks";
 const DATA_VERSION = 11;
-const APP_VERSION = "2.26.12";
+const APP_VERSION = "2.26.13";
 const DRINK_EXPORT_TYPE = "funtime-drinks";
 const DRINK_EXPORT_FORMAT_VERSION = 1;
 const BACKUP_EXPORT_TYPE = "funtime-backup";
@@ -2704,6 +2704,22 @@ function renderHistory() {
     .sort((a, b) => b.event.consumedAt - a.event.consumedAt || b.event.id.localeCompare(a.event.id));
 
   historyCount.textContent = `${entries.length} registro${entries.length === 1 ? "" : "s"}`;
+  // Filtrado por um evento, o topo vira o mesmo cartão-resumo do detalhe dele: o total e uma pílula por
+  // bebida. No Histórico completo o total de tudo não diz muito, então fica como era.
+  const historyOccasion = state.preferences.eventsEnabled && state.historyOccasionId && !["all", "none"].includes(state.historyOccasionId);
+  const historyDrinks = document.querySelector("#history-drinks");
+  historyCount.closest(".history-intro")?.classList.toggle("is-occasion", Boolean(historyOccasion));
+  historyDrinks.hidden = !historyOccasion || !entries.length;
+  if (historyOccasion) {
+    const { totals } = summarizeOccasionDoses(entries.map((entry) => entry.event), getEventDrinkIdentity);
+    historyDrinks.replaceChildren(...totals.map((total) => {
+      const pill = document.createElement("span");
+      const count = document.createElement("b");
+      count.textContent = total.count;
+      pill.append(`${total.icon} ${total.name} `, count);
+      return pill;
+    }));
+  }
   historyDescription.textContent = filterDrink
     ? `${filterDrink.icon} ${filterDrink.name} · toque em um registro para corrigir o horário ou excluí-lo. Segure para reagir.`
     : "Toque em um registro para corrigir o horário ou excluí-lo. Segure para reagir.";
@@ -2796,7 +2812,8 @@ function renderHistory() {
     heading.append(icon, identity, mobileTime, chevron);
     body.appendChild(heading);
     const occasion = state.occasions.find(item => item.id === event.occasionId);
-    if (state.preferences.eventsEnabled && occasion) {
+    // Com o Histórico já filtrado por esse evento, o nome dele não se repete em cada linha.
+    if (state.preferences.eventsEnabled && occasion && state.historyOccasionId !== occasion.id) {
       const label = document.createElement("span"); label.className = "history-event-detail"; label.textContent = occasion.name; body.append(label);
     }
 

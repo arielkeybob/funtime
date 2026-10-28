@@ -1,6 +1,6 @@
 # 0029 — Padrões de Eventos no resto do app
 
-Status: em andamento (C na v2.26.0, D na v2.26.1, A na v2.26.2, B na v2.26.3, G na v2.26.4, H na v2.26.5, I na v2.26.6, J na v2.26.7, K na v2.26.8, L na v2.26.9, M na v2.26.10, N na v2.26.11, E na v2.26.12)
+Status: em andamento (C na v2.26.0, D na v2.26.1, A na v2.26.2, B na v2.26.3, G na v2.26.4, H na v2.26.5, I na v2.26.6, J na v2.26.7, K na v2.26.8, L na v2.26.9, M na v2.26.10, N na v2.26.11, E na v2.26.12, F na v2.26.13)
 
 ## Contexto
 
@@ -38,7 +38,7 @@ tutoriais e versão.
 | 11 | M — Botões de perigo unificados | feito (v2.26.10) |
 | 12 | N — Correções (erros de conta como erro, voltar para Amigos, textos do tutorial, DEVELOPMENT.md) | feito (v2.26.11) |
 | 13 | E (parcial) — Só o lembrete de evento na Home (bloquinho, ▶ vazado, sem "Deseja iniciar agora?"). A faixa do evento em andamento **não** muda. | feito (v2.26.12) |
-| 14 | F (parcial) — Cartão-resumo no Histórico **só quando filtrado por um evento**; evento não se repete nas linhas; datas do seletor como "sáb 13/06" | a fazer |
+| 14 | F (parcial) — Cartão-resumo no Histórico **só quando filtrado por um evento**; evento não se repete nas linhas; datas do seletor como "sáb 13/06" | feito (v2.26.13) |
 
 ## Decisões do usuário
 
@@ -238,3 +238,13 @@ Pendentes:
 - `--event-start` e `--event-end` passaram também para o `:root`, para os marcadores funcionarem fora do módulo
   Eventos.
 - Só a parte do lembrete. A faixa do evento em andamento ficou de fora, por decisão do usuário.
+
+## Pacote F (v2.26.13)
+
+- **`renderHistory`:**
+  - com `historyOccasionId` apontando para um evento, `.history-intro` ganha `.is-occasion` e `#history-drinks`
+    (pílulas de `summarizeOccasionDoses`);
+  - a linha omite `.history-event-detail` quando o filtro já é esse evento.
+- **Seletores:** `refreshOccasionFilters` e `refreshRecordOccasion` usam `agendaParts` (dia da semana + data).
+- **Teste:** `occasions-browser` ajustado ao formato novo.
+- Só a parte "por evento", por decisão do usuário: o total do Histórico completo não ganhou cartão.

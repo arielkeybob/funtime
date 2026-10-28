@@ -1,4 +1,13 @@
-# FunTime — V2.26.12
+# FunTime — V2.26.13
+
+## V2.26.13 — Histórico de um evento com resumo no topo
+
+- **Histórico filtrado por um evento** (por "Ver registros" ou pelo seletor): o topo mostra o total em destaque e uma pílula por bebida, como no detalhe do evento. O Histórico completo continua como antes.
+- Com o filtro no evento, o nome dele não se repete em cada linha.
+- Os seletores de evento (filtro do Histórico e "Evento deste registro") mostram **Nome · sáb 13/06** no lugar de "2026-06-13".
+- Pacote F da spec 0029. Tutoriais afetados ficam para a regravação no fim da série.
+- Sem mudança de dados; `DATA_VERSION` permanece 11.
+
 
 ## V2.26.12 — lembrete de evento com o bloquinho de data
 

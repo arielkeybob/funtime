@@ -4233,3 +4233,7 @@ div.share-person { cursor: default; }
 .occasion-reminder-actions { grid-column: 1 / -1; display: flex; align-items: center; gap: 12px; }
 .occasion-reminder-actions .primary-button { flex: 1; min-height: 44px; margin: 0; padding: 0 14px; font-size: .9rem; }
 .occasion-reminder-actions .occasion-link { width: auto; min-height: 44px; margin: 0; padding: 8px 10px; }
+
+/* Histórico filtrado por um evento (v2.26.13, spec 0029, pacote F parcial): o topo vira o cartão-resumo. */
+.history-intro.is-occasion #history-count { font-size: 1.4rem; font-weight: 800; }
+.history-intro #history-drinks { margin-top: 6px; }
