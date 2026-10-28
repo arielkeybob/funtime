@@ -4243,3 +4243,38 @@ div.share-person { cursor: default; }
 /* Histórico filtrado por um evento (v2.26.13, spec 0029, pacote F parcial): o topo vira o cartão-resumo. */
 .history-intro.is-occasion #history-count { font-size: 1.4rem; font-weight: 800; }
 .history-intro #history-drinks { margin-top: 6px; }
+
+/* V2.28.1 — respiro entre as seções dos editores (bebida, registro e anotar dose). */
+@media (max-width: 600px) {
+  #drink-dialog .drink-dialog-scroll,
+  #event-dialog .app-dialog-scroll,
+  #log-dialog .log-dialog-scroll {
+    gap: 28px;
+    padding-top: 20px;
+  }
+
+  #log-dialog .quick-log-section + .interval-fieldset {
+    margin-top: 0;
+  }
+}
+
+.event-datetime-grid {
+  gap: 28px 16px;
+}
+
+.interval-fieldset .wheel-duration-inputs {
+  margin-top: 6px;
+}
+
+@media (max-height: 700px) and (max-width: 600px) {
+  #drink-dialog .drink-dialog-scroll,
+  #event-dialog .app-dialog-scroll,
+  #log-dialog .log-dialog-scroll {
+    gap: 18px;
+    padding-top: 14px;
+  }
+
+  .event-datetime-grid {
+    gap: 18px 16px;
+  }
+}

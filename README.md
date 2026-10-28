@@ -1,4 +1,9 @@
-# FunTime — V2.28.0
+# FunTime — V2.28.1
+
+## V2.28.1 — Mais respiro nos editores
+
+- Mais espaço entre as seções de Cadastrar/Editar bebida, Editar registro e Anotar dose (28 px; 18 px em telas baixas), e entre Data e Horário no Editar registro.
+- Sem mudança de dados; `DATA_VERSION` permanece 11.
 
 ## V2.28.0 — "Foi que horas?" e roletas limpas
 
