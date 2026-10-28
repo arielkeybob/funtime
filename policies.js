@@ -1,5 +1,5 @@
 // Aceite específico deste navegador, separado dos dados transferíveis.
-const TERMS_VERSION = "1.0.8";
+const TERMS_VERSION = "1.0.9";
 // Aceites destas versões anteriores continuam valendo, sem pedir um novo. Liste aqui
 // só a mudança que não altera o que a pessoa consentiu — correção de texto, ajuste de
 // forma. Os dois erros não são simétricos: esquecer de listar apenas pede o aceite de
@@ -21,7 +21,11 @@ const TERMS_VERSION = "1.0.8";
 // - 1.0.7 → 1.0.8 (v2.24.0): o código de amizade passa a valer 10 minutos (eram 5) e
 //   pode ser enviado por mensagem (botão Copiar), não só mostrado. Nenhum dado novo nem
 //   destino novo; o usuário decidiu não pedir novo aceite.
-const TERMS_VERSIONS_STILL_VALID = new Set(["1.0.3", "1.0.4", "1.0.5", "1.0.6", "1.0.7"]);
+// - 1.0.8 → 1.0.9 (spec 0032, v2.31.0): copiar a lista de bebidas para um amigo — nome,
+//   ícone, intervalo e "perguntar o tamanho" de cada bebida vão ao Firestore por até 24h,
+//   legíveis por aquele amigo. Dado novo atravessando entre contas, mas iniciado por quem
+//   envia e aplicado só depois da prévia de quem recebe; o usuário decidiu não pedir novo aceite.
+const TERMS_VERSIONS_STILL_VALID = new Set(["1.0.3", "1.0.4", "1.0.5", "1.0.6", "1.0.7", "1.0.8"]);
 const TERMS_STORAGE_KEY = "funtime-terms-v1";
 const TERMS_DRAFT_KEY = "funtime-terms-draft-v1";
 

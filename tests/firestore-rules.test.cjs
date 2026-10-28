@@ -438,3 +438,116 @@ test('o ponteiro de convites não abriu brecha nos outros campos do pareamento',
   await assertFails(updateDoc(doc(como(ANA), 'pairings', PAR_ANA_BIA), { campoQualquer: 1 }));
   await assertFails(updateDoc(doc(como(CAIO), 'pairings', PAR_ANA_BIA), { [`invites.${CAIO}`]: ['ev'] }));
 });
+
+// --- Cópia da lista de bebidas (spec 0032) --------------------------------------
+// ANA envia para BIA (amigas). CAIO e DINO não são amigos de ninguém aqui.
+
+const COPIA_ANA_BIA = `${ANA}_${BIA}`;
+
+const copiaBebidas = (extra = {}) => ({
+  fromUid: ANA, toUid: BIA, formatVersion: 1, drinkCount: 1,
+  drinks: [{ name: 'Água', icon: '💧', intervalMinutes: 30, askDoseSize: false }],
+  createdAt: Timestamp.now(), expiresAt: daquiA(24 * 60 * MINUTO), ...extra,
+});
+
+const semearCopia = (dados = {}, id = COPIA_ANA_BIA) => semRegras((db) => setDoc(doc(db, 'drinkCopies', id), copiaBebidas(dados)));
+const copia = (uid, id = COPIA_ANA_BIA) => doc(como(uid), 'drinkCopies', id);
+
+test('copiar bebidas: amiga aceita pelos dois recebe; quem não é amigo, não', async () => {
+  await semearAmizade(ANA, BIA);
+
+  await assertSucceeds(setDoc(copia(ANA), copiaBebidas()));
+  await assertFails(setDoc(copia(ANA, `${ANA}_${CAIO}`), copiaBebidas({ toUid: CAIO })), 'Caio não é amigo da Ana');
+});
+
+test('copiar bebidas exige a amizade aceita pelos DOIS lados', async () => {
+  await semearAmizade(ANA, BIA, [BIA]);
+
+  await assertFails(setDoc(copia(ANA), copiaBebidas()));
+});
+
+test('enviar de novo sobrescreve a mesma cópia', async () => {
+  await semearAmizade(ANA, BIA);
+
+  await assertSucceeds(setDoc(copia(ANA), copiaBebidas()));
+  await assertSucceeds(setDoc(copia(ANA), copiaBebidas({ drinkCount: 2, drinks: [
+    { name: 'Água', icon: '💧', intervalMinutes: 30, askDoseSize: false },
+    { name: 'Café', icon: '☕', intervalMinutes: 60, askDoseSize: true },
+  ] })));
+});
+
+test('ninguém envia cópia em nome de outra pessoa, nem com id fora do formato', async () => {
+  await semearAmizade(ANA, BIA);
+  await semearAmizade(BIA, CAIO);
+
+  await assertFails(setDoc(copia(CAIO), copiaBebidas()), 'Caio escrevendo como Ana');
+  await assertFails(setDoc(copia(BIA), copiaBebidas()), 'Bia forjando cópia da Ana para si mesma');
+  await assertFails(setDoc(copia(ANA, 'qualquer-id'), copiaBebidas()));
+  await assertFails(setDoc(copia(ANA, `${BIA}_${ANA}`), copiaBebidas()), 'id na direção contrária');
+  await assertFails(setDoc(copia(ANA, `${ANA}_${ANA}`), copiaBebidas({ toUid: ANA })), 'para si mesma');
+});
+
+test('a cópia só leva os campos previstos, com lista não vazia e de tamanho limitado', async () => {
+  await semearAmizade(ANA, BIA);
+
+  await assertFails(setDoc(copia(ANA), copiaBebidas({ events: [] })), 'campo a mais (histórico)');
+  await assertFails(setDoc(copia(ANA), copiaBebidas({ drinks: [] })));
+  await assertFails(setDoc(copia(ANA), copiaBebidas({ drinks: 'muitas' })));
+  await assertFails(setDoc(copia(ANA), copiaBebidas({
+    drinks: Array.from({ length: 501 }, (_, i) => ({ name: `B${i}`, icon: '🍺', intervalMinutes: 30, askDoseSize: false })),
+  })));
+});
+
+test('não dá para esticar a validade da cópia além do teto', async () => {
+  await semearAmizade(ANA, BIA);
+
+  await assertSucceeds(setDoc(copia(ANA), copiaBebidas({ expiresAt: daquiA(24 * 60 * MINUTO + 30 * MINUTO) })), 'relógio adiantado');
+  await assertFails(setDoc(copia(ANA), copiaBebidas({ expiresAt: daquiA(2 * DIA) })));
+  await assertFails(setDoc(copia(ANA), copiaBebidas({ expiresAt: daquiA(-MINUTO) })));
+  await assertFails(setDoc(copia(ANA), copiaBebidas({ expiresAt: Date.now() + DIA })), 'número em vez de Timestamp');
+});
+
+test('quem recebe lê no prazo; vencida, não; terceiros, nunca; inexistente rejeita', async () => {
+  await semearCopia();
+  await semearCopia({ fromUid: ANA, toUid: CAIO, expiresAt: daquiA(-MINUTO) }, `${ANA}_${CAIO}`);
+
+  await assertSucceeds(getDoc(copia(BIA)));
+  await assertSucceeds(getDoc(copia(ANA)));
+  await assertFails(getDoc(copia(CAIO)));
+  await assertFails(getDoc(copia(CAIO, `${ANA}_${CAIO}`)), 'vencida');
+  await assertSucceeds(getDoc(copia(ANA, `${ANA}_${CAIO}`)), 'quem enviou ainda enxerga para poder limpar');
+  await assertFails(getDoc(copia(BIA, `${CAIO}_${BIA}`)), 'a regra lê resource.data: o cliente precisa tratar como "não disponível"');
+});
+
+test('quem recebe não edita a cópia, mas pode apagá-la; terceiros não apagam', async () => {
+  await semearCopia();
+
+  await assertFails(updateDoc(copia(BIA), { drinkCount: 9 }));
+  await assertFails(setDoc(copia(BIA), copiaBebidas()));
+  await assertFails(deleteDoc(copia(CAIO)));
+  await assertSucceeds(deleteDoc(copia(BIA)));
+});
+
+test('quem enviou apaga a própria cópia', async () => {
+  await semearCopia();
+
+  await assertSucceeds(deleteDoc(copia(ANA)));
+});
+
+test('só quem enviou varre as próprias cópias', async () => {
+  await semearCopia();
+
+  await assertSucceeds(getDocs(query(collection(como(ANA), 'drinkCopies'), where('fromUid', '==', ANA))));
+  await assertFails(getDocs(query(collection(como(BIA), 'drinkCopies'), where('toUid', '==', BIA))));
+  await assertFails(getDocs(collection(como(BIA), 'drinkCopies')));
+});
+
+test('cada lado publica só o PRÓPRIO ponteiro de cópia, mesmo em pareamento antigo sem o campo', async () => {
+  await semearPareamento([ANA, BIA]); // sem `drinkCopies`, como os pareamentos criados antes da spec 0032
+
+  await assertSucceeds(updateDoc(doc(como(ANA), 'pairings', PAR_ANA_BIA), { [`drinkCopies.${ANA}`]: Date.now() }));
+  await assertFails(updateDoc(doc(como(BIA), 'pairings', PAR_ANA_BIA), { [`drinkCopies.${ANA}`]: null }));
+  await assertSucceeds(updateDoc(doc(como(BIA), 'pairings', PAR_ANA_BIA), { [`drinkCopies.${BIA}`]: Date.now() }));
+  await assertSucceeds(updateDoc(doc(como(ANA), 'pairings', PAR_ANA_BIA), { [`drinkCopies.${ANA}`]: null }));
+  await assertFails(updateDoc(doc(como(CAIO), 'pairings', PAR_ANA_BIA), { [`drinkCopies.${CAIO}`]: Date.now() }));
+});

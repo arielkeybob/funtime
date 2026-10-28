@@ -1,4 +1,14 @@
-# FunTime — V2.30.0
+# FunTime — V2.31.0
+
+## V2.31.0 — Copiar bebidas para amigos
+
+- No detalhe de um amigo, **Copiar bebidas para Bia** envia uma cópia da sua lista de bebidas atual, sem arquivo. Em Configurações › Backup e conta, **Copiar bebidas para amigos** envia para vários de uma vez.
+- Quem recebe vê um copo no avatar de quem enviou, o ponto de Amigos aceso e, no detalhe, **Receber cópia de bebidas de Ariel**. Receber abre a mesma prévia de Importar bebidas: adicionar ou substituir, sempre preservando o histórico. **Dispensar** descarta sem importar.
+- A cópia leva só nome, ícone, intervalo e "perguntar o tamanho" de cada bebida, vale por 24 horas (verificado pelo servidor) e enviar de novo substitui a anterior. Sai da nuvem ao ser importada ou dispensada, quando vence e você abre o app, ao desfazer a amizade e em Apagar dados na nuvem. Ver spec 0032.
+- Regras do Firestore novas (coleção `drinkCopies` e ponteiro `drinkCopies` no pareamento): **publicar antes do app**.
+- **Políticas 1.0.9**: parágrafo novo no item 9. Quem já aceitou não precisa aceitar de novo (1.0.8 em `TERMS_VERSIONS_STILL_VALID`, a pedido do usuário).
+- Tutorial "Amigos e compartilhar doses" ganhou os passos da cópia de bebidas; "Backup e bebidas" regravado.
+- Sem mudança de dados locais; `DATA_VERSION` permanece 11.
 
 ## V2.30.0 — Amigos em ouro e imagem de fundo
 

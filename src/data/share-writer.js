@@ -66,6 +66,10 @@ export function createShareWriter({
         // spec não têm o campo.
         invitesFromOther: pointerToList(data.invites?.[other]),
         invitesFromMe: pointerToList(data.invites?.[uid]),
+        // Cópia da lista de bebidas (spec 0032): o horário do envio, ou nada. Quem recebe
+        // sabe que há cópia e de quando sem ler o documento dela.
+        drinkCopyFromOther: Number.isFinite(data.drinkCopies?.[other]) ? data.drinkCopies[other] : null,
+        drinkCopyFromMe: Number.isFinite(data.drinkCopies?.[uid]) ? data.drinkCopies[uid] : null,
         viaCode: data.viaCode ?? null,
       };
     });

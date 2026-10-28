@@ -3899,6 +3899,21 @@ body {
 .settings-toggle-row.is-highlighted { outline: 2px solid var(--info); outline-offset: 3px; border-radius: 14px; }
 .share-badge--ended { bottom: -5px; background: #8a8a94; }
 .share-badge--ended-out { top: -5px; background: #8a8a94; }
+/* Cópia de bebidas (spec 0032): copo no canto do avatar que as setas não usam, e o cartão de
+   receber em destaque no topo do amigo enquanto a cópia vale. */
+.share-badge--drinks { right: auto; left: -6px; bottom: -5px; background: var(--accent); color: var(--accent-text); }
+.drink-copy-in { display: flex; align-items: center; gap: 4px; border: 1px solid var(--accent); border-radius: 14px; background: var(--surface); }
+#shared-detail-drinks-in:not([hidden]) + .shared-detail-tabs { margin-top: 4px; }
+.drink-copy-receive { flex: 1; min-width: 0; display: grid; grid-template-columns: 32px minmax(0, 1fr); align-items: center; gap: 12px; min-height: 56px; padding: 8px 12px; border: 0; border-radius: 14px; background: transparent; color: var(--text); text-align: left; font: inherit; cursor: pointer; }
+.drink-copy-receive strong { font-size: .92rem; font-weight: 650; }
+.drink-copy-receive .occasion-menu-icon { color: var(--accent); }
+.drink-copy-receive:disabled { cursor: progress; }
+.drink-copy-dismiss { flex: none; min-height: 36px; margin-right: 8px; padding: 6px 10px; border: 0; border-radius: 999px; background: transparent; color: var(--muted); font: inherit; font-size: .8rem; cursor: pointer; }
+.drink-copy-dismiss:focus-visible, .drink-copy-receive:focus-visible { outline: 2px solid var(--text); outline-offset: 2px; }
+/* Um respiro a mais que o gap do formulário: a linha não pertence à aba aberta acima dela. */
+.drink-copy-out { margin-top: 8px; }
+.drink-copy-out .occasion-menu-row:disabled { cursor: default; opacity: .55; }
+.share-mark--copied { color: var(--text); border: 1.5px solid var(--border); }
 .share-vendo-event + .share-vendo-event { margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--border); }
 .share-vendo-title { display: block; margin: 6px 0 2px; }
 .share-vendo-title strong { font-size: 1.05rem; }

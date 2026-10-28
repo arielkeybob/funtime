@@ -137,7 +137,7 @@ test('o Service Worker pré-carrega o visualizador e o conteúdo gerado', () => 
 // alguma delas, o build dos tutoriais quebra; este teste acusa antes, dentro do `npm test`.
 test('a ponte de captura do dev server ainda encontra as variáveis do app.js e não vaza para produção', async () => {
   const app = fs.readFileSync(path.join(ROOT, 'app.js'), 'utf8');
-  for (const nome of ['firebaseAuth', 'shareWriter', 'sharedEvents', 'sharedEventsUid', 'latestPairings', 'latestShares', 'shareUI', 'inviteUI']) {
+  for (const nome of ['firebaseAuth', 'shareWriter', 'sharedEvents', 'drinkCopies', 'sharedEventsUid', 'latestPairings', 'latestShares', 'shareUI', 'inviteUI']) {
     assert.match(app, new RegExp(`^let ${nome}\\b`, 'm'), `app.js precisa continuar declarando "let ${nome}" (a ponte de captura a atribui)`);
   }
   assert.match(app, /function updateSyncSettingsUI\b/);

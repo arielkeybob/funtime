@@ -104,15 +104,16 @@ service cloud.firestore {
                ? request.resource.data.uids[1]
                : request.resource.data.uids[0]);
 
-      // Só quatro coisas são possíveis, e sempre sobre si mesmo: acrescentar-se a
+      // Só cinco coisas são possíveis, e sempre sobre si mesmo: acrescentar-se a
       // acceptedBy, mudar o próprio apelido, publicar o próprio ponteiro de
-      // compartilhamento e o próprio ponteiro de convites. Ninguém aceita pelo outro
-      // nem mexe no apelido alheio.
-      // `invites` (spec 0025) pode não existir em pareamentos anteriores a ela, por isso
-      // `get('invites', {})`: ler um campo ausente seria erro de avaliação e negaria tudo.
+      // compartilhamento, o de convites e o de cópia de bebidas. Ninguém aceita pelo
+      // outro nem mexe no apelido alheio.
+      // `invites` (spec 0025) e `drinkCopies` (spec 0032) podem não existir em
+      // pareamentos anteriores a elas, por isso `get(campo, {})`: ler um campo ausente
+      // seria erro de avaliação e negaria tudo.
       allow update: if isMember()
         && request.resource.data.diff(resource.data).affectedKeys()
-             .hasOnly(['acceptedBy', 'aliases', 'sharing', 'invites'])
+             .hasOnly(['acceptedBy', 'aliases', 'sharing', 'invites', 'drinkCopies'])
         && request.resource.data.acceptedBy.hasAll(resource.data.acceptedBy)
         && request.resource.data.acceptedBy.hasOnly(resource.data.acceptedBy.concat([me()]))
         && request.resource.data.aliases.diff(resource.data.aliases)
@@ -120,6 +121,8 @@ service cloud.firestore {
         && request.resource.data.sharing.diff(resource.data.sharing)
              .affectedKeys().hasOnly([me()])
         && request.resource.data.get('invites', {}).diff(resource.data.get('invites', {}))
+             .affectedKeys().hasOnly([me()])
+        && request.resource.data.get('drinkCopies', {}).diff(resource.data.get('drinkCopies', {}))
              .affectedKeys().hasOnly([me()]);
 
       // Qualquer um dos dois desfaz o pareamento, a qualquer momento.
@@ -240,6 +243,52 @@ service cloud.firestore {
         && resource.data.going.hasOnly(request.resource.data.going.concat([me()]));
 
       allow delete: if isHost();
+    }
+
+    // ----------------------------------------------------------------------
+    // 6. Cópia da lista de bebidas (spec 0032)
+    // Uma cópia por direção, com id fixo `{quem envia}_{quem recebe}`: enviar de novo
+    // sobrescreve, nunca acumula. Carrega só nome, ícone, intervalo e "perguntar o
+    // tamanho" de cada bebida — nada de dose, histórico nem id local.
+    //
+    // Quem recebe só faz `get`, e só no prazo, pelo mesmo motivo de `shares`: o
+    // vencimento é cobrado contra o documento real, e o id chega pelo ponteiro
+    // `drinkCopies` do pareamento. Quem recebe pode apagar (ao importar ou dispensar),
+    // o que só libera espaço: apagar não é pedido, e não existe escrita de quem recebe
+    // que quem enviou leia.
+    // ----------------------------------------------------------------------
+    match /drinkCopies/{copyId} {
+      function isSender() { return signedIn() && resource.data.fromUid == me(); }
+      function isRecipient() { return signedIn() && resource.data.toUid == me(); }
+      function validCopy() {
+        return signedIn()
+          && request.resource.data.keys().hasOnly(
+               ['fromUid', 'toUid', 'drinks', 'drinkCount', 'formatVersion', 'createdAt', 'expiresAt'])
+          && request.resource.data.fromUid == me()
+          && request.resource.data.toUid is string
+          && request.resource.data.toUid != me()
+          && copyId == me() + '_' + request.resource.data.toUid
+          && request.resource.data.drinks is list
+          && request.resource.data.drinks.size() > 0
+          && request.resource.data.drinks.size() <= 500
+          && request.resource.data.expiresAt is timestamp
+          && request.resource.data.expiresAt > request.time
+          // O app pede 24h; a folga de 1h cobre o relógio do aparelho adiantado, já que
+          // `expiresAt` é calculado lá.
+          && request.resource.data.expiresAt < request.time + duration.value(25, 'h')
+          && acceptedPair(request.resource.data.toUid);
+      }
+
+      allow get: if isSender()
+        || (isRecipient() && resource.data.expiresAt > request.time);
+
+      // Consulta obrigatória: where('fromUid', '==', <meu uid>) — só para quem enviou
+      // limpar as próprias cópias vencidas.
+      allow list: if isSender();
+
+      allow create: if validCopy();
+      allow update: if isSender() && validCopy();
+      allow delete: if isSender() || isRecipient();
     }
   }
 }

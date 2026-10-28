@@ -289,7 +289,7 @@ export const TUTORIALS = [
   {
     "id": "amigos",
     "titulo": "Amigos e compartilhar doses",
-    "resumo": "Conectar e mostrar as doses.",
+    "resumo": "Conectar, mostrar as doses e trocar bebidas.",
     "passos": [
       {
         "tipo": "imagem",
@@ -299,15 +299,15 @@ export const TUTORIALS = [
       },
       {
         "tipo": "video",
-        "src": "./tutorials/media/amigos/02.2d7c2e63.mp4",
-        "poster": "./tutorials/media/amigos/02.poster.8c7217ab.webp",
+        "src": "./tutorials/media/amigos/02.0fc708da.mp4",
+        "poster": "./tutorials/media/amigos/02.poster.e12db20a.webp",
         "alt": "Na tela inicial, o ícone Amigos, no canto superior direito, é tocado e abre a tela Amigos com Bia, Caio e Duda.",
         "legenda": "Com a conta conectada, toque no ícone Amigos da tela inicial."
       },
       {
         "tipo": "video",
-        "src": "./tutorials/media/amigos/03.01483f28.mp4",
-        "poster": "./tutorials/media/amigos/03.poster.fd91c8cc.webp",
+        "src": "./tutorials/media/amigos/03.ff409258.mp4",
+        "poster": "./tutorials/media/amigos/03.poster.f75b807a.webp",
         "alt": "Na tela Amigos, o botão + é tocado e abre Adicionar amigo; o botão Gerar código é tocado e aparecem o código com QR, o botão Copiar código e o tempo de validade.",
         "legenda": "Toque em + e mostre ou copie o código para a outra pessoa, ou digite o dela."
       },
@@ -324,7 +324,7 @@ export const TUTORIALS = [
       },
       {
         "tipo": "imagem",
-        "src": "./tutorials/media/amigos/05.325739f3.webp",
+        "src": "./tutorials/media/amigos/05.d9f07801.webp",
         "alt": "Detalhe de um amigo, na aba Compartilhando, com o evento Churrasco do João, em andamento e ainda não compartilhado, em destaque.",
         "legenda": "O fato de ser amigo não mostra nada. É preciso compartilhar."
       },
@@ -340,16 +340,29 @@ export const TUTORIALS = [
       },
       {
         "tipo": "video",
-        "src": "./tutorials/media/amigos/07.8c235584.mp4",
-        "poster": "./tutorials/media/amigos/07.poster.f6eda3e0.webp",
+        "src": "./tutorials/media/amigos/07.70c43688.mp4",
+        "poster": "./tutorials/media/amigos/07.poster.5c34cb71.webp",
         "alt": "Um amigo é tocado, depois a aba Compartilhando e o botão Compartilhar; o evento passa a aparecer com o selo Ao vivo e o botão Parar.",
         "legenda": "Toque no amigo, em Compartilhando e em Compartilhar."
       },
       {
         "tipo": "imagem",
-        "src": "./tutorials/media/amigos/08.b188344b.webp",
+        "src": "./tutorials/media/amigos/08.fbe78009.webp",
         "alt": "Aba Compartilhando com o evento Churrasco do João, o selo Ao vivo e o botão Parar em destaque.",
         "legenda": "Para encerrar antes do fim do evento, toque em Parar."
+      },
+      {
+        "tipo": "imagem",
+        "src": "./tutorials/media/amigos/09.6531c854.webp",
+        "alt": "Detalhe da amiga Bia com dois destaques: no topo, Receber cópia de bebidas de Bia, com o horário do envio e a validade; embaixo, Copiar bebidas para Bia.",
+        "legenda": "Amigos também trocam listas de bebidas. Cada cópia vale por 24 horas."
+      },
+      {
+        "tipo": "video",
+        "src": "./tutorials/media/amigos/10.a1cc15e8.mp4",
+        "poster": "./tutorials/media/amigos/10.poster.fdf5d19a.webp",
+        "alt": "Receber cópia de bebidas de Bia é tocado e abre a prévia Importar bebidas, com as bebidas enviadas por Bia, o aviso de que os intervalos não são recomendação de consumo e as opções Adicionar às bebidas atuais e Substituir minha lista de bebidas em destaque.",
+        "legenda": "Toque em Receber: confira a prévia e escolha adicionar ou substituir."
       }
     ]
   },
@@ -410,22 +423,22 @@ export const TUTORIALS = [
       },
       {
         "tipo": "video",
-        "src": "./tutorials/media/backup-e-bebidas/03.bfa34403.mp4",
-        "poster": "./tutorials/media/backup-e-bebidas/03.poster.580d9527.webp",
+        "src": "./tutorials/media/backup-e-bebidas/03.a94ad6d2.mp4",
+        "poster": "./tutorials/media/backup-e-bebidas/03.poster.1042388f.webp",
         "alt": "O botão Exportar bebidas é tocado e o app avisa que o arquivo de bebidas foi exportado.",
         "legenda": "Exportar bebidas gera um arquivo para compartilhar ou guardar."
       },
       {
         "tipo": "video",
-        "src": "./tutorials/media/backup-e-bebidas/04.9402bfdc.mp4",
-        "poster": "./tutorials/media/backup-e-bebidas/04.poster.f0a189dd.webp",
+        "src": "./tutorials/media/backup-e-bebidas/04.2c356433.mp4",
+        "poster": "./tutorials/media/backup-e-bebidas/04.poster.9adf5ebd.webp",
         "alt": "O botão Importar bebidas é tocado e abre a prévia do arquivo, com as bebidas dele e as opções Adicionar às bebidas atuais e Substituir minha lista de bebidas em destaque.",
         "legenda": "Importar mostra uma prévia: adicionar ou substituir a lista."
       },
       {
         "tipo": "video",
-        "src": "./tutorials/media/backup-e-bebidas/05.3a5b8b4f.mp4",
-        "poster": "./tutorials/media/backup-e-bebidas/05.poster.0b15eb67.webp",
+        "src": "./tutorials/media/backup-e-bebidas/05.0debdb12.mp4",
+        "poster": "./tutorials/media/backup-e-bebidas/05.poster.018a06af.webp",
         "alt": "O botão Fazer backup é tocado e o app avisa que o backup foi criado e que o arquivo deve ser guardado em local privado.",
         "legenda": "Fazer backup salva bebidas, histórico e preferências."
       },

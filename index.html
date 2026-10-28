@@ -60,7 +60,7 @@
     <footer class="browser-gate-footer">
       <span>App para estudo · não é controle de segurança</span>
       <a class="policies-link" href="./policies.html">Políticas e informações</a>
-      <span>v2.30.0 · By: arielkeybob</span>
+      <span>v2.31.0 · By: arielkeybob</span>
     </footer>
   </section>
 
@@ -320,6 +320,7 @@
         <div class="occasion-menu">
           <button id="export-drinks" class="occasion-menu-row" type="button"><span class="occasion-menu-icon" aria-hidden="true"><svg class="occasion-icon" viewBox="0 0 24 24"><path d="M12 16V4M7 9l5-5 5 5"/><path d="M5 20h14"/></svg></span><strong>Exportar bebidas</strong><small></small></button>
           <button id="import-drinks" class="occasion-menu-row" type="button"><span class="occasion-menu-icon" aria-hidden="true"><svg class="occasion-icon" viewBox="0 0 24 24"><path d="M12 4v12M7 11l5 5 5-5"/><path d="M5 20h14"/></svg></span><strong>Importar bebidas</strong><small></small></button>
+          <button id="copy-drinks-friends" class="occasion-menu-row" type="button" hidden><span class="occasion-menu-icon" aria-hidden="true"><svg class="occasion-icon" viewBox="0 0 24 24"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V6a2 2 0 0 1 2-2h9"/></svg></span><strong>Copiar bebidas para amigos</strong><small></small></button>
         </div>
 
         <input id="drink-import-file" class="visually-hidden-file" type="file" accept=".txt,text/plain,.json,application/json">
@@ -376,7 +377,7 @@
 
     <section class="settings-page" data-settings-page="about" data-title="Sobre o app" hidden>
       <section class="settings-card">
-        <p class="settings-description">Versão instalada: <strong>v2.30.0</strong></p>
+        <p class="settings-description">Versão instalada: <strong>v2.31.0</strong></p>
         <button id="check-app-update" class="settings-secondary-button" type="button">Verificar atualizações</button>
         <a class="settings-link-row" href="./policies.html"><span>Políticas e informações</span><span class="settings-nav-chevron" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg></span></a>
       </section>
@@ -456,6 +457,8 @@
           </div>
         </div>
 
+        <div id="shared-detail-drinks-in" hidden></div>
+
         <div id="shared-detail-tabs" class="shared-detail-tabs" role="group" aria-label="Alternar visão">
           <button id="shared-detail-tab-vendo" type="button" aria-pressed="true"><span class="tab-badge share-badge--incoming" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M17 7 7 17M15 17H7V9"/></svg></span>Vendo</button>
           <button id="shared-detail-tab-compartilhando" type="button" aria-pressed="false"><span class="tab-badge share-badge--outgoing" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M7 17 17 7M9 7h8v8"/></svg></span>Compartilhando</button>
@@ -464,6 +467,8 @@
         <p class="settings-description shared-view-disclaimer clean-optional">Os registros compartilhados mostram apenas os intervalos configurados. Eles não indicam se essa pessoa está segura para consumir mais.</p>
 
         <div id="shared-detail-body"></div>
+
+        <div id="shared-detail-drinks-out" class="occasion-menu drink-copy-out"></div>
       </form>
     </dialog>
 
@@ -490,7 +495,7 @@
     <footer class="app-footer">
       <span class="app-footer-disclaimer">App para estudo · não é controle de segurança</span>
       <a class="policies-link" href="./policies.html">Políticas e informações</a>
-      <span class="app-footer-meta">v2.30.0 · By: arielkeybob</span>
+      <span class="app-footer-meta">v2.31.0 · By: arielkeybob</span>
     </footer>
   </div>
 
@@ -566,6 +571,28 @@
       <div class="dialog-actions">
         <button id="share-occasion-stop-all" class="danger-button" type="button" hidden>Parar com todos</button>
         <button id="share-occasion-confirm" class="primary-button" type="button">Compartilhar</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="drink-copy-dialog" class="dialog data-dialog">
+    <form method="dialog">
+      <div class="dialog-header">
+        <div>
+          <p class="eyebrow">Bebidas</p>
+          <h2>Copiar bebidas para amigos</h2>
+        </div>
+        <button id="close-drink-copy" class="icon-button secondary" type="button" aria-label="Fechar">×</button>
+      </div>
+
+      <p id="drink-copy-hint" class="settings-description">Quem você marcar recebe uma cópia da sua lista atual e decide se quer importar.</p>
+      <p class="settings-description clean-optional">O histórico não vai junto. A cópia vale por 24 horas, e enviar de novo substitui a anterior.</p>
+
+      <div id="drink-copy-grid" class="share-grid"></div>
+      <p id="drink-copy-empty" class="sharing-empty" hidden>Adicione um amigo primeiro, na tela Amigos.</p>
+
+      <div class="dialog-actions">
+        <button id="drink-copy-confirm" class="primary-button" type="button" disabled>Marque quem vai receber</button>
       </div>
     </form>
   </dialog>
@@ -1029,6 +1056,8 @@
         <span id="drink-import-file-summary">—</span>
         <span id="drink-import-drinks" class="occasion-records-drinks"></span>
       </div>
+
+      <p id="drink-import-friend-note" class="settings-description" hidden>Os intervalos vieram de outra pessoa e não são recomendação de consumo.</p>
 
       <fieldset class="data-choice-group">
         <legend>Como deseja importar?</legend>

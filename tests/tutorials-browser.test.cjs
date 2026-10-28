@@ -338,7 +338,7 @@ test('slide só de texto: cartão com a frase, ícone e linhas, sem mídia; a le
     await page.waitForSelector('#tutorial-dialog[open]');
     // Avança até o primeiro slide de texto (o 4º do tópico).
     for (let i = 0; i < 3; i++) await page.locator('#tutorial-next').click();
-    assert.deepEqual(await contador(page), { atual: 4, total: 8 });
+    assert.deepEqual(await contador(page), { atual: 4, total: 10 });
     assert.equal(await page.locator('.tutorial-texto').count(), 1);
     assert.equal(await page.locator('#tutorial-stage .tutorial-media').count(), 0, 'slide de texto não tem imagem nem vídeo');
     assert.equal((await page.locator('.tutorial-texto-titulo').textContent()).trim(), 'Você pode compartilhar seu consumo com um amigo se quiser.');

@@ -32,8 +32,8 @@ function createDevServer() {
         // interface REAL, sem Firebase nem login. Roda no fim do módulo, onde estas variáveis existem.
         bytes = bytes.toString() + `
 ;globalThis.__funtimeCaptura = {
-  instalar({ uid, usuario, escritor, eventos }) {
-    sharedEventsUid = uid; shareWriter = escritor; sharedEvents = eventos;
+  instalar({ uid, usuario, escritor, eventos, copias = null }) {
+    sharedEventsUid = uid; shareWriter = escritor; sharedEvents = eventos; drinkCopies = copias;
     firebaseAuth = { getCurrentUser: () => usuario, init: async () => {}, signOut: async () => {}, signIn: async () => {} };
     updateSyncSettingsUI();
   },
@@ -42,6 +42,7 @@ function createDevServer() {
   definirEntradas(lista) { shareUI.setSharedEntries(lista); },
   definirConvites(lista) { inviteUI.setInvites(lista); },
   definirEventos(lista) { inviteUI.setEvents(lista); },
+  definirCopiasRecebidas(lista) { shareUI.setIncomingDrinkCopies(lista); },
 };
 `;
       }

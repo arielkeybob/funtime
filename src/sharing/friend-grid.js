@@ -16,12 +16,14 @@ export function rosterStatus(uid, roster) {
   return null;
 }
 
-export const MARK_LABELS = { going: "confirmou presença", invited: "convidado, sem resposta" };
+export const MARK_LABELS = { going: "confirmou presença", invited: "convidado, sem resposta", copied: "já tem uma cópia das suas bebidas" };
 
 const MARK_PATHS = {
   // envelope: convidado; check: confirmou. Formas distintas — nunca só por cor.
   invited: '<rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3.5 7 8.5 6 8.5-6"/>',
   going: '<path d="m5 12.5 4.5 4.5L19 7.5"/>',
+  // duas folhas: já recebeu uma cópia da lista de bebidas (spec 0032), ainda válida.
+  copied: '<rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V6a2 2 0 0 1 2-2h9"/>',
 };
 
 // Marca pequena, ABAIXO do avatar e afastada dele — de propósito diferente das setas de

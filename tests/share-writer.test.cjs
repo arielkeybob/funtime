@@ -292,7 +292,8 @@ test('a lista de pares distingue quem aceitou o quê', async () => {
   assert.deepEqual(pares.at(-1), [{
     pairId: PAR, otherUid: OUTRO, alias: 'Bia', myAlias: '',
     acceptedByMe: false, acceptedByOther: true, createdByMe: false, createdAt: null,
-    sharedWithMe: [], sharingWithOther: [], invitesFromOther: [], invitesFromMe: [], viaCode: null,
+    sharedWithMe: [], sharingWithOther: [], invitesFromOther: [], invitesFromMe: [],
+    drinkCopyFromOther: null, drinkCopyFromMe: null, viaCode: null,
   }]);
 });
 

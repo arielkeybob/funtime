@@ -12,6 +12,7 @@ import { createShareWriter } from "./src/data/share-writer.js";
 import { createSharedView } from "./src/data/shared-view.js";
 import { createSharedEvents } from "./src/data/shared-event.js";
 import { createShareUI } from "./src/sharing/share-ui.js";
+import { createDrinkCopies } from "./src/data/drink-copies.js";
 import { createInviteUI } from "./src/sharing/invite-ui.js";
 import { dueShareIntents, executeShareIntents } from "./src/sharing/share-intents.js";
 import { getFirebaseConfig, isFirebaseConfigured } from "./src/data/firestore-config.js";
@@ -316,7 +317,7 @@ document.addEventListener("visibilitychange", () => {
 const DATA_STORAGE_KEY = "funtime-v1-data";
 const LEGACY_DRINKS_STORAGE_KEY = "balada-v1-drinks";
 const DATA_VERSION = 11;
-const APP_VERSION = "2.30.0";
+const APP_VERSION = "2.31.0";
 const DRINK_EXPORT_TYPE = "funtime-drinks";
 const DRINK_EXPORT_FORMAT_VERSION = 1;
 const BACKUP_EXPORT_TYPE = "funtime-backup";
@@ -420,6 +421,9 @@ let sharedViewReader = null;
 // `latestShares` espelham o que o escritor de compartilhamento já escuta, para não abrir
 // uma segunda escuta (cada uma custaria leituras a cada reconexão).
 let sharedEvents = null;
+// Cópia da lista de bebidas para amigos (spec 0032): também alimentada pela escuta de
+// pareamentos do escritor, sem uma segunda.
+let drinkCopies = null;
 let inviteUI = null;
 let sharedEventsUid = null;
 let latestPairings = [];
@@ -639,6 +643,15 @@ const sharingNodes = {
   friendInfoUnfriend: document.querySelector("#friend-info-unfriend"),
   friendInfoClose: document.querySelector("#friend-info-close"),
   closeFriendInfo: document.querySelector("#close-friend-info"),
+  sharedDetailDrinksIn: document.querySelector("#shared-detail-drinks-in"),
+  sharedDetailDrinksOut: document.querySelector("#shared-detail-drinks-out"),
+  copyDrinksFriends: document.querySelector("#copy-drinks-friends"),
+  drinkCopyDialog: document.querySelector("#drink-copy-dialog"),
+  drinkCopyHint: document.querySelector("#drink-copy-hint"),
+  drinkCopyGrid: document.querySelector("#drink-copy-grid"),
+  drinkCopyEmpty: document.querySelector("#drink-copy-empty"),
+  drinkCopyConfirm: document.querySelector("#drink-copy-confirm"),
+  closeDrinkCopy: document.querySelector("#close-drink-copy"),
 };
 const sharedHeader = document.querySelector("#shared-header");
 const sharedViewMain = document.querySelector("#shared-view");
@@ -648,6 +661,7 @@ const drinkImportDialog = document.querySelector("#drink-import-dialog");
 const drinkImportFileName = document.querySelector("#drink-import-file-name");
 const drinkImportFileSummary = document.querySelector("#drink-import-file-summary");
 const drinkImportError = document.querySelector("#drink-import-error");
+const drinkImportFriendNote = document.querySelector("#drink-import-friend-note");
 const confirmDrinkImportButton = document.querySelector("#confirm-drink-import");
 
 const backupRestoreDialog = document.querySelector("#backup-restore-dialog");
@@ -694,6 +708,7 @@ function updateInterfaceSettingsUI() {
 
 function updateDataSettingsUI() {
   if (exportDrinksButton) exportDrinksButton.disabled = state.drinks.length === 0;
+  if (sharingNodes.copyDrinksFriends) sharingNodes.copyDrinksFriends.disabled = state.drinks.length === 0;
   updateSyncSettingsUI();
 }
 
@@ -1761,18 +1776,23 @@ function formatDataFileDate(value) {
   }).format(date);
 }
 
-function openDrinkImportPreview({ fileName, drinks, source = "file" }) {
+// `friendCopy` ({ fromUid, sentAtMs }) é a cópia enviada por um amigo (spec 0032): a mesma
+// prévia e a mesma confirmação do arquivo, e ao importar ela sai da nuvem.
+function openDrinkImportPreview({ fileName, drinks, source = "file", friendCopy = null }) {
   const analysis = getDrinkImportAnalysis(drinks);
 
   state.pendingDrinkImport = {
     fileName: fileName || "Arquivo recebido",
     drinks,
     source,
+    friendCopy,
   };
 
   drinkImportFileName.textContent = state.pendingDrinkImport.fileName;
+  // Vindo de outra pessoa, o aviso fica sempre à vista, inclusive na interface limpa.
+  if (drinkImportFriendNote) drinkImportFriendNote.hidden = source !== "friend";
 
-  const pieces = [`${drinks.length} bebida${drinks.length === 1 ? "" : "s"} no arquivo`];
+  const pieces = [`${drinks.length} bebida${drinks.length === 1 ? "" : "s"} ${source === "friend" ? "na cópia" : "no arquivo"}`];
   if (analysis.exactDuplicates > 0) {
     pieces.push(`${analysis.exactDuplicates} duplicata${analysis.exactDuplicates === 1 ? "" : "s"} exata${analysis.exactDuplicates === 1 ? "" : "s"}`);
   }
@@ -1809,6 +1829,21 @@ async function prepareDrinkImportFile(file, { source = "file" } = {}) {
     console.warn("Arquivo de bebidas rejeitado.", error);
     showAppNotification(error?.message || "Não foi possível importar este arquivo.", { type: "error", persistent: true });
   }
+}
+
+// Ponte da tela Amigos: a cópia passa pela mesma validação de um arquivo de bebidas
+// (falha fechada) antes de qualquer prévia. `false` = não abriu.
+function openFriendDrinkCopyPreview({ alias, drinks, fromUid, sentAtMs }) {
+  let validas;
+  try {
+    validas = validateDrinkExportPayload({ type: DRINK_EXPORT_TYPE, formatVersion: DRINK_EXPORT_FORMAT_VERSION, drinks });
+  } catch (error) {
+    console.warn("Cópia de bebidas rejeitada.", error);
+    return false;
+  }
+  if (!validas.length) return false;
+  openDrinkImportPreview({ fileName: `Enviadas por ${alias}`, drinks: validas, source: "friend", friendCopy: { fromUid, sentAtMs } });
+  return true;
 }
 
 function closeDrinkImportDialog() {
@@ -1865,6 +1900,11 @@ function confirmDrinkImport() {
       : buildAddedDrinkList(pending.drinks);
 
     persistDrinkList(nextDrinks);
+    // Importada: não aparece de novo e sai do servidor agora, sem esperar as 24h.
+    if (pending.friendCopy) {
+      drinkCopies?.markHandled(pending.friendCopy.fromUid, pending.friendCopy.sentAtMs)
+        .catch((error) => console.error("Falha ao marcar a cópia de bebidas como recebida.", error));
+    }
 
     const difference = Math.max(0, nextDrinks.length - before);
     closeDrinkImportDialog();
@@ -4095,6 +4135,13 @@ firebaseAuth = IS_STANDALONE_APP && isFirebaseConfigured() ? createFirebaseAuth(
         if (status === "error") console.error("Falha no evento compartilhado.", error);
       },
     });
+    drinkCopies = createDrinkCopies({
+      app, uid: user.uid,
+      onIncomingChange: (lista) => shareUI?.setIncomingDrinkCopies(lista),
+      onStatusChange: ({ state: status, error }) => {
+        if (status === "error") console.error("Falha na cópia de bebidas.", error);
+      },
+    });
     shareWriter = createShareWriter({
       app, uid: user.uid,
       // A lista de pareamentos alimenta várias coisas ao mesmo tempo: quem aparece
@@ -4106,6 +4153,7 @@ firebaseAuth = IS_STANDALONE_APP && isFirebaseConfigured() ? createFirebaseAuth(
         inviteUI?.setPairings(lista);
         sharedViewReader?.setSources(lista);
         sharedEvents?.setPairings(lista);
+        drinkCopies?.setPairings(lista);
         runShareIntents().catch((error) => console.error("Falha ao iniciar compartilhamentos agendados.", error));
       },
       onSharesChange: (lista) => { latestShares = lista; shareUI?.setShares(lista); },
@@ -4146,6 +4194,7 @@ firebaseAuth = IS_STANDALONE_APP && isFirebaseConfigured() ? createFirebaseAuth(
     } catch (error) {
       console.error("Não foi possível iniciar os eventos compartilhados.", error);
     }
+    drinkCopies?.start().catch((error) => console.error("Não foi possível limpar as cópias de bebidas vencidas.", error));
   },
   onSignedOut: () => {
     cloudSync?.stop();
@@ -4160,6 +4209,9 @@ firebaseAuth = IS_STANDALONE_APP && isFirebaseConfigured() ? createFirebaseAuth(
     // escutá-los neste aparelho.
     sharedEvents?.stop();
     sharedEvents = null;
+    // Uma cópia enviada não é dado ao vivo: fica até vencer, como um arquivo já entregue.
+    drinkCopies?.stop();
+    drinkCopies = null;
     sharedEventsUid = null;
     sharedEventLinksKey = "";
     latestPairings = [];
@@ -4173,6 +4225,8 @@ firebaseAuth = IS_STANDALONE_APP && isFirebaseConfigured() ? createFirebaseAuth(
     shareUI?.setShares([]);
     shareUI?.setSharedEntries([]);
     shareUI?.closeShareOccasionDialog();
+    shareUI?.setIncomingDrinkCopies([]);
+    shareUI?.closeDrinkCopyDialog();
     if (state.currentView === "shared") closeSharedView();
     syncAuthState = "ready";
     const voluntary = syncSigningOut;
@@ -4258,6 +4312,8 @@ syncDeleteCloudButton?.addEventListener("click", async () => {
     await sharedEvents?.deleteAllMyData({
       joinedEventIds: state.occasions.filter((item) => item.sharedEventId && item.sharedHostUid !== sharedEventsUid).map((item) => item.sharedEventId),
     });
+    // Antes dos pareamentos: as cópias que enviei não dependem deles para serem lidas.
+    await drinkCopies?.deleteAllMyData();
     await shareWriter?.deleteAllSharingData();
     await cloudSync?.deleteCloudData();
     cloudSync = null;
@@ -4309,6 +4365,9 @@ if (sharingNodes.pairingDialog) {
     openEventsSetting,
     setShareIntent: async (occasionId, uids) => setShareIntent(occasionId, uids),
     getEventRoster: (item) => inviteUI?.rosterFor(item?.sharedEventId) ?? null,
+    getDrinkCopies: () => drinkCopies,
+    getDrinks: () => state.drinks,
+    openDrinkCopyPreview: openFriendDrinkCopyPreview,
   });
   inviteUI.wire();
   shareUI.wire();
@@ -4324,6 +4383,7 @@ closeSharedButton?.addEventListener("click", closeSharedView);
 setInterval(() => {
   shareWriter?.sweepExpiredShares().catch(() => { /* melhor esforço */ });
   sharedEvents?.sweepExpired().catch(() => { /* melhor esforço */ });
+  drinkCopies?.sweep();
   runShareIntents().catch(() => { /* tenta de novo no próximo ciclo */ });
 }, 60000);
 

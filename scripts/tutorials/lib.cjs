@@ -97,14 +97,33 @@ function definirAuxiliaresDePagina() {
 
   // "Nuvem" falsa: troca o Firebase por objetos em memória, para a interface REAL de Amigos, convites
   // e compartilhamento funcionar sem conta. amigos: [{ uid, alias, dias }]; convites: convites
-  // recebidos; recebidos: o que amigos compartilham comigo.
-  window.__nuvemFalsa = ({ amigos = [], convites = [], recebidos = [], fichas: fichasIniciais = [] } = {}) => {
+  // recebidos; recebidos: o que amigos compartilham comigo; copiasRecebidas: listas de bebidas que
+  // amigos me enviaram ([{ uid, minutosAtras, drinks }], spec 0032).
+  window.__nuvemFalsa = ({ amigos = [], convites = [], recebidos = [], fichas: fichasIniciais = [], copiasRecebidas = [] } = {}) => {
     const ponte = globalThis.__funtimeCaptura;
     if (!ponte) throw new Error('Falta a ponte __funtimeCaptura: sirva o app por scripts/dev-server.cjs.');
-    const pareamentos = amigos.map((a) => ({
+    let pareamentos = amigos.map((a) => ({
       pairId: 'p-' + a.uid, otherUid: a.uid, alias: a.alias, myAlias: 'Eu',
       acceptedByMe: true, acceptedByOther: true, createdAt: Date.now() - (a.dias ?? 30) * DIA,
+      drinkCopyFromOther: null, drinkCopyFromMe: null,
     }));
+    // Como o módulo real: enviar marca o meu ponteiro no par; importar ou dispensar tira a cópia da lista.
+    let copias = copiasRecebidas.map((c) => ({ fromUid: c.uid, sentAtMs: Date.now() - (c.minutosAtras ?? 20) * MIN, drinks: c.drinks }));
+    const avisarCopias = () => ponte.definirCopiasRecebidas(copias.map(({ fromUid, sentAtMs }) => ({ fromUid, sentAtMs, expiresAtMs: sentAtMs + DIA })));
+    const nuvemDeCopias = {
+      start: async () => {}, stop() {}, setPairings() {}, sweep() {}, deleteAllMyData: async () => {},
+      send: async ({ toUids }) => {
+        const agora = Date.now();
+        pareamentos = pareamentos.map((p) => (toUids.includes(p.otherUid) ? { ...p, drinkCopyFromMe: agora } : p));
+        ponte.definirPareamentos(pareamentos);
+        return { sentAtMs: agora, state: 'ack', failed: [] };
+      },
+      fetchIncoming: async (fromUid) => {
+        const copia = copias.find((c) => c.fromUid === fromUid);
+        return copia ? { ok: true, drinks: copia.drinks, expiresAtMs: copia.sentAtMs + DIA } : { ok: false, reason: 'gone' };
+      },
+      markHandled: async (fromUid) => { copias = copias.filter((c) => c.fromUid !== fromUid); avisarCopias(); },
+    };
     let compartilhamentos = [];
     let fichas = [...fichasIniciais];
     const escritor = {
@@ -153,8 +172,9 @@ function definirAuxiliaresDePagina() {
         return { ok: true, event: convite };
       },
     };
-    ponte.instalar({ uid: 'eu', usuario: { uid: 'eu', email: 'voce@exemplo.com', displayName: 'Você' }, escritor, eventos: nuvemDeEventos });
+    ponte.instalar({ uid: 'eu', usuario: { uid: 'eu', email: 'voce@exemplo.com', displayName: 'Você' }, escritor, eventos: nuvemDeEventos, copias: nuvemDeCopias });
     ponte.definirPareamentos(pareamentos);
+    avisarCopias();
     ponte.definirEntradas(recebidos);
     ponte.definirEventos(fichas);
     ponte.definirConvites(convites);
@@ -229,6 +249,19 @@ const SEEDS = {
   demoAmigos: () => {
     window.__semear({ eventoAtivo: true });
     window.__nuvemFalsa({ amigos: [{ uid: 'bia', alias: 'Bia', dias: 40 }, { uid: 'caio', alias: 'Caio', dias: 25 }, { uid: 'duda', alias: 'Duda', dias: 9 }] });
+  },
+  // `demoAmigos` sem evento em andamento e com uma cópia de bebidas que a Bia enviou há 20 min (spec 0032).
+  // A Caipirinha é igual à minha, então aparece apagada na prévia (fica de fora ao adicionar).
+  demoCopiaBebidas: () => {
+    window.__semear({ eventoAtivo: false });
+    window.__nuvemFalsa({
+      amigos: [{ uid: 'bia', alias: 'Bia', dias: 40 }, { uid: 'caio', alias: 'Caio', dias: 25 }, { uid: 'duda', alias: 'Duda', dias: 9 }],
+      copiasRecebidas: [{ uid: 'bia', minutosAtras: 20, drinks: [
+        { name: 'Caipirinha', icon: '🍹', intervalMinutes: 90, askDoseSize: true },
+        { name: 'Gin tônica', icon: '🍸', intervalMinutes: 75, askDoseSize: false },
+        { name: 'Vinho', icon: '🍷', intervalMinutes: 90, askDoseSize: false },
+      ] }],
+    });
   },
   // Conta conectada, três amigos, "Usar eventos" ligado e NENHUM evento em andamento (dá para criar
   // um), com um convite pendente da Bia para a "Festa Junina".

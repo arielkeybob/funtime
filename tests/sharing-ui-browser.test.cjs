@@ -401,3 +401,102 @@ test('linha do tempo compartilhada mostra meia/inteira, chip neutro e respeita a
     assert.deepEqual(erros, []);
   });
 });
+
+// Copiar bebidas (spec 0032), com o app real e a nuvem falsa da ponte: a cópia recebida
+// aparece no amigo, abre a MESMA prévia de "Importar bebidas", não grava nada antes de
+// confirmar e, ao importar, preserva o histórico e sai da nuvem.
+test('copiar bebidas: receber pela prévia de importação e enviar para um ou vários amigos', { timeout: 30000 }, async () => {
+  await withPage(async (page, erros) => {
+    await page.evaluate(() => {
+      const agora = Date.now();
+      state.drinks = [{ id: 'cerveja', name: 'Cerveja', icon: '🍺', intervalMinutes: 60, askDoseSize: false }];
+      state.events = [{ id: 'e1', drinkId: 'cerveja', drinkName: 'Cerveja', drinkIcon: '🍺', intervalMinutes: 60, doseSize: null, consumedAt: agora - 3600000, occasionId: null }];
+      saveData();
+      render();
+      const enviadaEm = agora - 5 * 60000;
+      window.__chamadas = { send: [], markHandled: [] };
+      window.__enviadaEm = enviadaEm;
+      __funtimeCaptura.instalar({
+        uid: 'eu', usuario: { uid: 'eu', email: 'eu@exemplo.com' }, eventos: null,
+        // Gravar bebidas avisa o escritor (scheduleSharePush), como no app de verdade.
+        escritor: { getGlobalAlias: async () => 'Eu', scheduleSharePush() {} },
+        copias: {
+          send: async (pedido) => { window.__chamadas.send.push(pedido); return { sentAtMs: Date.now(), state: 'ack', failed: [] }; },
+          fetchIncoming: async () => ({ ok: true, expiresAtMs: enviadaEm + 86400000, drinks: [
+            { name: 'Água', icon: '💧', intervalMinutes: 30, askDoseSize: false },
+            { name: 'Cerveja', icon: '🍺', intervalMinutes: 60, askDoseSize: false },
+          ] }),
+          markHandled: async (...args) => { window.__chamadas.markHandled.push(args); __funtimeCaptura.definirCopiasRecebidas([]); },
+        },
+      });
+      __funtimeCaptura.definirPareamentos([
+        { pairId: 'p-bia', otherUid: 'bia', alias: 'Bia', myAlias: 'Eu', acceptedByMe: true, acceptedByOther: true, createdAt: agora, drinkCopyFromOther: enviadaEm, drinkCopyFromMe: null },
+        { pairId: 'p-caio', otherUid: 'caio', alias: 'Caio', myAlias: 'Eu', acceptedByMe: true, acceptedByOther: true, createdAt: agora, drinkCopyFromOther: null, drinkCopyFromMe: null },
+      ]);
+      __funtimeCaptura.definirCopiasRecebidas([{ fromUid: 'bia', sentAtMs: enviadaEm, expiresAtMs: enviadaEm + 86400000 }]);
+    });
+    const dados = () => page.evaluate(() => localStorage.getItem(DATA_STORAGE_KEY));
+    const antes = await dados();
+
+    assert.equal(await page.locator('#home-friends-dot').isVisible(), true, 'cópia recebida acende o ponto de Amigos na Home');
+    await page.locator('#home-friends-button').click();
+    const bia = page.locator('#friends-grid .share-person', { hasText: 'Bia' });
+    assert.equal(await bia.locator('.share-badge--drinks').count(), 1, 'selo de cópia no avatar de quem enviou');
+    assert.match(await bia.getAttribute('aria-label'), /enviou uma cópia de bebidas/);
+    assert.equal(await page.locator('#friends-grid .share-person', { hasText: 'Caio' }).locator('.share-badge--drinks').count(), 0);
+
+    await bia.click();
+    const cartao = page.locator('#shared-detail-drinks-in');
+    assert.equal(await cartao.isVisible(), true);
+    assert.match(await cartao.innerText(), /Receber cópia de bebidas de Bia\s+Enviada hoje às \d\d:\d\d · vale até amanhã às \d\d:\d\d/);
+    assert.match(await page.locator('#shared-detail-drinks-out').innerText(), /Copiar bebidas para Bia\s+Envia uma cópia da sua lista atual/);
+
+    await cartao.locator('.drink-copy-receive').click();
+    await page.locator('#drink-import-dialog[open]').waitFor();
+    assert.equal(await page.locator('#drink-import-file-name').textContent(), 'Enviadas por Bia');
+    assert.match(await page.locator('#drink-import-file-summary').textContent(), /^2 bebidas na cópia · 1 duplicata exata$/);
+    assert.equal(await page.locator('#drink-import-friend-note').isVisible(), true, 'aviso de que o intervalo não é recomendação');
+    assert.equal(await dados(), antes, 'abrir a prévia não grava nada');
+    assert.deepEqual(await page.evaluate(() => window.__chamadas.markHandled), [], 'nem marca a cópia como recebida');
+
+    await page.locator('#confirm-drink-import').click();
+    const depois = JSON.parse(await dados());
+    assert.deepEqual(depois.drinks.map((drink) => drink.name), ['Cerveja', 'Água']);
+    assert.deepEqual(depois.events, JSON.parse(antes).events, 'o histórico fica intacto');
+    assert.deepEqual(await page.evaluate(() => window.__chamadas.markHandled), [['bia', await page.evaluate(() => window.__enviadaEm)]]);
+    assert.equal(await cartao.isVisible(), false, 'importada, a cópia some do amigo');
+    assert.equal(await page.locator('#home-friends-dot').isVisible(), false);
+
+    // Enviar para a Bia pelo detalhe: a lista ATUAL, já com a Água importada.
+    await page.locator('#shared-detail-drinks-out button').click();
+    await page.waitForFunction(() => window.__chamadas.send.length === 1);
+    const envio = await page.evaluate(() => window.__chamadas.send[0]);
+    assert.deepEqual(envio.toUids, ['bia']);
+    assert.deepEqual(envio.drinks.map((drink) => drink.name), ['Cerveja', 'Água']);
+    await page.locator('#close-shared-detail').click();
+
+    // Vários de uma vez, por Configurações.
+    await page.evaluate(() => openSettingsView());
+    await page.evaluate(() => document.querySelector('#copy-drinks-friends').click());
+    await page.locator('#drink-copy-dialog[open]').waitFor();
+    assert.match(await page.locator('#drink-copy-hint').textContent(), /lista atual \(2 bebidas\)/);
+    const confirmar = page.locator('#drink-copy-confirm');
+    assert.equal(await confirmar.isDisabled(), true);
+    await page.locator('#drink-copy-grid .share-person', { hasText: 'Bia' }).click();
+    await page.locator('#drink-copy-grid .share-person', { hasText: 'Caio' }).click();
+    assert.equal(await confirmar.textContent(), 'Copiar para 2 amigos');
+    await confirmar.click();
+    await page.waitForFunction(() => !document.querySelector('#drink-copy-dialog').open);
+    assert.deepEqual((await page.evaluate(() => window.__chamadas.send[1])).toUids.sort(), ['bia', 'caio']);
+
+    assert.deepEqual(erros, []);
+  });
+});
+
+test('sem amigos, "Copiar bebidas para amigos" não aparece em Configurações', { timeout: 30000 }, async () => {
+  await withPage(async (page, erros) => {
+    await page.evaluate(() => openSettingsView());
+    assert.equal(await page.locator('#copy-drinks-friends').isVisible(), false);
+    assert.deepEqual(erros, []);
+  });
+});

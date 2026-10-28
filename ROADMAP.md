@@ -50,6 +50,14 @@ A relação não precisa ser obrigatoriamente simétrica; `X → Y` pode existir
 
 ## Implementado
 
+### Copiar bebidas para amigos — V2.31.0
+
+Ver `docs/specs/0032-copiar-bebidas-entre-amigos.md`. O mesmo princípio de Exportar/Importar
+bebidas, entre amigos já conectados e sem arquivo: uma cópia da lista atual (nome, ícone,
+intervalo e "perguntar o tamanho") vale 24h na nuvem, verificado pelo servidor, e quem recebe
+confere na mesma prévia de Importar bebidas antes de adicionar ou substituir, sempre
+preservando o histórico. Pelo detalhe do amigo ou, para vários, por Configurações.
+
 ### Compartilhamento temporário com pessoas autorizadas — V2.3.0
 
 Ver `docs/specs/0023-compartilhamento-temporario.md`. Pareamento por código de 6
