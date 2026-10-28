@@ -1,6 +1,6 @@
 # 0029 — Padrões de Eventos no resto do app
 
-Status: em andamento (C na v2.26.0, D na v2.26.1, A na v2.26.2, B na v2.26.3, G na v2.26.4, H na v2.26.5, I na v2.26.6, J na v2.26.7, K na v2.26.8, L na v2.26.9, M na v2.26.10, N na v2.26.11, E na v2.26.12, F na v2.26.13)
+Status: implementada (v2.26.0 a v2.26.13; tutoriais regravados na v2.27.0)
 
 ## Contexto
 
@@ -114,13 +114,8 @@ telas mudam de novo em pacotes seguintes. Em cada pacote:
 Na última etapa, regera todos de uma vez e confere o diff das imagens. Até lá, "Como usar" pode
 mostrar telas antigas.
 
-Pendentes:
-- desde G: `amigos`.
-- desde H: `evento-compartilhado`.
-- desde I: `privacidade`.
-- desde J: `backup-e-bebidas`.
-- desde K: `registrar-dose`.
-- desde L: `privacidade` (Criar PIN) e `backup-e-bebidas` (Importar), já na lista.
+Pendentes: nenhum. Todos os tópicos desatualizados na série (`registrar-dose`, `historico`, `privacidade`, `amigos`,
+`evento-compartilhado`, `backup-e-bebidas`) foram regravados juntos na v2.27.0, com as imagens conferidas.
 
 ## Pacote G (v2.26.4)
 

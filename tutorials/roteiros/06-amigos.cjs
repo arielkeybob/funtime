@@ -90,7 +90,7 @@ module.exports = {
       tipo: 'video',
       seed: 'demoAmigos',
       legenda: 'Toque no amigo, em Compartilhando e em Compartilhar.',
-      alt: 'Um amigo é tocado, depois a aba Compartilhando e o botão Compartilhar; o evento passa a aparecer como ao vivo para essa pessoa, com o botão Parar.',
+      alt: 'Um amigo é tocado, depois a aba Compartilhando e o botão Compartilhar; o evento passa a aparecer com o selo Ao vivo e o botão Parar.',
       async preparar(t) { await t.tocar('#home-friends-button'); await t.esperar(400); },
       async gravar(t) {
         await t.esperar(1400);
@@ -108,7 +108,7 @@ module.exports = {
     {
       tipo: 'imagem',
       legenda: 'Para encerrar antes do fim do evento, toque em Parar.',
-      alt: 'Aba Compartilhando com o evento Churrasco do João ao vivo para essa pessoa e o botão Parar em destaque.',
+      alt: 'Aba Compartilhando com o evento Churrasco do João, o selo Ao vivo e o botão Parar em destaque.',
       async antes(t) {
         await t.tocar('#shared-detail-body .share-start-button');
         await t.page.waitForSelector('#shared-detail-body .share-stop-button');

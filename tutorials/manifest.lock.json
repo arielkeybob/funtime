@@ -1,5 +1,5 @@
 {
-  "versaoApp": "2.26.10",
+  "versaoApp": "2.26.13",
   "topicos": {
     "introducao": {
       "cobre": {
@@ -43,22 +43,22 @@
     "registrar-dose": {
       "cobre": {
         "#drink-card-template": "f606a5358fe0",
-        "#interval-warning-dialog": "25ed209d819e",
+        "#interval-warning-dialog": "d13c97709266",
         "#dose-size-dialog": "8739ab561e45",
         "#drink-menu-dialog": "e742a5011731",
-        "#log-dialog": "6423047b3ba5"
+        "#log-dialog": "2092453b186b"
       },
       "midia": {
-        "01.c21697a0.mp4": "c21697a0df888b0578b11a6a79e30fbdf0c6265b",
-        "01.poster.89069965.webp": "890699653355901a01de72ad06a617a8bb4e217d",
+        "01.9235f998.mp4": "9235f9985da55e65da6f3b84608dda235711f4ed",
+        "01.poster.7138c912.webp": "7138c912bb77781adf9e0850fca5218a1636d88b",
         "02.fed0d2db.webp": "fed0d2dbbb49f8405b4d065f8c54b2922cb6eec6",
-        "03.1b76fdb6.webp": "1b76fdb62b809ffc93335030af75a55c9d398bb2",
+        "03.2c08e9a8.webp": "2c08e9a88340cf6abf2ca273568d9e1b383635cb",
         "04.a01b8c74.webp": "a01b8c7432ebe3a377a247af1a66885123a12c57"
       }
     },
     "historico": {
       "cobre": {
-        "#history-view": "3933dac618bd",
+        "#history-view": "6d57858b593c",
         "#event-dialog": "60b9e141df09",
         "#reaction-picker-popover": "3217ba650803",
         "#app-confirm-dialog": "a67d5c3cfd1a",
@@ -66,33 +66,33 @@
         "#drink-card-template": "f606a5358fe0"
       },
       "midia": {
-        "01.a63b0e19.mp4": "a63b0e199b42cd8071247d0fad0ab4f03a43865f",
-        "01.poster.94bbbcbb.webp": "94bbbcbbe33b5f621da5f24c336ebd563ec0c8f8",
-        "02.4fd96967.mp4": "4fd96967486b9b0b38d99593aeded6df889a9f30",
-        "02.poster.f89211ab.webp": "f89211abed6992eab689fc6ee56aa6d927dfe15b",
-        "03.dc9e2ddc.mp4": "dc9e2ddc859d7b0a846414075ffa203b8aa119b7",
-        "03.poster.27f7b67a.webp": "27f7b67ad862b7573f45f6b8ba8f207f8d4d31b7",
-        "04.6e991efe.mp4": "6e991efe0556c2f4a2ce7eb6aac8d248a0892984",
-        "04.poster.713a7422.webp": "713a7422ebdd1ad78abcdcbb9c062bcc46093c27",
-        "05.9810e2ff.mp4": "9810e2ff8e5b8064556bc8886d6a99a4f5325959",
-        "05.poster.a29e5596.webp": "a29e5596b361bd21179117f25ae387d65611cdd2"
+        "01.12fb20cd.mp4": "12fb20cd40046c798bd7a9660a146b01ecb6c43a",
+        "01.poster.beacf52f.webp": "beacf52f8bf60873afea9c07f606bf23175e9ce0",
+        "02.74c523db.mp4": "74c523db1d288c01823169c5cc7ecfa780458fa8",
+        "02.poster.25d874f9.webp": "25d874f9249b5e9b22e8890454e7e2cd71a1c3ee",
+        "03.e709ef01.mp4": "e709ef01a5677e20fbcd68ec4ec54332b524dab0",
+        "03.poster.e9c9efe4.webp": "e9c9efe4d00fa23060689f997103877a080b9bb9",
+        "04.97ca194f.mp4": "97ca194fb0a22fe87694345fa19cbb787be4c207",
+        "04.poster.33d77572.webp": "33d7757291fd259cc3738d6e937e3957ead8f1bc",
+        "05.d4336598.mp4": "d433659814d1782b1e5e12c64a8b20b8bef48fa0",
+        "05.poster.4ae2c2b1.webp": "4ae2c2b1891ad65c12ece5c71c3f4d79d9a29bc4"
       }
     },
     "privacidade": {
       "cobre": {
         "#security-method-dialog": "50f9533ea191",
-        "#pin-setup-dialog": "ffd0eb328fd2",
+        "#pin-setup-dialog": "33414f0ce24b",
         "#lock-screen": "bdc74e5ace98",
-        "#security-details": "c392c1647605"
+        "#security-details": "a9e52a5d0dfd"
       },
       "midia": {
         "02.4e76983f.webp": "4e76983f19f76addd481473850443615e6721c65",
         "03.42e7a5d6.webp": "42e7a5d6d81d7af50b9a3accd0d24081338007f2",
-        "04.09e1c2d5.mp4": "09e1c2d57962e1e75e5389beacb14ca54d6e983b",
-        "04.poster.b7b4cd15.webp": "b7b4cd15114c584c473ee9c346313d13f056c058",
-        "05.f4216c70.webp": "f4216c705dd96d30f927985c10535c292ae1f817",
-        "06.986f9570.mp4": "986f9570ef2191b0db5885975d1cde608c7ab382",
-        "06.poster.a278a248.webp": "a278a24859612fc33841c19bc386ef0f53b1ca34"
+        "04.0936c732.mp4": "0936c7329a2491f9528391a0231790031eb45a05",
+        "04.poster.f4918ac4.webp": "f4918ac4d80ead58f70d2e78224ef45f9b8d8859",
+        "05.d864f528.webp": "d864f5280070ef11b1301310e0057e78b33d5268",
+        "06.c339e9e2.mp4": "c339e9e2639462b8851f1a0f624c97801f6c0db4",
+        "06.poster.714c6d92.webp": "714c6d92d2f6a54cfcc76901fdcc811cb68207aa"
       }
     },
     "eventos": {
@@ -122,55 +122,55 @@
         "#sync-sign-in": "14af3de8ebab",
         "#home-friends-button": "1a5718480582",
         "#shared-view": "dcd6e4c78d98",
-        "#pairing-dialog": "286f7f575d7f",
-        "#shared-detail-dialog": "c44e36a0ed86"
+        "#pairing-dialog": "443aed581c78",
+        "#shared-detail-dialog": "cdf7aa5b7e5a"
       },
       "midia": {
-        "01.12dc1052.webp": "12dc10520d53d82cd14a5aa15451a6a20e12003f",
-        "02.8f2876b7.mp4": "8f2876b7c4fbf5da7119bf8b5a9d597cf0a53026",
-        "02.poster.85561a60.webp": "85561a601f647ac12758b390bbb751277ce36e68",
-        "03.0a0f09ac.mp4": "0a0f09ac67f586f659743b54ab6e7d0a2f6d1ff2",
-        "03.poster.95a9db4a.webp": "95a9db4acf4f0ae569f906bf6fb46f6c81e74e2f",
-        "05.849921ef.webp": "849921efe9f4ca7d335fc0c58bfa4d9b4b1e365b",
-        "07.032cdfa0.mp4": "032cdfa0d550ece4aa2d883e88bfbb8e527443d3",
-        "07.poster.9b06f1e8.webp": "9b06f1e8fc807945ace92121f5e295c8902c0325",
-        "08.4f09ee13.webp": "4f09ee134f8ce03e03d945b5f68f0ad26a2b12be"
+        "01.f0e4658f.webp": "f0e4658f3b5da4af0ccf80f2a650704ddf766455",
+        "02.2d7c2e63.mp4": "2d7c2e6332e6d024d14bda3454f418b25d28a614",
+        "02.poster.8c7217ab.webp": "8c7217aba41ddbfa36c564189f158a23fc65b8d3",
+        "03.01483f28.mp4": "01483f2817a21bc4c7905cabba4eb00d24c76030",
+        "03.poster.fd91c8cc.webp": "fd91c8cc6e5242206807961e409c306ce5d3d980",
+        "05.325739f3.webp": "325739f347f1d8db287fca0e7285bb29cea93773",
+        "07.8c235584.mp4": "8c235584576e6f6eea17e028f7020b813886705b",
+        "07.poster.f6eda3e0.webp": "f6eda3e082de598bfc1b21e5100484f79105a1d4",
+        "08.b188344b.webp": "b188344b50b32c68bd2eb4f2b5cefc89ece2fd18"
       }
     },
     "evento-compartilhado": {
       "cobre": {
         "#occasion-dialog": "f78bf5008482",
-        "#event-invite-dialog": "5562b05be72b",
+        "#event-invite-dialog": "fb7c070a8cb3",
         "#invite-sheet-dialog": "63ccb68af4ab",
         "#occasion-detail-dialog": "c40a225274ea",
         "#friends-invites": "deb4005af20f",
         "#occasion-view": "d2e9dee21e89"
       },
       "midia": {
-        "01.c2b0c204.mp4": "c2b0c204d02b6d10ffa7bd2da8530dd3703d83a8",
-        "01.poster.18743a7f.webp": "18743a7f8e419725122af710340a182096e2e3c2",
+        "01.ee9562ca.mp4": "ee9562ca7cb9b382a89767c221ae2e6bd35d288b",
+        "01.poster.5a9554de.webp": "5a9554decd85707ed813b6334b905ab2e42bb005",
         "02.f452f770.webp": "f452f7705e36825c1d0a46dab618f3d44a3fd140",
-        "03.b2b48b22.mp4": "b2b48b224a7f05091ce5eafc3392b0a97899e281",
-        "03.poster.712b1be8.webp": "712b1be8e66d057fa95ee9d0c738a68ed54ee1c9",
-        "04.cffda5e0.webp": "cffda5e01633e08ece41e600d50b0ef09d64865e"
+        "03.5dfb02be.mp4": "5dfb02beab52123b36801d197139cf3655af42c3",
+        "03.poster.f70a70b0.webp": "f70a70b01cf53a6ae6159c53ba821c7467bc60d2",
+        "04.f6c7be02.webp": "f6c7be02683b9ebb0c64e3191ca4f4e614d084f1"
       }
     },
     "backup-e-bebidas": {
       "cobre": {
-        ".settings-drinks-data-card": "bd06212d574d",
-        ".settings-backup-data-card": "300a4fd60a84",
-        "#drink-import-dialog": "43fba91040b6",
+        ".settings-drinks-data-card": "82b4671fa237",
+        ".settings-backup-data-card": "e577453c8a09",
+        "#drink-import-dialog": "9d0d641dfcab",
         "#backup-restore-dialog": "999885df1e76"
       },
       "midia": {
-        "02.2e3ba553.webp": "2e3ba553cbfdaadcb98fac3ec86e9acbf5c89bd6",
-        "03.c3067e05.mp4": "c3067e05b2f001ec1a4a5235376614dc781c474f",
-        "03.poster.4b9a9f7b.webp": "4b9a9f7ba6baa6cfb925ccc0538ab0ceb337b408",
-        "04.98a6812c.mp4": "98a6812c2b1d14b93e8ca4a3f7fe89d375ecbd70",
-        "04.poster.8f73f471.webp": "8f73f471e473d862c6f0e21ec14f30e7342e9cd3",
-        "05.f6d90526.mp4": "f6d90526e985ec608f3ad9ea98afc10a581fbfb7",
-        "05.poster.0d330e25.webp": "0d330e2573158b3ca1452330f33284fb0e355c0e",
-        "06.913c8ed9.webp": "913c8ed9dd1545bce2d829db81cd6cb73f55ea22"
+        "02.a8c94218.webp": "a8c942180834826dbc01af93b8f027fb23cf010d",
+        "03.bfa34403.mp4": "bfa34403f5228a8ea4f51969208c39ee69b38fbb",
+        "03.poster.580d9527.webp": "580d952743e02eed182e13d310955f65d680b200",
+        "04.9402bfdc.mp4": "9402bfdc0061c6786e5fe587361e462ad7654e0d",
+        "04.poster.f0a189dd.webp": "f0a189dd780cc9d1cbf6ba067f5c53efb1c50de9",
+        "05.3a5b8b4f.mp4": "3a5b8b4fe856a20aa086f5f8aa55f9da625cdb39",
+        "05.poster.0b15eb67.webp": "0b15eb676a59cc01f1e3eb28ca706e60acbf1e37",
+        "06.1d69ab94.webp": "1d69ab942ed0391ea77128b15c668935ddb94c8b"
       }
     }
   }

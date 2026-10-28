@@ -99,8 +99,8 @@ export const TUTORIALS = [
     "passos": [
       {
         "tipo": "video",
-        "src": "./tutorials/media/registrar-dose/01.c21697a0.mp4",
-        "poster": "./tutorials/media/registrar-dose/01.poster.89069965.webp",
+        "src": "./tutorials/media/registrar-dose/01.9235f998.mp4",
+        "poster": "./tutorials/media/registrar-dose/01.poster.7138c912.webp",
         "alt": "O cartão da Cerveja recebe o destaque azul e dois toques rápidos o registram; a contagem do intervalo começa e o app avisa que o consumo foi anotado.",
         "legenda": "Dê dois toques na bebida para registrar a dose."
       },
@@ -112,7 +112,7 @@ export const TUTORIALS = [
       },
       {
         "tipo": "imagem",
-        "src": "./tutorials/media/registrar-dose/03.1b76fdb6.webp",
+        "src": "./tutorials/media/registrar-dose/03.2c08e9a8.webp",
         "alt": "Aviso Intervalo em andamento com os botões Voltar e Já consumi — anotar.",
         "legenda": "Registrar outra dose antes de terminar a anterior mostra um aviso; você decide."
       },
@@ -131,36 +131,36 @@ export const TUTORIALS = [
     "passos": [
       {
         "tipo": "video",
-        "src": "./tutorials/media/historico/01.a63b0e19.mp4",
-        "poster": "./tutorials/media/historico/01.poster.94bbbcbb.webp",
+        "src": "./tutorials/media/historico/01.12fb20cd.mp4",
+        "poster": "./tutorials/media/historico/01.poster.beacf52f.webp",
         "alt": "Na tela inicial, o botão Histórico do menu de baixo recebe o destaque azul e é tocado; abre a lista com todos os registros, do mais recente ao mais antigo.",
         "legenda": "Toque em Histórico no menu para ver todos os registros."
       },
       {
         "tipo": "video",
-        "src": "./tutorials/media/historico/02.4fd96967.mp4",
-        "poster": "./tutorials/media/historico/02.poster.f89211ab.webp",
+        "src": "./tutorials/media/historico/02.74c523db.mp4",
+        "poster": "./tutorials/media/historico/02.poster.25d874f9.webp",
         "alt": "O botão Histórico do cartão da Cerveja é tocado e abre a lista só com os registros dessa bebida.",
         "legenda": "No card, o botão Histórico mostra só aquela bebida."
       },
       {
         "tipo": "video",
-        "src": "./tutorials/media/historico/03.dc9e2ddc.mp4",
-        "poster": "./tutorials/media/historico/03.poster.27f7b67a.webp",
+        "src": "./tutorials/media/historico/03.e709ef01.mp4",
+        "poster": "./tutorials/media/historico/03.poster.e9c9efe4.webp",
         "alt": "Um registro do Histórico é tocado e abre o editor, com a data e as rodas de hora e minuto em destaque.",
         "legenda": "Toque num registro para corrigir o horário."
       },
       {
         "tipo": "video",
-        "src": "./tutorials/media/historico/04.6e991efe.mp4",
-        "poster": "./tutorials/media/historico/04.poster.713a7422.webp",
+        "src": "./tutorials/media/historico/04.97ca194f.mp4",
+        "poster": "./tutorials/media/historico/04.poster.33d77572.webp",
         "alt": "Um registro do Histórico recebe um toque e segurar; um seletor flutuante com cinco reações, de \"Péssimo\" a \"Ótimo\", aparece perto dele; a reação \"Ótimo\" é tocada, o seletor fecha e o selo da reação aparece no canto do registro.",
         "legenda": "Segure um registro para reagir à dose."
       },
       {
         "tipo": "video",
-        "src": "./tutorials/media/historico/05.9810e2ff.mp4",
-        "poster": "./tutorials/media/historico/05.poster.a29e5596.webp",
+        "src": "./tutorials/media/historico/05.d4336598.mp4",
+        "poster": "./tutorials/media/historico/05.poster.4ae2c2b1.webp",
         "alt": "Da tela inicial, o botão Histórico é tocado e depois um registro; no editor, a lixeira do rodapé é tocada e a exclusão é confirmada; o registro some da lista e o app avisa que foi excluído.",
         "legenda": "Para excluir um registro, toque nele, na lixeira e confirme."
       }
@@ -196,21 +196,21 @@ export const TUTORIALS = [
       },
       {
         "tipo": "video",
-        "src": "./tutorials/media/privacidade/04.09e1c2d5.mp4",
-        "poster": "./tutorials/media/privacidade/04.poster.b7b4cd15.webp",
+        "src": "./tutorials/media/privacidade/04.0936c732.mp4",
+        "poster": "./tutorials/media/privacidade/04.poster.f4918ac4.webp",
         "alt": "A opção PIN do aplicativo é tocada, o PIN 1234 é digitado e confirmado e o botão Salvar PIN é tocado; o app avisa que o bloqueio por PIN foi ativado.",
         "legenda": "Crie um PIN de 4 dígitos e toque em Salvar PIN."
       },
       {
         "tipo": "imagem",
-        "src": "./tutorials/media/privacidade/05.f4216c70.webp",
+        "src": "./tutorials/media/privacidade/05.d864f528.webp",
         "alt": "Tela Privacidade com o bloqueio ativo e a opção Bloquear após ficar sem uso, com o tempo de 5 minutos, em destaque.",
         "legenda": "Escolha em quanto tempo o app vai bloquear sozinho."
       },
       {
         "tipo": "video",
-        "src": "./tutorials/media/privacidade/06.986f9570.mp4",
-        "poster": "./tutorials/media/privacidade/06.poster.a278a248.webp",
+        "src": "./tutorials/media/privacidade/06.c339e9e2.mp4",
+        "poster": "./tutorials/media/privacidade/06.poster.714c6d92.webp",
         "alt": "O botão Bloquear agora é tocado e o app mostra a tela de bloqueio, pedindo o PIN do aplicativo (ou a biometria do aparelho, se esse for o método escolhido).",
         "legenda": "Bloquear agora tranca o app até digitar o PIN ou biometria."
       }
@@ -287,21 +287,21 @@ export const TUTORIALS = [
     "passos": [
       {
         "tipo": "imagem",
-        "src": "./tutorials/media/amigos/01.12dc1052.webp",
+        "src": "./tutorials/media/amigos/01.f0e4658f.webp",
         "alt": "Tela Backup e conta com o botão Entrar com Google, no cartão Sincronizar entre aparelhos, em destaque.",
         "legenda": "A função Amigos precisa da Conta Google: entre em Backup e conta."
       },
       {
         "tipo": "video",
-        "src": "./tutorials/media/amigos/02.8f2876b7.mp4",
-        "poster": "./tutorials/media/amigos/02.poster.85561a60.webp",
+        "src": "./tutorials/media/amigos/02.2d7c2e63.mp4",
+        "poster": "./tutorials/media/amigos/02.poster.8c7217ab.webp",
         "alt": "Na tela inicial, o ícone Amigos, no canto superior direito, é tocado e abre a tela Amigos com Bia, Caio e Duda.",
         "legenda": "Com a conta conectada, toque no ícone Amigos da tela inicial."
       },
       {
         "tipo": "video",
-        "src": "./tutorials/media/amigos/03.0a0f09ac.mp4",
-        "poster": "./tutorials/media/amigos/03.poster.95a9db4a.webp",
+        "src": "./tutorials/media/amigos/03.01483f28.mp4",
+        "poster": "./tutorials/media/amigos/03.poster.fd91c8cc.webp",
         "alt": "Na tela Amigos, o botão + é tocado e abre Adicionar amigo; o botão Gerar código é tocado e aparecem o código com QR, o botão Copiar código e o tempo de validade.",
         "legenda": "Toque em + e mostre ou copie o código para a outra pessoa, ou digite o dela."
       },
@@ -318,7 +318,7 @@ export const TUTORIALS = [
       },
       {
         "tipo": "imagem",
-        "src": "./tutorials/media/amigos/05.849921ef.webp",
+        "src": "./tutorials/media/amigos/05.325739f3.webp",
         "alt": "Detalhe de um amigo, na aba Compartilhando, com o evento Churrasco do João, em andamento e ainda não compartilhado, em destaque.",
         "legenda": "O fato de ser amigo não mostra nada. É preciso compartilhar."
       },
@@ -334,15 +334,15 @@ export const TUTORIALS = [
       },
       {
         "tipo": "video",
-        "src": "./tutorials/media/amigos/07.032cdfa0.mp4",
-        "poster": "./tutorials/media/amigos/07.poster.9b06f1e8.webp",
-        "alt": "Um amigo é tocado, depois a aba Compartilhando e o botão Compartilhar; o evento passa a aparecer como ao vivo para essa pessoa, com o botão Parar.",
+        "src": "./tutorials/media/amigos/07.8c235584.mp4",
+        "poster": "./tutorials/media/amigos/07.poster.f6eda3e0.webp",
+        "alt": "Um amigo é tocado, depois a aba Compartilhando e o botão Compartilhar; o evento passa a aparecer com o selo Ao vivo e o botão Parar.",
         "legenda": "Toque no amigo, em Compartilhando e em Compartilhar."
       },
       {
         "tipo": "imagem",
-        "src": "./tutorials/media/amigos/08.4f09ee13.webp",
-        "alt": "Aba Compartilhando com o evento Churrasco do João ao vivo para essa pessoa e o botão Parar em destaque.",
+        "src": "./tutorials/media/amigos/08.b188344b.webp",
+        "alt": "Aba Compartilhando com o evento Churrasco do João, o selo Ao vivo e o botão Parar em destaque.",
         "legenda": "Para encerrar antes do fim do evento, toque em Parar."
       }
     ]
@@ -354,8 +354,8 @@ export const TUTORIALS = [
     "passos": [
       {
         "tipo": "video",
-        "src": "./tutorials/media/evento-compartilhado/01.c2b0c204.mp4",
-        "poster": "./tutorials/media/evento-compartilhado/01.poster.18743a7f.webp",
+        "src": "./tutorials/media/evento-compartilhado/01.ee9562ca.mp4",
+        "poster": "./tutorials/media/evento-compartilhado/01.poster.5a9554de.webp",
         "alt": "No formulário Novo evento, a linha Convidados é tocada; Bia e Caio são escolhidos e confirmados, e a linha passa a mostrar 2 pessoas.",
         "legenda": "No evento, toque em Convidados e escolha os amigos."
       },
@@ -367,14 +367,14 @@ export const TUTORIALS = [
       },
       {
         "tipo": "video",
-        "src": "./tutorials/media/evento-compartilhado/03.b2b48b22.mp4",
-        "poster": "./tutorials/media/evento-compartilhado/03.poster.712b1be8.webp",
+        "src": "./tutorials/media/evento-compartilhado/03.5dfb02be.mp4",
+        "poster": "./tutorials/media/evento-compartilhado/03.poster.f70a70b0.webp",
         "alt": "A aba Evento é tocada e mostra, no topo de Próximos, o convite Festa Junina, da Bia, aguardando resposta; o botão Vou é tocado e o app avisa que o evento foi para a agenda.",
         "legenda": "Quem é convidado responde Vou ou Não vou na aba Evento."
       },
       {
         "tipo": "imagem",
-        "src": "./tutorials/media/evento-compartilhado/04.cffda5e0.webp",
+        "src": "./tutorials/media/evento-compartilhado/04.f6c7be02.webp",
         "alt": "Lista de convidados de uma festa agendada: a Bia tem o símbolo de envelope, convidada sem resposta; o Caio tem o símbolo de confirmado; a Duda não foi convidada.",
         "legenda": "✉ foi convidado; ✔ já confirmou que vai."
       }
@@ -398,34 +398,34 @@ export const TUTORIALS = [
       },
       {
         "tipo": "imagem",
-        "src": "./tutorials/media/backup-e-bebidas/02.2e3ba553.webp",
+        "src": "./tutorials/media/backup-e-bebidas/02.a8c94218.webp",
         "alt": "Tela Backup e conta com dois cartões em destaque: Exportar e importar, rotulado Só as bebidas, e Dados do aplicativo, rotulado Bebidas + histórico.",
         "legenda": "Em Backup e conta, os dois ficam em cartões separados."
       },
       {
         "tipo": "video",
-        "src": "./tutorials/media/backup-e-bebidas/03.c3067e05.mp4",
-        "poster": "./tutorials/media/backup-e-bebidas/03.poster.4b9a9f7b.webp",
+        "src": "./tutorials/media/backup-e-bebidas/03.bfa34403.mp4",
+        "poster": "./tutorials/media/backup-e-bebidas/03.poster.580d9527.webp",
         "alt": "O botão Exportar bebidas é tocado e o app avisa que o arquivo de bebidas foi exportado.",
         "legenda": "Exportar bebidas gera um arquivo para compartilhar ou guardar."
       },
       {
         "tipo": "video",
-        "src": "./tutorials/media/backup-e-bebidas/04.98a6812c.mp4",
-        "poster": "./tutorials/media/backup-e-bebidas/04.poster.8f73f471.webp",
-        "alt": "O botão Importar bebidas é tocado e abre a prévia do arquivo, com as opções Adicionar às bebidas atuais e Substituir minha lista de bebidas em destaque.",
+        "src": "./tutorials/media/backup-e-bebidas/04.9402bfdc.mp4",
+        "poster": "./tutorials/media/backup-e-bebidas/04.poster.f0a189dd.webp",
+        "alt": "O botão Importar bebidas é tocado e abre a prévia do arquivo, com as bebidas dele e as opções Adicionar às bebidas atuais e Substituir minha lista de bebidas em destaque.",
         "legenda": "Importar mostra uma prévia: adicionar ou substituir a lista."
       },
       {
         "tipo": "video",
-        "src": "./tutorials/media/backup-e-bebidas/05.f6d90526.mp4",
-        "poster": "./tutorials/media/backup-e-bebidas/05.poster.0d330e25.webp",
+        "src": "./tutorials/media/backup-e-bebidas/05.3a5b8b4f.mp4",
+        "poster": "./tutorials/media/backup-e-bebidas/05.poster.0b15eb67.webp",
         "alt": "O botão Fazer backup é tocado e o app avisa que o backup foi criado e que o arquivo deve ser guardado em local privado.",
         "legenda": "Fazer backup salva bebidas, histórico e preferências."
       },
       {
         "tipo": "imagem",
-        "src": "./tutorials/media/backup-e-bebidas/06.913c8ed9.webp",
+        "src": "./tutorials/media/backup-e-bebidas/06.1d69ab94.webp",
         "alt": "Prévia de Restaurar backup, com o aviso O que será substituído em destaque: bebidas, histórico e preferências; bloqueio e PIN do aparelho não mudam.",
         "legenda": "Restaurar troca os dados atuais; o PIN não muda."
       }

@@ -77,7 +77,7 @@ module.exports = {
     {
       tipo: 'video',
       legenda: 'Importar mostra uma prévia: adicionar ou substituir a lista.',
-      alt: 'O botão Importar bebidas é tocado e abre a prévia do arquivo, com as opções Adicionar às bebidas atuais e Substituir minha lista de bebidas em destaque.',
+      alt: 'O botão Importar bebidas é tocado e abre a prévia do arquivo, com as bebidas dele e as opções Adicionar às bebidas atuais e Substituir minha lista de bebidas em destaque.',
       async preparar(t) { await irParaBackup(t); t.aoEscolherArquivo(ARQUIVO_BEBIDAS); },
       async gravar(t) {
         await t.esperar(1400);

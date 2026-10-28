@@ -1,4 +1,11 @@
-# FunTime — V2.26.13
+# FunTime — V2.27.0
+
+## V2.27.0 — tutoriais em dia com o app novo
+
+- Fecha a série de padrões de interface da spec 0029 (v2.26.0 a v2.26.13): lixeira no rodapé dos editores, menu ⋮ em linhas, confirmações sempre do app, escolhas curtas em janela compacta, detalhe do amigo, Compartilhar doses e Convidados, Configurações, Backup e conta, Anotar dose e aviso de intervalo, Importar/Criar PIN/Redefinir, botões de perigo unificados, correções, lembrete de evento e resumo do Histórico por evento.
+- **Tutoriais regravados** de uma vez com as telas novas: "Registrar doses e intervalos", "Histórico", "Bloqueio do aplicativo", "Amigos e compartilhar doses", "Evento compartilhado" e "Backup e bebidas". A versão menor nova também renova o cache de mídia dos tutoriais.
+- Sem mudança de dados; `DATA_VERSION` permanece 11.
+
 
 ## V2.26.13 — Histórico de um evento com resumo no topo
 
