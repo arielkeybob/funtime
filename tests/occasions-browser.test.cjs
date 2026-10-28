@@ -109,8 +109,7 @@ test('agenda compacta, evento, edição, agendamento automático, aviso e persis
   const id=await page.evaluate(()=>state.occasions[0].id);
   assert.equal(await page.evaluate(()=>state.events[0].occasionId),id);
   await page.locator('#nav-occasion').click(); await page.locator('#occasion-current .agenda-row').click();
-  await page.getByRole('button',{name:'Ver registros',exact:true}).click(); assert.equal(await page.locator('.history-event').count(),1);
-  await page.locator('#nav-occasion').click(); await page.locator('#occasion-current .agenda-row').click();
+  assert.equal(await page.locator('#occasion-detail-content .history-event').count(),1);
   await page.getByRole('button',{name:'O evento acabou',exact:true}).click(); await page.locator('#app-confirm-accept').click(); await page.waitForFunction(()=>state.currentView==='home');
   assert.equal(await page.evaluate(()=>state.securityConfig.eventUnlockOccasionId),null);
   assert.ok((await page.locator('[data-drink-id=d]').getAttribute('class')).includes('waiting'));

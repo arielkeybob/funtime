@@ -45,8 +45,13 @@ Também trocou dois rótulos:
   - O nome vira o título, com o selo de situação acima e "de Fulano" abaixo para convidado.
   - O período é uma linha do tempo vertical com a duração no meio ("previsto" quando ainda não
     aconteceu), só com o período efetivo.
-  - Os registros viram um cartão tocável (`aria-label="Ver registros"`) com a contagem por bebida
-    e o ícone de cada uma.
+  - Os registros: um resumo com o total e uma pílula por bebida e, logo abaixo, as doses com as
+    mesmas linhas do Histórico — toque edita, segurar reage (v2.29.0; antes o resumo era um cartão
+    "Ver registros" que levava ao Histórico). `renderHistoryEntries`, `createHistoryEventButton` e
+    `createDosePills` (`app.js`) servem as duas telas. Com mais de 20 doses, as 20 últimas e
+    "Ver todos os N no Histórico". O seletor de reação entra no diálogo do registro
+    (`reaction-picker.js`) para não ficar atrás do modal, e `refreshDataViews` redesenha o
+    detalhe aberto (`refreshOpenOccasionDetails`).
   - Convidados, Compartilhar doses e Manter app desbloqueado ficam num bloco único.
   - Cancelar agendamento e Deixar de participar são linhas discretas no fim do conteúdo.
 - **Rodapé** `#occasion-detail-actions`:
@@ -92,7 +97,7 @@ textos de Encerrar e Sair foram reescritos com os rótulos novos) e o formato do
   dois campos ocultos (`#occasion-invite-draft`, `#occasion-share-draft`) que o rascunho do
   formulário (`ui.js`, `updateFormDraft`) compara. Evento encerrado não mostra mais Convidados
   no editor.
-- "Ver registros" levava ao Histórico sem caminho de volta ao evento. Agora
+- "Ver registros" (hoje "Ver todos os N no Histórico") levava ao Histórico sem caminho de volta ao evento. Agora
   `state.historyReturnOccasionId` guarda o evento e `setHistoryReturnOccasion` (`app.js`) põe
   "Registros do evento" e o nome dele no cabeçalho. `leaveHistoryView` faz o ← e o Voltar do
   aparelho (`navigation.js`) voltarem ao detalhe. Trocar o filtro para outra coisa desfaz isso.

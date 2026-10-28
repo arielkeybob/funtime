@@ -263,41 +263,68 @@ test('evento em andamento: cartão em destaque no topo, e não mais uma linha co
   });
 });
 
-test('"Ver registros" abre os registros do evento, e voltar (← ou Voltar do aparelho) leva de novo ao detalhe', { timeout: 90000 }, async () => {
+test('o detalhe do evento mostra as doses: tocar edita, segurar reage', { timeout: 90000 }, async () => {
   await comApp('demo', async (page, erros) => {
     await page.evaluate(() => globalThis.__semear({ eventoAtivo: true }));
     await page.locator('#nav-occasion').click();
-    const verRegistros = async () => {
-      await page.getByRole('button', { name: 'Ver registros', exact: true }).click();
+    await page.locator('#occasion-current .occasion-current-card').click();
+    const linhas = page.locator('#occasion-detail-content .history-event');
+    assert.equal(await linhas.count(), 2, 'as doses do evento, sem ir ao Histórico');
+    assert.equal(await page.getByRole('button', { name: 'Ver registros', exact: true }).count(), 0, 'o resumo não é mais um link');
+    assert.equal(await page.locator('#occasion-detail-content .history-event-detail', { hasText: 'Churrasco do João' }).count(), 0, 'o nome do evento não se repete');
+
+    // Tocar abre o Editar registro por cima do detalhe, sem fechá-lo.
+    await linhas.first().click();
+    await page.waitForSelector('#event-dialog[open]');
+    assert.equal(await page.locator('#occasion-detail-dialog').evaluate((no) => no.open), true);
+    await page.keyboard.press('Escape');
+    await page.waitForFunction(() => !document.querySelector('#event-dialog').open);
+
+    // Segurar abre as reações visíveis dentro do diálogo; escolher uma redesenha o detalhe com o selo.
+    const caixa = await linhas.first().boundingBox();
+    await page.mouse.move(caixa.x + 40, caixa.y + caixa.height / 2);
+    await page.mouse.down(); await page.waitForTimeout(700); await page.mouse.up();
+    await page.waitForFunction(() => document.querySelector('#reaction-picker-popover')?.hidden === false);
+    const botao = page.locator('#reaction-picker-popover .reaction-picker-button[data-reaction="great"]');
+    const ponto = await botao.boundingBox();
+    assert.equal(await page.evaluate(({ x, y }) => document.elementFromPoint(x, y)?.closest('#reaction-picker-popover') !== null, { x: ponto.x + ponto.width / 2, y: ponto.y + ponto.height / 2 }), true, 'o seletor fica por cima do diálogo');
+    await page.waitForTimeout(600);
+    await botao.click();
+    await page.waitForFunction(() => document.querySelector('#reaction-picker-popover').hidden);
+    assert.equal(await page.locator('#occasion-detail-content .history-reaction-badge:not(.is-empty)').count(), 1);
+    assert.deepEqual(erros, []);
+  });
+});
+
+test('com mais de 20 doses, "Ver todos no Histórico" abre o resto, e voltar (← ou Voltar do aparelho) leva ao detalhe', { timeout: 90000 }, async () => {
+  await comApp('demo', async (page, erros) => {
+    await page.evaluate(() => globalThis.__semear({ eventoAtivo: true }));
+    await page.evaluate(() => {
+      const base = state.events.find((event) => event.occasionId);
+      for (let i = 0; i < 20; i += 1) state.events.push({ ...base, id: 'extra-' + i, consumedAt: base.consumedAt - (i + 1) * 60000, reaction: null });
+      saveData(); render();
+    });
+    await page.locator('#nav-occasion').click();
+    await page.locator('#occasion-current .occasion-current-card').click();
+    assert.equal(await page.locator('#occasion-detail-content .history-event').count(), 20, 'só as 20 últimas no detalhe');
+    const verTodos = async () => {
+      await page.getByRole('button', { name: 'Ver todos os 22 no Histórico', exact: true }).click();
       await page.waitForFunction(() => state.currentView === 'history');
     };
 
-    await page.locator('#occasion-current .occasion-current-card').click();
-    await verRegistros();
+    await verTodos();
     assert.equal(await page.locator('#history-header-eyebrow').textContent(), 'Registros do evento');
     assert.equal(await page.locator('#history-header-title').textContent(), 'Churrasco do João');
     assert.equal(await page.locator('#close-history').getAttribute('aria-label'), 'Voltar para o evento');
-    assert.equal(await page.locator('.history-event').count(), 2, 'só os registros do evento');
 
     await page.locator('#close-history').click();
     await page.waitForFunction(() => document.querySelector('#occasion-detail-dialog').open);
     assert.equal(await page.evaluate(() => state.currentView), 'occasion');
-    assert.equal(await page.locator('#occasion-detail-name').textContent(), 'Churrasco do João');
 
-    await verRegistros();
+    await verTodos();
     await page.goBack();
     await page.waitForFunction(() => document.querySelector('#occasion-detail-dialog').open);
     assert.equal(await page.evaluate(() => state.currentView), 'occasion', 'o Voltar do aparelho faz o mesmo que o ←');
-
-    // Trocar o filtro para outra coisa: vira o Histórico comum, e o ← vai para a Home.
-    await verRegistros();
-    await page.locator('#history-occasion-filter').click();
-    await page.getByRole('option', { name: 'Todos os eventos', exact: true }).click();
-    assert.equal(await page.locator('#history-header-title').textContent(), 'Histórico');
-    assert.equal(await page.locator('#close-history').getAttribute('aria-label'), 'Voltar para a tela principal');
-    await page.locator('#close-history').click();
-    assert.equal(await page.evaluate(() => state.currentView), 'home');
-    assert.equal(await page.locator('#occasion-detail-dialog').evaluate((no) => no.open), false);
     assert.deepEqual(erros, []);
   });
 });

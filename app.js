@@ -315,7 +315,7 @@ document.addEventListener("visibilitychange", () => {
 const DATA_STORAGE_KEY = "funtime-v1-data";
 const LEGACY_DRINKS_STORAGE_KEY = "balada-v1-drinks";
 const DATA_VERSION = 11;
-const APP_VERSION = "2.28.1";
+const APP_VERSION = "2.29.0";
 const DRINK_EXPORT_TYPE = "funtime-drinks";
 const DRINK_EXPORT_FORMAT_VERSION = 1;
 const BACKUP_EXPORT_TYPE = "funtime-backup";
@@ -2714,13 +2714,7 @@ function renderHistory() {
   historyDrinks.hidden = !historyOccasion || !entries.length;
   if (historyOccasion) {
     const { totals } = summarizeOccasionDoses(entries.map((entry) => entry.event), getEventDrinkIdentity);
-    historyDrinks.replaceChildren(...totals.map((total) => {
-      const pill = document.createElement("span");
-      const count = document.createElement("b");
-      count.textContent = total.count;
-      pill.append(`${total.icon} ${total.name} `, count);
-      return pill;
-    }));
+    historyDrinks.replaceChildren(...createDosePills(totals));
   }
   historyDescription.textContent = filterDrink
     ? `${filterDrink.icon} ${filterDrink.name} · toque em um registro para corrigir o horário ou excluí-lo. Segure para reagir.`
@@ -2736,11 +2730,16 @@ function renderHistory() {
   // 200 mil eventos permitidos no schema, renderizar tudo de uma vez travaria
   // aparelhos modestos. "Mostrar mais" incrementa o limite; trocar de filtro
   // (openHistoryView/mudar o evento) volta para o valor inicial.
-  const visibleEntries = entries.slice(0, state.historyLimit);
+  renderHistoryEntries(historyList, entries.slice(0, state.historyLimit), { showOccasion: !historyOccasion });
+
+  historyShowMore.hidden = entries.length <= state.historyLimit;
+}
+
+// Registros agrupados por dia, como no Histórico. O detalhe do evento usa o mesmo (spec 0028).
+function renderHistoryEntries(container, entries, options = {}) {
   let currentTimeline = null;
   let lastDayKey = null;
-
-  visibleEntries.forEach(({ event, drink }) => {
+  for (const { event, drink } of entries) {
     const dayKey = getLocalDateKey(event.consumedAt);
     if (dayKey !== lastDayKey) {
       const daySection = document.createElement("section");
@@ -2754,126 +2753,140 @@ function renderHistory() {
       currentTimeline.className = "history-timeline";
 
       daySection.append(title, currentTimeline);
-      historyList.appendChild(daySection);
+      container.appendChild(daySection);
       lastDayKey = dayKey;
     }
+    currentTimeline.appendChild(createHistoryEventButton(event, drink, options));
+  }
+}
 
-    const context = getEventContext(event.id);
-    const reaction = event.reaction ? getReactionById(event.reaction) : null;
-    const button = document.createElement("button");
-    button.type = "button";
-    button.className = "history-event";
-    if (context?.isViolation) button.classList.add("violation");
-    const takenOn = Date.now() - event.consumedAt >= 86400000
-      ? `em ${new Date(event.consumedAt).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "2-digit" })} `
-      : "";
-    button.setAttribute("aria-label", `Editar anotação de ${drink.name}, tomada ${takenOn}às ${formatClock(event.consumedAt)}h, ${formatHistoryElapsed(event.consumedAt)}${reaction ? `, reação: ${reaction.label}` : ""}`);
+// Uma linha do Histórico: toque edita o registro, segurar abre as reações.
+function createHistoryEventButton(event, drink, { showOccasion = true } = {}) {
+  const context = getEventContext(event.id);
+  const reaction = event.reaction ? getReactionById(event.reaction) : null;
+  const button = document.createElement("button");
+  button.type = "button";
+  button.className = "history-event";
+  if (context?.isViolation) button.classList.add("violation");
+  const takenOn = Date.now() - event.consumedAt >= 86400000
+    ? `em ${new Date(event.consumedAt).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "2-digit" })} `
+    : "";
+  button.setAttribute("aria-label", `Editar anotação de ${drink.name}, tomada ${takenOn}às ${formatClock(event.consumedAt)}h, ${formatHistoryElapsed(event.consumedAt)}${reaction ? `, reação: ${reaction.label}` : ""}`);
 
-    const marker = document.createElement("span");
-    marker.className = "history-marker";
-    marker.setAttribute("aria-hidden", "true");
+  const marker = document.createElement("span");
+  marker.className = "history-marker";
+  marker.setAttribute("aria-hidden", "true");
 
-    const time = document.createElement("span");
-    time.className = "history-event-time";
-    setHistoryClockLabel(time, event.consumedAt);
+  const time = document.createElement("span");
+  time.className = "history-event-time";
+  setHistoryClockLabel(time, event.consumedAt);
 
-    const body = document.createElement("span");
-    body.className = "history-event-body";
+  const body = document.createElement("span");
+  body.className = "history-event-body";
 
-    const heading = document.createElement("span");
-    heading.className = "history-event-heading";
+  const heading = document.createElement("span");
+  heading.className = "history-event-heading";
 
-    const icon = document.createElement("span");
-    icon.className = "history-event-icon";
-    icon.textContent = drink.icon;
-    icon.setAttribute("aria-hidden", "true");
+  const icon = document.createElement("span");
+  icon.className = "history-event-icon";
+  icon.textContent = drink.icon;
+  icon.setAttribute("aria-hidden", "true");
 
-    const identity = document.createElement("span");
-    identity.className = "history-event-identity";
+  const identity = document.createElement("span");
+  identity.className = "history-event-identity";
 
-    const name = document.createElement("strong");
-    name.textContent = drink.name;
-    identity.appendChild(name);
+  const name = document.createElement("strong");
+  name.textContent = drink.name;
+  identity.appendChild(name);
 
-    if (event.doseSize) {
-      const doseBadge = document.createElement("span");
-      doseBadge.className = `history-dose-badge ${event.doseSize}`;
-      doseBadge.textContent = getDoseLabel(event.doseSize);
-      identity.appendChild(doseBadge);
-    }
+  if (event.doseSize) {
+    const doseBadge = document.createElement("span");
+    doseBadge.className = `history-dose-badge ${event.doseSize}`;
+    doseBadge.textContent = getDoseLabel(event.doseSize);
+    identity.appendChild(doseBadge);
+  }
 
-    const mobileTime = document.createElement("span");
-    mobileTime.className = "history-event-mobile-time";
-    setHistoryClockLabel(mobileTime, event.consumedAt);
+  const mobileTime = document.createElement("span");
+  mobileTime.className = "history-event-mobile-time";
+  setHistoryClockLabel(mobileTime, event.consumedAt);
 
-    const chevron = document.createElement("span");
-    chevron.className = "history-event-chevron";
-    chevron.textContent = "›";
-    chevron.setAttribute("aria-hidden", "true");
+  const chevron = document.createElement("span");
+  chevron.className = "history-event-chevron";
+  chevron.textContent = "›";
+  chevron.setAttribute("aria-hidden", "true");
 
-    heading.append(icon, identity, mobileTime, chevron);
-    body.appendChild(heading);
-    const occasion = state.occasions.find(item => item.id === event.occasionId);
-    // Com o Histórico já filtrado por esse evento, o nome dele não se repete em cada linha.
-    if (state.preferences.eventsEnabled && occasion && state.historyOccasionId !== occasion.id) {
-      const label = document.createElement("span"); label.className = "history-event-detail"; label.textContent = occasion.name; body.append(label);
-    }
+  heading.append(icon, identity, mobileTime, chevron);
+  body.appendChild(heading);
+  const occasion = state.occasions.find(item => item.id === event.occasionId);
+  // Dentro do próprio evento (Histórico filtrado ou detalhe dele), o nome não se repete em cada linha.
+  if (state.preferences.eventsEnabled && occasion && showOccasion) {
+    const label = document.createElement("span"); label.className = "history-event-detail"; label.textContent = occasion.name; body.append(label);
+  }
 
-    const elapsed = document.createElement("span");
-    const countingStopped = Number.isFinite(event.countingStoppedAt);
-    const intervalCompleted = countingStopped || Date.now() - event.consumedAt >= event.intervalMinutes * 60 * 1000;
-    elapsed.className = `history-event-elapsed ${intervalCompleted ? "is-after-interval" : "is-within-interval"}`;
-    elapsed.dataset.consumedAt = String(event.consumedAt);
-    elapsed.dataset.intervalMinutes = String(event.intervalMinutes);
-    elapsed.dataset.countingStopped = String(countingStopped);
-    elapsed.textContent = countingStopped ? 'Contagem desfeita' : formatHistoryCounter(event.consumedAt, event.intervalMinutes);
-    elapsed.setAttribute(
-      "aria-label",
-      countingStopped ? 'Contagem encerrada manualmente. Dose mantida no histórico.' : intervalCompleted
-        ? `${elapsed.textContent}. O intervalo configurado já terminou.`
-        : `${elapsed.textContent}. O intervalo configurado ainda está em andamento.`
-    );
-    body.appendChild(elapsed);
+  const elapsed = document.createElement("span");
+  const countingStopped = Number.isFinite(event.countingStoppedAt);
+  const intervalCompleted = countingStopped || Date.now() - event.consumedAt >= event.intervalMinutes * 60 * 1000;
+  elapsed.className = `history-event-elapsed ${intervalCompleted ? "is-after-interval" : "is-within-interval"}`;
+  elapsed.dataset.consumedAt = String(event.consumedAt);
+  elapsed.dataset.intervalMinutes = String(event.intervalMinutes);
+  elapsed.dataset.countingStopped = String(countingStopped);
+  elapsed.textContent = countingStopped ? 'Contagem desfeita' : formatHistoryCounter(event.consumedAt, event.intervalMinutes);
+  elapsed.setAttribute(
+    "aria-label",
+    countingStopped ? 'Contagem encerrada manualmente. Dose mantida no histórico.' : intervalCompleted
+      ? `${elapsed.textContent}. O intervalo configurado já terminou.`
+      : `${elapsed.textContent}. O intervalo configurado ainda está em andamento.`
+  );
+  body.appendChild(elapsed);
 
-    if (drink.isDeleted) {
-      const deletedBadge = document.createElement("span");
-      deletedBadge.className = "history-event-deleted";
-      deletedBadge.textContent = "Bebida excluída · registro mantido";
-      body.appendChild(deletedBadge);
-    }
+  if (drink.isDeleted) {
+    const deletedBadge = document.createElement("span");
+    deletedBadge.className = "history-event-deleted";
+    deletedBadge.textContent = "Bebida excluída · registro mantido";
+    body.appendChild(deletedBadge);
+  }
 
-    if (context?.isViolation) {
-      const alert = document.createElement("span");
-      alert.className = "history-event-alert";
-      alert.textContent = "⚠ Tomou dose por cima da outra";
+  if (context?.isViolation) {
+    const alert = document.createElement("span");
+    alert.className = "history-event-alert";
+    alert.textContent = "⚠ Tomou dose por cima da outra";
 
-      const detail = document.createElement("span");
-      detail.className = "history-event-detail";
-      detail.textContent = `${formatElapsed(context.elapsedMs)} após o registro anterior · faltavam ${formatElapsed(context.remainingAtConsumptionMs)}`;
+    const detail = document.createElement("span");
+    detail.className = "history-event-detail";
+    detail.textContent = `${formatElapsed(context.elapsedMs)} após o registro anterior · faltavam ${formatElapsed(context.remainingAtConsumptionMs)}`;
 
-      body.append(alert, detail);
-    }
+    body.append(alert, detail);
+  }
 
-    const reactionBadge = document.createElement("span");
-    reactionBadge.className = reaction ? "history-reaction-badge" : "history-reaction-badge is-empty";
-    if (reaction) reactionBadge.textContent = reaction.icon;
-    else reactionBadge.innerHTML = ADD_REACTION_ICON_SVG;
-    reactionBadge.setAttribute("aria-label", reaction ? `Reação: ${reaction.label}. Toque para mudar.` : "Adicionar reação");
-    body.appendChild(reactionBadge);
-    historyReaction.attachReactionBadge(reactionBadge, event, button);
+  const reactionBadge = document.createElement("span");
+  reactionBadge.className = reaction ? "history-reaction-badge" : "history-reaction-badge is-empty";
+  if (reaction) reactionBadge.textContent = reaction.icon;
+  else reactionBadge.innerHTML = ADD_REACTION_ICON_SVG;
+  reactionBadge.setAttribute("aria-label", reaction ? `Reação: ${reaction.label}. Toque para mudar.` : "Adicionar reação");
+  body.appendChild(reactionBadge);
+  historyReaction.attachReactionBadge(reactionBadge, event, button);
 
-    button.append(marker, time, body);
-    historyReaction.attachEventButton(button, event);
-    currentTimeline.appendChild(button);
+  button.append(marker, time, body);
+  historyReaction.attachEventButton(button, event);
+  return button;
+}
+
+// Uma pílula por bebida ("🍺 Cerveja 3"), no topo do Histórico por evento e no detalhe do evento.
+function createDosePills(totals) {
+  return totals.map((total) => {
+    const pill = document.createElement("span");
+    const count = document.createElement("b");
+    count.textContent = total.count;
+    pill.append(`${total.icon ? total.icon + " " : ""}${total.name} `, count);
+    return pill;
   });
-
-  historyShowMore.hidden = entries.length <= state.historyLimit;
 }
 
 function refreshDataViews() {
   render();
   if (state.currentView === "history") renderHistory();
   globalThis.refreshOccasionContext?.();
+  globalThis.refreshOpenOccasionDetails?.();
 }
 
 function openHistoryView(drinkId = null) {
@@ -4288,6 +4301,8 @@ Object.assign(globalThis, {
   pendingInviteCount: () => inviteUI?.pendingCount() ?? 0,
   refreshInviteViews: () => inviteUI?.refresh(),
   formatAgendaDateTime, agendaDateParts, calendarDaysBetween, formatEventDuration,
+  // Detalhe do evento (occasions-ui.js) mostra os registros com as mesmas linhas do Histórico.
+  renderHistoryEntries, createDosePills,
   currentSharedEventsUid: () => sharedEventsUid,
   openSharedView, closeSharedView,
   render, saveData, effectiveCountingMode, registerDrinkAt, tickDrinkCards,

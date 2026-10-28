@@ -4125,7 +4125,8 @@ div.share-person { cursor: default; }
 .occasion-records-head { display: flex; align-items: center; gap: 8px; }
 .occasion-records-head b { font-size: 1.5rem; font-weight: 800; line-height: 1; font-variant-numeric: tabular-nums; }
 .occasion-records-head span { flex: 1; color: var(--muted); font-size: .88rem; }
-.occasion-records-head .agenda-row-chevron { flex: none; font-size: 1.15rem; line-height: 1; }
+/* As doses do evento logo abaixo do resumo, com as linhas do Histórico. */
+.occasion-records-list { margin-top: 10px; gap: 22px; }
 .occasion-records-drinks { display: flex; flex-wrap: wrap; gap: 6px; }
 .occasion-records-drinks span { display: inline-flex; align-items: center; gap: 5px; padding: 4px 10px; border-radius: 999px; background: var(--surface-2); font-size: .8rem; }
 .occasion-records-drinks b { font-variant-numeric: tabular-nums; }

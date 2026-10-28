@@ -7,6 +7,7 @@ let editingOccasionId = null, occasionOriginal = null, occasionSuggestedStart = 
 // mexer na nuvem se a lista mudou (spec 0025).
 let occasionInviteSelected = new Set(), occasionInviteInitial = new Set();
 let agendaTab = null, agendaLimit = 20, detailOccasionId = null;
+const OCCASION_RECORDS_LIMIT = 20;
 let reconcilingOccasions = false, occasionRetryAt = 0, agendaStatusKey = "";
 const $occasion = id => document.getElementById(id);
 function occasionDate(timestamp) { return timestamp == null ? '—' : new Date(timestamp).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', year: '2-digit', hour: '2-digit', minute: '2-digit' }); }
@@ -43,7 +44,7 @@ function reconcileOccasions() {
     if (statusKey !== agendaStatusKey) {
       agendaStatusKey = statusKey;
       if (state.currentView === 'occasion') renderOccasions();
-      if (occasionDetailDialog.open && !occasionDialog.open && state.occasions.some(item => item.id === detailOccasionId)) openOccasionDetails(detailOccasionId);
+      refreshOpenOccasionDetails();
     }
     refreshOccasionReminder(); return true;
   } catch {
@@ -69,6 +70,10 @@ function openHomeOccasion() {
   else openOccasionView();
 }
 function closeOccasionEditor() { editingOccasionId = null; occasionOriginal = null; occasionDialog.close(); }
+// Redesenha o detalhe aberto (atrás do editor de evento, não): dado novo, dose editada ou reação.
+function refreshOpenOccasionDetails() {
+  if (occasionDetailDialog.open && !occasionDialog.open && state.occasions.some(item => item.id === detailOccasionId)) openOccasionDetails(detailOccasionId);
+}
 function closeOccasionDetails() { detailOccasionId = null; occasionDetailDialog.close(); }
 function editorVisibility() {
   const current = state.occasions.find(item => item.id === editingOccasionId);
@@ -288,7 +293,7 @@ function createOccasionFromInvite(event) {
 }
 // Chegou dado novo do evento (alguém confirmou, o organizador mudou): redesenha o que está aberto.
 function refreshSharedEventViews() {
-  if (occasionDetailDialog.open && !occasionDialog.open && state.occasions.some(item => item.id === detailOccasionId)) openOccasionDetails(detailOccasionId);
+  refreshOpenOccasionDetails();
   if (state.currentView === 'occasion') renderOccasions();
 }
 function openOccasionHistory(id) { const item = state.occasions.find(occasion => occasion.id === id); closeOccasionDetails(); openHistoryView(); state.historyOccasionId = id; globalThis.setHistoryReturnOccasion(item); refreshOccasionFilters(); renderHistory(); }
@@ -453,24 +458,29 @@ function openOccasionDetails(id) {
   // Como o evento foi encerrado sozinho fica para a interface detalhada; o selo já diz "automaticamente".
   const explanations = { recovery48h: 'Após 48 horas, o evento foi encerrado no término da última contagem. Você pode revisar as datas.', empty48h: 'Encerrado após 48 horas sem registros.', expired: 'O período programado passou sem início. Não foi criado um evento em andamento.', scheduled: 'Encerrado na data programada. Contagens das doses continuam normalmente.' };
   if (explanations[item.endReason]) { const note = document.createElement('p'); note.className = 'settings-description clean-optional'; note.textContent = explanations[item.endReason] + ' Processado em ' + occasionDate(item.closedAt) + '.'; content.append(note); }
-  // Registros: um cartão que leva ao Histórico filtrado, com a contagem por bebida.
+  // Registros: o resumo (total e uma pílula por bebida) e as doses logo abaixo, com as mesmas
+  // linhas do Histórico — toque edita, segurar reage. Muitas doses: as 20 últimas e um link para o resto.
   const records = state.events.filter(record => record.occasionId === id);
   if (item.startedAt !== null) {
     const { count, totals } = globalThis.summarizeOccasionDoses(records, getEventDrinkIdentity);
-    const card = count ? occasionButton('', () => openOccasionHistory(id), 'occasion-records') : document.createElement('div');
-    if (!count) card.className = 'occasion-records is-empty';
+    const card = document.createElement('div'); card.className = 'occasion-records' + (count ? '' : ' is-empty');
     const head = document.createElement('span'); head.className = 'occasion-records-head'; head.id = 'occasion-records-summary';
     const number = document.createElement('b'); number.textContent = count;
     const label = document.createElement('span'); label.textContent = count === 1 ? 'registro' : 'registros';
     head.append(number, label); card.append(head);
     if (count) {
-      card.setAttribute('aria-label', 'Ver registros'); card.setAttribute('aria-describedby', head.id);
-      const chevron = document.createElement('span'); chevron.className = 'agenda-row-chevron'; chevron.setAttribute('aria-hidden', 'true'); chevron.textContent = '›'; head.append(chevron);
       const drinks = document.createElement('span'); drinks.className = 'occasion-records-drinks';
-      for (const entry of totals) { const pill = document.createElement('span'); const n = document.createElement('b'); n.textContent = entry.count; pill.append((entry.icon ? entry.icon + ' ' : '') + entry.name + ' ', n); drinks.append(pill); }
-      card.append(drinks);
+      drinks.append(...globalThis.createDosePills(totals)); card.append(drinks);
     }
     content.append(card);
+    if (count) {
+      const entries = records.map(event => ({ event, drink: getEventDrinkIdentity(event) }))
+        .sort((x, y) => y.event.consumedAt - x.event.consumedAt || y.event.id.localeCompare(x.event.id));
+      const list = document.createElement('div'); list.className = 'history-list occasion-records-list';
+      globalThis.renderHistoryEntries(list, entries.slice(0, OCCASION_RECORDS_LIMIT), { showOccasion: false });
+      content.append(list);
+      if (count > OCCASION_RECORDS_LIMIT) content.append(occasionButton('Ver todos os ' + count + ' no Histórico', () => openOccasionHistory(id), 'occasion-link'));
+    }
   }
   // Convidados, compartilhar doses e o desbloqueio: um bloco só, como o menu de Configurações.
   // Pessoas só para quem tem amigos e enquanto o evento não acabou; cada linha abre a própria tela.
@@ -732,6 +742,7 @@ globalThis.commitOccasions = commitOccasions;
 globalThis.openOccasionEditor = openOccasionEditor;
 globalThis.occasionInput = occasionInput;
 globalThis.openOccasionDetails = openOccasionDetails;
+globalThis.refreshOpenOccasionDetails = refreshOpenOccasionDetails;
 // A folha do convite (src/sharing/invite-ui.js) mostra o mesmo selo e a mesma linha do tempo do evento.
 globalThis.occasionTimelineElement = occasionTimeline;
 globalThis.fillOccasionStatusChip = fillStatusChip;

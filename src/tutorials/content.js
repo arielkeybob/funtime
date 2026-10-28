@@ -99,8 +99,8 @@ export const TUTORIALS = [
     "passos": [
       {
         "tipo": "video",
-        "src": "./tutorials/media/registrar-dose/01.3b9070bc.mp4",
-        "poster": "./tutorials/media/registrar-dose/01.poster.6e4c5d2e.webp",
+        "src": "./tutorials/media/registrar-dose/01.1808377d.mp4",
+        "poster": "./tutorials/media/registrar-dose/01.poster.d183ed4b.webp",
         "alt": "O cartão da Cerveja recebe o destaque azul e dois toques rápidos o registram; a contagem do intervalo começa e o app avisa que o consumo foi anotado.",
         "legenda": "Dê dois toques na bebida para registrar a dose."
       },
@@ -124,9 +124,9 @@ export const TUTORIALS = [
       },
       {
         "tipo": "imagem",
-        "src": "./tutorials/media/registrar-dose/05.cec79d6a.webp",
+        "src": "./tutorials/media/registrar-dose/05.f2bdb6c9.webp",
         "alt": "Tela Anotar dose com a linha de data e as roletas de hora e minuto em destaque.",
-        "legenda": "Escolha a hora; se ainda não chegou hoje, vale ontem. Toque na data para outro dia."
+        "legenda": "Escolha a hora; se ainda não chegou, é de ontem. A data abre o calendário."
       }
     ]
   },

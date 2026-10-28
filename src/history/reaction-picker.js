@@ -87,7 +87,7 @@ export function createHistoryReactionController({
     pop.setAttribute("aria-hidden", "true");
     pop.style.left = `${rect.left + rect.width / 2}px`;
     pop.style.top = `${rect.top + rect.height / 2}px`;
-    document.body.appendChild(pop);
+    (anchorElement.closest("dialog") ?? document.body).appendChild(pop);
     setTimeout(() => pop.remove(), 1500);
   }
 
@@ -101,6 +101,10 @@ export function createHistoryReactionController({
     activeTargetButton = targetButton;
     targetButton.classList.add("is-reacting");
     updateSelection(event.reaction || null);
+    // Num diálogo modal (detalhe do evento) o que fica fora dele é inerte e some atrás:
+    // o seletor vai para dentro do diálogo do registro; no Histórico, fica no body.
+    const host = targetButton.closest("dialog") ?? document.body;
+    if (reactionPickerPopover.parentElement !== host) host.appendChild(reactionPickerPopover);
     reactionPickerPopover.hidden = false;
     positionPopover(targetButton);
   }

@@ -1,4 +1,11 @@
-# FunTime — V2.28.1
+# FunTime — V2.29.0
+
+## V2.29.0 — Doses direto no detalhe do evento
+
+- O detalhe do evento (encerrado ou em andamento) mostra as doses logo abaixo do resumo, com as mesmas linhas do Histórico: toque edita, segurar reage. Com mais de 20, as 20 últimas e "Ver todos os N no Histórico".
+- Linhas do Histórico e pílulas por bebida passam a ser um código só para as duas telas.
+- Legenda do passo novo do tutorial "Registrar doses" encurtada para caber em telas baixas.
+- Sem mudança de dados; `DATA_VERSION` permanece 11.
 
 ## V2.28.1 — Mais respiro nos editores
 
