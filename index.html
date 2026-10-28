@@ -59,7 +59,7 @@
     <footer class="browser-gate-footer">
       <span>App para estudo · não é controle de segurança</span>
       <a class="policies-link" href="./policies.html">Políticas e informações</a>
-      <span>v2.26.6 · By: arielkeybob</span>
+      <span>v2.26.7 · By: arielkeybob</span>
     </footer>
   </section>
 
@@ -300,9 +300,9 @@
 
         <p class="settings-description clean-optional">Transfira somente a lista e as configurações das bebidas. O histórico não faz parte deste arquivo.</p>
 
-        <div class="settings-action-stack">
-          <button id="export-drinks" class="settings-primary-action" type="button">Exportar bebidas</button>
-          <button id="import-drinks" class="settings-secondary-button" type="button">Importar bebidas</button>
+        <div class="occasion-menu">
+          <button id="export-drinks" class="occasion-menu-row" type="button"><span class="occasion-menu-icon" aria-hidden="true"><svg class="occasion-icon" viewBox="0 0 24 24"><path d="M12 16V4M7 9l5-5 5 5"/><path d="M5 20h14"/></svg></span><strong>Exportar bebidas</strong><small></small></button>
+          <button id="import-drinks" class="occasion-menu-row" type="button"><span class="occasion-menu-icon" aria-hidden="true"><svg class="occasion-icon" viewBox="0 0 24 24"><path d="M12 4v12M7 11l5 5 5-5"/><path d="M5 20h14"/></svg></span><strong>Importar bebidas</strong><small></small></button>
         </div>
 
         <input id="drink-import-file" class="visually-hidden-file" type="file" accept=".txt,text/plain,.json,application/json">
@@ -325,16 +325,13 @@
           <span id="sync-state-text"></span>
         </p>
 
-        <div class="settings-row" id="sync-status-row" hidden>
-          <span>Conta</span>
-          <strong id="sync-account-label">—</strong>
+        <div class="occasion-menu" id="sync-status-row" hidden>
+          <div class="occasion-menu-row"><span class="occasion-menu-icon" aria-hidden="true"><svg class="occasion-icon" viewBox="0 0 24 24"><path d="M7 18h10a4 4 0 0 0 .6-7.96A5.5 5.5 0 0 0 7.1 8.6 4.7 4.7 0 0 0 7 18Z"/></svg></span><strong id="sync-account-label">—</strong><span class="status-chip is-small is-live is-steady">Conectada</span></div>
         </div>
 
-        <div class="settings-action-stack">
-          <button id="sync-sign-in" class="settings-primary-action" type="button">Entrar com Google</button>
-          <button id="sync-sign-out" class="settings-secondary-button" type="button" hidden>Sair e parar de sincronizar</button>
-          <button id="sync-delete-cloud" class="settings-secondary-button" type="button" hidden>Apagar dados na nuvem</button>
-        </div>
+        <button id="sync-sign-in" class="settings-primary-action" type="button">Entrar com Google</button>
+        <button id="sync-sign-out" class="occasion-link" type="button" hidden><svg class="occasion-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M10 4H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h4"/><path d="m15 8 4 4-4 4M19 12H9"/></svg>Sair e parar de sincronizar</button>
+        <button id="sync-delete-cloud" class="occasion-link is-danger" type="button" hidden><svg class="occasion-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 11v6M14 11v6"/></svg>Apagar dados na nuvem</button>
       </section>
 
       <section class="settings-card settings-data-card settings-backup-data-card">
@@ -347,9 +344,9 @@
 
         <p class="settings-description clean-optional">O backup inclui bebidas, histórico e preferências. PIN, biometria e bloqueio deste aparelho não entram no arquivo.</p>
 
-        <div class="settings-action-stack">
-          <button id="create-backup" class="settings-primary-action" type="button">Fazer backup</button>
-          <button id="restore-backup" class="settings-secondary-button" type="button">Restaurar backup</button>
+        <div class="occasion-menu">
+          <button id="create-backup" class="occasion-menu-row" type="button"><span class="occasion-menu-icon" aria-hidden="true"><svg class="occasion-icon" viewBox="0 0 24 24"><path d="M5 4h11l3 3v13H5Z"/><path d="M8 4v5h7V4M8 20v-6h8v6"/></svg></span><strong>Fazer backup</strong><small></small></button>
+          <button id="restore-backup" class="occasion-menu-row" type="button"><span class="occasion-menu-icon" aria-hidden="true"><svg class="occasion-icon" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/><path d="M12 8v4l3 2"/></svg></span><strong>Restaurar backup</strong><small></small></button>
         </div>
 
         <input id="backup-restore-file" class="visually-hidden-file" type="file" accept=".json,application/json">
@@ -362,7 +359,7 @@
 
     <section class="settings-page" data-settings-page="about" data-title="Sobre o app" hidden>
       <section class="settings-card">
-        <p class="settings-description">Versão instalada: <strong>v2.26.6</strong></p>
+        <p class="settings-description">Versão instalada: <strong>v2.26.7</strong></p>
         <button id="check-app-update" class="settings-secondary-button" type="button">Verificar atualizações</button>
         <a class="settings-link-row" href="./policies.html"><span>Políticas e informações</span><span class="settings-nav-chevron" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg></span></a>
       </section>
@@ -476,7 +473,7 @@
     <footer class="app-footer">
       <span class="app-footer-disclaimer">App para estudo · não é controle de segurança</span>
       <a class="policies-link" href="./policies.html">Políticas e informações</a>
-      <span class="app-footer-meta">v2.26.6 · By: arielkeybob</span>
+      <span class="app-footer-meta">v2.26.7 · By: arielkeybob</span>
     </footer>
   </div>
 

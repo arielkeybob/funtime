@@ -52,3 +52,15 @@ test('o que não apaga nada confirma com o botão branco; o que apaga continua v
     assert.deepEqual(erros, []);
   });
 });
+
+test('Sair da conta com compartilhamento ativo pede confirmação; sem nenhum, sai direto', { timeout: 90000 }, async () => {
+  await comApp('demoAmigos', async (page, erros) => {
+    await page.evaluate(() => { openSettingsView(); showSettingsPage('backup'); });
+    await page.evaluate(async () => { const item = state.occasions[0]; await startOccasionShares(item, state.events.filter((r) => r.occasionId === item.id), ['bia']); });
+    await page.locator('#sync-sign-out').click();
+    assert.deepEqual(await confirmacao(page), { titulo: 'Sair da conta?', botao: 'Sair', classe: 'danger-button' });
+    await cancelar(page);
+    assert.equal(await page.locator('#sync-sign-out').isVisible(), true, 'cancelar mantém a conta conectada');
+    assert.deepEqual(erros, []);
+  });
+});

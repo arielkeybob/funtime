@@ -4210,3 +4210,10 @@ div.share-person { cursor: default; }
 #lock-now.occasion-link { padding-left: 2px; }
 .settings-toggle-row > .occasion-menu-icon + .settings-toggle-copy { flex: 1; }
 .settings-toggle-row:has(> .occasion-menu-icon) { gap: 12px; }
+
+/* Backup e conta (v2.26.7, spec 0029, pacote J): ações em linhas, a conta com selo, sair e apagar
+   da nuvem como ações discretas. Bebidas e backup continuam em blocos separados. */
+.settings-data-card .occasion-menu { margin-top: 2px; }
+.settings-sync-data-card .occasion-link { min-height: 40px; padding: 4px 2px; }
+.status-chip.is-steady .status-chip-pulse { display: none; }
+#sync-account-label { overflow-wrap: anywhere; }

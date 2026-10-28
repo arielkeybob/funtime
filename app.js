@@ -315,7 +315,7 @@ document.addEventListener("visibilitychange", () => {
 const DATA_STORAGE_KEY = "funtime-v1-data";
 const LEGACY_DRINKS_STORAGE_KEY = "balada-v1-drinks";
 const DATA_VERSION = 11;
-const APP_VERSION = "2.26.6";
+const APP_VERSION = "2.26.7";
 const DRINK_EXPORT_TYPE = "funtime-drinks";
 const DRINK_EXPORT_FORMAT_VERSION = 1;
 const BACKUP_EXPORT_TYPE = "funtime-backup";
@@ -4093,6 +4093,12 @@ document.querySelector("#sync-lost-never")?.addEventListener("click", () => {
 });
 
 syncSignOutButton?.addEventListener("click", async () => {
+  // Sair encerra os compartilhamentos ativos (abaixo): com algum no ar, pergunta antes.
+  if (latestShares.length) {
+    const pessoas = latestShares.length === 1 ? "1 compartilhamento ativo" : `${latestShares.length} compartilhamentos ativos`;
+    const sair = await showAppConfirmation(`Sair encerra ${pessoas}: quem está vendo suas doses deixa de ver. Seus dados continuam neste aparelho.`, { title: "Sair da conta?", confirmLabel: "Sair" });
+    if (!sair) return;
+  }
   try {
     await cloudSync?.flushPendingWrites();
   } catch (error) {

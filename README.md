@@ -1,4 +1,14 @@
-# FunTime — V2.26.6
+# FunTime — V2.26.7
+
+## V2.26.7 — Backup e conta mais organizado
+
+- **Exportar bebidas**, **Importar bebidas**, **Fazer backup** e **Restaurar backup** viraram linhas com ícone. Bebidas e backup continuam em blocos separados.
+- Conta conectada aparece numa linha com o e-mail e o selo **Conectada**; sem conta, um único botão principal: **Entrar com Google**. O aviso de conta desconectada continua.
+- **Sair e parar de sincronizar** e **Apagar dados na nuvem** (em vermelho) viraram ações discretas.
+- **Sair** com compartilhamento ativo agora pede confirmação: sair encerra o que seus amigos estão vendo.
+- Pacote J da spec 0029. Tutoriais afetados ficam para a regravação no fim da série.
+- Sem mudança de dados; `DATA_VERSION` permanece 11.
+
 
 ## V2.26.6 — Configurações com as mesmas linhas do resto do app
 

@@ -1,6 +1,6 @@
 # 0029 — Padrões de Eventos no resto do app
 
-Status: em andamento (C na v2.26.0, D na v2.26.1, A na v2.26.2, B na v2.26.3, G na v2.26.4, H na v2.26.5, I na v2.26.6)
+Status: em andamento (C na v2.26.0, D na v2.26.1, A na v2.26.2, B na v2.26.3, G na v2.26.4, H na v2.26.5, I na v2.26.6, J na v2.26.7)
 
 ## Contexto
 
@@ -32,7 +32,7 @@ tutoriais e versão.
 | 5 | G — Detalhe do amigo: selo, ▶, cartão-resumo; sem "Fechar" repetido; Sobre volta ao amigo | feito (v2.26.4) |
 | 6 | H — Compartilhar doses e Convidados: nome do evento no título, botão diz o efeito | feito (v2.26.5) |
 | 7 | I — Configurações num componente único de linhas | feito (v2.26.6) |
-| 8 | J — Backup e conta: selo de estado, ações discretas | a fazer |
+| 8 | J — Backup e conta: selo de estado, ações discretas | feito (v2.26.7) |
 | 9 | K — Anotar dose ("Anotar às 20:10") e aviso de intervalo | a fazer |
 | 10 | L — Importar bebidas, Criar PIN e Redefinir: botão diz o efeito | a fazer |
 | 11 | M — Botões de perigo unificados | a fazer |
@@ -118,6 +118,7 @@ Pendentes:
 - desde G: `amigos`.
 - desde H: `evento-compartilhado`.
 - desde I: `privacidade`.
+- desde J: `backup-e-bebidas`.
 
 ## Pacote G (v2.26.4)
 
@@ -159,3 +160,13 @@ Pendentes:
 - O menu principal de Configurações continua com `.settings-nav-row` (ícone de 40px e resumo embaixo): muitos testes e
   tutoriais dependem dessas classes, e o visual já é o mesmo padrão. Unificar as classes fica como limpeza futura,
   sem mudança visual.
+
+## Pacote J (v2.26.7)
+
+- Ids mantidos: `#export-drinks`, `#import-drinks`, `#create-backup`, `#restore-backup` (agora `.occasion-menu-row`),
+  `#sync-sign-out` e `#sync-delete-cloud` (`.occasion-link`, este com `.is-danger`).
+- `#sync-status-row` virou um bloco `.occasion-menu` com o e-mail (`#sync-account-label`) e o selo
+  `.status-chip.is-live.is-steady` ("Conectada", sem pulso).
+- `#sync-state-note` continua para "sem conta", "desconectada" e "sem internet", porque é um aviso.
+- **Decisão 4:** o handler de `#sync-sign-out` pede `showAppConfirmation` quando `latestShares` não está vazio.
+  Teste em `tests/confirmacoes-browser.test.cjs`.
