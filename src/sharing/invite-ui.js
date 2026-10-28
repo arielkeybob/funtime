@@ -279,7 +279,8 @@ export function createInviteUI({
     nodes.eventInviteTitle.textContent = convidado ? "Quem vai" : "Convidados";
     if (nodes.eventInviteHint) nodes.eventInviteHint.hidden = convidado;
     nodes.eventInviteConfirm.hidden = convidado;
-    nodes.eventInviteCancel.textContent = convidado ? "Fechar" : "Cancelar";
+    // Convidado só olha: sem rodapé (o ✕ fecha), em vez de um "Fechar" que repetia o ✕.
+    nodes.eventInviteCancel.hidden = convidado;
 
     let resto = 0;
     let aviso = "";

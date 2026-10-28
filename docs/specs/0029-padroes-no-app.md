@@ -1,6 +1,6 @@
 # 0029 — Padrões de Eventos no resto do app
 
-Status: em andamento (C na v2.26.0, D na v2.26.1, A na v2.26.2, B na v2.26.3)
+Status: em andamento (C na v2.26.0, D na v2.26.1, A na v2.26.2, B na v2.26.3, G na v2.26.4)
 
 ## Contexto
 
@@ -29,7 +29,7 @@ tutoriais e versão.
 | 2 | D — Menu ⋮ da bebida em linhas, numa janela compacta; fechar o menu depois de editar | feito (v2.26.1) |
 | 3 | A — `window.confirm` (apagar nuvem, desfazer amizade, parar com todos) → confirmação compacta; tom neutro para confirmações que não apagam | feito (v2.26.2) |
 | 4 | B — Escolhas curtas em janela compacta: cancelar contagem, excluir bebida, meia/inteira, como desbloquear, restaurar backup, convite | feito (v2.26.3) |
-| 5 | G — Detalhe do amigo: selo, ▶, cartão-resumo; sem "Fechar" repetido; Sobre volta ao amigo | a fazer |
+| 5 | G — Detalhe do amigo: selo, ▶, cartão-resumo; sem "Fechar" repetido; Sobre volta ao amigo | feito (v2.26.4) |
 | 6 | H — Compartilhar doses e Convidados: nome do evento no título, botão diz o efeito | a fazer |
 | 7 | I — Configurações num componente único de linhas | a fazer |
 | 8 | J — Backup e conta: selo de estado, ações discretas | a fazer |
@@ -103,3 +103,33 @@ Redefinir em uma etapa só.
 - **Restaurar backup:** sem `#cancel-backup-restore` (botão e listener removidos); confirmar usa `.danger-button`.
 - **Convite:** `renderFolha` usa `globalThis.occasionTimelineElement` e `globalThis.fillOccasionStatusChip`,
   publicados por `occasions-ui.js`. Sem eles (teste isolado), fica o período em texto.
+
+## Tutoriais: regerar tudo no fim da série
+
+A partir do pacote G, a pedido do usuário, os tutoriais não são mais regerados a cada pacote. Várias
+telas mudam de novo em pacotes seguintes. Em cada pacote:
+- roda `tutorials:check` para anotar os tópicos desatualizados;
+- só mexe num roteiro se um seletor quebrar.
+
+Na última etapa, regera todos de uma vez e confere o diff das imagens. Até lá, "Como usar" pode
+mostrar telas antigas.
+
+Pendentes:
+- desde G: `amigos`.
+
+## Pacote G (v2.26.4)
+
+- **Vendo** (`renderVendoEvento`):
+  - o título leva o selo `.status-chip` no lugar de "(Em andamento)" / "(Encerrado às…)";
+  - "Começou hoje às…" ficou visível, com o marcador ▶ (`.share-vendo-start`);
+  - os totais viram um cartão `.occasion-records` (`.share-vendo-resumo`) com o total real
+    (`view.eventCount`) e pílulas por bebida.
+- **Compartilhando:** o subtítulo vira selo ("Ao vivo" / "Encerrado · visível até sáb 13/06 22:30").
+- **Sem "Fechar" duplicado:** `#shared-detail-close`, `#friend-info-close` e `#pairing-done` saíram. Em
+  "Quem vai" (convidado), o Cancelar fica escondido e o rodapé some: regra global
+  `.app-dialog-actions` sem botão visível.
+- **Sobre o amigo:**
+  - `openFriendInfo` não fecha mais o detalhe, então o ✕ volta ao amigo;
+  - "Amigos desde" fica numa linha `.occasion-menu`;
+  - `#friend-info-unfriend` virou `.occasion-link.is-danger`.
+- **Decisões aplicadas:** 1 (aviso e consentimento continuam como estão) e 2 (a tela fica).

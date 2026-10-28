@@ -1,4 +1,14 @@
-# FunTime — V2.26.3
+# FunTime — V2.26.4
+
+## V2.26.4 — detalhe do amigo mais claro
+
+- **Aba Vendo**: o evento do amigo mostra o selo **Em andamento** (ou **Encerrado às…**), quando começou e um cartão com o total de registros e as bebidas. Antes, o início e os totais só apareciam com a interface detalhada.
+- **Aba Compartilhando**: a situação vira selo: **Ao vivo** ou **Encerrado · visível até…**.
+- Sai o **Fechar** que repetia o ✕ no detalhe do amigo, em **Sobre o amigo**, em **Adicionar amigo** e em **Quem vai** (convidado).
+- **Sobre o amigo** abre por cima do detalhe: o ✕ volta para o amigo, não para a lista. A tela mostra "Amigos desde" numa linha e **Desfazer amizade** como ação discreta em vermelho (com a confirmação do app).
+- Pacote G da spec 0029. Os tutoriais afetados serão regerados de uma vez no fim da série.
+- Sem mudança de dados; `DATA_VERSION` permanece 11.
+
 
 ## V2.26.3 — escolhas curtas em janela compacta
 

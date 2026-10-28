@@ -2,7 +2,7 @@ import { formatPairingCode, normalizePairingCode, liveFormatPairingCode, buildPa
 import { renderQrDataUrl, cameraAvailable, startScanner } from "./qr.js";
 import { shareState, bestState } from "./share-state.js";
 import { renderFriendGrid, rosterStatus, initial } from "./friend-grid.js";
-import { formatClock, formatDate, formatHistoryElapsed } from "../format/datetime.js";
+import { formatClock, formatDate, formatHistoryElapsed, agendaDateParts } from "../format/datetime.js";
 
 const DOSE_LABELS = { half: "Meia", full: "Inteira" };
 
@@ -319,29 +319,50 @@ export function createShareUI({
       container.append(estado);
     }
 
+    // Nome com o selo da situação (o mesmo do evento), quando começou e o resumo por bebida.
     const titulo = document.createElement("div");
     titulo.className = "share-vendo-title";
     const nome = document.createElement("strong");
     nome.textContent = view.occasion.name || "Evento";
-    const situacao = document.createElement("small");
-    situacao.className = `share-status share-status--${aoVivo ? "live" : "ended"}`;
-    situacao.textContent = aoVivo ? "(Em andamento)" : `(Encerrado ${quandoEncerrou(view.occasion.endedAt)})`;
+    const situacao = document.createElement("span");
+    situacao.className = `status-chip ${aoVivo ? "is-live" : "is-done"}`;
+    if (aoVivo) { const pulso = document.createElement("i"); pulso.className = "status-chip-pulse"; situacao.append(pulso); }
+    situacao.append(aoVivo ? "Em andamento" : `Encerrado ${quandoEncerrou(view.occasion.endedAt)}`);
     titulo.append(nome, " ", situacao);
     container.append(titulo);
 
-    // Detalhes que a interface limpa esconde: quando começou e o resumo por bebida.
     const periodo = document.createElement("p");
-    periodo.className = "settings-description clean-optional";
+    periodo.className = "share-vendo-start";
     const dia = dayLabel(view.occasion.startedAt);
     const quando = dia === "Hoje" ? "hoje" : dia === "Ontem" ? "ontem" : `em ${dia}`;
-    periodo.textContent = `Começou ${quando} às ${formatClock(view.occasion.startedAt)}`;
+    periodo.innerHTML = '<svg class="occasion-marker" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5v15l12.5-7.5z"/></svg>';
+    periodo.append(`Começou ${quando} às ${formatClock(view.occasion.startedAt)}`);
     container.append(periodo);
 
-    for (const total of view.totals) {
-      const linha = document.createElement("p");
-      linha.className = "occasion-count clean-optional";
-      linha.textContent = `${total.icon} ${total.name} · ${total.count} registro(s)`;
-      container.append(linha);
+    if (view.eventCount > 0) {
+      const resumo = document.createElement("div");
+      resumo.className = "occasion-records share-vendo-resumo";
+      const cabeca = document.createElement("span");
+      cabeca.className = "occasion-records-head";
+      const numero = document.createElement("b");
+      numero.textContent = view.eventCount;
+      const rotulo = document.createElement("span");
+      rotulo.textContent = view.eventCount === 1 ? "registro" : "registros";
+      cabeca.append(numero, rotulo);
+      resumo.append(cabeca);
+      if (view.totals.length) {
+        const pilulas = document.createElement("span");
+        pilulas.className = "occasion-records-drinks";
+        for (const total of view.totals) {
+          const pilula = document.createElement("span");
+          const conta = document.createElement("b");
+          conta.textContent = total.count;
+          pilula.append(`${total.icon} ${total.name} `, conta);
+          pilulas.append(pilula);
+        }
+        resumo.append(pilulas);
+      }
+      container.append(resumo);
     }
 
     if (view.truncated) {
@@ -464,9 +485,10 @@ export function createShareUI({
       .filter(({ estado }) => estado !== "none")
       .sort((x, y) => (x.estado === "live" ? 0 : 1) - (y.estado === "live" ? 0 : 1));
     for (const { share, estado } of ordenados) {
+      const ate = agendaDateParts(share.expiresAtMs);
       const subtitulo = estado === "live"
-        ? "Ao vivo para essa pessoa"
-        : `Evento encerrado · ainda visível até ${formatDate(share.expiresAtMs)} às ${formatClock(share.expiresAtMs)}`;
+        ? { tom: "is-live", texto: "Ao vivo" }
+        : { tom: "is-done", texto: `Encerrado · visível até ${ate.weekday} ${ate.date} ${ate.time}` };
       container.append(linhaEvento(share.occasionName || "Evento", subtitulo,
         botao("Parar", () => pararCompartilhamento(share.shareId), "share-stop-button")));
     }
@@ -508,8 +530,14 @@ export function createShareUI({
     texto.className = "share-active-text";
     const nome = document.createElement("strong");
     nome.textContent = titulo;
+    // Situação como selo ({ tom, texto }) ou, para o que ainda não foi compartilhado, texto simples.
     const estado = document.createElement("span");
-    estado.textContent = subtitulo;
+    if (typeof subtitulo === "string") estado.textContent = subtitulo;
+    else {
+      estado.className = `status-chip is-small ${subtitulo.tom}`;
+      if (subtitulo.tom === "is-live") { const pulso = document.createElement("i"); pulso.className = "status-chip-pulse"; estado.append(pulso); }
+      estado.append(subtitulo.texto);
+    }
     texto.append(nome, estado);
     linha.append(texto, acao);
     return linha;
@@ -520,12 +548,26 @@ export function createShareUI({
   // na tela "Sobre o amigo" (openFriendInfo), não no diálogo de detalhe principal.
   function renderDetailDefault(par) {
     const container = document.createElement("div");
-    const info = document.createElement("p");
-    info.className = "settings-description";
-    info.textContent = par.acceptedByMe && par.acceptedByOther
-      ? (par.createdAt != null ? `Amigos desde ${formatDate(par.createdAt)}.` : "Vocês são amigos.")
-      : estadoDe(par);
-    container.append(info);
+    if (!(par.acceptedByMe && par.acceptedByOther)) {
+      const info = document.createElement("p");
+      info.className = "settings-description";
+      info.textContent = estadoDe(par);
+      container.append(info);
+      return container;
+    }
+    // Uma linha só de leitura, no mesmo bloco das opções do evento.
+    container.className = "occasion-menu";
+    const linha = document.createElement("div");
+    linha.className = "occasion-menu-row";
+    const icone = document.createElement("span");
+    icone.className = "occasion-menu-icon";
+    icone.innerHTML = '<svg class="occasion-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/><path d="M16 8a2.5 2.5 0 1 0 0-5"/><path d="M15 14.2c2.3.4 4 2.4 4 5.8"/></svg>';
+    const rotulo = document.createElement("strong");
+    rotulo.textContent = par.createdAt != null ? "Amigos desde" : "Vocês são amigos";
+    const valor = document.createElement("small");
+    valor.textContent = par.createdAt != null ? formatDate(par.createdAt) : "";
+    linha.append(icone, rotulo, valor);
+    container.append(linha);
     return container;
   }
 
@@ -583,7 +625,7 @@ export function createShareUI({
     if (!detalheAberto) return;
     const par = pairings.find((item) => item.otherUid === detalheAberto);
     if (!par) return;
-    closeSharedDetail();
+    // Abre por cima do detalhe: o ✕ (e o Voltar) volta para o amigo, não para a lista.
     friendInfoAberto = par.otherUid;
     if (nodes.friendInfoTitle) nodes.friendInfoTitle.textContent = par.alias || "Alguém";
     renderFriendInfoBody(par);

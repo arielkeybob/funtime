@@ -4169,7 +4169,8 @@ div.share-person { cursor: default; }
    como no detalhe do evento. Sem o Cancelar, que repetia o ✕; sem nada a mostrar, o rodapé some. */
 :is(#drink-dialog, #event-dialog) .editor-actions { display: flex; gap: 10px; }
 .editor-actions .primary-button { flex: 1; min-width: 0; }
-.editor-actions:not(:has(> button:not([hidden]))) { display: none !important; }
+/* Rodapé sem nenhum botão visível some (vale para todas as folhas, não só os editores). */
+.app-dialog-actions:not(:has(> button:not([hidden]))) { display: none !important; }
 
 /* Menu ⋮ da bebida (v2.26.1, spec 0029, pacote D): janela compacta com um bloco de linhas, como as
    opções do evento. "Cancelar contagem" em vermelho, com o tempo que falta; "Editar bebida" com o intervalo. */
@@ -4185,3 +4186,13 @@ div.share-person { cursor: default; }
 .invite-sheet-content { display: grid; gap: 10px; }
 .invite-sheet-content > p { margin: 0; }
 #delete-drink-dialog #cancel-delete-drink { order: 3; }
+
+/* Amigos (v2.26.4, spec 0029, pacote G): selo no lugar de "(Em andamento)", início visível com o
+   marcador e cartão-resumo; Compartilhando com selos; Desfazer amizade como ação discreta. */
+.share-vendo-title { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; }
+.share-vendo-start { display: flex; align-items: center; gap: 7px; margin: 6px 0 10px; color: var(--muted); font-size: .86rem; }
+.share-vendo-start .occasion-marker { color: var(--success); }
+.share-vendo-resumo { margin-bottom: 12px; }
+.share-active-text .status-chip { margin-top: 4px; }
+.occasion-link.is-danger { color: #ff9da2; }
+#friend-info-body { display: grid; gap: 12px; }

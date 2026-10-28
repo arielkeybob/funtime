@@ -217,7 +217,7 @@ test('quem foi convidado só olha: vê os próprios amigos e uma contagem dos de
         nomes: [...all('#event-invite-grid .share-person-name')].map((el) => el.textContent),
         tocavel: n('#event-invite-grid').querySelector('button') !== null,
         confirmarOculto: n('#event-invite-confirm').hidden,
-        botao: n('#event-invite-cancel').textContent,
+        botaoOculto: n('#event-invite-cancel').hidden,
         info: n('#event-invite-info').textContent,
         marca: n('#event-invite-grid .share-mark')?.className ?? null,
       };
@@ -233,7 +233,7 @@ test('quem foi convidado só olha: vê os próprios amigos e uma contagem dos de
     assert.deepEqual(saida.visao.nomes, ['Bia'], 'só amigos dele que estão na lista; Caio não foi convidado');
     assert.equal(saida.visao.tocavel, false, 'convidado não convida nem tira ninguém');
     assert.equal(saida.visao.confirmarOculto, true);
-    assert.equal(saida.visao.botao, 'Fechar');
+    assert.equal(saida.visao.botaoOculto, true, 'convidado só olha: sem rodapé, o ✕ fecha');
     assert.match(saida.visao.info, /Mais 3 pessoas que não são suas amigas estão na lista/, 'os demais (dois convidados e o organizador) viram só uma contagem');
     assert.equal(saida.visao.marca, 'share-mark share-mark--going');
     assert.match(saida.cancelado, /organizador cancelou/);

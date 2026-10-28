@@ -107,7 +107,7 @@ test('o diálogo de pareamento abre e fecha pelos próprios controles', { timeou
     assert.equal(await page.locator('#pairing-code-display').textContent(), '— — —',
       'não mostra código antes de gerar');
 
-    await page.locator('#pairing-done').click();
+    await page.locator('#close-pairing').click();
     assert.equal(await page.locator('#pairing-dialog').evaluate((node) => node.open), false);
     assert.deepEqual(erros, []);
   });
@@ -138,7 +138,7 @@ test('o código gerado pode ser copiado e vale por 10 minutos', { timeout: 30000
     await page.waitForFunction(() => document.querySelector('#toast-message')?.textContent === 'Código copiado.');
     assert.equal(await page.evaluate(() => navigator.clipboard.readText()), 'AB7-K29');
 
-    await page.locator('#pairing-done').click();
+    await page.locator('#close-pairing').click();
     await page.locator('#friends-add').click();
     assert.equal(await page.locator('#pairing-copy').isVisible(), false, 'reabrir começa sem código');
     assert.deepEqual(erros, []);
@@ -259,8 +259,8 @@ test('a aba Vendo explica o estado em vez de mensagens técnicas', { timeout: 30
       saida.antigo = texto();
       return saida;
     });
-    assert.match(r.cache, /^Atualizando…\s*Festa \(Em andamento\)\s*Começou hoje às \d\d:\d\d\s*Su ainda não registrou nada neste evento\.$/);
-    assert.match(r.emDia, /^Atualizado agora\s*Festa \(Em andamento\)/);
+    assert.match(r.cache, /^Atualizando…\s*Festa\s*Em andamento\s*Começou hoje às \d\d:\d\d\s*Su ainda não registrou nada neste evento\.$/);
+    assert.match(r.emDia, /^Atualizado agora\s*Festa\s*Em andamento/);
     assert.match(r.antigo, /^Atualizado agora\s*Festa/, 'envio antigo não vira aviso nem mostra a hora da última atualização');
     assert.doesNotMatch(r.cache + r.emDia + r.antigo, /Sem conexão|desatualizado|última atualização/);
     assert.deepEqual(erros, []);
@@ -295,7 +295,7 @@ test('evento encerrado deixa de aparecer como ao vivo', { timeout: 30000 }, asyn
     });
     assert.deepEqual(r.aoVivo, { pontoHome: true, verde: true, cinza: false });
     assert.deepEqual(r.encerrado, { pontoHome: false, verde: false, cinza: true });
-    assert.match(r.texto, /Festa \(Encerrado às \d\d:\d\d\)/);
+    assert.match(r.texto, /Festa Encerrado às \d\d:\d\d/);
     assert.doesNotMatch(r.texto, /você pode ver até|24h/, 'quem recebe não precisa do prazo escrito');
     assert.deepEqual(erros, []);
   });
@@ -344,8 +344,8 @@ test('evento novo dentro das 24h do anterior: os dois aparecem', { timeout: 3000
     assert.deepEqual(r.soVelho, { verde: false, cinza: true, dot: false });
     assert.deepEqual(r.dois, { verde: true, cinza: false, dot: true });
     assert.equal(r.ordem.titulos.length, 2);
-    assert.match(r.ordem.titulos[0], /^Jantar \(Em andamento\)$/);
-    assert.match(r.ordem.titulos[1], /^Festa \(Encerrado às \d\d:\d\d\)$/);
+    assert.match(r.ordem.titulos[0], /^Jantar Em andamento$/);
+    assert.match(r.ordem.titulos[1], /^Festa Encerrado às \d\d:\d\d$/);
     assert.equal(r.ordem.semDropdown, true, 'os anteriores aparecem direto, sem dropdown');
     assert.equal(r.ordem.semPrazo, true, 'sem texto de disponível até/24h para quem recebe');
     assert.deepEqual(r.semVelho, { estado: { verde: true, cinza: false, dot: true }, blocos: 1 });
@@ -376,13 +376,13 @@ test('linha do tempo compartilhada mostra meia/inteira, chip neutro e respeita a
       const corpo = n('#shared-detail-body');
       const visivel = (el) => !!el && getComputedStyle(el).display !== 'none';
       const limpo = {
-        comecou: visivel(corpo.querySelector('.settings-description.clean-optional')),
-        resumo: visivel(corpo.querySelector('.occasion-count')),
+        comecou: visivel(corpo.querySelector('.share-vendo-start')),
+        resumo: visivel(corpo.querySelector('.share-vendo-resumo')),
       };
       document.body.classList.remove('clean-mode');
       const completo = {
-        comecou: visivel(corpo.querySelector('.settings-description.clean-optional')),
-        resumo: visivel(corpo.querySelector('.occasion-count')),
+        comecou: visivel(corpo.querySelector('.share-vendo-start')),
+        resumo: visivel(corpo.querySelector('.share-vendo-resumo')),
       };
       document.body.classList.add('clean-mode');
       const chip = corpo.querySelector('.history-event-elapsed');
@@ -393,7 +393,7 @@ test('linha do tempo compartilhada mostra meia/inteira, chip neutro e respeita a
         corChip: getComputedStyle(chip).color,
       };
     });
-    assert.deepEqual(r.limpo, { comecou: false, resumo: false });
+    assert.deepEqual(r.limpo, { comecou: true, resumo: true }, 'início e resumo agora aparecem sempre, compactos');
     assert.deepEqual(r.completo, { comecou: true, resumo: true });
     assert.deepEqual(r.tamanhos.sort(), ['Inteira', 'Meia']);
     assert.equal(r.chipNeutro, true);
