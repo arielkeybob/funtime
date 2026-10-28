@@ -315,7 +315,7 @@ document.addEventListener("visibilitychange", () => {
 const DATA_STORAGE_KEY = "funtime-v1-data";
 const LEGACY_DRINKS_STORAGE_KEY = "balada-v1-drinks";
 const DATA_VERSION = 11;
-const APP_VERSION = "2.26.10";
+const APP_VERSION = "2.26.11";
 const DRINK_EXPORT_TYPE = "funtime-drinks";
 const DRINK_EXPORT_FORMAT_VERSION = 1;
 const BACKUP_EXPORT_TYPE = "funtime-backup";
@@ -370,6 +370,8 @@ const state = {
   historyReturnOccasionId: null,
   currentView: "home",
   settingsPage: null,
+  // Tela que abriu Configurações por um atalho ("Ativar em Configurações", em Amigos): o ← volta para ela.
+  settingsReturnTo: null,
   securityLastActivityAt: 0,
   undo: null,
   toastTimerId: null,
@@ -1097,6 +1099,7 @@ function showSettingsPage(page) {
 }
 
 function openSettingsView() {
+  state.settingsReturnTo = null;
   setCurrentView("settings");
   updateInterfaceSettingsUI();
   updateDataSettingsUI();
@@ -2105,19 +2108,9 @@ function changeCountingMode(mode) {
 // embaixo ("em 18/10/26" / "às 21:30h"), para caber na coluna estreita do histórico.
 function setHistoryClockLabel(element, timestamp, now = Date.now()) {
   element.dataset.historyTimestamp = String(timestamp);
-  const dated = now - timestamp >= 86400000;
-  element.classList.toggle("is-dated", dated);
-  if (!dated) {
-    setClockStatus(element, "às", timestamp);
-    return;
-  }
-  const date = document.createElement("span");
-  date.className = "history-clock-date";
-  date.textContent = "em " + new Date(timestamp).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "2-digit" });
-  const hour = document.createElement("span");
-  hour.className = "history-clock-hour";
-  setClockStatus(hour, "às", timestamp);
-  element.replaceChildren(date, " ", hour);
+  // Só a hora: o dia já está no título do grupo (e no rótulo para leitor de tela).
+  element.classList.toggle("is-dated", false);
+  setClockStatus(element, "às", timestamp);
 }
 
 function updateHistoryElapsedLabels() {
@@ -3232,9 +3225,19 @@ document.querySelector("#open-history").addEventListener("click", () => openHist
 closeHistoryButton.addEventListener("click", leaveHistoryView);
 document.querySelector("#open-settings").addEventListener("click", openSettingsView);
 document.querySelector("#close-settings").addEventListener("click", () => {
-  if (state.settingsPage) showSettingsPage(null);
+  if (state.settingsReturnTo) leaveSettingsView();
+  else if (state.settingsPage) showSettingsPage(null);
   else closeSettingsView();
 });
+
+// Configurações aberta por um atalho de outra tela (ex.: "Ativar em Configurações", em Amigos): o ←
+// e o Voltar do aparelho voltam para lá, em vez de passar pelo menu.
+function leaveSettingsView() {
+  const destino = state.settingsReturnTo;
+  state.settingsReturnTo = null;
+  closeSettingsView();
+  if (destino === "shared") openSharedView();
+}
 document.querySelectorAll("[data-settings-open]").forEach((button) => {
   button.addEventListener("click", () => showSettingsPage(button.dataset.settingsOpen));
 });
@@ -3941,9 +3944,10 @@ function getShareEventsContext() {
 }
 
 // Leva direto ao interruptor "Usar eventos" em Configurações, destacando a linha.
-function openEventsSetting() {
+function openEventsSetting({ returnTo = null } = {}) {
   openSettingsView();
   showSettingsPage("appearance");
+  state.settingsReturnTo = returnTo;
   const row = document.querySelector("#events-enabled")?.closest(".settings-toggle-row");
   if (!row) return;
   row.scrollIntoView({ block: "center" });
@@ -4036,7 +4040,7 @@ firebaseAuth = IS_STANDALONE_APP && isFirebaseConfigured() ? createFirebaseAuth(
       await cloudSync.start(buildCurrentAppData());
     } catch (error) {
       console.error("Não foi possível iniciar a sincronização.", error);
-      showToast("Não foi possível sincronizar agora.");
+      showAppNotification("Não foi possível sincronizar agora.", { type: "error" });
     }
     try {
       sharedViewReader.start();
@@ -4099,7 +4103,7 @@ async function signInWithGoogle(button) {
     await firebaseAuth.signIn();
   } catch (error) {
     console.error("Falha ao entrar com a Conta Google.", error);
-    showToast("Não foi possível entrar. Tente de novo.");
+    showAppNotification("Não foi possível entrar. Tente de novo.", { type: "error" });
   } finally {
     if (button) button.disabled = false;
   }
@@ -4146,7 +4150,7 @@ syncSignOutButton?.addEventListener("click", async () => {
   } catch (error) {
     syncSigningOut = false;
     console.error("Falha ao sair da conta.", error);
-    showToast("Não foi possível sair agora.");
+    showAppNotification("Não foi possível sair agora.", { type: "error" });
   }
 });
 
@@ -4173,7 +4177,7 @@ syncDeleteCloudButton?.addEventListener("click", async () => {
   } catch (error) {
     syncSigningOut = false;
     console.error("Falha ao apagar os dados na nuvem.", error);
-    showToast("Não foi possível apagar os dados na nuvem.");
+    showAppNotification("Não foi possível apagar os dados na nuvem.", { type: "error" });
   } finally {
     syncDeleteCloudButton.disabled = false;
   }
@@ -4272,7 +4276,7 @@ Object.assign(globalThis, {
   editDrinkFromDrinkMenu, getDrinkActivity, persistIconCatalog, unlockApp,
   openDeleteDrinkDialog, openEditDrinkDialog, BACKUP_EXPORT_TYPE,
   state, DATA_STORAGE_KEY, buildCurrentAppData, refreshDataViews, showToast,
-  showAppNotification, setCurrentView, createId, closeHistoryView, openHistoryView, leaveHistoryView, setHistoryReturnOccasion,
+  showAppNotification, setCurrentView, createId, closeHistoryView, openHistoryView, leaveHistoryView, setHistoryReturnOccasion, leaveSettingsView,
   renderHistory, getEventDrinkIdentity, toLocalDateInputValue, toLocalTimeInputValue,
   PICKER_ICONS, SECURITY_STORAGE_KEY, hideToast, applyInterfacePreferences,
   updateDataSettingsUI, LEGACY_DRINKS_STORAGE_KEY, SHARE_IMPORT_CACHE_NAME,

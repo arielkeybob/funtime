@@ -1,6 +1,6 @@
 # 0029 — Padrões de Eventos no resto do app
 
-Status: em andamento (C na v2.26.0, D na v2.26.1, A na v2.26.2, B na v2.26.3, G na v2.26.4, H na v2.26.5, I na v2.26.6, J na v2.26.7, K na v2.26.8, L na v2.26.9, M na v2.26.10)
+Status: em andamento (C na v2.26.0, D na v2.26.1, A na v2.26.2, B na v2.26.3, G na v2.26.4, H na v2.26.5, I na v2.26.6, J na v2.26.7, K na v2.26.8, L na v2.26.9, M na v2.26.10, N na v2.26.11)
 
 ## Contexto
 
@@ -36,7 +36,7 @@ tutoriais e versão.
 | 9 | K — Anotar dose ("Anotar às 20:10") e aviso de intervalo | feito (v2.26.8) |
 | 10 | L — Importar bebidas, Criar PIN e Redefinir: botão diz o efeito | feito (v2.26.9) |
 | 11 | M — Botões de perigo unificados | feito (v2.26.10) |
-| 12 | N — Correções (erros de conta como erro, voltar para Amigos, textos do tutorial, DEVELOPMENT.md) | a fazer |
+| 12 | N — Correções (erros de conta como erro, voltar para Amigos, textos do tutorial, DEVELOPMENT.md) | feito (v2.26.11) |
 | 13 | E (parcial) — Só o lembrete de evento na Home (bloquinho, ▶ vazado, sem "Deseja iniciar agora?"). A faixa do evento em andamento **não** muda. | a fazer |
 | 14 | F (parcial) — Cartão-resumo no Histórico **só quando filtrado por um evento**; evento não se repete nas linhas; datas do seletor como "sáb 13/06" | a fazer |
 
@@ -214,3 +214,19 @@ Pendentes:
   - cheio: `.danger-button`;
   - contorno: `.occasion-icon-action.is-danger`;
   - linha: `.occasion-menu-row.danger`, `.settings-nav-row--danger` e `.occasion-link.is-danger`.
+
+## Pacote N (v2.26.11)
+
+- **Erros:**
+  - `showAppNotification(..., { type: "error" })` nas falhas de conta (`app.js`);
+  - `showToast(msg, null, { type: "error" })` nas falhas de `share-ui.js`.
+- **Voltar para Amigos:**
+  - `openEventsSetting({ returnTo: "shared" })` guarda `state.settingsReturnTo`;
+  - `leaveSettingsView()` fecha Configurações e reabre Amigos;
+  - o ← (`#close-settings`) e o Voltar do aparelho (`navigation.js`) usam isso;
+  - `openSettingsView()` limpa o destino;
+  - teste: `tests/voltar-amigos-browser.test.cjs`.
+- **Decisão 5:** `setHistoryClockLabel` mostra sempre "às HH:MM"; o rótulo para leitor de tela da linha mantém a data.
+  Testes ajustados: `audit.test.cjs` e `occasions-browser.test.cjs`.
+- **Tutorial `historico`:** regerado agora, porque o roteiro mudou (o teste de tutoriais compara roteiro e conteúdo).
+- **DEVELOPMENT.md:** voltou a valer "não há alert/confirm nativos restantes" (pacote A).

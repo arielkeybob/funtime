@@ -131,36 +131,36 @@ export const TUTORIALS = [
     "passos": [
       {
         "tipo": "video",
-        "src": "./tutorials/media/historico/01.b6f19d0a.mp4",
-        "poster": "./tutorials/media/historico/01.poster.af264240.webp",
+        "src": "./tutorials/media/historico/01.a63b0e19.mp4",
+        "poster": "./tutorials/media/historico/01.poster.94bbbcbb.webp",
         "alt": "Na tela inicial, o botão Histórico do menu de baixo recebe o destaque azul e é tocado; abre a lista com todos os registros, do mais recente ao mais antigo.",
         "legenda": "Toque em Histórico no menu para ver todos os registros."
       },
       {
         "tipo": "video",
-        "src": "./tutorials/media/historico/02.e5428860.mp4",
-        "poster": "./tutorials/media/historico/02.poster.46ceae75.webp",
+        "src": "./tutorials/media/historico/02.4fd96967.mp4",
+        "poster": "./tutorials/media/historico/02.poster.f89211ab.webp",
         "alt": "O botão Histórico do cartão da Cerveja é tocado e abre a lista só com os registros dessa bebida.",
         "legenda": "No card, o botão Histórico mostra só aquela bebida."
       },
       {
         "tipo": "video",
-        "src": "./tutorials/media/historico/03.ea955c9b.mp4",
-        "poster": "./tutorials/media/historico/03.poster.be12a02e.webp",
+        "src": "./tutorials/media/historico/03.dc9e2ddc.mp4",
+        "poster": "./tutorials/media/historico/03.poster.27f7b67a.webp",
         "alt": "Um registro do Histórico é tocado e abre o editor, com a data e as rodas de hora e minuto em destaque.",
         "legenda": "Toque num registro para corrigir o horário."
       },
       {
         "tipo": "video",
-        "src": "./tutorials/media/historico/04.6fc115b5.mp4",
-        "poster": "./tutorials/media/historico/04.poster.3a604573.webp",
-        "alt": "Um registro do Histórico recebe um toque e segurar; um seletor flutuante com até quatro reações, de \"Péssimo\" a \"Ótimo\", aparece perto dele; a reação \"Ótimo\" é tocada, o seletor fecha e o selo da reação aparece no canto do registro.",
+        "src": "./tutorials/media/historico/04.6e991efe.mp4",
+        "poster": "./tutorials/media/historico/04.poster.713a7422.webp",
+        "alt": "Um registro do Histórico recebe um toque e segurar; um seletor flutuante com cinco reações, de \"Péssimo\" a \"Ótimo\", aparece perto dele; a reação \"Ótimo\" é tocada, o seletor fecha e o selo da reação aparece no canto do registro.",
         "legenda": "Segure um registro para reagir à dose."
       },
       {
         "tipo": "video",
-        "src": "./tutorials/media/historico/05.b810ebb0.mp4",
-        "poster": "./tutorials/media/historico/05.poster.f890c680.webp",
+        "src": "./tutorials/media/historico/05.9810e2ff.mp4",
+        "poster": "./tutorials/media/historico/05.poster.a29e5596.webp",
         "alt": "Da tela inicial, o botão Histórico é tocado e depois um registro; no editor, a lixeira do rodapé é tocada e a exclusão é confirmada; o registro some da lista e o app avisa que foi excluído.",
         "legenda": "Para excluir um registro, toque nele, na lixeira e confirme."
       }

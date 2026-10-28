@@ -48,7 +48,7 @@ module.exports = {
     {
       tipo: 'video',
       legenda: 'Segure um registro para reagir à dose.',
-      alt: 'Um registro do Histórico recebe um toque e segurar; um seletor flutuante com até quatro reações, de "Péssimo" a "Ótimo", aparece perto dele; a reação "Ótimo" é tocada, o seletor fecha e o selo da reação aparece no canto do registro.',
+      alt: 'Um registro do Histórico recebe um toque e segurar; um seletor flutuante com cinco reações, de "Péssimo" a "Ótimo", aparece perto dele; a reação "Ótimo" é tocada, o seletor fecha e o selo da reação aparece no canto do registro.',
       async preparar(t) { await t.tocar('#open-history'); await t.esperar(400); },
       async gravar(t) {
         await t.esperar(1400);

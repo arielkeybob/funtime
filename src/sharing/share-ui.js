@@ -220,7 +220,7 @@ export function createShareUI({
       closeFriendInfo();
     } catch (falha) {
       console.error("Falha ao desfazer o pareamento.", falha);
-      showToast("Não foi possível desfazer agora.");
+      showToast("Não foi possível desfazer agora.", null, { type: "error" });
     }
   }
 
@@ -499,7 +499,7 @@ export function createShareUI({
       const texto = document.createElement("p");
       texto.className = "settings-description";
       texto.textContent = "Para compartilhar, o recurso Eventos precisa estar ativo: o compartilhamento é sempre de um evento.";
-      aviso.append(texto, botao("Ativar em Configurações", () => { closeSharedDetail(); openEventsSetting(); }));
+      aviso.append(texto, botao("Ativar em Configurações", () => { closeSharedDetail(); openEventsSetting({ returnTo: "shared" }); }));
       container.append(aviso);
       return container;
     }
@@ -609,7 +609,7 @@ export function createShareUI({
       showToast("Compartilhamento encerrado.");
     } catch (falha) {
       console.error("Falha ao parar o compartilhamento.", falha);
-      showToast("Não foi possível parar agora.");
+      showToast("Não foi possível parar agora.", null, { type: "error" });
     }
   }
 
@@ -809,7 +809,7 @@ export function createShareUI({
         closeShareOccasionDialog();
       } catch (falha) {
         console.error("Falha ao guardar com quem compartilhar.", falha);
-        showToast("Não foi possível guardar agora. Tente de novo.");
+        showToast("Não foi possível guardar agora. Tente de novo.", null, { type: "error" });
       }
       return;
     }
@@ -833,7 +833,7 @@ export function createShareUI({
       closeShareOccasionDialog();
     } catch (falha) {
       console.error("Falha ao atualizar o compartilhamento do evento.", falha);
-      showToast("Não foi possível atualizar agora. Tente de novo.");
+      showToast("Não foi possível atualizar agora. Tente de novo.", null, { type: "error" });
     }
   }
 
@@ -850,7 +850,7 @@ export function createShareUI({
       closeShareOccasionDialog();
     } catch (falha) {
       console.error("Falha ao parar todos os compartilhamentos do evento.", falha);
-      showToast("Não foi possível parar agora.");
+      showToast("Não foi possível parar agora.", null, { type: "error" });
     }
   }
 
@@ -919,7 +919,7 @@ export function createShareUI({
       showToast("Apelido atualizado para quem você já adicionou.");
     } catch (falha) {
       console.error("Falha ao salvar o apelido.", falha);
-      showToast("Não foi possível salvar agora.");
+      showToast("Não foi possível salvar agora.", null, { type: "error" });
     }
   }
 

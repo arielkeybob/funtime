@@ -336,7 +336,7 @@ test('Anterior mostra horário antes de 24h e data local curta a partir de 24h',
   assert.equal(element.textContent, 'Anterior: 06/09/26');
 });
 
-test('histórico passa a mostrar data e hora no limite de 24h durante a atualização', () => {
+test('histórico mostra só a hora, antes e depois de 24h (o dia está no grupo)', () => {
   const timestamp = new Date(2026, 8, 6, 23, 30).getTime();
   const fakeNode = () => {
     const node = { dataset: {}, textContent: '', classes: new Set() };
@@ -358,8 +358,8 @@ test('histórico passa a mostrar data e hora no limite de 24h durante a atualiza
   assert.equal(element.classes.has('is-dated'), false);
   vm.runInContext(`Date.now = () => ${timestamp + 86400000}`, c);
   c.updateHistoryElapsedLabels();
-  assert.equal(element.textContent, 'em 06/09/26 às horário');
-  assert.equal(element.classes.has('is-dated'), true);
+  assert.equal(element.textContent, 'às horário', 'sem repetir a data do grupo do dia');
+  assert.equal(element.classes.has('is-dated'), false);
 });
 
 function shapeContext() {

@@ -1,4 +1,14 @@
-# FunTime — V2.26.10
+# FunTime — V2.26.11
+
+## V2.26.11 — correções encontradas no levantamento
+
+- Falhas da conta e do compartilhamento (entrar, sair, sincronizar, apagar da nuvem, desfazer amizade, parar) aparecem como **erro**, em vez de um aviso cinza que sumia em 2,5 s.
+- **Ativar em Configurações**, aberto a partir de um amigo, volta para **Amigos** pelo ← (ou pelo Voltar do aparelho), em vez de passar pelo menu de Configurações.
+- **Histórico**: a linha de um registro antigo mostra só a hora; o dia já está no título do grupo ("18 de outubro"). O leitor de tela continua dizendo a data.
+- Tutorial do Histórico: o texto alternativo fala em cinco reações (eram cinco; dizia "até quatro").
+- Pacote N da spec 0029. Tutoriais afetados ficam para a regravação no fim da série.
+- Sem mudança de dados; `DATA_VERSION` permanece 11.
+
 
 ## V2.26.10 — um só jeito de mostrar perigo
 
