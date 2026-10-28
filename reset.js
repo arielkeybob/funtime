@@ -68,7 +68,7 @@ function openDataReset(action) {
   resetPending = { action, confirmed: false };
   resetBusy = false;
   resetError('');
-  document.querySelector('#reset-title').textContent = { icons: 'Restaurar ícones padrão', history: 'Apagar histórico', drinks: 'Apagar bebidas', all: 'EMERGÊNCIA — APAGAR TUDO' }[action];
+  document.querySelector('#reset-title').textContent = { icons: 'Restaurar ícones padrão', history: 'Apagar histórico', drinks: 'Apagar bebidas', all: 'Apagar tudo deste aparelho' }[action];
   document.querySelector('#reset-options').hidden = false;
   document.querySelector('#reset-auth-note').hidden = true;
   document.querySelector('#reset-pin-field').hidden = true;

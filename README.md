@@ -1,4 +1,14 @@
-# FunTime — V2.26.5
+# FunTime — V2.26.6
+
+## V2.26.6 — Configurações com as mesmas linhas do resto do app
+
+- **Aparência**: cada opção ganhou um ícone; as explicações longas ficam para a interface detalhada.
+- **Privacidade**: o método de desbloqueio virou uma linha tocável (**Método · PIN do aplicativo ›**), no lugar da linha mais o botão "Alterar método"; **Bloquear agora** virou uma ação discreta com o cadeado.
+- **Sobre o app**: versão, verificar atualizações e políticas num cartão só.
+- **Redefinir dados**: as quatro ações viraram linhas com ícone; "EMERGÊNCIA — APAGAR TUDO" passou a **Apagar tudo deste aparelho**, em vermelho. O menu e a página usam o mesmo nome, **Redefinir dados**. O fluxo continua com prévia e autenticação.
+- Pacote I da spec 0029. Tutoriais afetados ficam para a regravação no fim da série.
+- Sem mudança de dados; `DATA_VERSION` permanece 11.
+
 
 ## V2.26.5 — Compartilhar doses e Convidados com o nome do evento
 

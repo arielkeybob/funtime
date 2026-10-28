@@ -4199,3 +4199,14 @@ div.share-person { cursor: default; }
 
 /* Rodapé com um só botão visível (os outros escondidos): ele ocupa a largura toda (v2.26.5). */
 .app-dialog-actions:has(> button:not([hidden])):not(:has(> button:not([hidden]) ~ button:not([hidden]))) { grid-template-columns: 1fr; }
+
+/* Configurações (v2.26.6, spec 0029, pacote I): o mesmo bloco de linhas do evento nas páginas.
+   Ícone em cada linha da Aparência, Método numa linha tocável, Bloquear agora discreto, Redefinir em linhas. */
+.settings-toggle-row > .occasion-menu-icon { flex: none; }
+.settings-field--icon { grid-template-columns: 32px minmax(0, 1fr); column-gap: 12px; align-items: center; }
+.settings-field--icon > select { grid-column: 1 / -1; }
+.security-details .occasion-menu, .reset-settings .occasion-menu { margin: 4px 0; }
+#change-security-method small { display: inline-flex; gap: 4px; }
+#lock-now.occasion-link { padding-left: 2px; }
+.settings-toggle-row > .occasion-menu-icon + .settings-toggle-copy { flex: 1; }
+.settings-toggle-row:has(> .occasion-menu-icon) { gap: 12px; }

@@ -59,7 +59,7 @@
     <footer class="browser-gate-footer">
       <span>App para estudo · não é controle de segurança</span>
       <a class="policies-link" href="./policies.html">Políticas e informações</a>
-      <span>v2.26.5 · By: arielkeybob</span>
+      <span>v2.26.6 · By: arielkeybob</span>
     </footer>
   </section>
 
@@ -205,7 +205,7 @@
       <nav class="settings-menu settings-menu--danger" aria-label="Ações de risco">
       <button type="button" class="settings-nav-row settings-nav-row--danger" data-settings-open="reset">
         <span class="settings-nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 11v6M14 11v6"/></svg></span>
-        <span class="settings-nav-text"><strong>Redefinir e apagar dados</strong><small id="settings-summary-reset"></small></span>
+        <span class="settings-nav-text"><strong>Redefinir dados</strong><small id="settings-summary-reset"></small></span>
         <span class="settings-nav-chevron" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg></span>
       </button>
       </nav>
@@ -213,17 +213,18 @@
 
     <section class="settings-page" data-settings-page="appearance" data-title="Aparência" hidden>
       <section class="settings-card">
-        <label class="settings-field" for="counting-mode"><span>Contagem do intervalo</span>
+        <label class="settings-field settings-field--icon" for="counting-mode"><span class="occasion-menu-icon" aria-hidden="true"><svg class="occasion-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span><span>Contagem do intervalo</span>
         <select id="counting-mode">
           <option value="countdown">Contagem regressiva</option>
           <option value="normal">Contagem normal</option>
         </select>
         </label>
-        <label class="settings-toggle-row" for="events-enabled"><div class="settings-toggle-copy"><strong>Usar eventos</strong><span>Organize consumos por ocasião. Desativar preserva o histórico e as contagens, encerra o evento atual e suspende os agendamentos.</span></div><span class="security-switch"><input id="events-enabled" type="checkbox"><span class="security-switch-track"><span></span></span></span></label>
+        <label class="settings-toggle-row" for="events-enabled"><span class="occasion-menu-icon" aria-hidden="true"><svg class="occasion-icon" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M7 3v4m10-4v4M3 11h18"/></svg></span><div class="settings-toggle-copy"><strong>Usar eventos</strong><span class="clean-optional">Organize consumos por ocasião. Desativar preserva o histórico e as contagens, encerra o evento atual e suspende os agendamentos.</span></div><span class="security-switch"><input id="events-enabled" type="checkbox"><span class="security-switch-track"><span></span></span></span></label>
         <label class="settings-toggle-row" for="prioritize-recent-drinks">
+          <span class="occasion-menu-icon" aria-hidden="true"><svg class="occasion-icon" viewBox="0 0 24 24"><path d="M7 4v16M3 8l4-4 4 4M17 20V4M13 16l4 4 4-4"/></svg></span>
           <div class="settings-toggle-copy">
             <strong>Priorizar bebidas recentes</strong>
-            <span>Mantém no topo as bebidas consumidas no período ou evento atual. As demais seguem a ordem definida por você.</span>
+            <span class="clean-optional">Mantém no topo as bebidas consumidas no período ou evento atual. As demais seguem a ordem definida por você.</span>
           </div>
           <span class="security-switch">
             <input id="prioritize-recent-drinks" type="checkbox" checked>
@@ -231,9 +232,10 @@
           </span>
         </label>
         <label class="settings-toggle-row" for="clean-interface">
+          <span class="occasion-menu-icon" aria-hidden="true"><svg class="occasion-icon" viewBox="0 0 24 24"><path d="M12 3v4M12 17v4M3 12h4M17 12h4M6 6l2.5 2.5M15.5 15.5 18 18M6 18l2.5-2.5M15.5 8.5 18 6"/></svg></span>
           <div class="settings-toggle-copy">
             <strong>Interface limpa e compacta</strong>
-            <span>Oculta textos e explicações auxiliares sem esconder alertas importantes.</span>
+            <span class="clean-optional">Oculta textos e explicações auxiliares sem esconder alertas importantes.</span>
           </div>
           <span class="security-switch" aria-hidden="true">
             <input id="clean-interface" type="checkbox" checked>
@@ -258,11 +260,9 @@
         <p class="settings-description clean-optional">Bloqueie o App com biometria ou PIN personalizado de 4 digitos.</p>
 
         <div id="security-details" class="security-details" hidden>
-          <div class="settings-row">
-            <span>Método</span>
-            <strong id="security-method-label">—</strong>
+          <div class="occasion-menu">
+            <button id="change-security-method" class="occasion-menu-row" type="button" aria-label="Alterar método de desbloqueio"><span class="occasion-menu-icon" aria-hidden="true"><svg class="occasion-icon" viewBox="0 0 24 24"><circle cx="8" cy="15" r="4"/><path d="m11 12 9-9M17 6l3 3"/></svg></span><strong>Método</strong><small><span id="security-method-label">—</span> ›</small></button>
           </div>
-          <button id="change-security-method" class="settings-secondary-button" type="button">Alterar método</button>
 
           <label class="settings-field" for="security-relock">
             <span>Bloquear após ficar sem uso</span>
@@ -276,7 +276,7 @@
             <small id="security-relock-help" class="settings-description"></small>
           </label>
 
-          <button id="lock-now" class="settings-lock-button" type="button">🔒 Bloquear agora</button>
+          <button id="lock-now" class="occasion-link" type="button"><svg class="occasion-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>Bloquear agora</button>
         </div>
 
         <div id="device-auth-support" class="security-support-note"></div>
@@ -362,18 +362,8 @@
 
     <section class="settings-page" data-settings-page="about" data-title="Sobre o app" hidden>
       <section class="settings-card">
-        <div class="settings-section-heading">
-          <div>
-            <p class="eyebrow">Versão</p>
-            <h2>Atualizações</h2>
-          </div>
-        </div>
-
-        <p class="settings-description">Versão instalada: <strong>v2.26.5</strong></p>
+        <p class="settings-description">Versão instalada: <strong>v2.26.6</strong></p>
         <button id="check-app-update" class="settings-secondary-button" type="button">Verificar atualizações</button>
-      </section>
-
-      <section class="settings-card settings-link-card">
         <a class="settings-link-row" href="./policies.html"><span>Políticas e informações</span><span class="settings-nav-chevron" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg></span></a>
       </section>
 
@@ -398,11 +388,11 @@
     <section class="settings-page" data-settings-page="reset" data-title="Redefinir dados" hidden>
       <section class="settings-card reset-settings">
         <p class="settings-description">Estas ações exigem confirmação e PIN ou autenticação do aparelho. Exclusões não podem ser desfeitas; faça um backup antes, se precisar.</p>
-        <div class="settings-action-stack">
-          <button type="button" data-reset="icons" class="settings-secondary-button">Restaurar ícones padrão</button>
-          <button type="button" data-reset="history" class="settings-secondary-button">Apagar histórico</button>
-          <button type="button" data-reset="drinks" class="settings-secondary-button">Apagar bebidas</button>
-          <button type="button" data-reset="all" class="settings-secondary-button reset-danger">EMERGÊNCIA — APAGAR TUDO</button>
+        <div class="occasion-menu">
+          <button type="button" data-reset="icons" class="occasion-menu-row"><span class="occasion-menu-icon" aria-hidden="true"><svg class="occasion-icon" viewBox="0 0 24 24"><path d="M4 12a8 8 0 1 0 2.3-5.6"/><path d="M4 4v4h4"/></svg></span><strong>Restaurar ícones padrão</strong><small aria-hidden="true">›</small></button>
+          <button type="button" data-reset="history" class="occasion-menu-row"><span class="occasion-menu-icon" aria-hidden="true"><svg class="occasion-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span><strong>Apagar histórico</strong><small aria-hidden="true">›</small></button>
+          <button type="button" data-reset="drinks" class="occasion-menu-row"><span class="occasion-menu-icon" aria-hidden="true"><svg class="occasion-icon" viewBox="0 0 24 24"><path d="M7 3h10l-1.5 17h-7Z"/><path d="M7.5 9h9"/></svg></span><strong>Apagar bebidas</strong><small aria-hidden="true">›</small></button>
+          <button type="button" data-reset="all" class="occasion-menu-row danger"><span class="occasion-menu-icon" aria-hidden="true"><svg class="occasion-icon" viewBox="0 0 24 24"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 11v6M14 11v6"/></svg></span><strong>Apagar tudo deste aparelho</strong><small aria-hidden="true">›</small></button>
         </div>
       </section>
     </section>
@@ -486,7 +476,7 @@
     <footer class="app-footer">
       <span class="app-footer-disclaimer">App para estudo · não é controle de segurança</span>
       <a class="policies-link" href="./policies.html">Políticas e informações</a>
-      <span class="app-footer-meta">v2.26.5 · By: arielkeybob</span>
+      <span class="app-footer-meta">v2.26.6 · By: arielkeybob</span>
     </footer>
   </div>
 

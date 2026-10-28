@@ -1,6 +1,6 @@
 # 0029 — Padrões de Eventos no resto do app
 
-Status: em andamento (C na v2.26.0, D na v2.26.1, A na v2.26.2, B na v2.26.3, G na v2.26.4, H na v2.26.5)
+Status: em andamento (C na v2.26.0, D na v2.26.1, A na v2.26.2, B na v2.26.3, G na v2.26.4, H na v2.26.5, I na v2.26.6)
 
 ## Contexto
 
@@ -31,7 +31,7 @@ tutoriais e versão.
 | 4 | B — Escolhas curtas em janela compacta: cancelar contagem, excluir bebida, meia/inteira, como desbloquear, restaurar backup, convite | feito (v2.26.3) |
 | 5 | G — Detalhe do amigo: selo, ▶, cartão-resumo; sem "Fechar" repetido; Sobre volta ao amigo | feito (v2.26.4) |
 | 6 | H — Compartilhar doses e Convidados: nome do evento no título, botão diz o efeito | feito (v2.26.5) |
-| 7 | I — Configurações num componente único de linhas | a fazer |
+| 7 | I — Configurações num componente único de linhas | feito (v2.26.6) |
 | 8 | J — Backup e conta: selo de estado, ações discretas | a fazer |
 | 9 | K — Anotar dose ("Anotar às 20:10") e aviso de intervalo | a fazer |
 | 10 | L — Importar bebidas, Criar PIN e Redefinir: botão diz o efeito | a fazer |
@@ -117,6 +117,7 @@ mostrar telas antigas.
 Pendentes:
 - desde G: `amigos`.
 - desde H: `evento-compartilhado`.
+- desde I: `privacidade`.
 
 ## Pacote G (v2.26.4)
 
@@ -145,3 +146,16 @@ Pendentes:
   evento passa, mostra "Enviar convites".
 - Regra global: rodapé com um só botão visível usa uma coluna.
 - "Parar com todos" continua como botão de texto ao lado: é claro e raro, e o ícone não ganharia nada.
+
+## Pacote I (v2.26.6)
+
+- Páginas usam o bloco `.occasion-menu` / `.occasion-menu-row` do evento:
+  - Privacidade: `#change-security-method`, com `#security-method-label` dentro;
+  - Redefinir: `[data-reset]` mantido.
+- Aparência: `.occasion-menu-icon` em cada `.settings-toggle-row` e explicações em `clean-optional`.
+- `#lock-now` virou `.occasion-link` com ícone de cadeado.
+- Sobre: o cartão de políticas foi unido ao da versão.
+- Nomes: menu "Redefinir dados" (igual à página) e título do reset "Apagar tudo deste aparelho" (`reset.js`).
+- O menu principal de Configurações continua com `.settings-nav-row` (ícone de 40px e resumo embaixo): muitos testes e
+  tutoriais dependem dessas classes, e o visual já é o mesmo padrão. Unificar as classes fica como limpeza futura,
+  sem mudança visual.
