@@ -1,4 +1,12 @@
-# FunTime — V2.27.0
+# FunTime — V2.28.0
+
+## V2.28.0 — "Foi que horas?" e roletas limpas
+
+- **Anotar dose**: em vez de "há quanto tempo", escolha **a hora** em que bebeu (00–23 : 00–59), já aberta na hora atual. Se a hora ainda não chegou hoje, vale ontem — a linha de data mostra "(ontem) ter 27/10". Tocar na data abre o calendário para qualquer dia passado.
+- O botão diz quando vai anotar: "Anotar às 20:10", "Anotar ontem às 23:00", "Anotar em 12/09 às 14:00".
+- **Roletas padronizadas** (Anotar dose, intervalo da bebida, Editar registro, início/fim de evento): sem caixa nem bordas, como o despertador do Android; as de hora com ":" entre as colunas. Ver spec 0030.
+- Tutorial "Registrar doses e intervalos" ganhou o passo da tela nova; "Histórico" regravado.
+- Sem mudança de dados; `DATA_VERSION` permanece 11.
 
 ## V2.27.0 — tutoriais em dia com o app novo
 

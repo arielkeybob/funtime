@@ -48,6 +48,27 @@ export function calendarDaysBetween(start, end) {
   return Math.round((midnight(end) - midnight(start)) / 86400000);
 }
 
+// "Foi que horas?" do Anotar dose. Sem data escolhida, a hora vale para hoje e, se ainda não
+// chegou, para ontem (01:00 agora e 23:00 na roleta = ontem 23:00). Com data ("AAAA-MM-DD"),
+// ela manda e `isFuture` avisa quando a combinação ainda não aconteceu. Ver docs/specs/0030.
+export function resolveLogTimestamp({ hour, minute, date = null, now = Date.now() }) {
+  const today = new Date(now);
+  const [year, month, day] = date ? date.split("-").map(Number) : [today.getFullYear(), today.getMonth() + 1, today.getDate()];
+  const moment = new Date(year, month - 1, day, Number(hour) || 0, Number(minute) || 0);
+  if (!date && moment.getTime() > now) moment.setDate(moment.getDate() - 1);
+  const timestamp = moment.getTime();
+  return { timestamp, daysAgo: calendarDaysBetween(timestamp, now), isFuture: timestamp > now };
+}
+
+// Linha de data do Anotar dose: "Hoje · qua 28/10", "(ontem) ter 27/10" ou "sáb 12/09".
+export function formatLogDay(timestamp, now = Date.now()) {
+  const { weekday, date } = agendaDateParts(timestamp, now);
+  const daysAgo = calendarDaysBetween(timestamp, now);
+  if (daysAgo === 0) return `Hoje · ${weekday} ${date}`;
+  if (daysAgo === 1) return `(ontem) ${weekday} ${date}`;
+  return `${weekday} ${date}`;
+}
+
 // Duração de um evento: "45 min", "15 h 49 min" ou, a partir de um dia, "2 dias 5 h".
 export function formatEventDuration(ms) {
   const totalMinutes = Math.max(0, Math.floor(ms / 60000));

@@ -47,5 +47,16 @@ module.exports = {
       },
       destaque: '#drink-menu-other-time',
     },
+    {
+      tipo: 'imagem',
+      legenda: 'Escolha a hora; se ainda não chegou hoje, vale ontem. Toque na data para outro dia.',
+      alt: 'Tela Anotar dose com a linha de data e as roletas de hora e minuto em destaque.',
+      async antes(t) {
+        await t.tocar('#drink-menu-other-time');
+        await t.page.waitForSelector('#log-dialog[open]');
+        await t.esperar(400);
+      },
+      destaque: '#log-dialog .log-clock-fieldset',
+    },
   ],
 };

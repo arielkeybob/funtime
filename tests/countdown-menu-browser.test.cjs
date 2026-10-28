@@ -76,9 +76,12 @@ test('Menu de dose, contagem cancelada e editor de horário', { timeout: 90000 }
     assert.equal(await page.locator('#drink-submit-button').isVisible(), false);
     await page.evaluate(() => { closeDrinkDialog(); openLogDialog('d'); });
     assert.equal(await page.locator('#log-form button[type=submit]').isVisible(), false);
-    await page.evaluate(() => setLogDurationPicker(0, 5));
+    // "Foi que horas?" abre na hora atual; mexer marca o rascunho e voltar desmarca (spec 0030).
+    const openedAt = await page.evaluate(() => [Number(document.querySelector('#log-hour').value), Number(document.querySelector('#log-minute').value)]);
+    assert.match(await page.locator('#log-day-label').textContent(), /^Hoje · /);
+    await page.evaluate(([hour, minute]) => setLogClock(hour, (minute + 30) % 60), openedAt);
     assert.equal(await page.locator('#log-form button[type=submit]').isVisible(), true);
-    await page.evaluate(() => setLogDurationPicker(0, 0));
+    await page.evaluate(([hour, minute]) => setLogClock(hour, minute), openedAt);
     assert.equal(await page.locator('#log-form button[type=submit]').isVisible(), false);
     await page.evaluate(() => { closeLogDialog(); openEventDialog('older'); });
     assert.equal(await page.locator('#event-dialog input[type=time]').count(), 0);

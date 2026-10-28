@@ -2,6 +2,41 @@ const WHEEL_REPEAT_COUNT = 7;
 const WHEEL_MIDDLE_REPEAT = Math.floor(WHEEL_REPEAT_COUNT / 2);
 const WHEEL_ITEM_HEIGHT = 44;
 
+// A altura de cada número vem do CSS (--wheel-item-h), para a roleta de hora e a de duração
+// terem tamanhos próprios sem o cálculo da rolagem divergir do que aparece na tela.
+function itemHeight(element) {
+  const value = parseFloat(getComputedStyle(element).getPropertyValue("--wheel-item-h"));
+  return value > 0 ? value : WHEEL_ITEM_HEIGHT;
+}
+
+// Monta o par de roletas no mesmo formato do index.html. `clock` é hora do relógio (00–23 : 00–59,
+// sem legendas, como no despertador); `duration` mantém as legendas "Horas"/"Minutos".
+export function buildWheelPair({ mode = "clock", ariaSuffix = "", labels = ["Hora", "Minuto"], maxHours = 23 } = {}) {
+  const row = document.createElement("div");
+  row.className = "duration-inputs wheel-duration-inputs" + (mode === "clock" ? " wheel-clock" : "");
+  const parts = [];
+  for (const [text, max] of [[labels[0], maxHours], [labels[1], 59]]) {
+    const field = document.createElement("div"); field.className = "duration-field";
+    const shell = document.createElement("div"); shell.className = "wheel-picker-shell";
+    const wheel = document.createElement("div"); wheel.className = "wheel-picker"; wheel.tabIndex = 0;
+    wheel.setAttribute("role", "spinbutton"); wheel.setAttribute("aria-label", text + ariaSuffix);
+    wheel.setAttribute("aria-valuemin", "0"); wheel.setAttribute("aria-valuemax", String(max));
+    const track = document.createElement("div"); track.className = "wheel-picker-track"; track.setAttribute("aria-hidden", "true");
+    const selection = document.createElement("div"); selection.className = "wheel-picker-selection"; selection.setAttribute("aria-hidden", "true");
+    const input = document.createElement("input"); input.type = "hidden";
+    wheel.append(track); shell.append(wheel, selection);
+    if (mode !== "clock") { const caption = document.createElement("span"); caption.textContent = text; field.append(caption); }
+    field.append(shell, input);
+    if (parts.length && mode === "clock") {
+      const separator = document.createElement("span"); separator.className = "wheel-clock-separator";
+      separator.setAttribute("aria-hidden", "true"); separator.textContent = ":"; row.append(separator);
+    }
+    row.append(field);
+    parts.push({ wheel, input, max });
+  }
+  return { row, hours: parts[0], minutes: parts[1] };
+}
+
 export function createWheelPicker(element, input, maxValue, { onValueChange } = {}) {
   const track = element.querySelector(".wheel-picker-track");
   const valueCount = maxValue + 1;
@@ -36,7 +71,7 @@ export function createWheelPicker(element, input, maxValue, { onValueChange } = 
   const updateFromScroll = () => {
     wheelState.scrollRaf = null;
     const maxIndex = track.children.length - 1;
-    const index = Math.max(0, Math.min(maxIndex, Math.round(element.scrollTop / WHEEL_ITEM_HEIGHT)));
+    const index = Math.max(0, Math.min(maxIndex, Math.round(element.scrollTop / itemHeight(element))));
     const item = track.children[index];
     if (!item) return;
 
@@ -58,13 +93,13 @@ export function createWheelPicker(element, input, maxValue, { onValueChange } = 
   };
 
   const settle = () => {
-    const index = Math.round(element.scrollTop / WHEEL_ITEM_HEIGHT);
+    const index = Math.round(element.scrollTop / itemHeight(element));
     const repeat = Math.floor(index / valueCount);
     const value = Number(input.value);
 
     if (repeat <= 1 || repeat >= WHEEL_REPEAT_COUNT - 2) {
       const middleIndex = WHEEL_MIDDLE_REPEAT * valueCount + value;
-      element.scrollTo({ top: middleIndex * WHEEL_ITEM_HEIGHT, behavior: "auto" });
+      element.scrollTo({ top: middleIndex * itemHeight(element), behavior: "auto" });
       updateFromScroll();
     }
   };
@@ -83,7 +118,7 @@ export function createWheelPicker(element, input, maxValue, { onValueChange } = 
     if (!item || element.classList.contains("is-disabled")) return;
 
     element.scrollTo({
-      top: Number(item.dataset.index) * WHEEL_ITEM_HEIGHT,
+      top: Number(item.dataset.index) * itemHeight(element),
       behavior: "smooth",
     });
   });
@@ -97,9 +132,9 @@ export function createWheelPicker(element, input, maxValue, { onValueChange } = 
     if (!direction) return;
 
     event.preventDefault();
-    const currentIndex = Math.round(element.scrollTop / WHEEL_ITEM_HEIGHT);
+    const currentIndex = Math.round(element.scrollTop / itemHeight(element));
     element.scrollTo({
-      top: (currentIndex + direction) * WHEEL_ITEM_HEIGHT,
+      top: (currentIndex + direction) * itemHeight(element),
       behavior: "smooth",
     });
   });
@@ -118,7 +153,7 @@ export function setWheelPickerValue(element, rawValue, behavior = "auto") {
   wheelState.input.dispatchEvent(new Event("input", { bubbles: true }));
   element.setAttribute("aria-valuenow", String(value));
   element.setAttribute("aria-valuetext", String(value).padStart(2, "0"));
-  element.scrollTo({ top: targetIndex * WHEEL_ITEM_HEIGHT, behavior });
+  element.scrollTo({ top: targetIndex * itemHeight(element), behavior });
 
   if (wheelState.selectedIndex >= 0 && wheelState.track.children[wheelState.selectedIndex]) {
     wheelState.track.children[wheelState.selectedIndex].classList.remove("is-selected");

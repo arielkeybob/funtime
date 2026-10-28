@@ -1740,6 +1740,8 @@ Remove:
 
 O seletor de intervalo é customizado para evitar diferenças grandes entre controles nativos de Android e iOS.
 
+Desde a spec 0030 as mesmas roletas servem a quatro telas com um visual só (sem caixa nem bordas, como o despertador do Android): intervalo da bebida (duração, com legendas), "Ou escolha a hora" do Anotar dose, Editar registro e início/encerramento de evento (hora do relógio, `.wheel-clock`, com ":" entre as colunas). A altura de cada número vem de `--wheel-item-h` no CSS; o esmaecimento usa `mask-image`.
+
 ### Intervalos
 
 Horas:
@@ -1767,7 +1769,7 @@ Constantes:
 ```js
 const WHEEL_REPEAT_COUNT = 7;
 const WHEEL_MIDDLE_REPEAT = Math.floor(WHEEL_REPEAT_COUNT / 2);
-const WHEEL_ITEM_HEIGHT = 44;
+const WHEEL_ITEM_HEIGHT = 44; // só o padrão; vale o --wheel-item-h do CSS
 ```
 
 ### Regra de 24 horas

@@ -315,7 +315,7 @@ document.addEventListener("visibilitychange", () => {
 const DATA_STORAGE_KEY = "funtime-v1-data";
 const LEGACY_DRINKS_STORAGE_KEY = "balada-v1-drinks";
 const DATA_VERSION = 11;
-const APP_VERSION = "2.27.0";
+const APP_VERSION = "2.28.0";
 const DRINK_EXPORT_TYPE = "funtime-drinks";
 const DRINK_EXPORT_FORMAT_VERSION = 1;
 const BACKUP_EXPORT_TYPE = "funtime-backup";
@@ -506,10 +506,12 @@ const logDrinkName = document.querySelector("#log-drink-name");
 const activeIntervalWarning = document.querySelector("#active-interval-warning");
 const activeIntervalWarningTitle = document.querySelector("#active-interval-warning-title");
 const activeIntervalWarningText = document.querySelector("#active-interval-warning-text");
-const logHoursAgoInput = document.querySelector("#log-hours-ago");
-const logMinutesAgoInput = document.querySelector("#log-minutes-ago");
-const logHoursWheel = document.querySelector("#log-hours-wheel");
-const logMinutesWheel = document.querySelector("#log-minutes-wheel");
+const logHourInput = document.querySelector("#log-hour");
+const logMinuteInput = document.querySelector("#log-minute");
+const logHourWheel = document.querySelector("#log-hour-wheel");
+const logMinuteWheel = document.querySelector("#log-minute-wheel");
+const logDateInput = document.querySelector("#log-date");
+const logDayLabel = document.querySelector("#log-day-label");
 const logFormError = document.querySelector("#log-form-error");
 
 const eventDialog = document.querySelector("#event-dialog");
@@ -3023,8 +3025,8 @@ const drinkInteractions = createDrinkInteractions({
   intervalWarningMessage, intervalWarningContext,
   drinkMenuDialog, drinkMenuName,
   logDialog, logForm, logDrinkName, activeIntervalWarning, activeIntervalWarningTitle,
-  activeIntervalWarningText, logHoursAgoInput, logMinutesAgoInput,
-  logHoursWheel, logMinutesWheel, intervalHoursWheel, intervalMinutesWheel,
+  activeIntervalWarningText, logHourInput, logMinuteInput,
+  logHourWheel, logMinuteWheel, logDateInput, logDayLabel, intervalHoursWheel, intervalMinutesWheel,
   intervalHoursInput, intervalMinutesInput, logFormError,
   doseSizeDialog, doseSizeDrinkName, doseHalfButton, doseFullButton, toastUndo,
   createDurationPicker, validateDrinkDraft,
@@ -3046,7 +3048,7 @@ const {
   editDrinkFromDrinkMenu, openIntervalWarningDialog, updateIntervalWarningDialog,
   closeIntervalWarningDialog, continueFromIntervalWarning, openLogDialog, closeLogDialog,
   registerMinutesAgo, handleLogSubmit,
-  setDurationPicker, initializeDurationPickers, setLogDurationPicker, initializeLogDurationPickers,
+  setDurationPicker, initializeDurationPickers, setLogClock, initializeLogDurationPickers,
 } = drinkInteractions;
 
 function getWaitingWorkerVersion(worker) {
@@ -4307,7 +4309,7 @@ Object.assign(globalThis, {
   getEditingIconCatalog,
   openDrinkDialog, openLogDialog, openIntervalWarningDialog, continueFromIntervalWarning,
   openDoseSizeDialog, openDrinkImportPreview, choosePinSecurity, disableSecurity,
-  updateDrinkMenuCountdown, setLogDurationPicker, buildIconPicker, prepareDrinkImportFile,
+  updateDrinkMenuCountdown, setLogClock, buildIconPicker, prepareDrinkImportFile,
   prepareBackupRestoreFile, validateBackupPayload, persistDrinkList, readPendingSharedDrinkFile,
   lockApp, closeSensitiveDialogs, showLockScreen, APP_VERSION, DRINK_EXPORT_TYPE, DATA_VERSION,
   backupRestoreDialog, derivePinHash,

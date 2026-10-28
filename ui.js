@@ -1,3 +1,5 @@
+import { buildWheelPair } from './src/ui/wheel-picker.js';
+
 // Estrutura compartilhada: conteúdo rolável e ações fixas em todos os diálogos.
 function initializeAppDialogs() {
   document.querySelectorAll('dialog.dialog').forEach(dialog => {
@@ -160,19 +162,8 @@ export function initializeDateTimeEditor(input) {
   dateLabel.append(dateTitle, date); body.append(dateLabel);
   const fieldset = document.createElement('fieldset'); fieldset.className = 'field interval-fieldset';
   const legend = document.createElement('legend'); legend.className = 'interval-fieldset-title'; legend.textContent = 'Horário';
-  const row = document.createElement('div'); row.className = 'duration-inputs wheel-duration-inputs';
-  const pickers = [];
-  for (const [text, max] of [['Hora', 23], ['Minuto', 59]]) {
-    const field = document.createElement('div'); field.className = 'duration-field';
-    const caption = document.createElement('span'); caption.textContent = text;
-    const shell = document.createElement('div'); shell.className = 'wheel-picker-shell';
-    const wheel = document.createElement('div'); wheel.className = 'wheel-picker'; wheel.tabIndex = 0; wheel.setAttribute('role', 'spinbutton'); wheel.setAttribute('aria-label', text + ' de ' + title.toLowerCase()); wheel.setAttribute('aria-valuemin', '0'); wheel.setAttribute('aria-valuemax', String(max));
-    const track = document.createElement('div'); track.className = 'wheel-picker-track'; track.setAttribute('aria-hidden', 'true');
-    const selection = document.createElement('div'); selection.className = 'wheel-picker-selection'; selection.setAttribute('aria-hidden', 'true');
-    const value = document.createElement('input'); value.type = 'hidden';
-    wheel.append(track); shell.append(wheel, selection); field.append(caption, shell, value); row.append(field);
-    pickers.push({ wheel, value, max });
-  }
+  const { row, hours, minutes } = buildWheelPair({ ariaSuffix: ' de ' + title.toLowerCase() });
+  const pickers = [hours, minutes].map(({ wheel, input, max }) => ({ wheel, value: input, max }));
   fieldset.append(legend, row); body.append(fieldset); input.type = 'hidden';
   label.replaceWith(details); details.append(summary, input, body);
   const updateSummary = () => {

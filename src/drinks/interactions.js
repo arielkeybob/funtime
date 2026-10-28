@@ -1,4 +1,5 @@
 import { setWheelPickerValue } from "../ui/wheel-picker.js";
+import { resolveLogTimestamp, formatLogDay, agendaDateParts } from "../format/datetime.js";
 
 export function createDrinkInteractions({
   state,
@@ -12,8 +13,8 @@ export function createDrinkInteractions({
   intervalWarningMessage, intervalWarningContext,
   drinkMenuDialog, drinkMenuName,
   logDialog, logForm, logDrinkName, activeIntervalWarning, activeIntervalWarningTitle,
-  activeIntervalWarningText, logHoursAgoInput, logMinutesAgoInput,
-  logHoursWheel, logMinutesWheel, intervalHoursWheel, intervalMinutesWheel,
+  activeIntervalWarningText, logHourInput, logMinuteInput,
+  logHourWheel, logMinuteWheel, logDateInput, logDayLabel, intervalHoursWheel, intervalMinutesWheel,
   intervalHoursInput, intervalMinutesInput, logFormError,
   doseSizeDialog, doseSizeDrinkName, doseHalfButton, doseFullButton, toastUndo,
   // Dependências externas
@@ -541,7 +542,10 @@ export function createDrinkInteractions({
     logDrinkName.textContent = `${drink.icon} ${drink.name}`;
     document.querySelector("#log-dose-field").hidden = !drink.askDoseSize;
     document.querySelector('input[name="logDoseSize"][value="full"]').checked = true;
-    setLogDurationPicker(0, 0);
+    const now = new Date();
+    logDateChosen = false;
+    setLogClock(now.getHours(), now.getMinutes());
+    updateLogDay();
     logFormError.hidden = true;
 
     if (activity.state === "waiting" || activity.state === "danger") {
@@ -555,13 +559,45 @@ export function createDrinkInteractions({
     beginFormDraft(logForm);
     updateLogSubmitLabel();
     logDialog.showModal();
+    // Com o diálogo fechado a rolagem não acontece; reaplica agora que as roletas estão visíveis.
+    setLogClock(now.getHours(), now.getMinutes());
   }
 
-  // O botão diz a hora que vai ser anotada ("Anotar às 20:10"); ele só aparece depois de mexer nas roletas.
+  // "Foi que horas?": sem data tocada, a roleta vale para hoje ou, se a hora ainda não chegou,
+  // para ontem; tocando na data, o calendário permite qualquer dia passado. Ver docs/specs/0030.
+  let logDateChosen = false;
+
+  function toDateInputValue(timestamp) {
+    const date = new Date(timestamp);
+    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+  }
+
+  function readLogMoment(now = Date.now()) {
+    if (logDateChosen && !logDateInput.value) logDateChosen = false;
+    return resolveLogTimestamp({
+      hour: logHourInput.value, minute: logMinuteInput.value,
+      date: logDateChosen ? logDateInput.value : null, now,
+    });
+  }
+
+  function updateLogDay() {
+    const now = Date.now();
+    const moment = readLogMoment(now);
+    logDateInput.max = toDateInputValue(now);
+    if (!logDateChosen) logDateInput.value = toDateInputValue(moment.timestamp);
+    logDayLabel.textContent = formatLogDay(moment.timestamp, now);
+    return moment;
+  }
+
+  // O botão diz quando vai ser anotado ("Anotar às 20:10", "Anotar ontem às 23:00"); ele só aparece depois de mexer nas roletas.
   function updateLogSubmitLabel() {
-    const minutes = Number(logHoursAgoInput.value) * 60 + Number(logMinutesAgoInput.value);
+    const moment = updateLogDay();
     const button = document.querySelector("#log-submit-button");
-    if (button && Number.isFinite(minutes)) button.textContent = `Anotar às ${formatClock(Date.now() - minutes * 60000)}`;
+    if (!button) return;
+    const clock = formatClock(moment.timestamp);
+    if (moment.daysAgo === 0 || moment.isFuture) button.textContent = `Anotar às ${clock}`;
+    else if (moment.daysAgo === 1) button.textContent = `Anotar ontem às ${clock}`;
+    else button.textContent = `Anotar em ${agendaDateParts(moment.timestamp).date} às ${clock}`;
   }
 
   function closeLogDialog() {
@@ -570,9 +606,12 @@ export function createDrinkInteractions({
   }
 
   function registerMinutesAgo(minutesAgo) {
+    registerLogAt(Date.now() - minutesAgo * 60 * 1000);
+  }
+
+  function registerLogAt(timestamp) {
     if (!state.selectedDrinkId) return;
 
-    const timestamp = Date.now() - minutesAgo * 60 * 1000;
     const id = state.selectedDrinkId;
     const doseSize = document.querySelector('input[name="logDoseSize"]:checked')?.value || "full";
     registerDrinkAt(id, timestamp, { doseSize, onSaved: () => {
@@ -586,24 +625,27 @@ export function createDrinkInteractions({
   function handleLogSubmit(event) {
     event.preventDefault();
 
-    const hours = Number(logHoursAgoInput.value);
-    const minutes = Number(logMinutesAgoInput.value);
+    const hour = Number(logHourInput.value);
+    const minute = Number(logMinuteInput.value);
 
-    if (!Number.isInteger(hours) || hours < 0 || hours > 48) {
-      showLogFormError("Use um valor de horas entre 0 e 48.");
+    if (!Number.isInteger(hour) || hour < 0 || hour > 23 || !Number.isInteger(minute) || minute < 0 || minute > 59) {
+      showLogFormError("Escolha um horário válido.");
       return;
     }
 
-    if (!Number.isInteger(minutes) || minutes < 0 || minutes > 59) {
-      showLogFormError("Use um valor de minutos entre 0 e 59.");
+    const now = new Date();
+    const moment = readLogMoment(now.getTime());
+    if (moment.isFuture) {
+      showLogFormError("Esse horário ainda não chegou. Escolha outra hora ou outra data.");
       return;
     }
 
-    const totalMinutesAgo = hours * 60 + minutes;
-    registerMinutesAgo(totalMinutesAgo);
+    // No minuto de agora, vale o instante exato (como o botão Agora), não o começo do minuto.
+    const isCurrentMinute = moment.daysAgo === 0 && hour === now.getHours() && minute === now.getMinutes();
+    registerLogAt(isCurrentMinute ? now.getTime() : moment.timestamp);
   }
 
-  // --- Roleta de intervalo (bebida) e "há quanto tempo" (log) ---
+  // --- Roleta de intervalo (bebida) e "Foi que horas?" (log) ---
 
   function updateMinuteWheelAvailability(hours = Number(intervalHoursInput.value)) {
     const isMaxHours = Number(hours) === 24;
@@ -623,12 +665,12 @@ export function createDrinkInteractions({
     intervalMinutesWheel.tabIndex = isMaxHours ? -1 : 0;
   }
 
-  const logDurationPicker = createDurationPicker({
-    maxHours: 48, hoursWheel: logHoursWheel, minutesWheel: logMinutesWheel,
-    hoursInput: logHoursAgoInput, minutesInput: logMinutesAgoInput,
+  const logClockPicker = createDurationPicker({
+    maxHours: 23, hoursWheel: logHourWheel, minutesWheel: logMinuteWheel,
+    hoursInput: logHourInput, minutesInput: logMinuteInput,
   });
-  function setLogDurationPicker(hours, minutes) { logDurationPicker.set(hours, minutes); }
-  function initializeLogDurationPickers() { logDurationPicker.initialize(0, 0); }
+  function setLogClock(hours, minutes) { logClockPicker.set(hours, minutes); }
+  function initializeLogDurationPickers() { logClockPicker.initialize(0, 0); }
 
   const intervalDurationPicker = createDurationPicker({
     maxHours: 24, hoursWheel: intervalHoursWheel, minutesWheel: intervalMinutesWheel,
@@ -667,6 +709,8 @@ export function createDrinkInteractions({
   document.querySelector("#drink-menu-edit").addEventListener("click", editDrinkFromDrinkMenu);
 
   document.querySelector("#close-log-dialog").addEventListener("click", closeLogDialog);
+  // A data escolhida no calendário passa a mandar; apagada, volta a valer hoje/ontem.
+  logDateInput.addEventListener("input", () => { logDateChosen = Boolean(logDateInput.value); });
   for (const type of ["input", "change"]) logForm.addEventListener(type, updateLogSubmitLabel);
   logForm.addEventListener("submit", handleLogSubmit);
 
@@ -699,6 +743,6 @@ export function createDrinkInteractions({
     editDrinkFromDrinkMenu, openIntervalWarningDialog, updateIntervalWarningDialog,
     closeIntervalWarningDialog, continueFromIntervalWarning, openLogDialog, closeLogDialog,
     registerMinutesAgo, handleLogSubmit,
-    setDurationPicker, initializeDurationPickers, setLogDurationPicker, initializeLogDurationPickers,
+    setDurationPicker, initializeDurationPickers, setLogClock, initializeLogDurationPickers,
   };
 }

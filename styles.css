@@ -1595,17 +1595,33 @@ body {
   vertical-align: 0.08em;
 }
 
+/* Roletas de hora e duração (spec 0030): sem caixa nem linhas, como o despertador do
+   Android — só os números, o escolhido grande e os vizinhos esmaecidos. A altura de cada
+   número (--wheel-item-h) também é lida pelo wheel-picker.js; mostram-se três por vez. */
 .wheel-duration-inputs {
+  --wheel-item-h: 48px;
   gap: 14px;
+}
+
+.wheel-clock {
+  --wheel-item-h: 60px;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  gap: 4px;
+}
+
+.wheel-clock-separator {
+  color: var(--text);
+  font-size: 2.2rem;
+  font-weight: 700;
+  line-height: 1;
+  transform: translateY(-0.08em);
 }
 
 .wheel-picker-shell {
   position: relative;
-  height: 220px;
+  height: calc(var(--wheel-item-h) * 3);
   overflow: hidden;
-  border: 1px solid var(--border);
-  border-radius: 16px;
-  background: #09090b;
 }
 
 .wheel-picker {
@@ -1620,6 +1636,9 @@ body {
   touch-action: pan-y;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
+  /* Esmaece em cima e embaixo sem depender da cor do fundo (diálogo, editor de evento…). */
+  -webkit-mask-image: linear-gradient(to bottom, transparent, #000 35%, #000 65%, transparent);
+  mask-image: linear-gradient(to bottom, transparent, #000 35%, #000 65%, transparent);
 }
 
 .wheel-picker::-webkit-scrollbar {
@@ -1627,71 +1646,51 @@ body {
 }
 
 .wheel-picker-track {
-  padding-block: 88px;
+  padding-block: var(--wheel-item-h);
 }
 
 .wheel-picker-item {
   display: grid;
-  height: 44px;
+  height: var(--wheel-item-h);
   place-items: center;
   scroll-snap-align: center;
   scroll-snap-stop: always;
-  color: #71717a;
-  font-size: 1rem;
+  color: var(--muted);
+  opacity: 0.4;
+  font-size: 1.35rem;
   font-variant-numeric: tabular-nums;
-  font-weight: 650;
+  font-weight: 600;
   line-height: 1;
   user-select: none;
   -webkit-user-select: none;
   transition: color 120ms ease, font-size 120ms ease, opacity 120ms ease;
 }
 
+.wheel-clock .wheel-picker-item {
+  font-size: 1.9rem;
+}
+
 .wheel-picker-item.is-selected {
   color: var(--text);
-  font-size: 1.48rem;
-  font-weight: 850;
+  opacity: 1;
+  font-size: 2rem;
+  font-weight: 750;
 }
 
+.wheel-clock .wheel-picker-item.is-selected {
+  font-size: 2.7rem;
+}
+
+/* Mantido no HTML por compatibilidade; o destaque agora é só tipográfico. */
 .wheel-picker-selection {
-  position: absolute;
-  z-index: 2;
-  top: 50%;
-  right: 10px;
-  left: 10px;
-  height: 44px;
-  transform: translateY(-50%);
-  border-top: 1px solid #52525b;
-  border-bottom: 1px solid #52525b;
-  border-radius: 8px;
-  background: rgb(255 255 255 / 0.035);
-  pointer-events: none;
+  display: none;
 }
 
-.wheel-picker-shell::before,
-.wheel-picker-shell::after {
-  position: absolute;
-  z-index: 3;
-  right: 0;
-  left: 0;
-  height: 74px;
-  content: "";
-  pointer-events: none;
-}
-
-.wheel-picker-shell::before {
-  top: 0;
-  background: linear-gradient(to bottom, #09090b 12%, rgb(9 9 11 / 0));
-}
-
-.wheel-picker-shell::after {
-  bottom: 0;
-  background: linear-gradient(to top, #09090b 12%, rgb(9 9 11 / 0));
-}
 
 .wheel-picker:focus-visible {
-  outline: 2px solid #a1a1aa;
-  outline-offset: -3px;
-  border-radius: 15px;
+  outline: 2px solid var(--muted);
+  outline-offset: -2px;
+  border-radius: 12px;
 }
 
 .wheel-picker.is-disabled {
@@ -1701,17 +1700,13 @@ body {
   cursor: not-allowed;
 }
 
-.wheel-picker.is-disabled + .wheel-picker-selection {
-  opacity: 0.38;
-}
-
-@media (max-width: 420px) {
-  .wheel-picker-shell {
-    height: 198px;
+@media (max-height: 700px) {
+  .wheel-duration-inputs {
+    --wheel-item-h: 42px;
   }
 
-  .wheel-picker-track {
-    padding-block: 77px;
+  .wheel-clock {
+    --wheel-item-h: 50px;
   }
 }
 
@@ -1817,20 +1812,6 @@ body {
     gap: 5px;
   }
 
-  :is(#drink-dialog, #log-dialog) .wheel-picker-shell {
-    height: 156px;
-    border-radius: 14px;
-  }
-
-  :is(#drink-dialog, #log-dialog) .wheel-picker-track {
-    padding-block: 56px;
-  }
-
-  :is(#drink-dialog, #log-dialog) .wheel-picker-shell::before,
-  :is(#drink-dialog, #log-dialog) .wheel-picker-shell::after {
-    height: 56px;
-  }
-
   :is(#drink-dialog .drink-dialog-actions, #log-dialog .log-dialog-actions) {
     position: relative;
     z-index: 10;
@@ -1862,14 +1843,6 @@ body {
     width: 50px;
     height: 50px;
   }
-
-  :is(#drink-dialog, #log-dialog) .wheel-picker-shell {
-    height: 144px;
-  }
-
-  :is(#drink-dialog, #log-dialog) .wheel-picker-track {
-    padding-block: 50px;
-  }
 }
 
 
@@ -1887,8 +1860,41 @@ body {
   margin-top: 20px;
 }
 
-#log-dialog .wheel-duration-inputs {
+#log-dialog .wheel-duration-inputs:not(.wheel-clock) {
   gap: 12px;
+}
+
+/* Linha de data do "Foi que horas?": toca e abre o calendário (input date invisível por cima). */
+.log-day-picker {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 6px;
+  min-height: 40px;
+  color: var(--muted);
+  font-size: 0.95rem;
+  font-weight: 650;
+}
+
+.log-day-picker::after {
+  content: "⌄";
+  transform: translateY(-0.15em);
+}
+
+.log-day-picker input[type="date"] {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.log-day-picker:focus-within {
+  outline: 2px solid var(--muted);
+  outline-offset: 2px;
+  border-radius: 10px;
 }
 
 @media (max-width: 600px) {

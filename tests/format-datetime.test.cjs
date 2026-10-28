@@ -1,6 +1,39 @@
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
-const { formatTime, formatClock, formatHistoryElapsed, formatInterval, formatAgendaDateTime, agendaDateParts, calendarDaysBetween, formatEventDuration } = require('../src/format/datetime.js');
+const { formatTime, formatClock, formatHistoryElapsed, formatInterval, formatAgendaDateTime, agendaDateParts, calendarDaysBetween, formatEventDuration, resolveLogTimestamp, formatLogDay } = require('../src/format/datetime.js');
+
+test('resolveLogTimestamp usa hoje, ou ontem quando a hora ainda não chegou', () => {
+  const now = new Date(2026, 9, 28, 1, 0, 30).getTime();
+  const yesterday = resolveLogTimestamp({ hour: 23, minute: 0, now });
+  assert.equal(yesterday.timestamp, new Date(2026, 9, 27, 23, 0).getTime());
+  assert.equal(yesterday.daysAgo, 1);
+  assert.equal(yesterday.isFuture, false);
+  const sameMinute = resolveLogTimestamp({ hour: 1, minute: 0, now });
+  assert.equal(sameMinute.timestamp, new Date(2026, 9, 28, 1, 0).getTime());
+  assert.equal(sameMinute.daysAgo, 0);
+  const evening = new Date(2026, 9, 28, 20, 0).getTime();
+  assert.equal(resolveLogTimestamp({ hour: 19, minute: 30, now: evening }).daysAgo, 0);
+});
+
+test('resolveLogTimestamp atravessa virada de mês e de ano', () => {
+  const now = new Date(2027, 0, 1, 0, 10).getTime();
+  assert.equal(resolveLogTimestamp({ hour: 23, minute: 50, now }).timestamp, new Date(2026, 11, 31, 23, 50).getTime());
+});
+
+test('resolveLogTimestamp com data escolhida: ela manda e avisa horário futuro', () => {
+  const now = new Date(2026, 9, 28, 21, 0).getTime();
+  const old = resolveLogTimestamp({ hour: 22, minute: 15, date: '2026-09-12', now });
+  assert.equal(old.timestamp, new Date(2026, 8, 12, 22, 15).getTime());
+  assert.equal(old.isFuture, false);
+  assert.equal(resolveLogTimestamp({ hour: 23, minute: 0, date: '2026-10-28', now }).isFuture, true);
+});
+
+test('formatLogDay marca hoje e ontem', () => {
+  const now = new Date(2026, 9, 28, 1, 0).getTime();
+  assert.match(formatLogDay(new Date(2026, 9, 28, 0, 30).getTime(), now), /^Hoje · \S+ 28\/10$/);
+  assert.match(formatLogDay(new Date(2026, 9, 27, 23, 0).getTime(), now), /^\(ontem\) \S+ 27\/10$/);
+  assert.match(formatLogDay(new Date(2026, 8, 12, 22, 0).getTime(), now), /^\S+ 12\/09$/);
+});
 
 test('formatTime converte milissegundos em HH:MM:SS, arredondando para cima e sem negativos', () => {
   assert.equal(formatTime(5400000), '01:30:00');

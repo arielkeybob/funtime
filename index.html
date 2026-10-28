@@ -59,7 +59,7 @@
     <footer class="browser-gate-footer">
       <span>App para estudo · não é controle de segurança</span>
       <a class="policies-link" href="./policies.html">Políticas e informações</a>
-      <span>v2.27.0 · By: arielkeybob</span>
+      <span>v2.28.0 · By: arielkeybob</span>
     </footer>
   </section>
 
@@ -360,7 +360,7 @@
 
     <section class="settings-page" data-settings-page="about" data-title="Sobre o app" hidden>
       <section class="settings-card">
-        <p class="settings-description">Versão instalada: <strong>v2.27.0</strong></p>
+        <p class="settings-description">Versão instalada: <strong>v2.28.0</strong></p>
         <button id="check-app-update" class="settings-secondary-button" type="button">Verificar atualizações</button>
         <a class="settings-link-row" href="./policies.html"><span>Políticas e informações</span><span class="settings-nav-chevron" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg></span></a>
       </section>
@@ -474,7 +474,7 @@
     <footer class="app-footer">
       <span class="app-footer-disclaimer">App para estudo · não é controle de segurança</span>
       <a class="policies-link" href="./policies.html">Políticas e informações</a>
-      <span class="app-footer-meta">v2.27.0 · By: arielkeybob</span>
+      <span class="app-footer-meta">v2.28.0 · By: arielkeybob</span>
     </footer>
   </div>
 
@@ -837,28 +837,31 @@
           </div>
         </div>
 
-        <fieldset class="field interval-fieldset">
-          <legend class="interval-fieldset-title">Ou informe há quanto tempo</legend>
-          <div class="duration-inputs wheel-duration-inputs">
+        <fieldset class="field interval-fieldset log-clock-fieldset">
+          <legend class="interval-fieldset-title">Ou escolha a hora</legend>
+          <label class="log-day-picker">
+            <span id="log-day-label">Hoje</span>
+            <input id="log-date" name="logDate" type="date" aria-label="Data da dose">
+          </label>
+          <div class="duration-inputs wheel-duration-inputs wheel-clock">
             <div class="duration-field">
-              <span>Horas atrás</span>
               <div class="wheel-picker-shell">
-                <div id="log-hours-wheel" class="wheel-picker" role="spinbutton" tabindex="0" aria-label="Horas atrás" aria-valuemin="0" aria-valuemax="48" aria-valuenow="0">
+                <div id="log-hour-wheel" class="wheel-picker" role="spinbutton" tabindex="0" aria-label="Hora" aria-valuemin="0" aria-valuemax="23" aria-valuenow="0">
                   <div class="wheel-picker-track" aria-hidden="true"></div>
                 </div>
                 <div class="wheel-picker-selection" aria-hidden="true"></div>
               </div>
-              <input id="log-hours-ago" name="hoursAgo" type="hidden" value="0">
+              <input id="log-hour" name="logHour" type="hidden" value="0">
             </div>
+            <span class="wheel-clock-separator" aria-hidden="true">:</span>
             <div class="duration-field">
-              <span>Minutos atrás</span>
               <div class="wheel-picker-shell">
-                <div id="log-minutes-wheel" class="wheel-picker" role="spinbutton" tabindex="0" aria-label="Minutos atrás" aria-valuemin="0" aria-valuemax="59" aria-valuenow="0">
+                <div id="log-minute-wheel" class="wheel-picker" role="spinbutton" tabindex="0" aria-label="Minuto" aria-valuemin="0" aria-valuemax="59" aria-valuenow="0">
                   <div class="wheel-picker-track" aria-hidden="true"></div>
                 </div>
                 <div class="wheel-picker-selection" aria-hidden="true"></div>
               </div>
-              <input id="log-minutes-ago" name="minutesAgo" type="hidden" value="0">
+              <input id="log-minute" name="logMinute" type="hidden" value="0">
             </div>
           </div>
         </fieldset>
@@ -921,9 +924,8 @@
         </label>
         <fieldset class="field interval-fieldset">
           <legend class="interval-fieldset-title">Horário</legend>
-          <div class="duration-inputs wheel-duration-inputs">
+          <div class="duration-inputs wheel-duration-inputs wheel-clock">
             <div class="duration-field">
-              <span>Hora</span>
               <div class="wheel-picker-shell">
                 <div id="event-hour-wheel" class="wheel-picker" role="spinbutton" tabindex="0" aria-label="Hora" aria-valuemin="0" aria-valuemax="23" aria-valuenow="0">
                   <div class="wheel-picker-track" aria-hidden="true"></div>
@@ -932,8 +934,8 @@
               </div>
               <input id="event-hour" name="eventHour" type="hidden" value="0">
             </div>
+            <span class="wheel-clock-separator" aria-hidden="true">:</span>
             <div class="duration-field">
-              <span>Minuto</span>
               <div class="wheel-picker-shell">
                 <div id="event-minute-wheel" class="wheel-picker" role="spinbutton" tabindex="0" aria-label="Minuto" aria-valuemin="0" aria-valuemax="59" aria-valuenow="0">
                   <div class="wheel-picker-track" aria-hidden="true"></div>

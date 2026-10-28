@@ -99,8 +99,8 @@ export const TUTORIALS = [
     "passos": [
       {
         "tipo": "video",
-        "src": "./tutorials/media/registrar-dose/01.9235f998.mp4",
-        "poster": "./tutorials/media/registrar-dose/01.poster.7138c912.webp",
+        "src": "./tutorials/media/registrar-dose/01.3b9070bc.mp4",
+        "poster": "./tutorials/media/registrar-dose/01.poster.6e4c5d2e.webp",
         "alt": "O cartão da Cerveja recebe o destaque azul e dois toques rápidos o registram; a contagem do intervalo começa e o app avisa que o consumo foi anotado.",
         "legenda": "Dê dois toques na bebida para registrar a dose."
       },
@@ -121,6 +121,12 @@ export const TUTORIALS = [
         "src": "./tutorials/media/registrar-dose/04.a01b8c74.webp",
         "alt": "Menu da bebida com a opção Anotar dose em destaque.",
         "legenda": "Esqueceu de registrar? Use o menu ⋮ e anote a dose em outro horário."
+      },
+      {
+        "tipo": "imagem",
+        "src": "./tutorials/media/registrar-dose/05.cec79d6a.webp",
+        "alt": "Tela Anotar dose com a linha de data e as roletas de hora e minuto em destaque.",
+        "legenda": "Escolha a hora; se ainda não chegou hoje, vale ontem. Toque na data para outro dia."
       }
     ]
   },
@@ -131,36 +137,36 @@ export const TUTORIALS = [
     "passos": [
       {
         "tipo": "video",
-        "src": "./tutorials/media/historico/01.12fb20cd.mp4",
-        "poster": "./tutorials/media/historico/01.poster.beacf52f.webp",
+        "src": "./tutorials/media/historico/01.e894cb9b.mp4",
+        "poster": "./tutorials/media/historico/01.poster.e0d71173.webp",
         "alt": "Na tela inicial, o botão Histórico do menu de baixo recebe o destaque azul e é tocado; abre a lista com todos os registros, do mais recente ao mais antigo.",
         "legenda": "Toque em Histórico no menu para ver todos os registros."
       },
       {
         "tipo": "video",
-        "src": "./tutorials/media/historico/02.74c523db.mp4",
-        "poster": "./tutorials/media/historico/02.poster.25d874f9.webp",
+        "src": "./tutorials/media/historico/02.77858ca5.mp4",
+        "poster": "./tutorials/media/historico/02.poster.3f0a7a01.webp",
         "alt": "O botão Histórico do cartão da Cerveja é tocado e abre a lista só com os registros dessa bebida.",
         "legenda": "No card, o botão Histórico mostra só aquela bebida."
       },
       {
         "tipo": "video",
-        "src": "./tutorials/media/historico/03.e709ef01.mp4",
-        "poster": "./tutorials/media/historico/03.poster.e9c9efe4.webp",
+        "src": "./tutorials/media/historico/03.8d855721.mp4",
+        "poster": "./tutorials/media/historico/03.poster.bb9855e6.webp",
         "alt": "Um registro do Histórico é tocado e abre o editor, com a data e as rodas de hora e minuto em destaque.",
         "legenda": "Toque num registro para corrigir o horário."
       },
       {
         "tipo": "video",
-        "src": "./tutorials/media/historico/04.97ca194f.mp4",
-        "poster": "./tutorials/media/historico/04.poster.33d77572.webp",
+        "src": "./tutorials/media/historico/04.4432f1a5.mp4",
+        "poster": "./tutorials/media/historico/04.poster.506ea716.webp",
         "alt": "Um registro do Histórico recebe um toque e segurar; um seletor flutuante com cinco reações, de \"Péssimo\" a \"Ótimo\", aparece perto dele; a reação \"Ótimo\" é tocada, o seletor fecha e o selo da reação aparece no canto do registro.",
         "legenda": "Segure um registro para reagir à dose."
       },
       {
         "tipo": "video",
-        "src": "./tutorials/media/historico/05.d4336598.mp4",
-        "poster": "./tutorials/media/historico/05.poster.4ae2c2b1.webp",
+        "src": "./tutorials/media/historico/05.e2a195a9.mp4",
+        "poster": "./tutorials/media/historico/05.poster.19f10a9c.webp",
         "alt": "Da tela inicial, o botão Histórico é tocado e depois um registro; no editor, a lixeira do rodapé é tocada e a exclusão é confirmada; o registro some da lista e o app avisa que foi excluído.",
         "legenda": "Para excluir um registro, toque nele, na lixeira e confirme."
       }
