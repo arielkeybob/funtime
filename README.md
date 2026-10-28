@@ -1,4 +1,8 @@
-# FunTime — V2.29.0
+# FunTime — V2.29.1
+
+## V2.29.1 — Experimento: Eventos com acento violeta
+
+Teste visual do módulo Eventos em "médio + brilho": botões principais, aba e item ativo da barra em violeta (#9668ff), com leve brilho. Fundo e cartões continuam #130e1c / #1d1728. Pode ser revertido.
 
 ## V2.29.0 — Doses direto no detalhe do evento
 

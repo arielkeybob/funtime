@@ -4054,9 +4054,15 @@ div.share-person { cursor: default; }
   --event-nav: #17111f;
   --event-start: #5ee99b;
   --event-end: #ff5b62;
+  /* Experimento v2.29.1: "médio + brilho" — acento violeta nos botões principais e na aba ativa. */
+  --event-glow: #9668ff;
+  --accent: var(--event-glow);
+  --accent-text: #ffffff;
 }
 :root[data-view="occasion"] .bottom-nav { background: var(--event-nav); }
-:root[data-view="occasion"] .bottom-nav button[aria-current="page"], :root[data-view="occasion"] .agenda-tabs button[aria-pressed="true"] { background: var(--event-tab); }
+:root[data-view="occasion"] .bottom-nav button[aria-current="page"], :root[data-view="occasion"] .agenda-tabs button[aria-pressed="true"] { background: var(--event-tab); box-shadow: inset 0 0 0 1px var(--event-glow); color: #fff; }
+:root[data-view="occasion"] .bottom-nav button[aria-current="page"] svg { color: var(--event-glow); }
+.event-scope .primary-button, :root[data-view="occasion"] .primary-button { box-shadow: 0 0 16px #9668ff55; }
 .dialog.event-scope { background: var(--bg); }
 .event-scope .field input[type="text"], .event-scope .field input[type="datetime-local"], .event-scope .date-time-editor { background: var(--event-field); }
 @media (max-width: 600px) {
