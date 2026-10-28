@@ -403,8 +403,9 @@ test('linha do tempo compartilhada mostra meia/inteira, chip neutro e respeita a
 });
 
 // Copiar bebidas (spec 0032), com o app real e a nuvem falsa da ponte: a cópia recebida
-// aparece no amigo, abre a MESMA prévia de "Importar bebidas", não grava nada antes de
-// confirmar e, ao importar, preserva o histórico e sai da nuvem.
+// aparece em "Sobre o amigo" (o "i" do detalhe ganha um ponto), abre a MESMA prévia de
+// "Importar bebidas", não grava nada antes de confirmar e, ao importar, preserva o
+// histórico e sai da nuvem.
 test('copiar bebidas: receber pela prévia de importação e enviar para um ou vários amigos', { timeout: 30000 }, async () => {
   await withPage(async (page, erros) => {
     await page.evaluate(() => {
@@ -446,10 +447,20 @@ test('copiar bebidas: receber pela prévia de importação e enviar para um ou v
     assert.equal(await page.locator('#friends-grid .share-person', { hasText: 'Caio' }).locator('.share-badge--drinks').count(), 0);
 
     await bia.click();
-    const cartao = page.locator('#shared-detail-drinks-in');
+    // O detalhe (Vendo/Compartilhando) não mostra a troca de bebidas: só avisa pelo ponto no "i".
+    assert.doesNotMatch(await page.locator('#shared-detail-dialog').innerText(), /bebidas/i);
+    assert.equal(await page.locator('#shared-detail-info-dot').isVisible(), true);
+    assert.match(await page.locator('#shared-detail-info').getAttribute('aria-label'), /cópia de bebidas/);
+
+    await page.locator('#shared-detail-info').click();
+    await page.locator('#friend-info-dialog[open]').waitFor();
+    // Abaixo de "Amigos desde", no mesmo bloco: copiar, sempre; e o cartão de receber, quando houver.
+    const linhas = page.locator('#friend-info-body .occasion-menu-row');
+    assert.match(await linhas.nth(0).innerText(), /Amigos desde/);
+    assert.match(await linhas.nth(1).innerText(), /Copiar bebidas para Bia\s+Envia uma cópia da sua lista atual/);
+    const cartao = page.locator('#friend-info-drinks-in');
     assert.equal(await cartao.isVisible(), true);
     assert.match(await cartao.innerText(), /Receber cópia de bebidas de Bia\s+Enviada hoje às \d\d:\d\d · vale até amanhã às \d\d:\d\d/);
-    assert.match(await page.locator('#shared-detail-drinks-out').innerText(), /Copiar bebidas para Bia\s+Envia uma cópia da sua lista atual/);
 
     await cartao.locator('.drink-copy-receive').click();
     await page.locator('#drink-import-dialog[open]').waitFor();
@@ -465,14 +476,16 @@ test('copiar bebidas: receber pela prévia de importação e enviar para um ou v
     assert.deepEqual(depois.events, JSON.parse(antes).events, 'o histórico fica intacto');
     assert.deepEqual(await page.evaluate(() => window.__chamadas.markHandled), [['bia', await page.evaluate(() => window.__enviadaEm)]]);
     assert.equal(await cartao.isVisible(), false, 'importada, a cópia some do amigo');
+    assert.equal(await page.locator('#shared-detail-info-dot').isVisible(), false, 'e o ponto do "i" apaga');
     assert.equal(await page.locator('#home-friends-dot').isVisible(), false);
 
-    // Enviar para a Bia pelo detalhe: a lista ATUAL, já com a Água importada.
-    await page.locator('#shared-detail-drinks-out button').click();
+    // Enviar para a Bia por "Sobre o amigo": a lista ATUAL, já com a Água importada.
+    await page.locator('#friend-info-body .drink-copy-send').click();
     await page.waitForFunction(() => window.__chamadas.send.length === 1);
     const envio = await page.evaluate(() => window.__chamadas.send[0]);
     assert.deepEqual(envio.toUids, ['bia']);
     assert.deepEqual(envio.drinks.map((drink) => drink.name), ['Cerveja', 'Água']);
+    await page.locator('#close-friend-info').click();
     await page.locator('#close-shared-detail').click();
 
     // Vários de uma vez, por Configurações.

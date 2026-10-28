@@ -1,4 +1,11 @@
-# FunTime — V2.31.0
+# FunTime — V2.31.1
+
+## V2.31.1 — Copiar bebidas em "Sobre o amigo"
+
+- **Copiar bebidas para Bia** e **Receber cópia de bebidas de Bia** saem do detalhe (Vendo/Compartilhando) e vão para **Sobre o amigo**, o "i" ao lado do fechar: copiar fica logo abaixo de "Amigos desde", sempre; receber aparece abaixo, quando houver.
+- Com uma cópia esperando, o "i" do detalhe ganha um ponto dourado.
+- Tutorial "Amigos e compartilhar doses" regravado com o caminho novo.
+- Sem mudança de regras do Firestore, de dados ou de políticas; `DATA_VERSION` permanece 11.
 
 ## V2.31.0 — Copiar bebidas para amigos
 

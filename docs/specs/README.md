@@ -44,7 +44,7 @@ Contexto geral do refactor: ver o plano aprovado em
 | [0029](0029-padroes-no-app.md) | Padrões de Eventos no resto do app: 14 pacotes em ordem escolhida pelo usuário, decisões e andamento | implementada (v2.26.0–v2.26.13; tutoriais na v2.27.0) |
 | [0030](0030-seletor-de-hora.md) | "Foi que horas?" no Anotar dose (hoje/ontem automático, data pelo calendário) e roletas padronizadas sem caixa nem bordas | implementada (v2.28.0) |
 | [0031](0031-cores-e-fundo.md) | Amigos em ouro (cor própria, longe do roxo de Eventos) e imagem de fundo escolhida em Aparência, escurecida, fora de Eventos e Amigos | implementada (v2.30.0) |
-| [0032](0032-copiar-bebidas-entre-amigos.md) | Copiar a lista de bebidas para um ou vários amigos, sem arquivo: cópia de 24h na nuvem, recebida pela mesma prévia de Importar bebidas | implementada (v2.31.0) |
+| [0032](0032-copiar-bebidas-entre-amigos.md) | Copiar a lista de bebidas para um ou vários amigos, sem arquivo: cópia de 24h na nuvem, recebida pela mesma prévia de Importar bebidas | implementada (v2.31.0; em "Sobre o amigo" desde a v2.31.1) |
 
 Status possíveis: `proposta` (escrita, aguardando aprovação) · `aprovada` (pode
 implementar) · `implementada` (já no código, commit referenciado).

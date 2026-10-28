@@ -299,15 +299,15 @@ export const TUTORIALS = [
       },
       {
         "tipo": "video",
-        "src": "./tutorials/media/amigos/02.0fc708da.mp4",
-        "poster": "./tutorials/media/amigos/02.poster.e12db20a.webp",
+        "src": "./tutorials/media/amigos/02.feb16ea9.mp4",
+        "poster": "./tutorials/media/amigos/02.poster.c1b801e8.webp",
         "alt": "Na tela inicial, o ícone Amigos, no canto superior direito, é tocado e abre a tela Amigos com Bia, Caio e Duda.",
         "legenda": "Com a conta conectada, toque no ícone Amigos da tela inicial."
       },
       {
         "tipo": "video",
-        "src": "./tutorials/media/amigos/03.ff409258.mp4",
-        "poster": "./tutorials/media/amigos/03.poster.f75b807a.webp",
+        "src": "./tutorials/media/amigos/03.b5f667f0.mp4",
+        "poster": "./tutorials/media/amigos/03.poster.20ac3689.webp",
         "alt": "Na tela Amigos, o botão + é tocado e abre Adicionar amigo; o botão Gerar código é tocado e aparecem o código com QR, o botão Copiar código e o tempo de validade.",
         "legenda": "Toque em + e mostre ou copie o código para a outra pessoa, ou digite o dela."
       },
@@ -324,7 +324,7 @@ export const TUTORIALS = [
       },
       {
         "tipo": "imagem",
-        "src": "./tutorials/media/amigos/05.d9f07801.webp",
+        "src": "./tutorials/media/amigos/05.e555f490.webp",
         "alt": "Detalhe de um amigo, na aba Compartilhando, com o evento Churrasco do João, em andamento e ainda não compartilhado, em destaque.",
         "legenda": "O fato de ser amigo não mostra nada. É preciso compartilhar."
       },
@@ -340,29 +340,29 @@ export const TUTORIALS = [
       },
       {
         "tipo": "video",
-        "src": "./tutorials/media/amigos/07.70c43688.mp4",
-        "poster": "./tutorials/media/amigos/07.poster.5c34cb71.webp",
+        "src": "./tutorials/media/amigos/07.5fe5ce92.mp4",
+        "poster": "./tutorials/media/amigos/07.poster.dc40e46e.webp",
         "alt": "Um amigo é tocado, depois a aba Compartilhando e o botão Compartilhar; o evento passa a aparecer com o selo Ao vivo e o botão Parar.",
         "legenda": "Toque no amigo, em Compartilhando e em Compartilhar."
       },
       {
         "tipo": "imagem",
-        "src": "./tutorials/media/amigos/08.fbe78009.webp",
+        "src": "./tutorials/media/amigos/08.d94baeb5.webp",
         "alt": "Aba Compartilhando com o evento Churrasco do João, o selo Ao vivo e o botão Parar em destaque.",
         "legenda": "Para encerrar antes do fim do evento, toque em Parar."
       },
       {
         "tipo": "imagem",
-        "src": "./tutorials/media/amigos/09.6531c854.webp",
-        "alt": "Detalhe da amiga Bia com dois destaques: no topo, Receber cópia de bebidas de Bia, com o horário do envio e a validade; embaixo, Copiar bebidas para Bia.",
-        "legenda": "Amigos também trocam listas de bebidas. Cada cópia vale por 24 horas."
+        "src": "./tutorials/media/amigos/09.dee8afb3.webp",
+        "alt": "Tela Sobre o amigo da Bia: abaixo de Amigos desde, Copiar bebidas para Bia e, logo embaixo, o cartão Receber cópia de bebidas de Bia, com o horário do envio e a validade; os dois em destaque.",
+        "legenda": "No i do amigo, copie suas bebidas ou receba as dele. Cada cópia vale 24 horas."
       },
       {
         "tipo": "video",
-        "src": "./tutorials/media/amigos/10.a1cc15e8.mp4",
-        "poster": "./tutorials/media/amigos/10.poster.fdf5d19a.webp",
-        "alt": "Receber cópia de bebidas de Bia é tocado e abre a prévia Importar bebidas, com as bebidas enviadas por Bia, o aviso de que os intervalos não são recomendação de consumo e as opções Adicionar às bebidas atuais e Substituir minha lista de bebidas em destaque.",
-        "legenda": "Toque em Receber: confira a prévia e escolha adicionar ou substituir."
+        "src": "./tutorials/media/amigos/10.6f8a60d9.mp4",
+        "poster": "./tutorials/media/amigos/10.poster.5b9ffb84.webp",
+        "alt": "No detalhe da Bia, o ícone i, marcado com um ponto, é tocado e abre Sobre o amigo; Receber cópia de bebidas de Bia é tocado e abre a prévia Importar bebidas, com as bebidas enviadas por Bia, o aviso de que os intervalos não são recomendação de consumo e as opções Adicionar às bebidas atuais e Substituir minha lista de bebidas em destaque.",
+        "legenda": "Toque no i e em Receber: confira a prévia e escolha adicionar ou substituir."
       }
     ]
   },

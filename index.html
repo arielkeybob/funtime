@@ -60,7 +60,7 @@
     <footer class="browser-gate-footer">
       <span>App para estudo · não é controle de segurança</span>
       <a class="policies-link" href="./policies.html">Políticas e informações</a>
-      <span>v2.31.0 · By: arielkeybob</span>
+      <span>v2.31.1 · By: arielkeybob</span>
     </footer>
   </section>
 
@@ -377,7 +377,7 @@
 
     <section class="settings-page" data-settings-page="about" data-title="Sobre o app" hidden>
       <section class="settings-card">
-        <p class="settings-description">Versão instalada: <strong>v2.31.0</strong></p>
+        <p class="settings-description">Versão instalada: <strong>v2.31.1</strong></p>
         <button id="check-app-update" class="settings-secondary-button" type="button">Verificar atualizações</button>
         <a class="settings-link-row" href="./policies.html"><span>Políticas e informações</span><span class="settings-nav-chevron" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg></span></a>
       </section>
@@ -452,12 +452,11 @@
           <div class="dialog-header-actions">
             <button id="shared-detail-info" class="icon-button secondary" type="button" aria-label="Sobre o amigo">
               <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v6"/><circle cx="12" cy="7.5" r=".25" fill="currentColor"/></svg>
+              <span id="shared-detail-info-dot" class="share-status-dot share-status-dot--drinks" hidden></span>
             </button>
             <button id="close-shared-detail" class="icon-button secondary" type="button" aria-label="Fechar">×</button>
           </div>
         </div>
-
-        <div id="shared-detail-drinks-in" hidden></div>
 
         <div id="shared-detail-tabs" class="shared-detail-tabs" role="group" aria-label="Alternar visão">
           <button id="shared-detail-tab-vendo" type="button" aria-pressed="true"><span class="tab-badge share-badge--incoming" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M17 7 7 17M15 17H7V9"/></svg></span>Vendo</button>
@@ -467,8 +466,6 @@
         <p class="settings-description shared-view-disclaimer clean-optional">Os registros compartilhados mostram apenas os intervalos configurados. Eles não indicam se essa pessoa está segura para consumir mais.</p>
 
         <div id="shared-detail-body"></div>
-
-        <div id="shared-detail-drinks-out" class="occasion-menu drink-copy-out"></div>
       </form>
     </dialog>
 
@@ -483,6 +480,7 @@
         </div>
 
         <div id="friend-info-body"></div>
+        <div id="friend-info-drinks-in" hidden></div>
         <button id="friend-info-unfriend" class="occasion-link is-danger" type="button"><svg class="occasion-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M10 4H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h4"/><path d="m15 8 4 4-4 4M19 12H9"/></svg>Desfazer amizade</button>
       </form>
     </dialog>
@@ -495,7 +493,7 @@
     <footer class="app-footer">
       <span class="app-footer-disclaimer">App para estudo · não é controle de segurança</span>
       <a class="policies-link" href="./policies.html">Políticas e informações</a>
-      <span class="app-footer-meta">v2.31.0 · By: arielkeybob</span>
+      <span class="app-footer-meta">v2.31.1 · By: arielkeybob</span>
     </footer>
   </div>
 

@@ -1,5 +1,5 @@
 {
-  "versaoApp": "2.31.0",
+  "versaoApp": "2.31.1",
   "topicos": {
     "introducao": {
       "cobre": {
@@ -124,21 +124,22 @@
         "#home-friends-button": "1a5718480582",
         "#shared-view": "dcd6e4c78d98",
         "#pairing-dialog": "98d5ca29b345",
-        "#shared-detail-dialog": "a0d8d0a4549d"
+        "#shared-detail-dialog": "770cc27fa3fc",
+        "#friend-info-dialog": "13bcb56dd452"
       },
       "midia": {
         "01.f0e4658f.webp": "f0e4658f3b5da4af0ccf80f2a650704ddf766455",
-        "02.0fc708da.mp4": "0fc708da65a88b94493c0249b89b7f0615811c78",
-        "02.poster.e12db20a.webp": "e12db20af2acc092669bdba2362ce8c5117a29cb",
-        "03.ff409258.mp4": "ff409258307043e24aff176160b7d1b69c391384",
-        "03.poster.f75b807a.webp": "f75b807a8baa1bdf5657de6c655f59fba25d74c5",
-        "05.d9f07801.webp": "d9f07801d37ac5b2b81bb79911aaef6629422f21",
-        "07.70c43688.mp4": "70c43688117113cc89737249ea7317bc70dc03aa",
-        "07.poster.5c34cb71.webp": "5c34cb71071e2eada335f0096eaf5de97cbc8e55",
-        "08.fbe78009.webp": "fbe78009b3cad94347ea8d95f1ceeb5af7f454eb",
-        "09.6531c854.webp": "6531c854d94fade2ec572366791dc045de84d258",
-        "10.a1cc15e8.mp4": "a1cc15e8b6e1b6d1b106e3e01b490774e081fd72",
-        "10.poster.fdf5d19a.webp": "fdf5d19a17462b3e8248244701820d6b2abeaa6e"
+        "02.feb16ea9.mp4": "feb16ea980eda6f171a70c4f39fba5ddc4d274db",
+        "02.poster.c1b801e8.webp": "c1b801e85af97644c6edfb02751abd912c505e70",
+        "03.b5f667f0.mp4": "b5f667f0c7f5dc1c3165dcaa01217184c936de9b",
+        "03.poster.20ac3689.webp": "20ac3689b7d9f21eafa56417594de40a1772d2d6",
+        "05.e555f490.webp": "e555f4901279ad14fd6d3277abc0a17e182a3c2e",
+        "07.5fe5ce92.mp4": "5fe5ce92ea5c9a5c5b3b5cc829fc442b8febaa4a",
+        "07.poster.dc40e46e.webp": "dc40e46eb23adcb4b379e2def85f06998325bdec",
+        "08.d94baeb5.webp": "d94baeb504a23d600aac99b7d11061872a643184",
+        "09.dee8afb3.webp": "dee8afb34798f6da5bb48602be43a93311890667",
+        "10.6f8a60d9.mp4": "6f8a60d98f27e74d49707ff6ea4d4fd488dbaa67",
+        "10.poster.5b9ffb84.webp": "5b9ffb845d3953f62dfe0d1410a545b019d5861f"
       }
     },
     "evento-compartilhado": {

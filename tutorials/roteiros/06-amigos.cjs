@@ -5,7 +5,7 @@ module.exports = {
   id: 'amigos',
   titulo: 'Amigos e compartilhar doses',
   resumo: 'Conectar, mostrar as doses e trocar bebidas.',
-  cobre: ['#sync-sign-in', '#home-friends-button', '#shared-view', '#pairing-dialog', '#shared-detail-dialog'],
+  cobre: ['#sync-sign-in', '#home-friends-button', '#shared-view', '#pairing-dialog', '#shared-detail-dialog', '#friend-info-dialog'],
   seed: 'demo',
   passos: [
     {
@@ -118,30 +118,31 @@ module.exports = {
       destaque: '#shared-detail-body .share-stop-button',
     },
     {
-      // Cópia da lista de bebidas (spec 0032): a recebida em cima, a de enviar embaixo.
+      // Cópia da lista de bebidas (spec 0032), em "Sobre o amigo" (o "i" do detalhe): copiar a sua
+      // logo abaixo de "Amigos desde"; a recebida, quando houver, no cartão embaixo.
       tipo: 'imagem',
       seed: 'demoCopiaBebidas',
-      legenda: 'Amigos também trocam listas de bebidas. Cada cópia vale por 24 horas.',
-      alt: 'Detalhe da amiga Bia com dois destaques: no topo, Receber cópia de bebidas de Bia, com o horário do envio e a validade; embaixo, Copiar bebidas para Bia.',
+      legenda: 'No i do amigo, copie suas bebidas ou receba as dele. Cada cópia vale 24 horas.',
+      alt: 'Tela Sobre o amigo da Bia: abaixo de Amigos desde, Copiar bebidas para Bia e, logo embaixo, o cartão Receber cópia de bebidas de Bia, com o horário do envio e a validade; os dois em destaque.',
       async antes(t) {
         await t.tocar('#close-shared-detail');
         await t.tocar('#nav-home');
         await t.tocar('#home-friends-button');
         await t.tocar('#friends-grid button');
         await t.page.waitForSelector('#shared-detail-dialog[open]');
+        await t.tocar('#shared-detail-info');
+        await t.page.waitForSelector('#friend-info-dialog[open]');
         await t.esperar(400);
       },
-      destaque: [
-        { seletor: '#shared-detail-drinks-in', rotulo: 'Recebida' },
-        // Dentro do anel: acima dele, a etiqueta cobriria o texto da aba Vendo.
-        { seletor: '#shared-detail-drinks-out', rotulo: 'Enviar a sua', posicao: 'dentro' },
-      ],
+      // Sem etiquetas: acima elas cobririam a linha de cima, e dentro, o Dispensar e o fim do texto.
+      // A legenda nomeia os dois.
+      destaque: ['#friend-info-body .drink-copy-send', '#friend-info-drinks-in'],
     },
     {
       tipo: 'video',
       seed: 'demoCopiaBebidas',
-      legenda: 'Toque em Receber: confira a prévia e escolha adicionar ou substituir.',
-      alt: 'Receber cópia de bebidas de Bia é tocado e abre a prévia Importar bebidas, com as bebidas enviadas por Bia, o aviso de que os intervalos não são recomendação de consumo e as opções Adicionar às bebidas atuais e Substituir minha lista de bebidas em destaque.',
+      legenda: 'Toque no i e em Receber: confira a prévia e escolha adicionar ou substituir.',
+      alt: 'No detalhe da Bia, o ícone i, marcado com um ponto, é tocado e abre Sobre o amigo; Receber cópia de bebidas de Bia é tocado e abre a prévia Importar bebidas, com as bebidas enviadas por Bia, o aviso de que os intervalos não são recomendação de consumo e as opções Adicionar às bebidas atuais e Substituir minha lista de bebidas em destaque.',
       async preparar(t) {
         await t.tocar('#home-friends-button');
         await t.tocar('#friends-grid button');
@@ -150,7 +151,10 @@ module.exports = {
       },
       async gravar(t) {
         await t.esperar(1400);
-        await t.tocarComDedo('#shared-detail-drinks-in .drink-copy-receive');
+        await t.tocarComDedo('#shared-detail-info');
+        await t.page.waitForSelector('#friend-info-dialog[open]');
+        await t.esperar(900);
+        await t.tocarComDedo('#friend-info-drinks-in .drink-copy-receive', { antes: 400, descida: 700 });
         await t.page.waitForSelector('#drink-import-dialog[open]');
         await t.esperar(700);
         await t.destacar('.data-choice-group');

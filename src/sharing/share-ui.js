@@ -601,7 +601,10 @@ export function createShareUI({
       : renderVendoPanel(vendoEntriesFor(detalheAberto), par.alias);
 
     nodes.sharedDetailBody.replaceChildren(conteudo);
-    renderDrinkCopyRows(par);
+    // A troca de bebidas mora em "Sobre o amigo": o ponto no "i" avisa que há cópia esperando.
+    const temCopia = Boolean(copiaRecebidaDe(par.otherUid));
+    if (nodes.sharedDetailInfoDot) nodes.sharedDetailInfoDot.hidden = !temCopia;
+    nodes.sharedDetailInfo?.setAttribute("aria-label", temCopia ? "Sobre o amigo · enviou uma cópia de bebidas para você" : "Sobre o amigo");
   }
 
   function openFriendDetail(pairId) {
@@ -631,10 +634,21 @@ export function createShareUI({
 
   // "Sobre o amigo": tela separada e menos chamativa, alcançada pelo ícone "i" no
   // diálogo de detalhe — é onde "Desfazer amizade" mora agora, para não ser confundido
-  // com um botão de parar compartilhamento. Pode crescer com mais informações depois.
+  // com um botão de parar compartilhamento. Também é onde fica a troca de listas de bebidas
+  // (spec 0032): copiar a sua, sempre, logo abaixo de "Amigos desde"; receber a dela, quando houver.
   function renderFriendInfoBody(par) {
     if (!nodes.friendInfoBody) return;
-    nodes.friendInfoBody.replaceChildren(renderDetailDefault(par));
+    const conteudo = renderDetailDefault(par);
+    // Só entre amigos aceitos pelos dois, que é o que as regras exigem para copiar.
+    if (par.acceptedByMe && par.acceptedByOther) conteudo.append(renderDrinkCopySend(par));
+    nodes.friendInfoBody.replaceChildren(conteudo);
+    renderDrinkCopyIn(par);
+  }
+
+  function atualizarSobreOAmigo() {
+    if (!friendInfoAberto) return;
+    const par = pairings.find((item) => item.otherUid === friendInfoAberto);
+    if (par) renderFriendInfoBody(par);
   }
 
   function openFriendInfo() {
@@ -702,48 +716,46 @@ export function createShareUI({
     return texto;
   }
 
-  // Recebida: em destaque no topo, só enquanto vale. Copiar: sempre no fim do detalhe.
-  function renderDrinkCopyRows(par) {
+  // Linha do mesmo bloco de "Amigos desde", sempre visível.
+  function renderDrinkCopySend(par) {
+    const total = getDrinks().length;
+    const enviando = copiandoPara.has(par.otherUid);
+    const enviada = copiaValida(par.drinkCopyFromMe) ? par.drinkCopyFromMe : null;
+    const detalhe = enviando ? "Enviando…"
+      : !total ? "Cadastre uma bebida para poder copiar."
+      : enviada ? `Enviada ${quandoCopia(enviada)} · vale até ${quandoCopia(enviada + DRINK_COPY_TTL_MS)}`
+      : "Envia uma cópia da sua lista atual";
+    const linha = document.createElement("button");
+    linha.type = "button";
+    linha.className = "occasion-menu-row drink-copy-send";
+    linha.disabled = enviando || !total || !getDrinkCopies();
+    linha.append(iconeLinha(ICONE_COPIAR), textoLinha(`Copiar bebidas para ${par.alias || "Amigo"}`, detalhe,
+      enviada && !enviando && total ? ". Tocar de novo substitui a cópia." : ""));
+    linha.addEventListener("click", () => enviarCopia([par.otherUid]));
+    return linha;
+  }
+
+  // Cartão em destaque logo abaixo, só enquanto a cópia recebida vale.
+  function renderDrinkCopyIn(par) {
+    if (!nodes.friendInfoDrinksIn) return;
     const nome = par.alias || "Amigo";
     const recebida = copiaRecebidaDe(par.otherUid);
-
-    if (nodes.sharedDetailDrinksIn) {
-      nodes.sharedDetailDrinksIn.hidden = !recebida;
-      nodes.sharedDetailDrinksIn.replaceChildren();
-      if (recebida) {
-        nodes.sharedDetailDrinksIn.className = "drink-copy-in";
-        const receber = document.createElement("button");
-        receber.type = "button";
-        receber.className = "drink-copy-receive";
-        receber.disabled = recebendoCopia;
-        receber.append(iconeLinha(ICONE_RECEBER), textoLinha(
-          `Receber cópia de bebidas de ${nome}`,
-          recebendoCopia ? "Buscando…" : `Enviada ${quandoCopia(recebida.sentAtMs)} · vale até ${quandoCopia(recebida.expiresAtMs)}`,
-        ));
-        receber.addEventListener("click", () => receberCopia(par, recebida));
-        const dispensar = botao("Dispensar", () => dispensarCopia(par, recebida), "drink-copy-dismiss");
-        dispensar.setAttribute("aria-label", `Dispensar a cópia de bebidas de ${nome}`);
-        nodes.sharedDetailDrinksIn.append(receber, dispensar);
-      }
-    }
-
-    if (nodes.sharedDetailDrinksOut) {
-      const total = getDrinks().length;
-      const enviando = copiandoPara.has(par.otherUid);
-      const enviada = copiaValida(par.drinkCopyFromMe) ? par.drinkCopyFromMe : null;
-      const detalhe = enviando ? "Enviando…"
-        : !total ? "Cadastre uma bebida para poder copiar."
-        : enviada ? `Enviada ${quandoCopia(enviada)} · vale até ${quandoCopia(enviada + DRINK_COPY_TTL_MS)}`
-        : "Envia uma cópia da sua lista atual";
-      const linha = document.createElement("button");
-      linha.type = "button";
-      linha.className = "occasion-menu-row";
-      linha.disabled = enviando || !total || !getDrinkCopies();
-      linha.append(iconeLinha(ICONE_COPIAR), textoLinha(`Copiar bebidas para ${nome}`, detalhe,
-        enviada && !enviando && total ? ". Tocar de novo substitui a cópia." : ""));
-      linha.addEventListener("click", () => enviarCopia([par.otherUid]));
-      nodes.sharedDetailDrinksOut.replaceChildren(linha);
-    }
+    nodes.friendInfoDrinksIn.hidden = !recebida;
+    nodes.friendInfoDrinksIn.replaceChildren();
+    if (!recebida) return;
+    nodes.friendInfoDrinksIn.className = "drink-copy-in";
+    const receber = document.createElement("button");
+    receber.type = "button";
+    receber.className = "drink-copy-receive";
+    receber.disabled = recebendoCopia;
+    receber.append(iconeLinha(ICONE_RECEBER), textoLinha(
+      `Receber cópia de bebidas de ${nome}`,
+      recebendoCopia ? "Buscando…" : `Enviada ${quandoCopia(recebida.sentAtMs)} · vale até ${quandoCopia(recebida.expiresAtMs)}`,
+    ));
+    receber.addEventListener("click", () => receberCopia(par, recebida));
+    const dispensar = botao("Dispensar", () => dispensarCopia(par, recebida), "drink-copy-dismiss");
+    dispensar.setAttribute("aria-label", `Dispensar a cópia de bebidas de ${nome}`);
+    nodes.friendInfoDrinksIn.append(receber, dispensar);
   }
 
   // Um lote por amigo (cada um prova a própria amizade nas regras). Devolve `true` quando
@@ -755,7 +767,7 @@ export function createShareUI({
     if (!drinks.length) { showToast("Cadastre ao menos uma bebida antes de copiar."); return false; }
 
     for (const otherUid of uids) copiandoPara.add(otherUid);
-    renderDetailBody();
+    atualizarSobreOAmigo();
     renderDrinkCopyPeople();
     try {
       const { state: situacao, failed } = await copies.send({ toUids: uids, drinks });
@@ -772,7 +784,7 @@ export function createShareUI({
       return false;
     } finally {
       for (const otherUid of uids) copiandoPara.delete(otherUid);
-      renderDetailBody();
+      atualizarSobreOAmigo();
       renderDrinkCopyPeople();
     }
   }
@@ -783,7 +795,7 @@ export function createShareUI({
     const copies = getDrinkCopies();
     if (!copies || recebendoCopia) return;
     recebendoCopia = true;
-    renderDetailBody();
+    atualizarSobreOAmigo();
     try {
       const resultado = await copies.fetchIncoming(par.otherUid);
       if (!resultado.ok) {
@@ -804,7 +816,7 @@ export function createShareUI({
       showToast("Não foi possível abrir a cópia agora.", null, { type: "error" });
     } finally {
       recebendoCopia = false;
-      renderDetailBody();
+      atualizarSobreOAmigo();
     }
   }
 

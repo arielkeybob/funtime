@@ -317,7 +317,7 @@ document.addEventListener("visibilitychange", () => {
 const DATA_STORAGE_KEY = "funtime-v1-data";
 const LEGACY_DRINKS_STORAGE_KEY = "balada-v1-drinks";
 const DATA_VERSION = 11;
-const APP_VERSION = "2.31.0";
+const APP_VERSION = "2.31.1";
 const DRINK_EXPORT_TYPE = "funtime-drinks";
 const DRINK_EXPORT_FORMAT_VERSION = 1;
 const BACKUP_EXPORT_TYPE = "funtime-backup";
@@ -643,8 +643,8 @@ const sharingNodes = {
   friendInfoUnfriend: document.querySelector("#friend-info-unfriend"),
   friendInfoClose: document.querySelector("#friend-info-close"),
   closeFriendInfo: document.querySelector("#close-friend-info"),
-  sharedDetailDrinksIn: document.querySelector("#shared-detail-drinks-in"),
-  sharedDetailDrinksOut: document.querySelector("#shared-detail-drinks-out"),
+  sharedDetailInfoDot: document.querySelector("#shared-detail-info-dot"),
+  friendInfoDrinksIn: document.querySelector("#friend-info-drinks-in"),
   copyDrinksFriends: document.querySelector("#copy-drinks-friends"),
   drinkCopyDialog: document.querySelector("#drink-copy-dialog"),
   drinkCopyHint: document.querySelector("#drink-copy-hint"),

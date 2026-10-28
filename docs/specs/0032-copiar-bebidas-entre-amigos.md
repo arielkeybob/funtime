@@ -1,6 +1,6 @@
 # 0032 — Copiar a lista de bebidas para um amigo
 
-Status: implementada (v2.31.0)
+Status: implementada (v2.31.0; troca movida para "Sobre o amigo" na v2.31.1)
 
 ## Contexto
 
@@ -97,10 +97,13 @@ e expõe `setIncomingDrinkCopies`, `openDrinkCopyDialog`, `closeDrinkCopyDialog`
 
 ## Interface
 
-- **Detalhe do amigo:** no topo, só enquanto vale, o cartão "Receber cópia de bebidas de Bia ·
-  Enviada hoje às 14:30 · vale até amanhã às 14:30" e um "Dispensar" com confirmação. No fim,
-  sempre, "Copiar bebidas para Bia" ("Envia uma cópia da sua lista atual"; depois de enviar, o
-  horário e a validade). Sem confirmação ao enviar: o amigo ainda revisa e aceita.
+- **Sobre o amigo** (o "i" do detalhe; desde a v2.31.1): logo abaixo de "Amigos desde", no
+  mesmo bloco, sempre, "Copiar bebidas para Bia" ("Envia uma cópia da sua lista atual"; depois
+  de enviar, o horário e a validade). Abaixo do bloco, só enquanto vale, o cartão "Receber
+  cópia de bebidas de Bia · Enviada hoje às 14:30 · vale até amanhã às 14:30" e um
+  "Dispensar" com confirmação. Sem confirmação ao enviar: o amigo ainda revisa e aceita.
+- **Detalhe do amigo** (Vendo/Compartilhando): não mostra a troca de bebidas; o "i" ganha um
+  ponto dourado enquanto houver cópia esperando, e o `aria-label` diz isso.
 - **Grade de amigos:** um copo no canto inferior esquerdo do avatar de quem enviou (as setas
   ficam nos cantos da direita), e o texto no `aria-label`. O ponto de Amigos na Home acende.
 - **Configurações › Backup e conta › Exportar e importar:** terceira linha "Copiar bebidas para
@@ -130,16 +133,36 @@ e expõe `setIncomingDrinkCopies`, `openDrinkCopyDialog`, `closeDrinkCopyDialog`
 - `npm run test:rules` (emulador; 62 casos, 11 novos).
 - `tests/drink-copies.test.cjs` (minimização, envio, fila, falha parcial, `handled`,
   vencimento, leitura negada/vencida/offline, limpeza, amizade desfeita, apagar na nuvem).
-- `tests/sharing-ui-browser.test.cjs`: cópia recebida → selo e ponto → cartão → prévia sem
-  gravar → importar preservando histórico → `markHandled`; enviar pelo detalhe e por
-  Configurações para dois amigos; sem amigos, a linha não aparece.
+- `tests/sharing-ui-browser.test.cjs`: cópia recebida → selo e ponto da Home → detalhe sem a
+  troca, com ponto no "i" → "Sobre o amigo" (copiar logo abaixo de "Amigos desde", cartão de
+  receber) → prévia sem gravar → importar preservando histórico → `markHandled` e pontos
+  apagados; enviar por "Sobre o amigo" e por Configurações para dois amigos; sem amigos, a
+  linha de Configurações não aparece.
 - `node --input-type=module --check < app.js`, `node --check sw.js`, `npm test`.
 - Manual com duas contas, que **falta fazer**: enviar e receber, Adicionar e Substituir,
   reenviar, Dispensar, desfazer amizade com cópia pendente, passar das 24h, "Apagar dados na
   nuvem", modo avião.
-- **Tutoriais:** `amigos` ganhou dois passos (a cópia recebida e a de enviar; receber pela
-  prévia) e o seed `demoCopiaBebidas`; `backup-e-bebidas` foi regenerado sem mudança de roteiro
-  (a linha nova só aparece com amigos, e o aviso novo da prévia só para cópia de amigo).
+- **Tutoriais:** `amigos` ganhou dois passos ("Sobre o amigo" com a cópia recebida e a de
+  enviar; o "i" e Receber até a prévia) e o seed `demoCopiaBebidas`; `backup-e-bebidas` foi
+  regenerado sem mudança de roteiro (a linha nova só aparece com amigos, e o aviso novo da
+  prévia só para cópia de amigo).
+
+## Nota pós-implementação (v2.31.1) — a troca mora em "Sobre o amigo"
+
+Na v2.31.0 o cartão de receber ficava no topo do detalhe do amigo e "Copiar bebidas para Bia"
+no fim dele, junto das abas Vendo/Compartilhando. O usuário esperava as duas coisas na tela
+"Sobre o amigo" (o "i" ao lado do fechar), logo abaixo de "Amigos desde": copiar sempre
+visível, receber quando houver. Mudou só o lugar:
+
+- "Copiar bebidas para Bia" virou a segunda linha do bloco de "Amigos desde"
+  (`renderDetailDefault` + `renderDrinkCopySend`), só entre amigos aceitos pelos dois, que é
+  o que as regras exigem; o cartão de receber vai em `#friend-info-drinks-in`, logo abaixo.
+- Como quem recebe agora precisa abrir o "i", ele ganha um ponto dourado
+  (`#shared-detail-info-dot`) enquanto houver cópia daquela pessoa. Sem isso o copo no
+  avatar levaria a uma tela sem nada sobre a cópia.
+- "Enviando…" e "Buscando…" passam a redesenhar "Sobre o amigo" (`atualizarSobreOAmigo`).
+
+Sem mudança de regras, de dados nem de políticas (o texto já falava em "detalhe do amigo").
 
 ## Em aberto
 
