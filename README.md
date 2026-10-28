@@ -1,4 +1,15 @@
-# FunTime — V2.26.2
+# FunTime — V2.26.3
+
+## V2.26.3 — escolhas curtas em janela compacta
+
+- **Meia ou inteira**, **Cancelar contagem**, **Excluir bebida**, **Como desbloquear**, **Restaurar backup** e a **folha do convite** abrem numa janela pequena no meio da tela, em vez de ocupar a tela inteira.
+- **Cancelar contagem**: texto curto e botão vermelho **Remover dose** (antes era um botão branco numa ação que apaga).
+- **Excluir bebida**: os botões dizem quantos registros cada escolha mantém ou apaga ("Excluir e manter os 2 registros", "Excluir junto com os 2 registros"); a explicação longa fica para a interface detalhada.
+- **Restaurar backup**: sai o Cancelar que repetia o ✕; o aviso do que será substituído continua.
+- **Convite**: selo (Agendado / Já começou) e a mesma linha do tempo do detalhe do evento.
+- Pacote B da spec 0029. Tutoriais regerados: "Cadastrar e organizar bebidas", "Registrar doses e intervalos", "Bloqueio do aplicativo", "Evento compartilhado" e "Backup e bebidas".
+- Sem mudança de dados; `DATA_VERSION` permanece 11.
+
 
 ## V2.26.2 — confirmações sempre do app
 

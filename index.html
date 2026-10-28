@@ -59,7 +59,7 @@
     <footer class="browser-gate-footer">
       <span>App para estudo · não é controle de segurança</span>
       <a class="policies-link" href="./policies.html">Políticas e informações</a>
-      <span>v2.26.2 · By: arielkeybob</span>
+      <span>v2.26.3 · By: arielkeybob</span>
     </footer>
   </section>
 
@@ -369,7 +369,7 @@
           </div>
         </div>
 
-        <p class="settings-description">Versão instalada: <strong>v2.26.2</strong></p>
+        <p class="settings-description">Versão instalada: <strong>v2.26.3</strong></p>
         <button id="check-app-update" class="settings-secondary-button" type="button">Verificar atualizações</button>
       </section>
 
@@ -494,7 +494,7 @@
     <footer class="app-footer">
       <span class="app-footer-disclaimer">App para estudo · não é controle de segurança</span>
       <a class="policies-link" href="./policies.html">Políticas e informações</a>
-      <span class="app-footer-meta">v2.26.2 · By: arielkeybob</span>
+      <span class="app-footer-meta">v2.26.3 · By: arielkeybob</span>
     </footer>
   </div>
 
@@ -576,7 +576,7 @@
     </form>
   </dialog>
 
-  <dialog id="invite-sheet-dialog" class="dialog data-dialog event-scope">
+  <dialog id="invite-sheet-dialog" class="dialog data-dialog event-scope compact-dialog">
     <form method="dialog">
       <div class="dialog-header">
         <div>
@@ -724,7 +724,7 @@
     </form>
   </dialog>
 
-  <dialog id="delete-drink-dialog" class="dialog delete-drink-dialog">
+  <dialog id="delete-drink-dialog" class="dialog delete-drink-dialog compact-dialog">
     <form method="dialog">
       <div class="dialog-header">
         <div>
@@ -738,7 +738,7 @@
         <span id="delete-drink-summary"></span>
       </div>
 
-      <p id="delete-drink-history-help" class="warning-copy">Manter o histórico remove a bebida da tela principal, mas preserva todos os registros já feitos. Excluir os registros remove os dois permanentemente.</p>
+      <p id="delete-drink-history-help" class="warning-copy clean-optional">Manter o histórico remove a bebida da tela principal, mas preserva todos os registros já feitos. Excluir os registros remove os dois permanentemente.</p>
 
       <div class="delete-choice-actions">
         <button id="cancel-delete-drink" class="secondary-button" type="button">Cancelar</button>
@@ -813,15 +813,14 @@
     </form>
   </dialog>
 
-  <dialog id="stop-countdown-dialog" class="dialog">
+  <dialog id="stop-countdown-dialog" class="dialog compact-dialog">
     <form method="dialog">
-      <div class="dialog-header"><div><p class="eyebrow">Cancelar contagem atual</p><h2 id="stop-countdown-name">Bebida</h2></div></div>
-      <p>Tem certeza que deseja cancelar a contagem atual?</p>
-      <p>A dose que iniciou esta contagem será removida do histórico. Os registros anteriores serão mantidos.</p>
+      <div class="dialog-header"><div><p class="eyebrow">Cancelar contagem</p><h2 id="stop-countdown-name">Bebida</h2></div></div>
+      <p>A dose que iniciou esta contagem sai do histórico. As anteriores ficam.</p>
       <p id="stop-countdown-error" class="form-error" role="alert" hidden></p>
       <div class="dialog-actions">
         <button id="cancel-stop-countdown" type="button" class="secondary-button">Voltar</button>
-        <button id="confirm-stop-countdown" type="button" class="primary-button">Sim, cancelar contagem</button>
+        <button id="confirm-stop-countdown" type="button" class="danger-button">Remover dose</button>
       </div>
     </form>
   </dialog>
@@ -897,7 +896,7 @@
     </form>
   </dialog>
 
-  <dialog id="dose-size-dialog" class="dialog dose-size-dialog">
+  <dialog id="dose-size-dialog" class="dialog dose-size-dialog compact-dialog">
     <form method="dialog">
       <div class="dialog-header dose-size-header">
         <div>
@@ -1065,7 +1064,7 @@
     </form>
   </dialog>
 
-  <dialog id="backup-restore-dialog" class="dialog data-dialog backup-restore-dialog">
+  <dialog id="backup-restore-dialog" class="dialog data-dialog backup-restore-dialog compact-dialog">
     <form method="dialog">
       <div class="dialog-header">
         <div>
@@ -1089,13 +1088,12 @@
       <p id="backup-restore-error" class="form-error" role="alert" hidden></p>
 
       <div class="dialog-actions">
-        <button id="cancel-backup-restore" class="secondary-button" type="button">Cancelar</button>
-        <button id="confirm-backup-restore" class="danger-confirm-button" type="button">Restaurar backup</button>
+        <button id="confirm-backup-restore" class="danger-button" type="button">Restaurar backup</button>
       </div>
     </form>
   </dialog>
 
-  <dialog id="security-method-dialog" class="dialog security-method-dialog">
+  <dialog id="security-method-dialog" class="dialog security-method-dialog compact-dialog">
     <form method="dialog">
       <div class="dialog-header">
         <div>

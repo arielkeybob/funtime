@@ -57,10 +57,8 @@ module.exports = {
         await t.page.waitForSelector('#security-method-dialog[open]');
         await t.esperar(300);
       },
-      destaque: [
-        { seletor: '#choose-device-auth', rotulo: 'Biometria', posicao: 'dentro' },
-        { seletor: '#choose-pin-auth', rotulo: 'PIN', posicao: 'dentro' },
-      ],
+      // Sem etiquetas: na janela compacta elas cobririam o texto, e o título de cada opção já diz o nome.
+      destaque: ['#choose-device-auth', '#choose-pin-auth'],
     },
     {
       tipo: 'video',

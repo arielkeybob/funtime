@@ -97,8 +97,12 @@ export function createDrinkInteractions({
 
     document.getElementById('delete-drink-question').textContent = eventCount ? 'O que deseja fazer com o histórico?' : 'Excluir esta bebida?';
     document.getElementById('delete-drink-history-help').hidden = !eventCount;
-    document.getElementById('delete-drink-keep-history').hidden = !eventCount;
-    document.getElementById('delete-drink-with-history').textContent = eventCount ? 'Excluir bebida e histórico' : 'Excluir bebida';
+    // Os botões dizem quantos registros cada escolha mantém ou apaga.
+    const registros = eventCount === 1 ? 'o registro' : `os ${eventCount} registros`;
+    const keepButton = document.getElementById('delete-drink-keep-history');
+    keepButton.hidden = !eventCount;
+    keepButton.textContent = `Excluir e manter ${registros}`;
+    document.getElementById('delete-drink-with-history').textContent = eventCount ? `Excluir junto com ${registros}` : 'Excluir bebida';
     deleteDrinkDialog.showModal();
   }
 

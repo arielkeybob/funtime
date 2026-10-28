@@ -720,6 +720,9 @@ globalThis.commitOccasions = commitOccasions;
 globalThis.openOccasionEditor = openOccasionEditor;
 globalThis.occasionInput = occasionInput;
 globalThis.openOccasionDetails = openOccasionDetails;
+// A folha do convite (src/sharing/invite-ui.js) mostra o mesmo selo e a mesma linha do tempo do evento.
+globalThis.occasionTimelineElement = occasionTimeline;
+globalThis.fillOccasionStatusChip = fillStatusChip;
 globalThis.populateRecordOccasions = populateRecordOccasions;
 globalThis.createOccasionFromInvite = createOccasionFromInvite;
 globalThis.refreshSharedEventViews = refreshSharedEventViews;

@@ -181,9 +181,16 @@ export function createInviteUI({
     const quem = document.createElement("p");
     quem.textContent = `${aliasDe(convite.hostUid) || "Alguém"} convidou você.`;
 
-    const periodo = document.createElement("p");
-    periodo.className = "occasion-period";
-    periodo.textContent = convite.endAt != null ? `${quando(convite.startAt)} — ${quando(convite.endAt)}` : quando(convite.startAt);
+    // Mesmo selo e linha do tempo do detalhe do evento (ainda não aconteceu: marcadores vazados).
+    // Sem as pontes de occasions-ui.js (testes isolados), fica o período em texto.
+    const comoEvento = { startedAt: null, endedAt: null, closedAt: null, autoStart: false, scheduledStartAt: convite.startAt, scheduledEndAt: convite.endAt ?? null };
+    let periodo = globalThis.occasionTimelineElement?.(comoEvento);
+    if (!periodo) {
+      periodo = document.createElement("p");
+      periodo.className = "occasion-period";
+      periodo.textContent = convite.endAt != null ? `${quando(convite.startAt)} — ${quando(convite.endAt)}` : quando(convite.startAt);
+    }
+    const selo = globalThis.fillOccasionStatusChip?.(document.createElement("span"), comoEvento, convite.startAt <= Date.now() ? "Já começou" : "Agendado");
 
     const confirmados = convite.going.map(aliasDe).filter(Boolean);
     const amigos = document.createElement("p");
@@ -196,6 +203,8 @@ export function createInviteUI({
     aviso.className = "settings-description";
     aviso.textContent = "Ir ao evento não mostra suas doses a ninguém. Você decide isso depois, pessoa por pessoa.";
 
+    corpo.className = "invite-sheet-content";
+    if (selo) corpo.append(selo);
     corpo.append(quem, periodo, amigos, aviso);
     nodes.inviteSheetBody.replaceChildren(corpo);
   }

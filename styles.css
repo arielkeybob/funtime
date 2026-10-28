@@ -4179,3 +4179,9 @@ div.share-person { cursor: default; }
 @media (max-width: 600px) {
   dialog.dialog.app-dialog.compact-dialog > form.app-dialog-no-footer .app-dialog-scroll { padding-bottom: 20px; }
 }
+
+/* Escolhas curtas em janela compacta (v2.26.3, spec 0029, pacote B). */
+.backup-restore-dialog .dialog-actions { grid-template-columns: 1fr; }
+.invite-sheet-content { display: grid; gap: 10px; }
+.invite-sheet-content > p { margin: 0; }
+#delete-drink-dialog #cancel-delete-drink { order: 3; }

@@ -41,7 +41,7 @@ Contexto geral do refactor: ver o plano aprovado em
 | [0026](0026-tutoriais.md) | Tutoriais: introdução no primeiro acesso e "Como usar" em Configurações, com mídia gerada por roteiro e aviso de desatualização | implementada (M1 v2.18.0, M2 v2.19.0, M3 v2.20.0) |
 | [0027](0027-conta-desconectada.md) | Conta desconectada sem pedir: lembrar, avisar na Home (Conectar / Mais tarde / Não perguntar mais), nuvem cortada em laranja e retomada após abrir sem internet | implementada |
 | [0028](0028-eventos-ui.md) | Eventos: módulo lilás, lista com bloquinho de data, linha do tempo no detalhe e rodapé com ícones (lápis, lixeira, ação principal) | implementada (v2.25.0) |
-| [0029](0029-padroes-no-app.md) | Padrões de Eventos no resto do app: 14 pacotes em ordem escolhida pelo usuário, decisões e andamento | em andamento (C v2.26.0, D v2.26.1, A v2.26.2) |
+| [0029](0029-padroes-no-app.md) | Padrões de Eventos no resto do app: 14 pacotes em ordem escolhida pelo usuário, decisões e andamento | em andamento (C v2.26.0, D v2.26.1, A v2.26.2, B v2.26.3) |
 
 Status possíveis: `proposta` (escrita, aguardando aprovação) · `aprovada` (pode
 implementar) · `implementada` (já no código, commit referenciado).

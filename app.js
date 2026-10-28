@@ -315,7 +315,7 @@ document.addEventListener("visibilitychange", () => {
 const DATA_STORAGE_KEY = "funtime-v1-data";
 const LEGACY_DRINKS_STORAGE_KEY = "balada-v1-drinks";
 const DATA_VERSION = 11;
-const APP_VERSION = "2.26.2";
+const APP_VERSION = "2.26.3";
 const DRINK_EXPORT_TYPE = "funtime-drinks";
 const DRINK_EXPORT_FORMAT_VERSION = 1;
 const BACKUP_EXPORT_TYPE = "funtime-backup";
@@ -3265,7 +3265,6 @@ document.querySelector("#cancel-drink-import").addEventListener("click", closeDr
 confirmDrinkImportButton.addEventListener("click", confirmDrinkImport);
 
 document.querySelector("#close-backup-restore").addEventListener("click", closeBackupRestoreDialog);
-document.querySelector("#cancel-backup-restore").addEventListener("click", closeBackupRestoreDialog);
 confirmBackupRestoreButton.addEventListener("click", confirmBackupRestore);
 
 securityEnabledInput.addEventListener("change", () => {

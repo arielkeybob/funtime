@@ -1,6 +1,6 @@
 # 0029 — Padrões de Eventos no resto do app
 
-Status: em andamento (C na v2.26.0, D na v2.26.1, A na v2.26.2)
+Status: em andamento (C na v2.26.0, D na v2.26.1, A na v2.26.2, B na v2.26.3)
 
 ## Contexto
 
@@ -28,7 +28,7 @@ tutoriais e versão.
 | 1 | C — Rodapé com lixeira nos editores (Editar bebida, Editar registro) | feito (v2.26.0) |
 | 2 | D — Menu ⋮ da bebida em linhas, numa janela compacta; fechar o menu depois de editar | feito (v2.26.1) |
 | 3 | A — `window.confirm` (apagar nuvem, desfazer amizade, parar com todos) → confirmação compacta; tom neutro para confirmações que não apagam | feito (v2.26.2) |
-| 4 | B — Escolhas curtas em janela compacta: cancelar contagem, excluir bebida, meia/inteira, como desbloquear, restaurar backup, convite | a fazer |
+| 4 | B — Escolhas curtas em janela compacta: cancelar contagem, excluir bebida, meia/inteira, como desbloquear, restaurar backup, convite | feito (v2.26.3) |
 | 5 | G — Detalhe do amigo: selo, ▶, cartão-resumo; sem "Fechar" repetido; Sobre volta ao amigo | a fazer |
 | 6 | H — Compartilhar doses e Convidados: nome do evento no título, botão diz o efeito | a fazer |
 | 7 | I — Configurações num componente único de linhas | a fazer |
@@ -92,3 +92,14 @@ Redefinir em uma etapa só.
   desfazer amizade e parar com todos (`share-ui.js`, por `globalThis.showAppConfirmation`).
 - Teste novo: `tests/confirmacoes-browser.test.cjs`. Ele falha se aparecer qualquer caixa nativa do navegador.
 - A decisão 3 ("Já consumi — anotar" neutro) fica para o pacote K, que trata o aviso de intervalo.
+
+## Pacote B (v2.26.3)
+
+- `.compact-dialog` em `#dose-size-dialog`, `#stop-countdown-dialog`, `#delete-drink-dialog`,
+  `#security-method-dialog`, `#backup-restore-dialog` e `#invite-sheet-dialog`. Ids mantidos.
+- **Cancelar contagem:** um parágrafo só, e o botão `#confirm-stop-countdown` vira `.danger-button` "Remover dose".
+- **Excluir bebida:** rótulos com a contagem (`openDeleteDrinkDialog`); a ajuda passa a `clean-optional`; o Cancelar vai para
+  o fim (`order`).
+- **Restaurar backup:** sem `#cancel-backup-restore` (botão e listener removidos); confirmar usa `.danger-button`.
+- **Convite:** `renderFolha` usa `globalThis.occasionTimelineElement` e `globalThis.fillOccasionStatusChip`,
+  publicados por `occasions-ui.js`. Sem eles (teste isolado), fica o período em texto.
