@@ -4344,3 +4344,33 @@ div.share-person { cursor: default; }
 .app-background-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; }
 .app-background-actions .secondary-button { flex: 1 1 160px; }
 .app-background-actions .occasion-link { width: auto; }
+
+/* Celular deitado (v2.31.2): onde o sistema não deixa travar a tela em pé (iPhone, aba do
+   navegador), src/ui/orientation-lock.js marca <html> e o app fica escondido atrás deste aviso até
+   o aparelho voltar a ficar em pé. Só esconde (visibility): diálogos, rascunhos e rolagem continuam
+   como estavam. Diálogos e notificações vivem na camada de cima, por isso o véu deles também sai. */
+.orientation-lock { display: none; }
+:root.is-landscape-phone .orientation-lock {
+  position: fixed;
+  z-index: 2147483647;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 4px;
+  padding: max(16px, env(safe-area-inset-top)) max(24px, env(safe-area-inset-right)) max(16px, env(safe-area-inset-bottom)) max(24px, env(safe-area-inset-left));
+  background: var(--bg);
+  color: var(--text);
+  text-align: center;
+}
+:root.is-landscape-phone body > :not(.orientation-lock) { visibility: hidden !important; }
+:root.is-landscape-phone ::backdrop { background: transparent !important; backdrop-filter: none !important; -webkit-backdrop-filter: none !important; }
+.orientation-lock svg { width: 64px; height: 64px; margin-bottom: 8px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.orientation-lock-phone { transform-box: fill-box; transform-origin: center; animation: orientation-lock-turn 2.4s ease-in-out infinite; }
+.orientation-lock strong { font-size: 1rem; }
+.orientation-lock span { color: var(--muted); font-size: 0.82rem; }
+@keyframes orientation-lock-turn {
+  0%, 15% { transform: rotate(-90deg); }
+  55%, 100% { transform: none; }
+}
+@media (prefers-reduced-motion: reduce) { .orientation-lock-phone { animation: none; } }

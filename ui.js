@@ -1,4 +1,5 @@
 import { buildWheelPair } from './src/ui/wheel-picker.js';
+import { initializeOrientationLock } from './src/ui/orientation-lock.js';
 
 // Estrutura compartilhada: conteúdo rolável e ações fixas em todos os diálogos.
 function initializeAppDialogs() {
@@ -105,6 +106,7 @@ function initializeKeyboardDismiss() {
   }, true);
 }
 initializeKeyboardDismiss();
+initializeOrientationLock();
 
 // Contrato compartilhado dos formulários com rascunho.
 const formDrafts = new WeakMap();

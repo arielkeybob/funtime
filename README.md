@@ -1,4 +1,11 @@
-# FunTime — V2.31.1
+# FunTime — V2.31.2
+
+## V2.31.2 — Só em pé
+
+- O app passa a funcionar só com o celular em pé. No Android instalado, a tela não gira mais (`"orientation": "portrait"` no manifest e trava pela Screen Orientation API).
+- Onde o sistema não deixa travar (iPhone e aba do navegador), deitar o celular cobre o app com o aviso **Deixe o celular em pé**; ao voltar à vertical tudo continua como estava, inclusive diálogos e formulários abertos.
+- Tablet e computador continuam girando normalmente.
+- Sem mudança de dados, regras do Firestore ou políticas; `DATA_VERSION` permanece 11.
 
 ## V2.31.1 — Copiar bebidas em "Sobre o amigo"
 
