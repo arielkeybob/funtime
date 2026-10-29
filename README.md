@@ -1,4 +1,11 @@
-# FunTime — V2.31.2
+# FunTime — V2.31.3
+
+## V2.31.3 — Entradas na cor do módulo
+
+- As entradas de Eventos e Amigos levam a cor do módulo em qualquer tela: o atalho de evento do Início fica em lilás escuro, o ícone da aba **Evento** fica sempre violeta e o botão de Amigos ganha fundo dourado escuro com ícone em ouro.
+- Reaproveita as classes `event-scope` e `friends-scope` (spec 0031); só o ícone ganha regra própria.
+- Tutoriais `introducao`, `historico`, `eventos` e `amigos` regenerados (só as imagens; legendas e passos iguais).
+- Sem mudança de dados, regras do Firestore ou políticas; `DATA_VERSION` permanece 11.
 
 ## V2.31.2 — Só em pé
 

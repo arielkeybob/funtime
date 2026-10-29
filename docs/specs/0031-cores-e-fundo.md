@@ -51,6 +51,15 @@ não aparecem em Amigos.
 
 **Não muda:** dados, `DATA_VERSION`, formato do backup e exportação de bebidas.
 
+### Adendo v2.31.3 — entradas na cor do módulo
+
+O usuário pediu que os botões que levam a cada módulo já mostrem a cor dele, fora do módulo também:
+- `#home-occasion` (atalho do Início) e `#nav-occasion` (aba Evento) recebem `event-scope`: o atalho
+  fica com fundo e borda lilás, e o ícone da aba fica sempre em `--event-glow`.
+- `#home-friends-button` recebe `friends-scope`: fundo `--surface-2` dourado escuro e ícone em
+  `--friends-glow`.
+- A paleta continua definida só nos blocos de escopo; `styles.css` ganha apenas as regras dos dois ícones.
+
 ## Plano de teste
 
 - `node --input-type=module --check < app.js`, `node --check sw.js`, `node --check reset.js`.
