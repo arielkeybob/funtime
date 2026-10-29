@@ -48,6 +48,19 @@ A relação não precisa ser obrigatoriamente simétrica; `X → Y` pode existir
 
 ## Longo prazo / exige projeto específico
 
+### Alarme ao atingir um tempo da bebida — baixa probabilidade
+
+Ideia registrada em out/2026, com baixa probabilidade de implementação. Quando uma bebida atingisse um tempo definido (o fim da contagem atual ou uma segunda contagem própria — não decidido), aparecer um aviso com o nome da bebida, o tempo decorrido e as opções **Dispensar** e **Adiar**. O texto deve dizer só que o intervalo configurado terminou, nunca que é seguro consumir.
+
+Limites levantados para um PWA, sem app nativo, loja ou plano pago:
+
+- **App aberto, inclusive na tela de PIN/biometria:** dá para tocar em loop (após um toque prévio na página), vibrar (só Android) e mostrar o aviso com os botões. Decidir se, com o app bloqueado, o aviso mostra o nome da bebida ou fica genérico.
+- **Modo vigília (opcional):** Wake Lock mantém a tela acesa enquanto houver alarme pendente; não cobre o botão de desligar nem a troca de app.
+- **App fechado ou celular bloqueado:** a página congela e o Service Worker não roda continuamente. O único caminho é Web Push agendado num servidor (ex.: Cloudflare Workers no plano gratuito, alarmes por horário + VAPID, sem enviar o nome da bebida). Fica uma notificação comum: som padrão uma vez, sem loop, respeita o silencioso, sem contador ao vivo; botões só no Android; no iPhone exige app instalado na tela inicial (iOS 16.4+).
+- **Despertador de verdade com o app fechado** só com app nativo (APK/Capacitor no Android, Atalhos + Relógio no iPhone) — descartado por exigir manter um app por plataforma.
+
+O push exigiria abandonar a regra de "sem backend".
+
 ## Implementado
 
 ### Copiar bebidas para amigos — V2.31.0
