@@ -1,4 +1,10 @@
-# FunTime — V2.31.3
+# FunTime — V2.31.4
+
+## V2.31.4 — Rótulo "Evento" em lilás
+
+- O texto **Evento** da barra inferior fica lilás, como o ícone, quando a aba não está selecionada; selecionada, continua branco para contrastar com o fundo destacado.
+- Tutoriais `introducao`, `historico`, `eventos` e `amigos` regenerados (só as imagens).
+- Sem mudança de dados, regras do Firestore ou políticas; `DATA_VERSION` permanece 11.
 
 ## V2.31.3 — Entradas na cor do módulo
 

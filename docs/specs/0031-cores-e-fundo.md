@@ -59,6 +59,8 @@ O usuário pediu que os botões que levam a cada módulo já mostrem a cor dele,
 - `#home-friends-button` recebe `friends-scope`: fundo `--surface-2` dourado escuro e ícone em
   `--friends-glow`.
 - A paleta continua definida só nos blocos de escopo; `styles.css` ganha apenas as regras dos dois ícones.
+- v2.31.4: o rótulo "Evento" também fica em `--event-glow`, mas só fora da aba
+  (`#nav-occasion:not([aria-current="page"])`); selecionada, segue branco para contrastar com o fundo.
 
 ## Plano de teste
 

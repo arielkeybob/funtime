@@ -4109,8 +4109,9 @@ div.share-person { cursor: default; }
   dialog.dialog.app-dialog.friends-scope .app-dialog-actions { background: var(--friends-foot); border-top-color: var(--border); }
 }
 /* As portas dos módulos levam a cor deles em qualquer tela: o atalho do Início e a aba Evento em lilás,
-   o botão de Amigos em ouro. A classe de escopo traz o fundo e a borda; aqui só o ícone ganha o brilho. */
-#nav-occasion svg { color: var(--event-glow); }
+   o botão de Amigos em ouro. A classe de escopo traz o fundo e a borda; aqui só o ícone ganha o brilho.
+   O rótulo "Evento" fica lilás só fora da aba; selecionada, volta ao branco para contrastar com o fundo. */
+#nav-occasion svg, #nav-occasion:not([aria-current="page"]) { color: var(--event-glow); }
 #home-friends-button svg { color: var(--friends-glow); }
 
 /* Ícones e marcadores */
