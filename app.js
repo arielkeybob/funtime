@@ -317,7 +317,7 @@ document.addEventListener("visibilitychange", () => {
 const DATA_STORAGE_KEY = "funtime-v1-data";
 const LEGACY_DRINKS_STORAGE_KEY = "balada-v1-drinks";
 const DATA_VERSION = 11;
-const APP_VERSION = "2.31.4";
+const APP_VERSION = "2.31.5";
 const DRINK_EXPORT_TYPE = "funtime-drinks";
 const DRINK_EXPORT_FORMAT_VERSION = 1;
 const BACKUP_EXPORT_TYPE = "funtime-backup";
@@ -3005,7 +3005,8 @@ function showToast(message, undo = null, options = {}) {
   const type = options.type || 'info';
   toast.dataset.type = type;
   document.querySelector('#toast-title').textContent = options.title || (type === 'success' ? 'Concluído' : type === 'error' ? 'Não foi possível concluir' : 'Aviso');
-  document.querySelector('#toast-symbol').textContent = type === 'success' ? '✓' : type === 'error' ? '!' : 'i';
+  // "pending" (algo ainda sendo processado) não tem caractere: a ampulheta vem do CSS.
+  document.querySelector('#toast-symbol').textContent = type === 'success' ? '✓' : type === 'error' ? '!' : type === 'pending' ? '' : 'i';
   toast.hidden = false;
   // Popover permanece acima de diálogos sem bloquear o restante da interface.
   if (typeof toast.showPopover === 'function') {
@@ -3201,11 +3202,11 @@ async function checkForAppUpdateManually() {
   if (result === "available") {
     // O aviso persistente contém a ação Atualizar.
   } else if (result === "installing") {
-    showAppNotification("Uma nova versão foi encontrada e está sendo preparada. O botão Atualizar aparecerá em seguida.", { title: "Atualização encontrada" });
+    showAppNotification("Uma nova versão foi encontrada e está sendo preparada. O botão Atualizar aparecerá em seguida.", { title: "Atualização encontrada", type: "pending" });
   } else if (result === "current") {
-    showAppNotification(`Você já está usando a versão mais recente disponível (v${APP_VERSION}).`, { title: "Aplicativo atualizado" });
+    showAppNotification(`Você já está usando a versão mais recente disponível (v${APP_VERSION}).`, { title: "Aplicativo atualizado", type: "success" });
   } else if (result === "busy") {
-    showAppNotification("A verificação já está em andamento. Aguarde um instante e tente novamente.", { title: "Verificando atualização" });
+    showAppNotification("A verificação já está em andamento. Aguarde um instante e tente novamente.", { title: "Verificando atualização", type: "pending" });
   } else {
     showAppNotification("Não foi possível verificar agora. Confira a conexão com a internet e tente novamente.", { title: "Falha na verificação", type: "error" });
   }

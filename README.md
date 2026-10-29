@@ -1,4 +1,11 @@
-# FunTime — V2.31.4
+# FunTime — V2.31.5
+
+## V2.31.5 — Aba "Eventos" e ícones na verificação de atualização
+
+- A aba da barra inferior passa a se chamar **Eventos**.
+- **Verificar atualizações**: com uma nova versão ainda sendo preparada (ou uma verificação já em curso), o aviso mostra uma ampulheta que vira no lugar do "i" (parada com movimento reduzido); com o app já atualizado, um ✓ verde. A ampulheta é uma máscara SVG no CSS (tipo de aviso `pending`), sem depender da fonte de emoji.
+- Tutoriais `introducao`, `historico`, `eventos`, `amigos`, `evento-compartilhado` e `cadastrar-bebida` regenerados; legendas dizem "aba Eventos". As imagens de cadastrar-bebida ainda mostravam as roletas com caixa (anteriores à v2.28.0).
+- Sem mudança de dados, regras do Firestore ou políticas; `DATA_VERSION` permanece 11.
 
 ## V2.31.4 — Rótulo "Evento" em lilás
 

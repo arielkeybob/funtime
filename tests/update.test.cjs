@@ -52,8 +52,19 @@ test("verificação manual informa quando o app já está atualizado", async () 
   await context.checkForAppUpdateManually();
 
   assert.match(notices[0].message, /versão mais recente disponível/);
+  assert.equal(notices[0].options.type, "success", "check verde");
   assert.equal(context.checkAppUpdateButton.disabled, false);
   assert.equal(context.checkAppUpdateButton.textContent, "Verificar atualizações");
+});
+
+test("verificação manual mostra a ampulheta enquanto a nova versão é preparada", async () => {
+  const registration = { waiting: null, installing: {}, update: async () => {} };
+  const { context, notices } = createContext(registration);
+
+  await context.checkForAppUpdateManually();
+
+  assert.equal(notices[0].options.type, "pending");
+  assert.match(notices[0].message, /está sendo preparada/);
 });
 
 test("verificação manual distingue falha de ausência de atualização", async () => {

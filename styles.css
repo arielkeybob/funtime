@@ -3560,6 +3560,18 @@ body {
 #toast[data-type="success"] { border-color: #84d5a2; }
 #toast[data-type="success"] .notification-symbol { background: #84d5a2; color: #122b1b; }
 #toast[data-type="error"] { border-color: #ff999f; }
+/* Algo ainda em andamento (atualização sendo preparada, verificação em curso): ampulheta que vira
+   no lugar do "i". Máscara SVG na cor do texto, para não depender da fonte de emoji do aparelho. */
+#toast[data-type="pending"] .notification-symbol::before {
+  --hourglass: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 2h14M5 22h14M7 2c0 5.5 4 7 4 10s-4 4.5-4 10M17 2c0 5.5-4 7-4 10s4 4.5 4 10'/%3E%3Cpath d='M9 19.5h6l-3-3.5z' fill='%23000' stroke-width='1'/%3E%3C/svg%3E");
+  content: ""; width: 70%; height: 70%; background: currentColor;
+  -webkit-mask: var(--hourglass) center / contain no-repeat; mask: var(--hourglass) center / contain no-repeat;
+  animation: hourglass-flip 1.8s ease-in-out infinite;
+}
+@keyframes hourglass-flip { 0%, 65% { transform: rotate(0); } 100% { transform: rotate(180deg); } }
+@media (prefers-reduced-motion: reduce) {
+  #toast[data-type="pending"] .notification-symbol::before { animation: none; }
+}
 #toast-dismiss { grid-column: 3; background: #f5f5f5; color: #18181b; }
 #toast-undo { grid-column: 2; }
 #toast button { min-height: 44px; border-radius: 10px; padding: 10px 16px; font-weight: 700; }

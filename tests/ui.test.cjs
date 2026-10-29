@@ -6,3 +6,4 @@ test('notificação comum preserva Desfazer e pode ser fechada sem executar call
 test('falha usa apresentação distinta de sucesso',()=>{const c=context();c.showAppNotification('Falhou',{type:'error',persistent:true});assert.equal(c.nodes['#toast-symbol'].textContent,'!');assert.equal(c.nodes['#toast-title'].textContent,'Não foi possível concluir');});
 
 test('avisos comuns duram 2,5s; Desfazer e erros duram 4s',()=>{const c=context();c.showToast('Salvo');assert.equal(c.nodes.delay,2500);c.showToast('Anotado',{type:'add-event'});assert.equal(c.nodes.delay,4000);c.showAppNotification('Falhou',{type:'error'});assert.equal(c.nodes.delay,4000);});
+test('aviso em andamento não usa caractere: a ampulheta vem do CSS',()=>{const c=context();c.showAppNotification('Preparando',{type:'pending',title:'Atualização encontrada'});assert.equal(c.toast.dataset.type,'pending');assert.equal(c.nodes['#toast-symbol'].textContent,'');assert.equal(c.nodes.delay,2500);});

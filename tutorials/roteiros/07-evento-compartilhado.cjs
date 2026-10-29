@@ -46,8 +46,8 @@ module.exports = {
     },
     {
       tipo: 'video',
-      legenda: 'Quem é convidado responde Vou ou Não vou na aba Evento.',
-      alt: 'A aba Evento é tocada e mostra, no topo de Próximos, o convite Festa Junina, da Bia, aguardando resposta; o botão Vou é tocado e o app avisa que o evento foi para a agenda.',
+      legenda: 'Quem é convidado responde Vou ou Não vou na aba Eventos.',
+      alt: 'A aba Eventos é tocada e mostra, no topo de Próximos, o convite Festa Junina, da Bia, aguardando resposta; o botão Vou é tocado e o app avisa que o evento foi para a agenda.',
       async preparar(t) { await t.esperar(300); },
       async gravar(t) {
         await t.esperar(1400);

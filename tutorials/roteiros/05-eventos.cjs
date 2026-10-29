@@ -37,15 +37,15 @@ module.exports = {
     },
     {
       tipo: 'imagem',
-      legenda: 'A aba Evento aparece no menu de baixo.',
-      alt: 'Tela inicial com a aba Evento, recém-criada, em destaque no menu de baixo.',
+      legenda: 'A aba Eventos aparece no menu de baixo.',
+      alt: 'Tela inicial com a aba Eventos, recém-criada, em destaque no menu de baixo.',
       async antes(t) { await t.tocar('#nav-home'); await t.esperar(300); },
       destaque: '#nav-occasion',
     },
     {
       tipo: 'video',
-      legenda: 'Na aba Evento, toque em + Novo.',
-      alt: 'A aba Evento é tocada e, na lista de eventos, o botão + Novo é tocado e abre o formulário Novo evento.',
+      legenda: 'Na aba Eventos, toque em + Novo.',
+      alt: 'A aba Eventos é tocada e, na lista de eventos, o botão + Novo é tocado e abre o formulário Novo evento.',
       async preparar(t) { await t.esperar(300); },
       async gravar(t) {
         await t.esperar(1400);
