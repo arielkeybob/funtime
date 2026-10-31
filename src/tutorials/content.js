@@ -64,30 +64,30 @@ export const TUTORIALS = [
       },
       {
         "tipo": "video",
-        "src": "./tutorials/media/cadastrar-bebida/05.80d4ac22.mp4",
-        "poster": "./tutorials/media/cadastrar-bebida/05.poster.a162f9d6.webp",
+        "src": "./tutorials/media/cadastrar-bebida/05.62a1b469.mp4",
+        "poster": "./tutorials/media/cadastrar-bebida/05.poster.e4996a28.webp",
         "alt": "O botão Salvar é tocado e o cadastro fecha, mostrando o cartão da Cerveja na tela inicial.",
         "legenda": "Toque em Salvar: a bebida aparece na tela inicial."
       },
       {
         "tipo": "video",
-        "src": "./tutorials/media/cadastrar-bebida/06.70955e6f.mp4",
-        "poster": "./tutorials/media/cadastrar-bebida/06.poster.93691b9c.webp",
+        "src": "./tutorials/media/cadastrar-bebida/06.13dee701.mp4",
+        "poster": "./tutorials/media/cadastrar-bebida/06.poster.e00d7732.webp",
         "alt": "O botão ⋮ do cartão da Cerveja é tocado e abre o menu com as opções Anotar dose e Editar bebida.",
         "legenda": "Toque em ⋮ no cartão para anotar uma dose ou editar a bebida."
       },
       {
         "tipo": "video",
-        "src": "./tutorials/media/cadastrar-bebida/07.24200143.mp4",
-        "poster": "./tutorials/media/cadastrar-bebida/07.poster.489f0be8.webp",
+        "src": "./tutorials/media/cadastrar-bebida/07.39669805.mp4",
+        "poster": "./tutorials/media/cadastrar-bebida/07.poster.b7cf38fe.webp",
         "alt": "A Água é segurada e arrastada para o topo da lista de bebidas.",
         "legenda": "Segure uma bebida e arraste para mudar a ordem."
       },
       {
         "tipo": "video",
-        "src": "./tutorials/media/cadastrar-bebida/08.362d7ad6.mp4",
-        "poster": "./tutorials/media/cadastrar-bebida/08.poster.1ad2701a.webp",
-        "alt": "Da tela inicial, o botão ⋮ da Água é tocado, depois Editar bebida e a lixeira do rodapé; a pergunta sobre o histórico mostra as duas opções, e a opção de manter o histórico é tocada; a Água some da lista e o app avisa que ela foi excluída e o histórico mantido.",
+        "src": "./tutorials/media/cadastrar-bebida/08.252a98e5.mp4",
+        "poster": "./tutorials/media/cadastrar-bebida/08.poster.1013800a.webp",
+        "alt": "Da tela inicial, o botão ⋮ da Água é tocado, depois Editar bebida e a lixeira do rodapé; a pergunta sobre o registro dela mostra as duas opções, Manter no Histórico já marcada e Apagar do Histórico, e Excluir bebida é tocado; a Água some da lista e o app avisa que ela foi excluída e o histórico mantido.",
         "legenda": "Para excluir a bebida, escolha manter ou apagar o histórico dela."
       }
     ]

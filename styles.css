@@ -1511,50 +1511,6 @@ body {
   line-height: 1.4;
 }
 
-.delete-choice-warning {
-  display: grid;
-  gap: 6px;
-  padding: 14px;
-  border: 1px solid var(--danger-border);
-  border-radius: 14px;
-  background: var(--danger-soft);
-}
-
-.delete-choice-warning strong {
-  color: #ffd5d7;
-  font-size: 0.96rem;
-}
-
-.delete-choice-warning span {
-  color: #ffb8bc;
-  font-size: 0.84rem;
-  line-height: 1.45;
-}
-
-.delete-choice-actions {
-  display: grid;
-  gap: 9px;
-}
-
-.delete-choice-actions button {
-  width: 100%;
-  min-height: 50px;
-  padding: 10px 14px;
-  line-height: 1.25;
-}
-
-.delete-keep-button {
-  border: 1px solid #71717a;
-  border-radius: 12px;
-  background: #27272a;
-  color: var(--text);
-  font-weight: 780;
-}
-
-.delete-keep-button:active {
-  background: #3f3f46;
-}
-
 .history-event-deleted {
   width: fit-content;
   max-width: 100%;
@@ -3436,6 +3392,20 @@ body {
   line-height: 1.45;
 }
 
+/* Escolha que apaga (Excluir bebida › Apagar do Histórico): marcada fica vermelha, não verde. */
+.data-choice.is-danger:has(input:checked) {
+  border-color: var(--danger-border);
+  background: var(--danger-soft);
+}
+
+.data-choice.is-danger input {
+  accent-color: var(--danger);
+}
+
+#delete-drink-question {
+  margin-bottom: 8px;
+}
+
 .restore-warning {
   display: grid;
   gap: 6px;
@@ -4246,7 +4216,6 @@ div.share-person { cursor: default; }
 .backup-restore-dialog .dialog-actions { grid-template-columns: 1fr; }
 .invite-sheet-content { display: grid; gap: 10px; }
 .invite-sheet-content > p { margin: 0; }
-#delete-drink-dialog #cancel-delete-drink { order: 3; }
 
 /* Amigos (v2.26.4, spec 0029, pacote G): selo no lugar de "(Em andamento)", início visível com o
    marcador e cartão-resumo; Compartilhando com selos; Desfazer amizade como ação discreta. */
@@ -4303,7 +4272,7 @@ div.share-person { cursor: default; }
 .drink-copy-section { margin: 0; color: var(--text); font-size: .88rem; font-weight: 800; }
 
 /* Botões de perigo (v2.26.10, spec 0029, pacote M): três formas para a mesma ideia.
-   - Cheio, .danger-button: confirma algo que apaga (confirmação, Excluir junto com os registros, Restaurar backup,
+   - Cheio, .danger-button: confirma algo que apaga (confirmação, Excluir bebida, Restaurar backup,
      Apagar no passo 2 de Redefinir). .share-stop-button é a versão menor ("Parar").
    - Contorno: a porta de entrada para excluir. Lixeira .occasion-icon-action.is-danger nos rodapés.
    - Linha de perigo: .occasion-menu-row.danger, .settings-nav-row--danger e .occasion-link.is-danger em menus e listas.

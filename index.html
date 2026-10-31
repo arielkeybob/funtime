@@ -60,7 +60,7 @@
     <footer class="browser-gate-footer">
       <span>App para estudo · não é controle de segurança</span>
       <a class="policies-link" href="./policies.html">Políticas e informações</a>
-      <span>v2.32.1 · By: arielkeybob</span>
+      <span>v2.32.2 · By: arielkeybob</span>
     </footer>
   </section>
 
@@ -377,7 +377,7 @@
 
     <section class="settings-page" data-settings-page="about" data-title="Sobre o app" hidden>
       <section class="settings-card">
-        <p class="settings-description">Versão instalada: <strong>v2.32.1</strong></p>
+        <p class="settings-description">Versão instalada: <strong>v2.32.2</strong></p>
         <button id="check-app-update" class="settings-secondary-button" type="button">Verificar atualizações</button>
         <a class="settings-link-row" href="./policies.html"><span>Políticas e informações</span><span class="settings-nav-chevron" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg></span></a>
       </section>
@@ -493,7 +493,7 @@
     <footer class="app-footer">
       <span class="app-footer-disclaimer">App para estudo · não é controle de segurança</span>
       <a class="policies-link" href="./policies.html">Políticas e informações</a>
-      <span class="app-footer-meta">v2.32.1 · By: arielkeybob</span>
+      <span class="app-footer-meta">v2.32.2 · By: arielkeybob</span>
     </footer>
   </div>
 
@@ -764,17 +764,31 @@
         </div>
       </div>
 
-      <div class="delete-choice-warning" role="alert">
-        <strong id="delete-drink-question">O que deseja fazer com o histórico?</strong>
-        <span id="delete-drink-summary"></span>
-      </div>
+      <p id="delete-drink-summary">Ela sai da sua lista. Ainda não há registros dela no Histórico.</p>
 
-      <p id="delete-drink-history-help" class="warning-copy clean-optional">Manter o histórico remove a bebida da tela principal, mas preserva todos os registros já feitos. Excluir os registros remove os dois permanentemente.</p>
+      <fieldset id="delete-drink-history-choice" class="data-choice-group">
+        <legend id="delete-drink-question">O que fazer com os registros dela?</legend>
 
-      <div class="delete-choice-actions">
+        <label id="delete-drink-option-keep" class="data-choice">
+          <input type="radio" name="delete-drink-history" value="keep" checked>
+          <span>
+            <strong>Manter no Histórico</strong>
+            <small id="delete-drink-keep-note">Continuam lá, com o nome e o ícone dela.</small>
+          </span>
+        </label>
+
+        <label id="delete-drink-option-erase" class="data-choice is-danger">
+          <input type="radio" name="delete-drink-history" value="erase">
+          <span>
+            <strong>Apagar do Histórico</strong>
+            <small id="delete-drink-erase-note">Somem com a bebida. Não dá para desfazer.</small>
+          </span>
+        </label>
+      </fieldset>
+
+      <div class="dialog-actions">
         <button id="cancel-delete-drink" class="secondary-button" type="button">Cancelar</button>
-        <button id="delete-drink-keep-history" class="delete-keep-button" type="button">Excluir bebida mas manter histórico</button>
-        <button id="delete-drink-with-history" class="danger-button" type="button">Excluir bebida e histórico</button>
+        <button id="confirm-delete-drink" class="danger-button" type="button">Excluir bebida</button>
       </div>
     </form>
   </dialog>

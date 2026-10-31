@@ -1,4 +1,14 @@
-# FunTime — V2.32.1
+# FunTime — V2.32.2
+
+## V2.32.2 — Excluir bebida mais clara
+
+- A janela de **Excluir bebida** deixa de ter o cartão vermelho que parecia um botão e os três botões iguais empilhados. Agora ela pergunta **O que fazer com os 8 registros dela?** e oferece duas opções com a consequência escrita, no mesmo formato de Importar bebidas:
+  - **Manter no Histórico** (já vem marcada): os registros continuam lá, com o nome e o ícone dela.
+  - **Apagar do Histórico**: somem com a bebida, sem como desfazer. Marcada, a opção fica vermelha.
+- Embaixo, **Cancelar** e **Excluir bebida**, como nas outras confirmações. Reabrir a janela sempre volta para "Manter".
+- Bebida sem registros: só a frase "Ela sai da sua lista. Ainda não há registros dela no Histórico." e os mesmos dois botões.
+- Teste novo: `tests/delete-drink-browser.test.cjs`. Tutorial `cadastrar-bebida` regerado (o vídeo de excluir mostra as duas opções e o toque em Excluir bebida; legenda igual).
+- Sem mudança de dados, regras do Firestore ou políticas; `DATA_VERSION` permanece 11.
 
 ## V2.32.1 — Bloqueio neutro e Atualizar sem pedir a credencial
 

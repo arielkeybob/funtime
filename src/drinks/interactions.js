@@ -92,19 +92,24 @@ export function createDrinkInteractions({
     const eventCount = state.events.filter((event) => event.drinkId === drinkId).length;
 
     deleteDrinkName.textContent = `${drink.icon} ${drink.name}`;
-    deleteDrinkSummary.textContent = eventCount > 0
-      ? `Existem ${eventCount} registro${eventCount === 1 ? "" : "s"} desta bebida no histórico.`
-      : "Esta bebida ainda não possui registros no histórico.";
-
-    document.getElementById('delete-drink-question').textContent = eventCount ? 'O que deseja fazer com o histórico?' : 'Excluir esta bebida?';
-    document.getElementById('delete-drink-history-help').hidden = !eventCount;
-    // Os botões dizem quantos registros cada escolha mantém ou apaga.
-    const registros = eventCount === 1 ? 'o registro' : `os ${eventCount} registros`;
-    const keepButton = document.getElementById('delete-drink-keep-history');
-    keepButton.hidden = !eventCount;
-    keepButton.textContent = `Excluir e manter ${registros}`;
-    document.getElementById('delete-drink-with-history').textContent = eventCount ? `Excluir junto com ${registros}` : 'Excluir bebida';
+    // Com registros, a pergunta é o que fazer com eles, e manter vem marcado; sem nenhum,
+    // é só confirmar.
+    const one = eventCount === 1;
+    deleteDrinkSummary.hidden = eventCount > 0;
+    document.getElementById("delete-drink-history-choice").hidden = !eventCount;
+    document.getElementById("delete-drink-question").textContent = `O que fazer com ${one ? "o registro" : `os ${eventCount} registros`} dela?`;
+    document.getElementById("delete-drink-keep-note").textContent = `${one ? "Continua" : "Continuam"} lá, com o nome e o ícone dela.`;
+    document.getElementById("delete-drink-erase-note").textContent = `${one ? "Some" : "Somem"} com a bebida. Não dá para desfazer.`;
+    deleteDrinkDialog.querySelector('input[name="delete-drink-history"][value="keep"]').checked = true;
     deleteDrinkDialog.showModal();
+  }
+
+  // Sem registros não há o que manter: exclui direto (e o aviso não fala de histórico mantido).
+  function confirmDeleteDrink() {
+    const hasHistory = state.events.some((event) => event.drinkId === state.deleteDrinkId);
+    const erase = deleteDrinkDialog.querySelector('input[name="delete-drink-history"][value="erase"]').checked;
+    if (hasHistory && !erase) deleteDrinkKeepingHistory();
+    else deleteDrinkWithHistory();
   }
 
   function closeDeleteDrinkDialog({ returnToEditor = state.deleteReturnToEditor } = {}) {
@@ -695,8 +700,7 @@ export function createDrinkInteractions({
   });
 
   document.querySelector("#cancel-delete-drink").addEventListener("click", () => closeDeleteDrinkDialog());
-  document.querySelector("#delete-drink-keep-history").addEventListener("click", deleteDrinkKeepingHistory);
-  document.querySelector("#delete-drink-with-history").addEventListener("click", deleteDrinkWithHistory);
+  document.querySelector("#confirm-delete-drink").addEventListener("click", confirmDeleteDrink);
 
   document.querySelector("#cancel-interval-warning-dialog").addEventListener("click", closeIntervalWarningDialog);
   document.querySelector("#confirm-interval-warning").addEventListener("click", continueFromIntervalWarning);

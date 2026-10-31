@@ -243,3 +243,21 @@ Pendentes: nenhum. Todos os tópicos desatualizados na série (`registrar-dose`,
 - **Seletores:** `refreshOccasionFilters` e `refreshRecordOccasion` usam `agendaParts` (dia da semana + data).
 - **Teste:** `occasions-browser` ajustado ao formato novo.
 - Só a parte "por evento", por decisão do usuário: o total do Histórico completo não ganhou cartão.
+
+## Adendo v2.32.2 — Excluir bebida vira uma escolha
+
+O usuário achou a janela confusa: o aviso era um cartão vermelho com borda, do mesmo tamanho e forma
+dos botões (parecia um botão), e vinham três botões iguais empilhados ("Excluir e manter os 8
+registros", "Excluir junto com os 8 registros", "Cancelar"), que só diferiam por duas palavras.
+
+- Mesmo padrão de **Importar bebidas** ("Como deseja importar?"): a pergunta vira texto
+  (`legend` "O que fazer com os N registros dela?"), e as respostas viram `.data-choice` de rádio com a
+  consequência escrita: **Manter no Histórico** (vem marcada) e **Apagar do Histórico** (`.is-danger`:
+  marcada, fica vermelha em vez de verde).
+- O rodapé é o das outras confirmações: [Cancelar | Excluir bebida] (`#confirm-delete-drink`,
+  `.danger-button`). Reabrir sempre volta para "Manter".
+- Sem registros, só um parágrafo ("Ela sai da sua lista. Ainda não há registros dela no Histórico.") e
+  o mesmo rodapé.
+- Saem `.delete-choice-warning`, `.delete-choice-actions`, `.delete-keep-button` e o `order` do Cancelar.
+- Teste: `tests/delete-drink-browser.test.cjs`. Tutorial `cadastrar-bebida` regerado: o vídeo 08 destaca
+  as duas opções e toca em Excluir bebida.

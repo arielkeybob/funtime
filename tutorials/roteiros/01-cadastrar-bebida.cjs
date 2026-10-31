@@ -90,7 +90,7 @@ module.exports = {
       tipo: 'video',
       seed: 'demo',
       legenda: 'Para excluir a bebida, escolha manter ou apagar o histórico dela.',
-      alt: 'Da tela inicial, o botão ⋮ da Água é tocado, depois Editar bebida e a lixeira do rodapé; a pergunta sobre o histórico mostra as duas opções, e a opção de manter o histórico é tocada; a Água some da lista e o app avisa que ela foi excluída e o histórico mantido.',
+      alt: 'Da tela inicial, o botão ⋮ da Água é tocado, depois Editar bebida e a lixeira do rodapé; a pergunta sobre o registro dela mostra as duas opções, Manter no Histórico já marcada e Apagar do Histórico, e Excluir bebida é tocado; a Água some da lista e o app avisa que ela foi excluída e o histórico mantido.',
       async preparar(t) { await t.esperar(300); },
       async gravar(t) {
         await t.esperar(1400);
@@ -103,11 +103,11 @@ module.exports = {
         await t.tocarComDedo('#delete-drink-from-editor', { antes: 500, descida: 650, pausa: 250 });
         await t.page.waitForSelector('#delete-drink-dialog[open]');
         await t.esperar(500);
-        // As duas escolhas em destaque, com tempo para ler, antes de tocar em manter o histórico.
-        await t.destacar(['#delete-drink-keep-history', '#delete-drink-with-history']);
+        // As duas escolhas em destaque, com tempo para ler; manter já vem marcado, então basta confirmar.
+        await t.destacar(['#delete-drink-option-keep', '#delete-drink-option-erase']);
         await t.esperar(2200);
         await t.limparDestaque();
-        await t.tocarComDedo('#delete-drink-keep-history', { antes: 350, descida: 650, pausa: 250 });
+        await t.tocarComDedo('#confirm-delete-drink', { antes: 350, descida: 650, pausa: 250 });
         await t.page.waitForFunction(() => !document.querySelector('.drink-card[data-drink-id="agua"]') && !document.querySelector('#delete-drink-dialog').open);
         await t.esperarAvisoSumir();
         await t.esperar(900);
