@@ -318,7 +318,7 @@ document.addEventListener("visibilitychange", () => {
 const DATA_STORAGE_KEY = "funtime-v1-data";
 const LEGACY_DRINKS_STORAGE_KEY = "balada-v1-drinks";
 const DATA_VERSION = 11;
-const APP_VERSION = "2.34.0";
+const APP_VERSION = "2.34.1";
 const DRINK_EXPORT_TYPE = "funtime-drinks";
 const DRINK_EXPORT_FORMAT_VERSION = 1;
 const BACKUP_EXPORT_TYPE = "funtime-backup";
@@ -332,6 +332,7 @@ const SECURITY_STORAGE_KEY = "funtime-security-v1";
 const SECURITY_SESSION_KEY = "funtime-security-session-v1";
 const SECURITY_UPDATE_RELOAD_KEY = "funtime-security-update-reload-v1";
 const SECURITY_UPDATE_RELOAD_MS = 10000;
+const SECURITY_UPDATE_RELOAD_BOOT_MS = 30000;
 const BACKGROUND_STORAGE_KEY = "funtime-background-v1";
 // Cor da barra do sistema nas telas neutras: acompanha a Cor sólida do fundo (spec 0034).
 let neutralThemeColor = DEFAULT_BACKGROUND_COLOR;
@@ -822,6 +823,17 @@ function takeUpdateReloadMark() {
 function isUpdateReloadMarkFresh(markedAt) {
   const elapsed = Date.now() - markedAt;
   return markedAt > 0 && elapsed >= 0 && elapsed < SECURITY_UPDATE_RELOAD_MS;
+}
+
+// A marca vale para a página que começou logo depois dela, isto é, a recarga do Atualizar. O
+// prazo curto vai até o começo da página, não até a decisão: no celular, a abertura inteira
+// (scripts pelo Service Worker, fundo, a consulta da biometria) leva segundos e estourava os
+// 10 s. Um limite largo cobre essa abertura, e o relógio não pode ter voltado.
+function isUpdateReloadOf(markedAt, pageStartedAt, now = Date.now()) {
+  const startedAfter = pageStartedAt - markedAt;
+  const sinceMark = now - markedAt;
+  return markedAt > 0 && startedAfter > -1000 && startedAfter < SECURITY_UPDATE_RELOAD_MS
+    && sinceMark >= 0 && sinceMark < SECURITY_UPDATE_RELOAD_BOOT_MS;
 }
 
 // A própria recarga esconde a página antes de descarregá-la; bloquear ali apagaria a marca.
@@ -1377,9 +1389,10 @@ async function initializeSecurity() {
     const session = loadSecuritySession();
     const referenceAt = session?.hiddenAt || session?.lastActiveAt || 0;
     const relockMs = state.securityConfig.relockSeconds * 1000;
-    // A recarga do Atualizar só continua desbloqueada se coube no prazo, contado até aqui, e
-    // abriu à vista (se a pessoa saiu do app no meio, vale o bloqueio de sempre).
-    const updateReloadResumes = isUpdateReloadMarkFresh(updateReloadAt) && !document.hidden;
+    // A recarga do Atualizar só continua desbloqueada se esta página é ela e está à vista (se a
+    // pessoa saiu do app no meio, vale o bloqueio de sempre). O início da página vem no relógio
+    // de Date.now(): o timeOrigin pode se afastar dele.
+    const updateReloadResumes = isUpdateReloadOf(updateReloadAt, Date.now() - performance.now()) && !document.hidden;
     const mayResume = eventUnlockActive || updateReloadResumes || (state.securityConfig.relockSeconds > 0 && referenceAt > 0 && (Date.now() - referenceAt) < relockMs);
 
     if (mayResume) {

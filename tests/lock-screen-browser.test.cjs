@@ -33,6 +33,11 @@ async function installedContext(browser) {
       sessionStorage.removeItem('__abrir-oculto');
       Object.defineProperty(document, 'hidden', { configurable: true, get: () => true });
     }
+    // Abertura lenta como num celular: a consulta da biometria segura a decisão por 11 s.
+    if (sessionStorage.getItem('__abertura-lenta') && window.PublicKeyCredential) {
+      sessionStorage.removeItem('__abertura-lenta');
+      window.PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable = () => new Promise((resolve) => setTimeout(() => resolve(false), 11000));
+    }
   });
   return context;
 }
@@ -137,7 +142,7 @@ test('a tela de bloqueio fica neutra mesmo travando em Eventos ou Amigos; desblo
   });
 });
 
-test('marca da recarga: só com o app desbloqueado e à vista, apagada ao bloquear, no prazo, uma vez e só nesta janela', { timeout: 90000 }, async () => {
+test('marca da recarga: só com o app desbloqueado e à vista, apagada ao bloquear, no prazo, uma vez e só nesta janela', { timeout: 120000 }, async () => {
   await withDevServer(async (context, url) => {
     let { page, erros } = await newInstalledPage(context);
     await page.goto(url);
@@ -179,6 +184,12 @@ test('marca da recarga: só com o app desbloqueado e à vista, apagada ao bloque
     await page.reload(); await booted(page);
     assert.equal((await lockState(page)).locked, true, 'a marca é de uso único');
     await unlockWithPin(page);
+
+    // Abertura lenta como no celular (a decisão sai 11 s depois da marca): a página é a recarga,
+    // então continua desbloqueada. Até a v2.34.0 o prazo ia até a decisão e aqui pedia a credencial.
+    await page.evaluate(() => { markUpdateReloadUnlocked(); sessionStorage.setItem('__abertura-lenta', '1'); });
+    await page.reload(); await booted(page);
+    assert.deepEqual(await lockState(page), { locked: false, lockScreen: false, mark: null });
 
     // No prazo, mas a página nova abre escondida: bloqueia como qualquer saída do app.
     await page.evaluate(() => { markUpdateReloadUnlocked(); sessionStorage.setItem('__abrir-oculto', '1'); });

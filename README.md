@@ -1,4 +1,12 @@
-# FunTime — V2.34.0
+# FunTime — V2.34.1
+
+## V2.34.1 — Atualizar sem pedir a credencial, também no celular
+
+- Com **Bloquear ao sair do app**, tocar em **Atualizar** ainda pedia PIN/biometria no celular. A liberação da v2.32.1 tinha um prazo de 10 s contado até o app decidir se bloqueia, e no celular a abertura da versão nova (scripts, fundo, a consulta da biometria ao sistema) passava disso. No computador a decisão sai em 1 a 4 s, por isso os testes não pegavam.
+- Agora o prazo curto vale até a página nova **começar** (na prática, milissegundos depois do toque), e a abertura tem até 30 s para terminar. Continuam os mesmos limites: uma vez só, só nesta janela, só com o app à vista; bloquear apaga a liberação, e recarregar sem ser pelo Atualizar pede a credencial.
+- Quem decide é a versão nova, então a própria atualização para a 2.34.1 já deve abrir desbloqueada.
+- Teste novo `tests/update-reload-mark.test.cjs` (limites da regra); `tests/lock-screen-browser.test.cjs` ganhou o caso da abertura lenta (decisão 11 s depois do toque), que falhava com a regra antiga.
+- Nenhum tutorial afetado. Sem mudança de dados, regras do Firestore ou políticas; `DATA_VERSION` permanece 11.
 
 ## V2.34.0 — Fundo do app: imagem padrão ou cor sólida
 
