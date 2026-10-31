@@ -1,6 +1,6 @@
 # 0032 — Copiar a lista de bebidas para um amigo
 
-Status: implementada (v2.31.0; troca movida para "Sobre o amigo" na v2.31.1)
+Status: implementada (v2.31.0; troca movida para "Sobre o amigo" na v2.31.1; escolha das bebidas na v2.32.0)
 
 ## Contexto
 
@@ -163,6 +163,29 @@ visível, receber quando houver. Mudou só o lugar:
 - "Enviando…" e "Buscando…" passam a redesenhar "Sobre o amigo" (`atualizarSobreOAmigo`).
 
 Sem mudança de regras, de dados nem de políticas (o texto já falava em "detalhe do amigo").
+
+## Nota pós-implementação (v2.32.0) — escolher quais bebidas
+
+O usuário perguntou se dava para escolher quais bebidas importar (do arquivo e da cópia de um
+amigo) e pediu também a escolha do lado de quem envia, sempre com **todas marcadas por padrão**.
+
+- **Prévia de importação** (vale para o arquivo e para a cópia, que usam a mesma prévia): as
+  pílulas viram etiquetas de marcar (`src/ui/drink-picker.js`, `aria-pressed`), e só as
+  marcadas entram (`getPickedImportDrinks`). Ao **adicionar**, a bebida que você já tem fica
+  riscada e desabilitada, como antes (ela ficaria de fora de qualquer jeito); ao **substituir**,
+  ela volta a ser tocável, e marcada. Nada marcado desliga o botão ("Marque ao menos uma
+  bebida"). "Substituir pela lista (N)" virou "Substituir por N bebidas". A seleção é por
+  índice, guardada em `state.pendingDrinkImport.selected`, e some ao fechar a prévia.
+- **Quem envia:** o diálogo ganha "Quais bebidas" acima de "Para quem"; só as marcadas vão
+  para `send({ toUids, drinks })`. A linha "Copiar bebidas para Bia" em "Sobre o amigo" deixa
+  de enviar na hora ("Sem confirmação ao enviar", acima, não vale mais): abre o mesmo diálogo
+  com a Bia escolhida e sem a grade. Se a amizade some com o diálogo aberto, ele fecha.
+- "Marcar todas / Desmarcar todas" aparece com duas ou mais etiquetas livres.
+
+Sem mudança no payload (`buildDrinkCopyPayload` recebe só as marcadas), nas regras (1 a 500
+bebidas continua valendo), no arquivo de bebidas nem em `DATA_VERSION`. O texto das Políticas
+("uma cópia da sua lista de bebidas como está naquele momento") ficou como estava — enviar
+menos bebidas não é dado novo; ajustar a redação fica a critério do usuário.
 
 ## Em aberto
 

@@ -1,4 +1,12 @@
-# FunTime — V2.31.5
+# FunTime — V2.32.0
+
+## V2.32.0 — Escolher quais bebidas importar e copiar
+
+- **Importar bebidas** (arquivo TXT ou cópia recebida de um amigo): cada bebida da prévia vira uma etiqueta de marcar, todas marcadas ao abrir, e só as marcadas entram — ao adicionar e ao substituir. Ao adicionar, a que você já tem continua riscada e fora de alcance; ao substituir, ela volta a poder ser marcada. O botão diz o efeito (**Adicionar 2 bebidas**, **Substituir por 3 bebidas**, ou **Marque ao menos uma bebida**), e **Marcar todas / Desmarcar todas** ajuda em listas longas. O histórico continua preservado.
+- **Copiar bebidas para amigos**: o diálogo ganha **Quais bebidas** (todas marcadas ao abrir) acima de **Para quem**, e só as marcadas vão. "Copiar bebidas para Bia", em Sobre o amigo, deixa de enviar na hora: abre o mesmo diálogo já com a Bia, sem a grade de amigos.
+- Etiquetas em `src/ui/drink-picker.js`, usado pelas duas telas. Testes novos: `tests/ui-drink-picker.test.cjs` e `tests/drink-import-browser.test.cjs`; `tests/sharing-ui-browser.test.cjs` cobre a escolha nos dois lados da cópia.
+- Tutoriais `backup-e-bebidas` e `amigos` regenerados: a prévia mostra uma bebida sendo desmarcada, e `amigos` ganhou o passo de enviar escolhendo as bebidas.
+- Sem mudança no formato do arquivo, na cópia na nuvem, nas regras do Firestore ou nas políticas; `DATA_VERSION` permanece 11.
 
 ## V2.31.5 — Aba "Eventos" e ícones na verificação de atualização
 

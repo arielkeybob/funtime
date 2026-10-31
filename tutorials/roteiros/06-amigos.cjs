@@ -5,7 +5,7 @@ module.exports = {
   id: 'amigos',
   titulo: 'Amigos e compartilhar doses',
   resumo: 'Conectar, mostrar as doses e trocar bebidas.',
-  cobre: ['#sync-sign-in', '#home-friends-button', '#shared-view', '#pairing-dialog', '#shared-detail-dialog', '#friend-info-dialog'],
+  cobre: ['#sync-sign-in', '#home-friends-button', '#shared-view', '#pairing-dialog', '#shared-detail-dialog', '#friend-info-dialog', '#drink-copy-dialog'],
   seed: 'demo',
   passos: [
     {
@@ -141,8 +141,8 @@ module.exports = {
     {
       tipo: 'video',
       seed: 'demoCopiaBebidas',
-      legenda: 'Toque no i e em Receber: confira a prévia e escolha adicionar ou substituir.',
-      alt: 'No detalhe da Bia, o ícone i, marcado com um ponto, é tocado e abre Sobre o amigo; Receber cópia de bebidas de Bia é tocado e abre a prévia Importar bebidas, com as bebidas enviadas por Bia, o aviso de que os intervalos não são recomendação de consumo e as opções Adicionar às bebidas atuais e Substituir minha lista de bebidas em destaque.',
+      legenda: 'Toque no i e em Receber: marque as bebidas e escolha adicionar ou substituir.',
+      alt: 'No detalhe da Bia, o ícone i, marcado com um ponto, é tocado e abre Sobre o amigo; Receber cópia de bebidas de Bia é tocado e abre a prévia Importar bebidas, com as bebidas enviadas por Bia marcadas (a Caipirinha, que já existe, riscada) e o aviso de que os intervalos não são recomendação de consumo; Vinho é tocado e fica desmarcado, e as opções Adicionar às bebidas atuais e Substituir minha lista de bebidas ficam em destaque.',
       async preparar(t) {
         await t.tocar('#home-friends-button');
         await t.tocar('#friends-grid button');
@@ -156,9 +156,37 @@ module.exports = {
         await t.esperar(900);
         await t.tocarComDedo('#friend-info-drinks-in .drink-copy-receive', { antes: 400, descida: 700 });
         await t.page.waitForSelector('#drink-import-dialog[open]');
-        await t.esperar(700);
+        await t.esperar(900);
+        await t.tocarComDedo('#drink-import-drinks .drink-pick:nth-child(3)', { antes: 400, descida: 700 });
+        await t.esperar(900);
         await t.destacar('.data-choice-group');
         await t.esperar(2800);
+      },
+    },
+    {
+      // Enviar também começa pela escolha: todas as bebidas vêm marcadas, e só as marcadas vão.
+      tipo: 'video',
+      seed: 'demoCopiaBebidas',
+      legenda: 'Em Copiar bebidas, desmarque o que não quer enviar e toque em Copiar.',
+      alt: 'Em Sobre o amigo, Copiar bebidas para Bia é tocado e abre a escolha das bebidas, todas marcadas; Água é tocada e fica desmarcada, e o botão Copiar 2 bebidas é tocado e o app avisa que a cópia foi enviada para Bia.',
+      async preparar(t) {
+        await t.tocar('#home-friends-button');
+        await t.tocar('#friends-grid button');
+        await t.page.waitForSelector('#shared-detail-dialog[open]');
+        await t.tocar('#shared-detail-info');
+        await t.page.waitForSelector('#friend-info-dialog[open]');
+        await t.esperar(400);
+      },
+      async gravar(t) {
+        await t.esperar(1400);
+        await t.tocarComDedo('#friend-info-body .drink-copy-send');
+        await t.page.waitForSelector('#drink-copy-dialog[open]');
+        await t.esperar(900);
+        await t.tocarComDedo('#drink-copy-drinks .drink-pick:nth-child(3)', { antes: 400, descida: 700 });
+        await t.esperar(700);
+        await t.tocarComDedo('#drink-copy-confirm', { antes: 400, descida: 700 });
+        await t.page.waitForFunction(() => !document.querySelector('#drink-copy-dialog').open);
+        await t.esperar(1600);
       },
     },
   ],

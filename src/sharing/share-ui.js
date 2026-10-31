@@ -4,6 +4,7 @@ import { shareState, bestState } from "./share-state.js";
 import { renderFriendGrid, rosterStatus, initial } from "./friend-grid.js";
 import { formatClock, formatDate, formatHistoryElapsed, agendaDateParts } from "../format/datetime.js";
 import { DRINK_COPY_TTL_MS } from "../data/drink-copies.js";
+import { renderDrinkPicker, toggleAll } from "../ui/drink-picker.js";
 
 const DOSE_LABELS = { half: "Meia", full: "Inteira" };
 
@@ -67,6 +68,9 @@ export function createShareUI({
   let recebendoCopia = false;
   // Quem está marcado no diálogo "Copiar bebidas para amigos"; `null` com ele fechado.
   let copiaSelecionados = null;
+  // No mesmo diálogo: os ids das bebidas marcadas e, aberto por "Sobre o amigo", o uid dele.
+  let copiaBebidas = null;
+  let copiaParaUm = null;
 
   // A tela Amigos é o único lugar de uma cópia recebida, então ela também acende o ponto.
   function atualizarPonto() {
@@ -674,8 +678,9 @@ export function createShareUI({
   }
 
   // ---- Copiar bebidas (spec 0032) --------------------------------------------
-  // Quem envia manda uma cópia da lista atual; quem recebe confere na mesma prévia de
-  // "Importar bebidas" e escolhe adicionar ou substituir. O histórico nunca vai junto.
+  // Quem envia marca quais bebidas vão (todas, ao abrir); quem recebe confere na mesma prévia
+  // de "Importar bebidas", marca as que quer e escolhe adicionar ou substituir. O histórico
+  // nunca vai junto.
 
   const ICONE_COPIAR = '<svg class="occasion-icon" viewBox="0 0 24 24"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V6a2 2 0 0 1 2-2h9"/></svg>';
   const ICONE_RECEBER = '<svg class="occasion-icon" viewBox="0 0 24 24"><path d="M12 4v12M7 11l5 5 5-5"/><path d="M5 20h14"/></svg>';
@@ -724,14 +729,14 @@ export function createShareUI({
     const detalhe = enviando ? "Enviando…"
       : !total ? "Cadastre uma bebida para poder copiar."
       : enviada ? `Enviada ${quandoCopia(enviada)} · vale até ${quandoCopia(enviada + DRINK_COPY_TTL_MS)}`
-      : "Envia uma cópia da sua lista atual";
+      : "Escolha quais bebidas enviar";
     const linha = document.createElement("button");
     linha.type = "button";
     linha.className = "occasion-menu-row drink-copy-send";
     linha.disabled = enviando || !total || !getDrinkCopies();
     linha.append(iconeLinha(ICONE_COPIAR), textoLinha(`Copiar bebidas para ${par.alias || "Amigo"}`, detalhe,
-      enviada && !enviando && total ? ". Tocar de novo substitui a cópia." : ""));
-    linha.addEventListener("click", () => enviarCopia([par.otherUid]));
+      enviada && !enviando && total ? ". Enviar de novo substitui a cópia." : ""));
+    linha.addEventListener("click", () => openDrinkCopyDialog(par));
     return linha;
   }
 
@@ -760,9 +765,8 @@ export function createShareUI({
 
   // Um lote por amigo (cada um prova a própria amizade nas regras). Devolve `true` quando
   // não há nada a repetir: tudo confirmado, ou na fila esperando a conexão voltar.
-  async function enviarCopia(uids) {
+  async function enviarCopia(uids, drinks) {
     const copies = getDrinkCopies();
-    const drinks = getDrinks();
     if (!copies || !uids.length) return false;
     if (!drinks.length) { showToast("Cadastre ao menos uma bebida antes de copiar."); return false; }
 
@@ -848,42 +852,82 @@ export function createShareUI({
     return selo;
   }
 
-  // Diálogo de Configurações: a mesma cópia para vários amigos de uma vez. Quem já tem uma
-  // cópia válida aparece marcado — enviar de novo substitui a dela.
+  const bebidasParaCopiar = () => getDrinks().filter((drink) => copiaBebidas?.has(drink.id));
+
+  // Diálogo "Copiar bebidas": quais bebidas vão e, aberto por Configurações, para quais
+  // amigos de uma vez. Quem já tem uma cópia válida aparece marcado — enviar de novo
+  // substitui a dela. Aberto por "Sobre o amigo", o amigo já vem escolhido e a grade some.
   function renderDrinkCopyPeople() {
     if (!copiaSelecionados) return;
-    const semNinguem = renderFriendGrid({
+    if (copiaParaUm && !pairings.some((par) => par.otherUid === copiaParaUm && par.acceptedByMe && par.acceptedByOther)) {
+      closeDrinkCopyDialog();
+      return;
+    }
+    if (nodes.drinkCopyPeople) nodes.drinkCopyPeople.hidden = Boolean(copiaParaUm);
+    const semNinguem = copiaParaUm ? false : renderFriendGrid({
       gridNode: nodes.drinkCopyGrid, emptyNode: nodes.drinkCopyEmpty, pairings, selected: copiaSelecionados,
       onToggle: renderDrinkCopyPeople,
       marks: (par) => (copiaValida(par.drinkCopyFromMe) ? "copied" : null),
     });
     if (!nodes.drinkCopyConfirm) return;
     const quantos = copiaSelecionados.size;
+    const bebidas = bebidasParaCopiar().length;
+    const textoBebidas = `${bebidas} bebida${bebidas === 1 ? "" : "s"}`;
     nodes.drinkCopyConfirm.hidden = semNinguem;
-    nodes.drinkCopyConfirm.disabled = !quantos || copiandoPara.size > 0;
+    nodes.drinkCopyConfirm.disabled = !quantos || !bebidas || copiandoPara.size > 0;
     nodes.drinkCopyConfirm.textContent = copiandoPara.size ? "Enviando…"
-      : quantos ? `Copiar para ${quantos} amigo${quantos === 1 ? "" : "s"}` : "Marque quem vai receber";
+      : !bebidas ? "Marque ao menos uma bebida"
+      : copiaParaUm ? `Copiar ${textoBebidas}`
+      : quantos ? `Copiar ${textoBebidas} para ${quantos} amigo${quantos === 1 ? "" : "s"}` : "Marque quem vai receber";
   }
 
-  function openDrinkCopyDialog() {
-    const total = getDrinks().length;
-    if (!total) { showToast("Cadastre ao menos uma bebida antes de copiar."); return; }
-    copiaSelecionados = new Set();
+  function renderDrinkCopyDrinks() {
+    if (!copiaBebidas) return;
+    renderDrinkPicker({
+      node: nodes.drinkCopyDrinks, toggleAllNode: nodes.drinkCopyPickAll, drinks: getDrinks(),
+      selected: copiaBebidas, keyOf: (drink) => drink.id, onToggle: renderDrinkCopyPeople,
+    });
+  }
+
+  function toggleAllDrinkCopy() {
+    if (!copiaBebidas) return;
+    toggleAll(getDrinks().map((drink) => drink.id), copiaBebidas);
+    renderDrinkCopyDrinks();
+    renderDrinkCopyPeople();
+  }
+
+  // `par` vem de "Sobre o amigo"; sem ele (Configurações), escolhe-se para quem na grade.
+  function openDrinkCopyDialog(par = null) {
+    const drinks = getDrinks();
+    if (!drinks.length) { showToast("Cadastre ao menos uma bebida antes de copiar."); return; }
+    const nome = par?.alias || "Amigo";
+    copiaParaUm = par?.otherUid || null;
+    copiaSelecionados = new Set(copiaParaUm ? [copiaParaUm] : []);
+    copiaBebidas = new Set(drinks.map((drink) => drink.id));
+    if (nodes.drinkCopyTitle) nodes.drinkCopyTitle.textContent = par ? `Copiar bebidas para ${nome}` : "Copiar bebidas para amigos";
     if (nodes.drinkCopyHint) {
-      nodes.drinkCopyHint.textContent = `Quem você marcar recebe uma cópia da sua lista atual (${total} bebida${total === 1 ? "" : "s"}) e decide se quer importar.`;
+      nodes.drinkCopyHint.textContent = `${par ? nome : "Quem você marcar"} recebe uma cópia das bebidas marcadas e decide se quer importar.`;
     }
+    renderDrinkCopyDrinks();
     renderDrinkCopyPeople();
     if (!nodes.drinkCopyDialog.open) nodes.drinkCopyDialog.showModal();
   }
 
-  function closeDrinkCopyDialog() {
+  function esquecerCopia() {
     copiaSelecionados = null;
+    copiaBebidas = null;
+    copiaParaUm = null;
+  }
+
+  function closeDrinkCopyDialog() {
+    esquecerCopia();
     if (nodes.drinkCopyDialog?.open) nodes.drinkCopyDialog.close();
   }
 
   async function confirmDrinkCopy() {
-    if (!copiaSelecionados?.size) return;
-    if (await enviarCopia([...copiaSelecionados])) closeDrinkCopyDialog();
+    const bebidas = bebidasParaCopiar();
+    if (!copiaSelecionados?.size || !bebidas.length) return;
+    if (await enviarCopia([...copiaSelecionados], bebidas)) closeDrinkCopyDialog();
   }
 
   // Grade única: cada amigo é um avatar com a inicial e o nome, mais até duas
@@ -1213,11 +1257,12 @@ export function createShareUI({
     nodes.closeFriendInfo?.addEventListener("click", closeFriendInfo);
     nodes.friendInfoClose?.addEventListener("click", closeFriendInfo);
     nodes.friendInfoUnfriend?.addEventListener("click", unfriendFromInfo);
-    nodes.copyDrinksFriends?.addEventListener("click", openDrinkCopyDialog);
+    nodes.copyDrinksFriends?.addEventListener("click", () => openDrinkCopyDialog());
     nodes.closeDrinkCopy?.addEventListener("click", closeDrinkCopyDialog);
     nodes.drinkCopyConfirm?.addEventListener("click", confirmDrinkCopy);
+    nodes.drinkCopyPickAll?.addEventListener("click", toggleAllDrinkCopy);
     // Fechado por Esc ou pelo fundo: esquece a seleção como o ×.
-    nodes.drinkCopyDialog?.addEventListener("close", () => { copiaSelecionados = null; });
+    nodes.drinkCopyDialog?.addEventListener("close", esquecerCopia);
 
     // O carimbo de frescor ("atualizado agora" → "desatualizado") muda só com o
     // relógio passando, sem nenhum dado novo chegar — por isso reavalia sozinho.

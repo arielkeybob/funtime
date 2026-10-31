@@ -22,6 +22,7 @@ import { TUTORIALS } from "./src/tutorials/content.js";
 import { createDurationPicker, createWheelPicker, setWheelPickerValue } from "./src/ui/wheel-picker.js";
 import { createFieldErrorController, createFormErrorController } from "./src/ui/field-errors.js";
 import { createDrinkReorderController } from "./src/ui/drink-reorder.js";
+import { renderDrinkPicker, toggleAll } from "./src/ui/drink-picker.js";
 import { createIconCatalog } from "./src/ui/icon-catalog.js";
 import { encodeBackgroundImage, parseStoredBackground, serializeBackground } from "./src/ui/app-background.js";
 import { createEventDialog } from "./src/history/event-dialog.js";
@@ -317,7 +318,7 @@ document.addEventListener("visibilitychange", () => {
 const DATA_STORAGE_KEY = "funtime-v1-data";
 const LEGACY_DRINKS_STORAGE_KEY = "balada-v1-drinks";
 const DATA_VERSION = 11;
-const APP_VERSION = "2.31.5";
+const APP_VERSION = "2.32.0";
 const DRINK_EXPORT_TYPE = "funtime-drinks";
 const DRINK_EXPORT_FORMAT_VERSION = 1;
 const BACKUP_EXPORT_TYPE = "funtime-backup";
@@ -647,7 +648,11 @@ const sharingNodes = {
   friendInfoDrinksIn: document.querySelector("#friend-info-drinks-in"),
   copyDrinksFriends: document.querySelector("#copy-drinks-friends"),
   drinkCopyDialog: document.querySelector("#drink-copy-dialog"),
+  drinkCopyTitle: document.querySelector("#drink-copy-title"),
   drinkCopyHint: document.querySelector("#drink-copy-hint"),
+  drinkCopyDrinks: document.querySelector("#drink-copy-drinks"),
+  drinkCopyPickAll: document.querySelector("#drink-copy-pick-all"),
+  drinkCopyPeople: document.querySelector("#drink-copy-people"),
   drinkCopyGrid: document.querySelector("#drink-copy-grid"),
   drinkCopyEmpty: document.querySelector("#drink-copy-empty"),
   drinkCopyConfirm: document.querySelector("#drink-copy-confirm"),
@@ -663,6 +668,8 @@ const drinkImportFileSummary = document.querySelector("#drink-import-file-summar
 const drinkImportError = document.querySelector("#drink-import-error");
 const drinkImportFriendNote = document.querySelector("#drink-import-friend-note");
 const confirmDrinkImportButton = document.querySelector("#confirm-drink-import");
+const drinkImportPicker = document.querySelector("#drink-import-drinks");
+const drinkImportPickAllButton = document.querySelector("#drink-import-pick-all");
 
 const backupRestoreDialog = document.querySelector("#backup-restore-dialog");
 const backupRestoreFileName = document.querySelector("#backup-restore-file-name");
@@ -1737,16 +1744,55 @@ function getDrinkImportSignature(drink) {
   ].join("\u001f");
 }
 
-// O botão diz o efeito: quantas bebidas entram ao adicionar, ou a troca pela lista do arquivo.
+function getDrinkImportMode() {
+  return drinkImportDialog.querySelector('input[name="drink-import-mode"]:checked')?.value || "add";
+}
+
+// Ao adicionar, a bebida que você já tem fica de fora de qualquer jeito: a etiqueta dela
+// aparece riscada e não se toca. Ao substituir, vale toda a lista do arquivo.
+function drinkImportLockFor(pending) {
+  if (getDrinkImportMode() !== "add") return () => false;
+  const existentes = new Set(state.drinks.map(getDrinkImportSignature));
+  return (index) => existentes.has(getDrinkImportSignature(pending.drinks[index]));
+}
+
+function getPickedImportDrinks(pending, locked = drinkImportLockFor(pending)) {
+  return pending.drinks.filter((_, index) => pending.selected.has(index) && !locked(index));
+}
+
+// O botão diz o efeito: quantas das marcadas entram ao adicionar, ou por quantas a lista é trocada.
 function updateDrinkImportLabel() {
   const pending = state.pendingDrinkImport;
   if (!pending) return;
-  const mode = drinkImportDialog.querySelector('input[name="drink-import-mode"]:checked')?.value || "add";
-  const novas = getDrinkImportAnalysis(pending.drinks).newCount;
-  confirmDrinkImportButton.disabled = mode === "add" && novas === 0;
-  confirmDrinkImportButton.textContent = mode === "replace"
-    ? `Substituir pela lista (${pending.drinks.length})`
+  const mode = getDrinkImportMode();
+  const locked = drinkImportLockFor(pending);
+  const escolhidas = getPickedImportDrinks(pending, locked);
+  const livres = pending.drinks.filter((_, index) => !locked(index)).length;
+  const novas = getDrinkImportAnalysis(escolhidas).newCount;
+  const nenhumaMarcada = livres > 0 && escolhidas.length === 0;
+  confirmDrinkImportButton.disabled = nenhumaMarcada || (mode === "add" && novas === 0);
+  confirmDrinkImportButton.textContent = nenhumaMarcada ? "Marque ao menos uma bebida"
+    : mode === "replace" ? `Substituir por ${escolhidas.length} bebida${escolhidas.length === 1 ? "" : "s"}`
     : novas ? `Adicionar ${novas} bebida${novas === 1 ? "" : "s"}` : "Nenhuma bebida nova";
+}
+
+// Redesenha as etiquetas (trocar Adicionar/Substituir muda quais ficam presas) e o botão.
+function renderDrinkImportChoice() {
+  const pending = state.pendingDrinkImport;
+  if (!pending) return;
+  renderDrinkPicker({
+    node: drinkImportPicker, toggleAllNode: drinkImportPickAllButton, drinks: pending.drinks,
+    selected: pending.selected, locked: drinkImportLockFor(pending), lockedLabel: "você já tem",
+    onToggle: updateDrinkImportLabel,
+  });
+  updateDrinkImportLabel();
+}
+
+function toggleAllDrinkImport() {
+  const pending = state.pendingDrinkImport;
+  if (!pending) return;
+  toggleAll(pending.drinks.map((_, index) => index), pending.selected, drinkImportLockFor(pending));
+  renderDrinkImportChoice();
 }
 
 function getDrinkImportAnalysis(importedDrinks) {
@@ -1786,6 +1832,8 @@ function openDrinkImportPreview({ fileName, drinks, source = "file", friendCopy 
     drinks,
     source,
     friendCopy,
+    // Índices das bebidas marcadas: todas, ao abrir.
+    selected: new Set(drinks.map((_, index) => index)),
   };
 
   drinkImportFileName.textContent = state.pendingDrinkImport.fileName;
@@ -1797,21 +1845,13 @@ function openDrinkImportPreview({ fileName, drinks, source = "file", friendCopy 
     pieces.push(`${analysis.exactDuplicates} duplicata${analysis.exactDuplicates === 1 ? "" : "s"} exata${analysis.exactDuplicates === 1 ? "" : "s"}`);
   }
   drinkImportFileSummary.textContent = pieces.join(" · ");
-  // Quais bebidas entram: as que você já tem aparecem apagadas (ficam de fora ao adicionar).
-  const existentes = new Set(state.drinks.map(getDrinkImportSignature));
-  document.querySelector("#drink-import-drinks").replaceChildren(...drinks.map((drink) => {
-    const pill = document.createElement("span");
-    pill.textContent = `${drink.icon || ""} ${drink.name}`.trim();
-    if (existentes.has(getDrinkImportSignature(drink))) pill.classList.add("is-duplicate");
-    return pill;
-  }));
 
   drinkImportError.hidden = true;
   drinkImportError.textContent = "";
 
   const addOption = drinkImportDialog.querySelector('input[name="drink-import-mode"][value="add"]');
   if (addOption) addOption.checked = true;
-  updateDrinkImportLabel();
+  renderDrinkImportChoice();
 
   drinkImportDialog.showModal();
 }
@@ -1891,13 +1931,14 @@ function confirmDrinkImport() {
   const pending = state.pendingDrinkImport;
   if (!pending) return;
 
-  const mode = drinkImportDialog.querySelector('input[name="drink-import-mode"]:checked')?.value || "add";
+  const mode = getDrinkImportMode();
+  const escolhidas = getPickedImportDrinks(pending);
 
   try {
     const before = state.drinks.length;
     const nextDrinks = mode === "replace"
-      ? buildReplacementDrinkList(pending.drinks)
-      : buildAddedDrinkList(pending.drinks);
+      ? buildReplacementDrinkList(escolhidas)
+      : buildAddedDrinkList(escolhidas);
 
     persistDrinkList(nextDrinks);
     // Importada: não aparece de novo e sai do servidor agora, sem esperar as 24h.
@@ -3421,7 +3462,8 @@ backupRestoreFileInput.addEventListener("change", () => {
 checkAppUpdateButton.addEventListener("click", checkForAppUpdateManually);
 
 document.querySelector("#close-drink-import").addEventListener("click", closeDrinkImportDialog);
-drinkImportDialog.addEventListener("change", updateDrinkImportLabel);
+drinkImportDialog.addEventListener("change", renderDrinkImportChoice);
+drinkImportPickAllButton.addEventListener("click", toggleAllDrinkImport);
 confirmDrinkImportButton.addEventListener("click", confirmDrinkImport);
 
 document.querySelector("#close-backup-restore").addEventListener("click", closeBackupRestoreDialog);

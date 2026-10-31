@@ -60,7 +60,7 @@
     <footer class="browser-gate-footer">
       <span>App para estudo · não é controle de segurança</span>
       <a class="policies-link" href="./policies.html">Políticas e informações</a>
-      <span>v2.31.5 · By: arielkeybob</span>
+      <span>v2.32.0 · By: arielkeybob</span>
     </footer>
   </section>
 
@@ -377,7 +377,7 @@
 
     <section class="settings-page" data-settings-page="about" data-title="Sobre o app" hidden>
       <section class="settings-card">
-        <p class="settings-description">Versão instalada: <strong>v2.31.5</strong></p>
+        <p class="settings-description">Versão instalada: <strong>v2.32.0</strong></p>
         <button id="check-app-update" class="settings-secondary-button" type="button">Verificar atualizações</button>
         <a class="settings-link-row" href="./policies.html"><span>Políticas e informações</span><span class="settings-nav-chevron" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg></span></a>
       </section>
@@ -493,7 +493,7 @@
     <footer class="app-footer">
       <span class="app-footer-disclaimer">App para estudo · não é controle de segurança</span>
       <a class="policies-link" href="./policies.html">Políticas e informações</a>
-      <span class="app-footer-meta">v2.31.5 · By: arielkeybob</span>
+      <span class="app-footer-meta">v2.32.0 · By: arielkeybob</span>
     </footer>
   </div>
 
@@ -578,16 +578,28 @@
       <div class="dialog-header">
         <div>
           <p class="eyebrow">Bebidas</p>
-          <h2>Copiar bebidas para amigos</h2>
+          <h2 id="drink-copy-title">Copiar bebidas para amigos</h2>
         </div>
         <button id="close-drink-copy" class="icon-button secondary" type="button" aria-label="Fechar">×</button>
       </div>
 
-      <p id="drink-copy-hint" class="settings-description">Quem você marcar recebe uma cópia da sua lista atual e decide se quer importar.</p>
+      <p id="drink-copy-hint" class="settings-description">Quem você marcar recebe uma cópia das bebidas marcadas e decide se quer importar.</p>
       <p class="settings-description clean-optional">O histórico não vai junto. A cópia vale por 24 horas, e enviar de novo substitui a anterior.</p>
 
-      <div id="drink-copy-grid" class="share-grid"></div>
-      <p id="drink-copy-empty" class="sharing-empty" hidden>Adicione um amigo primeiro, na tela Amigos.</p>
+      <section class="drink-copy-block" aria-labelledby="drink-copy-drinks-title">
+        <h3 id="drink-copy-drinks-title" class="drink-copy-section">Quais bebidas</h3>
+        <div id="drink-copy-drinks" class="drink-picker" role="group" aria-labelledby="drink-copy-drinks-title"></div>
+        <div class="drink-pick-foot">
+          <span class="drink-pick-hint">Toque para marcar ou desmarcar.</span>
+          <button id="drink-copy-pick-all" class="drink-pick-all" type="button" hidden>Desmarcar todas</button>
+        </div>
+      </section>
+
+      <section id="drink-copy-people" class="drink-copy-block" aria-labelledby="drink-copy-people-title">
+        <h3 id="drink-copy-people-title" class="drink-copy-section">Para quem</h3>
+        <div id="drink-copy-grid" class="share-grid"></div>
+        <p id="drink-copy-empty" class="sharing-empty" hidden>Adicione um amigo primeiro, na tela Amigos.</p>
+      </section>
 
       <div class="dialog-actions">
         <button id="drink-copy-confirm" class="primary-button" type="button" disabled>Marque quem vai receber</button>
@@ -1052,7 +1064,11 @@
       <div class="data-file-summary">
         <strong id="drink-import-file-name">Arquivo selecionado</strong>
         <span id="drink-import-file-summary">—</span>
-        <span id="drink-import-drinks" class="occasion-records-drinks"></span>
+        <div id="drink-import-drinks" class="drink-picker" role="group" aria-label="Bebidas para importar"></div>
+        <div class="drink-pick-foot">
+          <span class="drink-pick-hint">Toque para marcar ou desmarcar.</span>
+          <button id="drink-import-pick-all" class="drink-pick-all" type="button" hidden>Desmarcar todas</button>
+        </div>
       </div>
 
       <p id="drink-import-friend-note" class="settings-description" hidden>Os intervalos vieram de outra pessoa e não são recomendação de consumo.</p>

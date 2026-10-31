@@ -69,7 +69,8 @@ Ver `docs/specs/0032-copiar-bebidas-entre-amigos.md`. O mesmo princípio de Expo
 bebidas, entre amigos já conectados e sem arquivo: uma cópia da lista atual (nome, ícone,
 intervalo e "perguntar o tamanho") vale 24h na nuvem, verificado pelo servidor, e quem recebe
 confere na mesma prévia de Importar bebidas antes de adicionar ou substituir, sempre
-preservando o histórico. Pelo detalhe do amigo ou, para vários, por Configurações.
+preservando o histórico. Pelo detalhe do amigo ou, para vários, por Configurações. Desde a
+V2.32.0, quem envia e quem importa (inclusive de arquivo) escolhem quais bebidas.
 
 ### Compartilhamento temporário com pessoas autorizadas — V2.3.0
 

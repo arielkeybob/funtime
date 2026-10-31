@@ -457,7 +457,7 @@ test('copiar bebidas: receber pela prévia de importação e enviar para um ou v
     // Abaixo de "Amigos desde", no mesmo bloco: copiar, sempre; e o cartão de receber, quando houver.
     const linhas = page.locator('#friend-info-body .occasion-menu-row');
     assert.match(await linhas.nth(0).innerText(), /Amigos desde/);
-    assert.match(await linhas.nth(1).innerText(), /Copiar bebidas para Bia\s+Envia uma cópia da sua lista atual/);
+    assert.match(await linhas.nth(1).innerText(), /Copiar bebidas para Bia\s+Escolha quais bebidas enviar/);
     const cartao = page.locator('#friend-info-drinks-in');
     assert.equal(await cartao.isVisible(), true);
     assert.match(await cartao.innerText(), /Receber cópia de bebidas de Bia\s+Enviada hoje às \d\d:\d\d · vale até amanhã às \d\d:\d\d/);
@@ -470,7 +470,27 @@ test('copiar bebidas: receber pela prévia de importação e enviar para um ou v
     assert.equal(await dados(), antes, 'abrir a prévia não grava nada');
     assert.deepEqual(await page.evaluate(() => window.__chamadas.markHandled), [], 'nem marca a cópia como recebida');
 
-    await page.locator('#confirm-drink-import').click();
+    // Todas marcadas ao abrir; ao adicionar, a Cerveja (que já existe) fica riscada e fora de alcance.
+    const etiqueta = (nome) => page.locator('#drink-import-drinks .drink-pick', { hasText: nome });
+    const importar = page.locator('#confirm-drink-import');
+    assert.equal(await etiqueta('Água').getAttribute('aria-pressed'), 'true');
+    assert.equal(await etiqueta('Cerveja').isDisabled(), true);
+    assert.match(await etiqueta('Cerveja').getAttribute('aria-label'), /você já tem/);
+    assert.equal(await importar.textContent(), 'Adicionar 1 bebida');
+    await etiqueta('Água').click();
+    assert.equal(await etiqueta('Água').getAttribute('aria-pressed'), 'false');
+    assert.equal(await importar.textContent(), 'Marque ao menos uma bebida');
+    assert.equal(await importar.isDisabled(), true);
+    // Ao substituir, toda a lista vale: a Cerveja volta a ser tocável, e marcada.
+    await page.locator('input[name="drink-import-mode"][value="replace"]').check();
+    assert.equal(await etiqueta('Cerveja').isDisabled(), false);
+    assert.equal(await etiqueta('Cerveja').getAttribute('aria-pressed'), 'true');
+    assert.equal(await importar.textContent(), 'Substituir por 1 bebida');
+    await page.locator('input[name="drink-import-mode"][value="add"]').check();
+    await etiqueta('Água').click();
+    assert.equal(await importar.textContent(), 'Adicionar 1 bebida');
+
+    await importar.click();
     const depois = JSON.parse(await dados());
     assert.deepEqual(depois.drinks.map((drink) => drink.name), ['Cerveja', 'Água']);
     assert.deepEqual(depois.events, JSON.parse(antes).events, 'o histórico fica intacto');
@@ -479,28 +499,48 @@ test('copiar bebidas: receber pela prévia de importação e enviar para um ou v
     assert.equal(await page.locator('#shared-detail-info-dot').isVisible(), false, 'e o ponto do "i" apaga');
     assert.equal(await page.locator('#home-friends-dot').isVisible(), false);
 
-    // Enviar para a Bia por "Sobre o amigo": a lista ATUAL, já com a Água importada.
+    // Enviar para a Bia por "Sobre o amigo": abre a escolha das bebidas já com a Bia e sem a
+    // grade; todas da lista ATUAL (já com a Água importada) vêm marcadas.
     await page.locator('#friend-info-body .drink-copy-send').click();
-    await page.waitForFunction(() => window.__chamadas.send.length === 1);
+    await page.locator('#drink-copy-dialog[open]').waitFor();
+    assert.equal(await page.locator('#drink-copy-title').textContent(), 'Copiar bebidas para Bia');
+    assert.equal(await page.locator('#drink-copy-people').isVisible(), false);
+    const paraEnviar = (nome) => page.locator('#drink-copy-drinks .drink-pick', { hasText: nome });
+    const confirmar = page.locator('#drink-copy-confirm');
+    assert.equal(await confirmar.textContent(), 'Copiar 2 bebidas');
+    await page.locator('#drink-copy-pick-all').click();
+    assert.equal(await confirmar.textContent(), 'Marque ao menos uma bebida');
+    assert.equal(await confirmar.isDisabled(), true);
+    assert.equal(await page.locator('#drink-copy-pick-all').textContent(), 'Marcar todas');
+    await paraEnviar('Água').click();
+    assert.equal(await confirmar.textContent(), 'Copiar 1 bebida');
+    await confirmar.click();
+    await page.waitForFunction(() => !document.querySelector('#drink-copy-dialog').open);
     const envio = await page.evaluate(() => window.__chamadas.send[0]);
     assert.deepEqual(envio.toUids, ['bia']);
-    assert.deepEqual(envio.drinks.map((drink) => drink.name), ['Cerveja', 'Água']);
+    assert.deepEqual(envio.drinks.map((drink) => drink.name), ['Água'], 'só a marcada vai');
     await page.locator('#close-friend-info').click();
     await page.locator('#close-shared-detail').click();
 
-    // Vários de uma vez, por Configurações.
+    // Vários de uma vez, por Configurações: a grade volta, a seleção começa de novo.
     await page.evaluate(() => openSettingsView());
     await page.evaluate(() => document.querySelector('#copy-drinks-friends').click());
     await page.locator('#drink-copy-dialog[open]').waitFor();
-    assert.match(await page.locator('#drink-copy-hint').textContent(), /lista atual \(2 bebidas\)/);
-    const confirmar = page.locator('#drink-copy-confirm');
+    assert.equal(await page.locator('#drink-copy-title').textContent(), 'Copiar bebidas para amigos');
+    assert.equal(await page.locator('#drink-copy-people').isVisible(), true);
+    assert.equal(await paraEnviar('Cerveja').getAttribute('aria-pressed'), 'true');
     assert.equal(await confirmar.isDisabled(), true);
+    assert.equal(await confirmar.textContent(), 'Marque quem vai receber');
     await page.locator('#drink-copy-grid .share-person', { hasText: 'Bia' }).click();
     await page.locator('#drink-copy-grid .share-person', { hasText: 'Caio' }).click();
-    assert.equal(await confirmar.textContent(), 'Copiar para 2 amigos');
+    assert.equal(await confirmar.textContent(), 'Copiar 2 bebidas para 2 amigos');
+    await paraEnviar('Cerveja').click();
+    assert.equal(await confirmar.textContent(), 'Copiar 1 bebida para 2 amigos');
     await confirmar.click();
     await page.waitForFunction(() => !document.querySelector('#drink-copy-dialog').open);
-    assert.deepEqual((await page.evaluate(() => window.__chamadas.send[1])).toUids.sort(), ['bia', 'caio']);
+    const envioVarios = await page.evaluate(() => window.__chamadas.send[1]);
+    assert.deepEqual(envioVarios.toUids.sort(), ['bia', 'caio']);
+    assert.deepEqual(envioVarios.drinks.map((drink) => drink.name), ['Água']);
 
     assert.deepEqual(erros, []);
   });

@@ -4284,6 +4284,24 @@ div.share-person { cursor: default; }
 #drink-import-drinks .is-duplicate { opacity: .5; text-decoration: line-through; }
 #confirm-drink-import:disabled, #pin-setup-form button[type="submit"]:disabled { opacity: .45; cursor: default; }
 
+/* Escolher quais bebidas importar ou copiar para amigos (v2.32.0): etiquetas de marcar, todas
+   marcadas ao abrir. Marcada é cheia e com ✓; desmarcada fica só no contorno. */
+.drink-picker { display: flex; flex-wrap: wrap; gap: 6px; }
+.drink-pick { display: inline-flex; align-items: center; gap: 6px; min-height: 34px; margin: 0; padding: 5px 12px 5px 7px; border: 1px solid var(--border); border-radius: 999px; background: transparent; color: var(--muted); font: inherit; font-size: .8rem; text-align: left; }
+.drink-pick[aria-pressed="true"] { border-color: var(--text); background: var(--surface-2); color: var(--text); }
+.drink-pick:disabled { cursor: default; }
+.data-file-summary .drink-pick span { color: inherit; font-size: inherit; line-height: 1.2; }
+.drink-pick-check { display: grid; place-items: center; flex: none; width: 18px; height: 18px; border: 1.5px solid currentColor; border-radius: 999px; }
+.drink-pick-check svg { width: 12px; height: 12px; fill: none; stroke: currentColor; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; visibility: hidden; }
+.drink-pick[aria-pressed="true"] .drink-pick-check { border-color: var(--accent); background: var(--accent); color: var(--accent-text); }
+.drink-pick[aria-pressed="true"] .drink-pick-check svg { visibility: visible; }
+.drink-pick-foot { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 6px; }
+.data-file-summary .drink-pick-hint, .drink-pick-hint { color: var(--muted); font-size: .76rem; line-height: 1.35; }
+.drink-pick-all { flex: none; min-height: 32px; margin: 0; padding: 4px 2px; border: 0; background: transparent; color: var(--text); font-size: .8rem; font-weight: 650; text-decoration: underline; text-underline-offset: 3px; }
+.drink-copy-block { display: grid; gap: 8px; }
+.drink-copy-block .drink-pick-foot { margin-top: 0; }
+.drink-copy-section { margin: 0; color: var(--text); font-size: .88rem; font-weight: 800; }
+
 /* Botões de perigo (v2.26.10, spec 0029, pacote M): três formas para a mesma ideia.
    - Cheio, .danger-button: confirma algo que apaga (confirmação, Excluir junto com os registros, Restaurar backup,
      Apagar no passo 2 de Redefinir). .share-stop-button é a versão menor ("Parar").

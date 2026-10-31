@@ -76,14 +76,17 @@ module.exports = {
     },
     {
       tipo: 'video',
-      legenda: 'Importar mostra uma prévia: adicionar ou substituir a lista.',
-      alt: 'O botão Importar bebidas é tocado e abre a prévia do arquivo, com as bebidas dele e as opções Adicionar às bebidas atuais e Substituir minha lista de bebidas em destaque.',
+      legenda: 'Importar mostra uma prévia: marque as bebidas e escolha adicionar ou substituir.',
+      alt: 'O botão Importar bebidas é tocado e abre a prévia do arquivo, com Vinho e Suco marcados; Suco é tocado e fica desmarcado, o botão passa a dizer Adicionar 1 bebida, e as opções Adicionar às bebidas atuais e Substituir minha lista de bebidas ficam em destaque.',
       async preparar(t) { await irParaBackup(t); t.aoEscolherArquivo(ARQUIVO_BEBIDAS); },
       async gravar(t) {
         await t.esperar(1400);
         await t.tocarComDedo('#import-drinks');
         await t.page.waitForSelector('#drink-import-dialog[open]');
-        await t.esperar(700);
+        await t.esperar(900);
+        // Todas vêm marcadas; tocar numa a deixa de fora.
+        await t.tocarComDedo('#drink-import-drinks .drink-pick:nth-child(2)', { antes: 400, descida: 700 });
+        await t.esperar(900);
         await t.destacar('.data-choice-group');
         await t.esperar(2800);
       },
