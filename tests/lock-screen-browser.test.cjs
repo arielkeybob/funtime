@@ -102,11 +102,13 @@ test('a tela de bloqueio fica neutra mesmo travando em Eventos ou Amigos; desblo
       view: document.documentElement.dataset.view,
       bar: document.querySelector('meta[name="theme-color"]').content,
       button: getComputedStyle(document.querySelector('#pin-unlock-button')).backgroundColor,
+      pattern: getComputedStyle(document.body, '::before').backgroundImage,
     }));
 
     await page.evaluate(() => { state.preferences.eventsEnabled = true; lockApp(); });
     const neutral = await theme();
     assert.equal(neutral.bar, '#09090b');
+    assert.equal(neutral.pattern, 'none', 'bloqueio sem os desenhos de fundo dos módulos (spec 0033)');
     await unlockWithPin(page);
 
     for (const [open, view, bar] of [['openSharedView', 'shared', '#16130b'], ['openOccasionView', 'occasion', '#130e1c']]) {
@@ -117,6 +119,7 @@ test('a tela de bloqueio fica neutra mesmo travando em Eventos ou Amigos; desblo
       await unlockWithPin(page);
       assert.equal(await page.evaluate(() => state.currentView), view, 'desbloquear volta para a mesma tela');
       assert.deepEqual(await theme().then(({ view, bar }) => ({ view, bar })), { view, bar }, 'e com a cor do módulo');
+      assert.match((await theme()).pattern, view === 'shared' ? /patterns\/amigos\.svg/ : /patterns\/eventos\.svg/, 'e com os desenhos dele');
       await page.evaluate(() => closeSharedView());
     }
     assert.deepEqual(erros, []);

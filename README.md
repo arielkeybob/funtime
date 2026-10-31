@@ -1,4 +1,21 @@
-# FunTime — V2.32.2
+# FunTime — V2.33.0
+
+## V2.33.0 — Desenhos no fundo de Eventos e Amigos
+
+- **Eventos** e **Amigos** ganham, por cima da cor do módulo, desenhos em linha bem sutis e espaçados, no conceito do fundo de conversa do WhatsApp:
+  - **Eventos:** calendário, óculos escuros, mesa de DJ, serpentina, globo de luz, chapéu de festa, balão, ingresso, fone, microfone, fogos, lua, varal de luzes e outros.
+  - **Amigos:** dois bonequinhos, coração, beijo, soquinho, balão de conversa, toca aqui, cartinha, selfie, sorriso, flecha do cupido, infinito e anel.
+- Cada módulo alterna a própria cor de destaque com um cinza. O estilo, a intensidade e o espaçamento foram escolhidos numa galeria com as telas reais.
+- Os diálogos de cada módulo também levam os desenhos: Novo evento, detalhe do evento, Convidados, Amigos, Sobre o amigo e outros. Convidados e Compartilhar doses abrem a partir de um evento e seguem o de Eventos.
+- O fundo fica parado quando a tela rola. A tela de bloqueio, as outras telas e os diálogos neutros continuam sem desenho.
+- O aviso do rodapé ganha um contorno na cor do módulo para continuar legível sobre os desenhos.
+- São dois arquivos SVG leves, guardados no aparelho para funcionar offline:
+  - `patterns/eventos.svg`: 3,9 KB;
+  - `patterns/amigos.svg`: 5,0 KB.
+  - Gerados por `scripts/fundos-build.cjs` (spec 0033).
+- Testes: `tests/fundo-browser.test.cjs` (teste novo) e `tests/lock-screen-browser.test.cjs` (o bloqueio continua sem desenho).
+- Tutoriais `eventos`, `amigos` e `evento-compartilhado` regerados: os vídeos e as imagens de Novo evento e Convidados mostram o fundo novo. As legendas não mudaram.
+- Sem mudança de dados, backup, regras do Firestore ou políticas. `DATA_VERSION` permanece 11.
 
 ## V2.32.2 — Excluir bebida mais clara
 

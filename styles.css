@@ -4096,6 +4096,21 @@ div.share-person { cursor: default; }
 #nav-occasion svg, #nav-occasion:not([aria-current="page"]) { color: var(--event-glow); }
 #home-friends-button svg { color: var(--friends-glow); }
 
+/* Fundo com desenhos (v2.33.0, spec 0033): Eventos e Amigos ganham, por cima da cor do módulo, um
+   ladrilho de desenhos em linha bem sutis (patterns/*.svg, gerados por scripts/fundos-build.cjs).
+   A camada é fixa atrás de tudo, então não anda com a rolagem e dispensa background-attachment: fixed,
+   que o iOS ignora. O html mantém a cor e o body fica transparente para a camada aparecer, como na
+   imagem de fundo. Segue data-view, então a tela de bloqueio continua neutra. Os diálogos de cada
+   módulo (event-scope / friends-scope) levam o mesmo ladrilho no próprio fundo; como quem rola é o
+   conteúdo, os desenhos ficam parados ali também. O rodapé de botões continua sólido. */
+:root:is([data-view="occasion"], [data-view="shared"]) body { background: transparent; }
+:root:is([data-view="occasion"], [data-view="shared"]) body::before { content: ""; position: fixed; inset: 0; z-index: -1; background: url("./patterns/eventos.svg") repeat; pointer-events: none; }
+:root[data-view="shared"] body::before { background-image: url("./patterns/amigos.svg"); }
+.dialog.event-scope { background-image: url("./patterns/eventos.svg"); }
+.dialog.friends-scope { background-image: url("./patterns/amigos.svg"); }
+/* O aviso do rodapé fica direto sobre os desenhos: um contorno na cor do módulo apaga o traço atrás das letras. */
+:root:is([data-view="occasion"], [data-view="shared"]) .app-footer { text-shadow: 0 0 3px var(--bg), 0 0 6px var(--bg), 0 0 10px var(--bg); }
+
 /* Ícones e marcadores */
 .occasion-icon { width: 20px; height: 20px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
 .occasion-marker { width: 10px; height: 10px; flex: none; fill: currentColor; }

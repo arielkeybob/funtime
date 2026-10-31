@@ -74,6 +74,15 @@ sistema também. A tela de bloqueio é a mesma para qualquer módulo, então vol
 - Teste: `tests/lock-screen-browser.test.cjs` (bloquear a partir do Início, de Amigos e de Eventos dá as
   mesmas cores; desbloquear devolve a cor do módulo).
 
+### Adendo v2.33.0 — desenhos por cima da cor do módulo
+
+Eventos e Amigos continuam sem a imagem de fundo escolhida pelo usuário, mas ganham desenhos em linha
+bem sutis por cima da própria cor (`patterns/*.svg`), como o fundo de conversa do WhatsApp.
+- Usa o mesmo mecanismo da imagem: camada fixa atrás de tudo, `body` transparente e a cor no `html`.
+- Os diálogos dos módulos levam os mesmos desenhos e seguem a tela de onde abriram.
+- A tela de bloqueio continua neutra.
+- Detalhes na spec 0033.
+
 ## Plano de teste
 
 - `node --input-type=module --check < app.js`, `node --check sw.js`, `node --check reset.js`.

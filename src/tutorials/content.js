@@ -240,28 +240,28 @@ export const TUTORIALS = [
       },
       {
         "tipo": "video",
-        "src": "./tutorials/media/eventos/02.b4284a11.mp4",
-        "poster": "./tutorials/media/eventos/02.poster.a9e7ba0c.webp",
+        "src": "./tutorials/media/eventos/02.4d7f88dd.mp4",
+        "poster": "./tutorials/media/eventos/02.poster.75e6fb70.webp",
         "alt": "A opção Usar eventos, em Configurações → Aparência, é tocada e liga; o app avisa que os eventos foram ativados.",
         "legenda": "Em Configurações → Aparência, ative Usar eventos."
       },
       {
         "tipo": "imagem",
-        "src": "./tutorials/media/eventos/03.1263e346.webp",
+        "src": "./tutorials/media/eventos/03.6157e0e3.webp",
         "alt": "Tela inicial com a aba Eventos, recém-criada, em destaque no menu de baixo.",
         "legenda": "A aba Eventos aparece no menu de baixo."
       },
       {
         "tipo": "video",
-        "src": "./tutorials/media/eventos/04.d3fe99f3.mp4",
-        "poster": "./tutorials/media/eventos/04.poster.98b9c895.webp",
+        "src": "./tutorials/media/eventos/04.56eec42f.mp4",
+        "poster": "./tutorials/media/eventos/04.poster.0ec5135f.webp",
         "alt": "A aba Eventos é tocada e, na lista de eventos, o botão + Novo é tocado e abre o formulário Novo evento.",
         "legenda": "Na aba Eventos, toque em + Novo."
       },
       {
         "tipo": "video",
-        "src": "./tutorials/media/eventos/05.92019ff9.mp4",
-        "poster": "./tutorials/media/eventos/05.poster.4d16547c.webp",
+        "src": "./tutorials/media/eventos/05.6cb776ae.mp4",
+        "poster": "./tutorials/media/eventos/05.poster.d95600a7.webp",
         "alt": "O nome Churrasco do João é digitado no formulário Novo evento e o botão Iniciar evento é tocado.",
         "legenda": "Dê um nome e toque em Iniciar evento."
       },
@@ -273,14 +273,14 @@ export const TUTORIALS = [
       },
       {
         "tipo": "imagem",
-        "src": "./tutorials/media/eventos/07.29840a56.webp",
+        "src": "./tutorials/media/eventos/07.e0470c36.webp",
         "alt": "Formulário Novo evento com a opção Escolher data selecionada em Quando começar?, em destaque.",
         "legenda": "Para agendar, troque para Escolher data."
       },
       {
         "tipo": "video",
-        "src": "./tutorials/media/eventos/08.712a8729.mp4",
-        "poster": "./tutorials/media/eventos/08.poster.e09b07ff.webp",
+        "src": "./tutorials/media/eventos/08.3f35bb8f.mp4",
+        "poster": "./tutorials/media/eventos/08.poster.6a9dfa1b.webp",
         "alt": "No detalhe do evento em andamento, o botão O evento acabou, no rodapé, é tocado e, na confirmação, o botão Sim, acabou também.",
         "legenda": "No evento, toque em “O evento acabou” e confirme."
       }
@@ -299,15 +299,15 @@ export const TUTORIALS = [
       },
       {
         "tipo": "video",
-        "src": "./tutorials/media/amigos/02.e81050ab.mp4",
-        "poster": "./tutorials/media/amigos/02.poster.79b82b68.webp",
+        "src": "./tutorials/media/amigos/02.f9ed9e63.mp4",
+        "poster": "./tutorials/media/amigos/02.poster.a290181a.webp",
         "alt": "Na tela inicial, o ícone Amigos, no canto superior direito, é tocado e abre a tela Amigos com Bia, Caio e Duda.",
         "legenda": "Com a conta conectada, toque no ícone Amigos da tela inicial."
       },
       {
         "tipo": "video",
-        "src": "./tutorials/media/amigos/03.af175c55.mp4",
-        "poster": "./tutorials/media/amigos/03.poster.63476bff.webp",
+        "src": "./tutorials/media/amigos/03.51a97e29.mp4",
+        "poster": "./tutorials/media/amigos/03.poster.1e32c66d.webp",
         "alt": "Na tela Amigos, o botão + é tocado e abre Adicionar amigo; o botão Gerar código é tocado e aparecem o código com QR, o botão Copiar código e o tempo de validade.",
         "legenda": "Toque em + e mostre ou copie o código para a outra pessoa, ou digite o dela."
       },
@@ -324,7 +324,7 @@ export const TUTORIALS = [
       },
       {
         "tipo": "imagem",
-        "src": "./tutorials/media/amigos/05.9b88489d.webp",
+        "src": "./tutorials/media/amigos/05.79afe4d9.webp",
         "alt": "Detalhe de um amigo, na aba Compartilhando, com o evento Churrasco do João, em andamento e ainda não compartilhado, em destaque.",
         "legenda": "O fato de ser amigo não mostra nada. É preciso compartilhar."
       },
@@ -340,34 +340,34 @@ export const TUTORIALS = [
       },
       {
         "tipo": "video",
-        "src": "./tutorials/media/amigos/07.32c6de13.mp4",
-        "poster": "./tutorials/media/amigos/07.poster.cc33a472.webp",
+        "src": "./tutorials/media/amigos/07.2b02c948.mp4",
+        "poster": "./tutorials/media/amigos/07.poster.9ed6f2c9.webp",
         "alt": "Um amigo é tocado, depois a aba Compartilhando e o botão Compartilhar; o evento passa a aparecer com o selo Ao vivo e o botão Parar.",
         "legenda": "Toque no amigo, em Compartilhando e em Compartilhar."
       },
       {
         "tipo": "imagem",
-        "src": "./tutorials/media/amigos/08.d94baeb5.webp",
+        "src": "./tutorials/media/amigos/08.7eb22598.webp",
         "alt": "Aba Compartilhando com o evento Churrasco do João, o selo Ao vivo e o botão Parar em destaque.",
         "legenda": "Para encerrar antes do fim do evento, toque em Parar."
       },
       {
         "tipo": "imagem",
-        "src": "./tutorials/media/amigos/09.079d7974.webp",
+        "src": "./tutorials/media/amigos/09.99fd2a1e.webp",
         "alt": "Tela Sobre o amigo da Bia: abaixo de Amigos desde, Copiar bebidas para Bia e, logo embaixo, o cartão Receber cópia de bebidas de Bia, com o horário do envio e a validade; os dois em destaque.",
         "legenda": "No i do amigo, copie suas bebidas ou receba as dele. Cada cópia vale 24 horas."
       },
       {
         "tipo": "video",
-        "src": "./tutorials/media/amigos/10.b7c729d8.mp4",
-        "poster": "./tutorials/media/amigos/10.poster.e0777df7.webp",
+        "src": "./tutorials/media/amigos/10.be79f9b6.mp4",
+        "poster": "./tutorials/media/amigos/10.poster.4e48b488.webp",
         "alt": "No detalhe da Bia, o ícone i, marcado com um ponto, é tocado e abre Sobre o amigo; Receber cópia de bebidas de Bia é tocado e abre a prévia Importar bebidas, com as bebidas enviadas por Bia marcadas (a Caipirinha, que já existe, riscada) e o aviso de que os intervalos não são recomendação de consumo; Vinho é tocado e fica desmarcado, e as opções Adicionar às bebidas atuais e Substituir minha lista de bebidas ficam em destaque.",
         "legenda": "Toque no i e em Receber: marque as bebidas e escolha adicionar ou substituir."
       },
       {
         "tipo": "video",
-        "src": "./tutorials/media/amigos/11.2dbbc76c.mp4",
-        "poster": "./tutorials/media/amigos/11.poster.2f567a3b.webp",
+        "src": "./tutorials/media/amigos/11.4141e2e0.mp4",
+        "poster": "./tutorials/media/amigos/11.poster.4463a182.webp",
         "alt": "Em Sobre o amigo, Copiar bebidas para Bia é tocado e abre a escolha das bebidas, todas marcadas; Água é tocada e fica desmarcada, e o botão Copiar 2 bebidas é tocado e o app avisa que a cópia foi enviada para Bia.",
         "legenda": "Em Copiar bebidas, desmarque o que não quer enviar e toque em Copiar."
       }
@@ -380,27 +380,27 @@ export const TUTORIALS = [
     "passos": [
       {
         "tipo": "video",
-        "src": "./tutorials/media/evento-compartilhado/01.fa0ddc8b.mp4",
-        "poster": "./tutorials/media/evento-compartilhado/01.poster.1a113601.webp",
+        "src": "./tutorials/media/evento-compartilhado/01.462245a6.mp4",
+        "poster": "./tutorials/media/evento-compartilhado/01.poster.c46852e6.webp",
         "alt": "No formulário Novo evento, a linha Convidados é tocada; Bia e Caio são escolhidos e confirmados, e a linha passa a mostrar 2 pessoas.",
         "legenda": "No evento, toque em Convidados e escolha os amigos."
       },
       {
         "tipo": "imagem",
-        "src": "./tutorials/media/evento-compartilhado/02.f452f770.webp",
+        "src": "./tutorials/media/evento-compartilhado/02.f082f010.webp",
         "alt": "Formulário Novo evento com as duas linhas em destaque: Convidados, que mostra só o evento, e Compartilhar doses, que é uma escolha separada.",
         "legenda": "Convidar mostra só o evento; as doses são outra escolha."
       },
       {
         "tipo": "video",
-        "src": "./tutorials/media/evento-compartilhado/03.d69b8b49.mp4",
-        "poster": "./tutorials/media/evento-compartilhado/03.poster.a07c2916.webp",
+        "src": "./tutorials/media/evento-compartilhado/03.416f0ecf.mp4",
+        "poster": "./tutorials/media/evento-compartilhado/03.poster.342c04cb.webp",
         "alt": "A aba Eventos é tocada e mostra, no topo de Próximos, o convite Festa Junina, da Bia, aguardando resposta; o botão Vou é tocado e o app avisa que o evento foi para a agenda.",
         "legenda": "Quem é convidado responde Vou ou Não vou na aba Eventos."
       },
       {
         "tipo": "imagem",
-        "src": "./tutorials/media/evento-compartilhado/04.cdec9489.webp",
+        "src": "./tutorials/media/evento-compartilhado/04.d86e6dc7.webp",
         "alt": "Lista de convidados de uma festa agendada: a Bia tem o símbolo de envelope, convidada sem resposta; o Caio tem o símbolo de confirmado; a Duda não foi convidada.",
         "legenda": "✉ foi convidado; ✔ já confirmou que vai."
       }

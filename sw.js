@@ -1,5 +1,5 @@
-const APP_VERSION = "2.32.2";
-const CACHE_NAME = "funtime-v2-32-2";
+const APP_VERSION = "2.33.0";
+const CACHE_NAME = "funtime-v2-33-0";
 const BACKGROUND_CACHE_NAME = "funtime-bg-v1";
 // Mídia dos tutoriais (spec 0026): baixada na primeira vez que é vista. O nome acompanha a versão
 // menor do app, então cada release menor descarta a anterior e o cache nunca cresce sem limite.
@@ -72,7 +72,9 @@ const APP_SHELL = [
   "./icons/icon-512-v2.png",
   "./icons/icon-maskable-512-v2.png?rev=2",
   "./icons/apple-touch-icon-v2.png",
-  "./icons/favicon-32-v2.png"
+  "./icons/favicon-32-v2.png",
+  "./patterns/eventos.svg",
+  "./patterns/amigos.svg"
 ];
 
 async function precacheAppShell() {
