@@ -122,6 +122,17 @@ test('a tela de bloqueio fica neutra mesmo travando em Eventos ou Amigos; desblo
       assert.match((await theme()).pattern, view === 'shared' ? /patterns\/amigos\.svg/ : /patterns\/eventos\.svg/, 'e com os desenhos dele');
       await page.evaluate(() => closeSharedView());
     }
+
+    // Com Cor sólida (spec 0034), a barra acompanha a cor nas telas neutras, mas o bloqueio fica neutro.
+    await page.evaluate(() => {
+      document.querySelector('input[name="app-background-mode"][value="color"]').click();
+      document.querySelector('.background-swatch[data-color="#2a0f17"]').click();
+    });
+    assert.equal((await theme()).bar, '#2a0f17');
+    await page.evaluate(() => lockApp());
+    assert.deepEqual(await theme(), neutral, 'bloqueado com Cor sólida: mesmas cores neutras');
+    await unlockWithPin(page);
+    assert.equal((await theme()).bar, '#2a0f17', 'desbloquear devolve a cor escolhida');
     assert.deepEqual(erros, []);
   });
 });

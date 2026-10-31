@@ -60,7 +60,7 @@
     <footer class="browser-gate-footer">
       <span>App para estudo · não é controle de segurança</span>
       <a class="policies-link" href="./policies.html">Políticas e informações</a>
-      <span>v2.33.0 · By: arielkeybob</span>
+      <span>v2.34.0 · By: arielkeybob</span>
     </footer>
   </section>
 
@@ -245,20 +245,39 @@
           </span>
         </label>
       </section>
-      <section class="settings-card app-background-card" aria-labelledby="app-background-title">
-        <div class="app-background-row">
-          <span id="app-background-preview" class="app-background-preview" aria-hidden="true"><svg class="occasion-icon" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><path d="m21 16-5-5-9 9"/></svg></span>
-          <div class="settings-toggle-copy">
-            <strong id="app-background-title">Imagem de fundo</strong>
-            <span id="app-background-status">Nenhuma imagem</span>
-            <span class="clean-optional">Aparece escurecida no Início, no Histórico e nas Configurações. Eventos e Amigos mantêm a cor própria. Fica só neste aparelho e não entra no backup.</span>
+      <section class="settings-card app-background-card">
+        <fieldset id="app-background-options" class="app-background-options">
+          <legend id="app-background-title">Fundo do app</legend>
+          <div class="background-option-grid">
+          <label class="background-option">
+            <input type="radio" name="app-background-mode" value="default" checked>
+            <span class="background-thumb background-thumb--default" aria-hidden="true"></span>
+            <span class="background-option-label">Padrão</span>
+          </label>
+          <label class="background-option">
+            <input type="radio" name="app-background-mode" value="image">
+            <span id="app-background-own-thumb" class="background-thumb background-thumb--own" aria-hidden="true"><svg class="occasion-icon" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></span>
+            <span class="background-option-label">Minha imagem</span>
+          </label>
+          <label class="background-option">
+            <input type="radio" name="app-background-mode" value="color">
+            <span id="app-background-color-thumb" class="background-thumb background-thumb--color" aria-hidden="true"></span>
+            <span class="background-option-label">Cor sólida</span>
+          </label>
           </div>
+        </fieldset>
+        <div id="app-background-image-actions" class="app-background-actions" hidden>
+          <button id="app-background-choose" class="secondary-button" type="button">Trocar imagem</button>
+          <button id="app-background-remove" class="occasion-link" type="button"><svg class="occasion-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>Remover</button>
         </div>
-        <div class="app-background-actions">
-          <button id="app-background-choose" class="secondary-button" type="button">Escolher imagem</button>
-          <button id="app-background-remove" class="occasion-link" type="button" hidden><svg class="occasion-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>Remover</button>
-          <input id="app-background-file" type="file" accept="image/*" hidden>
+        <input id="app-background-file" type="file" accept="image/*" hidden>
+        <div id="app-background-colors" class="app-background-colors" hidden>
+          <div id="app-background-swatches" class="background-swatches" role="group" aria-label="Cor do fundo">
+            <label class="background-swatch background-swatch--custom"><input id="app-background-custom-color" type="color" value="#09090b" aria-label="Outra cor"><svg class="occasion-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></label>
+          </div>
+          <p id="app-background-color-status" class="app-background-color-status" aria-live="polite">Preto (padrão)</p>
         </div>
+        <p class="app-background-note clean-optional">Aparece no Início, no Histórico e nas Configurações. Eventos e Amigos têm fundo próprio. Fica só neste aparelho e não entra no backup.</p>
       </section>
     </section>
 
@@ -377,7 +396,7 @@
 
     <section class="settings-page" data-settings-page="about" data-title="Sobre o app" hidden>
       <section class="settings-card">
-        <p class="settings-description">Versão instalada: <strong>v2.33.0</strong></p>
+        <p class="settings-description">Versão instalada: <strong>v2.34.0</strong></p>
         <button id="check-app-update" class="settings-secondary-button" type="button">Verificar atualizações</button>
         <a class="settings-link-row" href="./policies.html"><span>Políticas e informações</span><span class="settings-nav-chevron" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg></span></a>
       </section>
@@ -493,7 +512,7 @@
     <footer class="app-footer">
       <span class="app-footer-disclaimer">App para estudo · não é controle de segurança</span>
       <a class="policies-link" href="./policies.html">Políticas e informações</a>
-      <span class="app-footer-meta">v2.33.0 · By: arielkeybob</span>
+      <span class="app-footer-meta">v2.34.0 · By: arielkeybob</span>
     </footer>
   </div>
 

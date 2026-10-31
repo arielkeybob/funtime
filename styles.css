@@ -4345,24 +4345,47 @@ div.share-person { cursor: default; }
   }
 }
 
-/* Imagem de fundo (v2.30.0, spec 0031): escolhida em Aparência, vale para as telas de cor neutra
-   (Início, Histórico, Configurações). Eventos e Amigos mantêm a cor do módulo. A camada fica atrás
-   de tudo e leva um véu preto para o texto direto sobre o fundo continuar legível. */
+/* Fundo do app (v2.30.0, spec 0031; v2.34.0, spec 0034): imagem padrão, imagem do usuário ou cor
+   sólida, escolhidas em Aparência. Vale para as telas de cor neutra (Início, Histórico,
+   Configurações); Eventos e Amigos mantêm a cor do módulo. A camada fica atrás de tudo. Imagem leva
+   um véu preto para o texto direto sobre o fundo continuar legível; a cor já vem escura o bastante
+   (legibleBackgroundColor), então vai sem véu. */
 .app-background { position: fixed; inset: 0; z-index: -1; display: none; background: center / cover no-repeat; pointer-events: none; }
-.app-background::after, .app-background-preview::after { content: ""; position: absolute; inset: 0; background: rgb(0 0 0 / .7); }
+:root[data-app-background="image"] .app-background::after { content: ""; position: absolute; inset: 0; background: rgb(0 0 0 / .7); }
 :root[data-app-background]:not([data-view="occasion"]):not([data-view="shared"]) .app-background { display: block; }
 :root[data-app-background]:not([data-view="occasion"]):not([data-view="shared"]) body { background: transparent; }
 /* O aviso do rodapé fica direto sobre a imagem: precisa continuar legível em qualquer foto. */
-:root[data-app-background]:not([data-view="occasion"]):not([data-view="shared"]) .app-footer { color: var(--muted); text-shadow: 0 1px 3px rgb(0 0 0 / .9); }
-:root[data-app-background]:not([data-view="occasion"]):not([data-view="shared"]) .app-footer-disclaimer { color: var(--muted); }
-.app-background-row { display: flex; align-items: center; gap: 14px; }
-.app-background-preview { position: relative; flex: none; display: grid; place-items: center; width: 56px; height: 84px; overflow: hidden; border: 1px solid var(--border); border-radius: 12px; background: var(--surface-2) center / cover no-repeat; color: var(--muted); }
-.app-background-preview::after { display: none; }
-:root[data-app-background] .app-background-preview::after { display: block; }
-:root[data-app-background] .app-background-preview svg { display: none; }
+:root[data-app-background="image"]:not([data-view="occasion"]):not([data-view="shared"]) .app-footer { color: var(--muted); text-shadow: 0 1px 3px rgb(0 0 0 / .9); }
+:root[data-app-background="image"]:not([data-view="occasion"]):not([data-view="shared"]) .app-footer-disclaimer { color: var(--muted); }
+
+/* Cartão "Fundo do app": três opções com miniatura (rádios de verdade, escondidos atrás dela). */
+.app-background-options { min-width: 0; margin: 0; padding: 0; border: 0; }
+.app-background-options > legend { padding: 0 0 14px; color: var(--text); font-size: 0.94rem; font-weight: 700; line-height: 1.3; }
+.background-option-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.background-option { position: relative; display: grid; justify-items: center; gap: 8px; min-width: 0; cursor: pointer; }
+.background-option input { position: absolute; z-index: 1; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: pointer; }
+.background-thumb { position: relative; display: grid; place-items: center; width: 100%; aspect-ratio: 2 / 3; overflow: hidden; border: 1px solid var(--border); border-radius: 12px; background: var(--surface-2) center / cover no-repeat; color: var(--muted); transition: border-color .15s, box-shadow .15s; }
+.background-thumb--default { background-image: url("./images/fundo-padrao.webp"); }
+/* Véu mais leve que o da tela, para a miniatura continuar reconhecível. */
+.background-thumb--default::after, .background-thumb--own.has-image::after { content: ""; position: absolute; inset: 0; background: rgb(0 0 0 / .45); }
+.background-thumb--own.has-image svg { display: none; }
+.background-option input:checked + .background-thumb { border-color: var(--text); box-shadow: 0 0 0 1px var(--text); }
+.background-option input:focus-visible + .background-thumb { outline: 2px solid var(--text); outline-offset: 3px; }
+.background-option-label { color: var(--muted); font-size: 0.8rem; line-height: 1.25; text-align: center; }
+.background-option input:checked ~ .background-option-label { color: var(--text); font-weight: 700; }
 .app-background-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; }
 .app-background-actions .secondary-button { flex: 1 1 160px; }
 .app-background-actions .occasion-link { width: auto; }
+.app-background-colors { display: grid; gap: 10px; }
+.background-swatches { display: flex; flex-wrap: wrap; gap: 10px; }
+.background-swatch { position: relative; display: grid; place-items: center; width: 40px; height: 40px; padding: 0; border: 2px solid var(--border); border-radius: 50%; background: var(--swatch, transparent); color: var(--text); cursor: pointer; }
+.background-swatch[aria-pressed="true"], .background-swatch.is-selected { border-color: var(--text); box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px var(--text); }
+.background-swatch:focus-visible, .background-swatch:has(input:focus-visible) { outline: 2px solid var(--text); outline-offset: 4px; }
+.background-swatch--custom { overflow: hidden; background: conic-gradient(#ff5b62, #f7b155, #f2c94c, #5ee99b, #5eb4e9, #9668ff, #ff5b62); }
+.background-swatch--custom svg { width: 18px; height: 18px; padding: 2px; border-radius: 50%; background: rgb(0 0 0 / .55); pointer-events: none; }
+.background-swatch--custom input { position: absolute; inset: 0; width: 100%; height: 100%; padding: 0; border: 0; opacity: 0; cursor: pointer; }
+.app-background-color-status { margin: 0; color: var(--muted); font-size: 0.8rem; line-height: 1.4; }
+.app-background-note { margin: 0; color: var(--muted); font-size: 0.78rem; line-height: 1.45; }
 
 /* Celular deitado (v2.31.2): onde o sistema não deixa travar a tela em pé (iPhone, aba do
    navegador), src/ui/orientation-lock.js marca <html> e o app fica escondido atrás deste aviso até

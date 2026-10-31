@@ -115,7 +115,8 @@ test('Home separa recentes e preserva a ordem manual ao segurar o card', { timeo
     });
     assert.equal(await page.evaluate(() => state.preferences.prioritizeRecentDrinks), false);
     await page.reload();
-    await page.waitForFunction(() => typeof state !== 'undefined' && state.drinks.length === 4);
+    // Espera o fim da inicialização: as preferências só chegam ao checkbox em applyInterfacePreferences.
+    await page.waitForFunction(() => typeof state !== 'undefined' && state.drinks.length === 4 && !document.body.classList.contains('security-booting'));
     await page.evaluate(() => { clearInterval(state.timerId); state.timerId = null; });
     assert.equal(await page.locator('#prioritize-recent-drinks').isChecked(), false);
     assert.deepEqual(await domOrder(), ['recent', 'water', 'juice', 'wine']);

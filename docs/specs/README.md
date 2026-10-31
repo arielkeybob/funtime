@@ -46,6 +46,7 @@ Contexto geral do refactor: ver o plano aprovado em
 | [0031](0031-cores-e-fundo.md) | Amigos em ouro (cor própria, longe do roxo de Eventos) e imagem de fundo escolhida em Aparência, escurecida, fora de Eventos e Amigos | implementada (v2.30.0) |
 | [0032](0032-copiar-bebidas-entre-amigos.md) | Copiar a lista de bebidas para um ou vários amigos, sem arquivo: cópia de 24h na nuvem, recebida pela mesma prévia de Importar bebidas | implementada (v2.31.0; em "Sobre o amigo" desde a v2.31.1; escolha das bebidas na v2.32.0) |
 | [0033](0033-fundo-com-desenhos.md) | Desenhos de fundo em Eventos e Amigos: ladrilho SVG de desenhos em linha sutis sobre a cor do módulo, escolhido numa galeria | implementada (v2.33.0) |
+| [0034](0034-fundo-padrao-e-cor.md) | Fundo do app: imagem padrão de fábrica (WebP de 28 KB), minha imagem ou cor sólida (cor clara escurecida até ficar legível) | implementada (v2.34.0) |
 
 Status possíveis: `proposta` (escrita, aguardando aprovação) · `aprovada` (pode
 implementar) · `implementada` (já no código, commit referenciado).

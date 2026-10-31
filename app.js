@@ -24,7 +24,7 @@ import { createFieldErrorController, createFormErrorController } from "./src/ui/
 import { createDrinkReorderController } from "./src/ui/drink-reorder.js";
 import { renderDrinkPicker, toggleAll } from "./src/ui/drink-picker.js";
 import { createIconCatalog } from "./src/ui/icon-catalog.js";
-import { encodeBackgroundImage, parseStoredBackground, serializeBackground } from "./src/ui/app-background.js";
+import { BACKGROUND_COLORS, DEFAULT_BACKGROUND_COLOR, DEFAULT_BACKGROUND_IMAGE, defaultBackgroundSetting, encodeBackgroundImage, legibleBackgroundColor, parseStoredBackground, serializeBackground } from "./src/ui/app-background.js";
 import { createEventDialog } from "./src/history/event-dialog.js";
 import { REACTIONS, REACTION_IDS, normalizeReaction, getReactionById, ADD_REACTION_ICON_SVG } from "./src/history/reactions.js";
 import { createHistoryReactionController } from "./src/history/reaction-picker.js";
@@ -318,7 +318,7 @@ document.addEventListener("visibilitychange", () => {
 const DATA_STORAGE_KEY = "funtime-v1-data";
 const LEGACY_DRINKS_STORAGE_KEY = "balada-v1-drinks";
 const DATA_VERSION = 11;
-const APP_VERSION = "2.33.0";
+const APP_VERSION = "2.34.0";
 const DRINK_EXPORT_TYPE = "funtime-drinks";
 const DRINK_EXPORT_FORMAT_VERSION = 1;
 const BACKUP_EXPORT_TYPE = "funtime-backup";
@@ -333,6 +333,8 @@ const SECURITY_SESSION_KEY = "funtime-security-session-v1";
 const SECURITY_UPDATE_RELOAD_KEY = "funtime-security-update-reload-v1";
 const SECURITY_UPDATE_RELOAD_MS = 10000;
 const BACKGROUND_STORAGE_KEY = "funtime-background-v1";
+// Cor da barra do sistema nas telas neutras: acompanha a Cor sólida do fundo (spec 0034).
+let neutralThemeColor = DEFAULT_BACKGROUND_COLOR;
 
 const PICKER_ICONS = [
   "🍬", "💊", "🍍", "🍭", "🥃", "🍺", "🍷", "🥂",
@@ -557,11 +559,17 @@ const countingModeInput = document.querySelector("#counting-mode");
 const cleanInterfaceInput = document.querySelector("#clean-interface");
 const prioritizeRecentDrinksInput = document.querySelector("#prioritize-recent-drinks");
 const appBackgroundLayer = document.querySelector("#app-background");
-const appBackgroundPreview = document.querySelector("#app-background-preview");
-const appBackgroundStatus = document.querySelector("#app-background-status");
+const appBackgroundOptions = document.querySelector("#app-background-options");
+const appBackgroundOwnThumb = document.querySelector("#app-background-own-thumb");
+const appBackgroundColorThumb = document.querySelector("#app-background-color-thumb");
+const appBackgroundImageActions = document.querySelector("#app-background-image-actions");
 const appBackgroundChoose = document.querySelector("#app-background-choose");
 const appBackgroundInput = document.querySelector("#app-background-file");
 const appBackgroundRemove = document.querySelector("#app-background-remove");
+const appBackgroundColors = document.querySelector("#app-background-colors");
+const appBackgroundSwatches = document.querySelector("#app-background-swatches");
+const appBackgroundCustomColor = document.querySelector("#app-background-custom-color");
+const appBackgroundColorStatus = document.querySelector("#app-background-color-status");
 const exportDrinksButton = document.querySelector("#export-drinks");
 const importDrinksButton = document.querySelector("#import-drinks");
 const drinkImportFileInput = document.querySelector("#drink-import-file");
@@ -1123,7 +1131,8 @@ const MODULE_THEME_COLORS = { occasion: "#130e1c", shared: "#16130b" };
 function applyViewTheme() {
   const view = state.securityLocked ? "locked" : state.currentView;
   document.documentElement.dataset.view = view;
-  document.querySelector('meta[name="theme-color"]')?.setAttribute("content", MODULE_THEME_COLORS[view] || "#09090b");
+  const neutral = view === "locked" ? DEFAULT_BACKGROUND_COLOR : neutralThemeColor;
+  document.querySelector('meta[name="theme-color"]')?.setAttribute("content", MODULE_THEME_COLORS[view] || neutral);
 }
 
 function setCurrentView(view) {
@@ -3442,27 +3451,95 @@ prioritizeRecentDrinksInput.addEventListener("change", () => {
   }
 });
 
-// Imagem de fundo (spec 0031): chave própria, fora dos dados e do backup. É do aparelho, como a
-// proteção local, e pesada demais para viajar em cada backup.
+// Fundo das telas neutras (specs 0031 e 0034): imagem padrão, imagem do usuário ou cor sólida. Chave
+// própria, fora dos dados e do backup: é do aparelho, como a proteção local, e a foto pesaria em
+// cada backup. A troca aparece na hora; não há "voltar ao padrão" à parte, o cartão Padrão é isso.
+let appBackgroundSetting = defaultBackgroundSetting();
+
 function readAppBackground() {
-  try { return parseStoredBackground(localStorage.getItem(BACKGROUND_STORAGE_KEY)); } catch { return null; }
+  try { return parseStoredBackground(localStorage.getItem(BACKGROUND_STORAGE_KEY)); } catch { return defaultBackgroundSetting(); }
 }
 
-function applyAppBackground(image = readAppBackground()) {
-  const css = image ? `url("${image}")` : "";
-  document.documentElement.toggleAttribute("data-app-background", Boolean(image));
-  if (appBackgroundLayer) appBackgroundLayer.style.backgroundImage = css;
-  if (appBackgroundPreview) appBackgroundPreview.style.backgroundImage = css;
-  if (appBackgroundStatus) appBackgroundStatus.textContent = image ? "Imagem escolhida" : "Nenhuma imagem";
-  if (appBackgroundChoose) appBackgroundChoose.textContent = image ? "Trocar imagem" : "Escolher imagem";
-  if (appBackgroundRemove) appBackgroundRemove.hidden = !image;
+function saveAppBackground(setting) {
+  try {
+    localStorage.setItem(BACKGROUND_STORAGE_KEY, serializeBackground(setting));
+    return true;
+  } catch {
+    return false;
+  }
 }
 
+function appBackgroundImageOf(setting) {
+  if (setting.mode === "default") return DEFAULT_BACKGROUND_IMAGE;
+  return setting.mode === "image" ? setting.image : null;
+}
+
+function applyAppBackground(setting = readAppBackground()) {
+  appBackgroundSetting = setting;
+  const image = appBackgroundImageOf(setting);
+  const solid = legibleBackgroundColor(setting.color || DEFAULT_BACKGROUND_COLOR);
+  document.documentElement.dataset.appBackground = image ? "image" : "color";
+  if (appBackgroundLayer) {
+    appBackgroundLayer.style.backgroundImage = image ? `url("${image}")` : "";
+    appBackgroundLayer.style.backgroundColor = image ? "" : solid.color;
+  }
+  neutralThemeColor = image ? DEFAULT_BACKGROUND_COLOR : solid.color;
+  applyViewTheme();
+  syncAppBackgroundControls(solid);
+}
+
+function syncAppBackgroundControls(solid) {
+  const { mode, image } = appBackgroundSetting;
+  if (!appBackgroundOptions) return;
+  for (const radio of appBackgroundOptions.querySelectorAll('input[name="app-background-mode"]')) radio.checked = radio.value === mode;
+  appBackgroundOwnThumb.style.backgroundImage = image ? `url("${image}")` : "";
+  appBackgroundOwnThumb.classList.toggle("has-image", Boolean(image));
+  appBackgroundColorThumb.style.backgroundColor = solid.color;
+  appBackgroundImageActions.hidden = !image;
+  appBackgroundColors.hidden = mode !== "color";
+  const preset = BACKGROUND_COLORS.find((item) => item.color === solid.color);
+  for (const swatch of appBackgroundSwatches.querySelectorAll("[data-color]")) {
+    swatch.setAttribute("aria-pressed", String(mode === "color" && swatch.dataset.color === solid.color));
+  }
+  // O seletor guarda a cor que a pessoa escolheu; o fundo mostra a versão legível (pode ser mais escura).
+  appBackgroundCustomColor.value = appBackgroundSetting.color || DEFAULT_BACKGROUND_COLOR;
+  appBackgroundCustomColor.closest(".background-swatch").classList.toggle("is-selected", mode === "color" && !preset);
+  const name = preset ? preset.name + (preset.color === DEFAULT_BACKGROUND_COLOR ? " (padrão)" : "") : `Outra cor (${solid.color})`;
+  appBackgroundColorStatus.textContent = solid.adjusted ? `${name} · Ajustada para o texto continuar legível.` : name;
+}
+
+function setAppBackground(setting) {
+  applyAppBackground(setting);
+  if (!saveAppBackground(setting)) showAppNotification("Não foi possível salvar esta configuração.", { type: "error", persistent: true });
+}
+
+// "Apagar tudo deste aparelho" (reset.js): sem a chave, volta ao padrão.
 function clearAppBackground() {
   try { localStorage.removeItem(BACKGROUND_STORAGE_KEY); } catch { /* Sem armazenamento: some só da tela. */ }
-  applyAppBackground(null);
+  applyAppBackground(defaultBackgroundSetting());
 }
 
+for (const { name, color } of BACKGROUND_COLORS) {
+  const swatch = document.createElement("button");
+  swatch.type = "button";
+  swatch.className = "background-swatch";
+  swatch.dataset.color = color;
+  swatch.style.setProperty("--swatch", color);
+  swatch.setAttribute("aria-label", color === DEFAULT_BACKGROUND_COLOR ? `${name} (padrão)` : name);
+  swatch.setAttribute("aria-pressed", "false");
+  appBackgroundSwatches?.insertBefore(swatch, appBackgroundCustomColor.closest(".background-swatch"));
+}
+
+appBackgroundOptions?.addEventListener("change", (event) => {
+  const mode = event.target.value;
+  // Minha imagem ainda sem foto: abre o seletor e só troca quando a imagem for salva.
+  if (mode === "image" && !appBackgroundSetting.image) {
+    syncAppBackgroundControls(legibleBackgroundColor(appBackgroundSetting.color || DEFAULT_BACKGROUND_COLOR));
+    appBackgroundInput.click();
+    return;
+  }
+  setAppBackground({ ...appBackgroundSetting, mode });
+});
 appBackgroundChoose?.addEventListener("click", () => appBackgroundInput.click());
 appBackgroundInput?.addEventListener("change", async () => {
   const [file] = appBackgroundInput.files;
@@ -3471,12 +3548,9 @@ appBackgroundInput?.addEventListener("change", async () => {
   appBackgroundChoose.disabled = true;
   try {
     const image = await encodeBackgroundImage(file);
-    try {
-      localStorage.setItem(BACKGROUND_STORAGE_KEY, serializeBackground(image));
-    } catch {
-      throw new Error("Não há espaço neste aparelho para guardar a imagem. Tente uma menor.");
-    }
-    applyAppBackground(image);
+    const setting = { ...appBackgroundSetting, mode: "image", image };
+    if (!saveAppBackground(setting)) throw new Error("Não há espaço neste aparelho para guardar a imagem. Tente uma menor.");
+    applyAppBackground(setting);
     showToast("Imagem de fundo aplicada.");
   } catch (error) {
     showAppNotification(error?.message || "Não foi possível usar esta imagem.", { type: "error", persistent: true });
@@ -3485,9 +3559,17 @@ appBackgroundInput?.addEventListener("change", async () => {
   }
 });
 appBackgroundRemove?.addEventListener("click", () => {
-  clearAppBackground();
-  showToast("Imagem de fundo removida.");
+  const wasActive = appBackgroundSetting.mode === "image";
+  setAppBackground({ ...appBackgroundSetting, mode: wasActive ? "default" : appBackgroundSetting.mode, image: null });
+  showToast(wasActive ? "Imagem removida. Voltou para a imagem padrão." : "Imagem removida.");
 });
+appBackgroundSwatches?.addEventListener("click", (event) => {
+  const swatch = event.target.closest("[data-color]");
+  if (swatch) setAppBackground({ ...appBackgroundSetting, mode: "color", color: swatch.dataset.color });
+});
+// O seletor do sistema manda "input" enquanto a pessoa arrasta (só prévia) e "change" ao confirmar.
+appBackgroundCustomColor?.addEventListener("input", () => applyAppBackground({ ...appBackgroundSetting, mode: "color", color: appBackgroundCustomColor.value }));
+appBackgroundCustomColor?.addEventListener("change", () => setAppBackground({ ...appBackgroundSetting, mode: "color", color: appBackgroundCustomColor.value }));
 
 exportDrinksButton.addEventListener("click", exportDrinks);
 importDrinksButton.addEventListener("click", () => {

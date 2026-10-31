@@ -83,6 +83,17 @@ bem sutis por cima da própria cor (`patterns/*.svg`), como o fundo de conversa 
 - A tela de bloqueio continua neutra.
 - Detalhes na spec 0033.
 
+### Adendo v2.34.0 — imagem padrão e cor sólida
+
+As telas neutras deixam de ser pretas por padrão. O cartão "Imagem de fundo" vira **Fundo do app**,
+com três opções:
+- **Padrão:** imagem de fábrica, `images/fundo-padrao.webp`.
+- **Minha imagem:** a foto escolhida, como aqui.
+- **Cor sólida:** com paleta e cor livre. Cor clara é escurecida até ficar legível.
+
+A chave `funtime-background-v1` continua fora do backup e passa ao formato v2. A foto guardada no
+formato desta spec continua valendo. Detalhes na spec 0034.
+
 ## Plano de teste
 
 - `node --input-type=module --check < app.js`, `node --check sw.js`, `node --check reset.js`.

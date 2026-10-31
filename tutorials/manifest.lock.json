@@ -1,5 +1,5 @@
 {
-  "versaoApp": "2.33.0",
+  "versaoApp": "2.34.0",
   "topicos": {
     "introducao": {
       "cobre": {
@@ -11,10 +11,10 @@
       },
       "midia": {
         "01.1078a928.webp": "1078a9286b43851eeeb81494060935b62b535def",
-        "02.18902670.mp4": "18902670c926aec72e305dc86e8874809a74f7b3",
-        "02.poster.d41fbb02.webp": "d41fbb024e99b4e66887679ceb3726444e86bf49",
-        "03.5924afee.webp": "5924afee720a3942007479d3c2cac9f48de8347e",
-        "04.de278085.webp": "de278085373bc2f97cb1be0f972c795afc46f7bf"
+        "02.23b88491.mp4": "23b8849191627ba1beb9531b3b8028aebe626ed2",
+        "02.poster.57bcbf80.webp": "57bcbf80aa2e2fe6755a60c6c154ad282ef232e6",
+        "03.e2a3b75d.webp": "e2a3b75d763f9aa0f010ac7c07387d526572bd8f",
+        "04.a84d344d.webp": "a84d344d529da33e2ab7621fb5a29a1e480d34fa"
       }
     },
     "cadastrar-bebida": {
@@ -26,18 +26,18 @@
         "#delete-drink-dialog": "24c0dab613d6"
       },
       "midia": {
-        "01.89be4c59.webp": "89be4c59159fbf0eb55d853bdec06aa50db36767",
+        "01.bcd60148.webp": "bcd6014831a375eb40ad5684ae8dc47580a89dc9",
         "02.693e0fce.webp": "693e0fcea8d7619ecad38523a88f26e60383698f",
         "03.1078a928.webp": "1078a9286b43851eeeb81494060935b62b535def",
         "04.c152bb92.webp": "c152bb92010f6aa6fad0e981587313cae1a87d66",
-        "05.62a1b469.mp4": "62a1b46903177c14161e966b7d4e3cbfbf8d185a",
-        "05.poster.e4996a28.webp": "e4996a2853be6dccd3edb87a407fd1a5aa5cddc0",
-        "06.13dee701.mp4": "13dee70185253501cf63c03ef14e3c597a5d86d8",
-        "06.poster.e00d7732.webp": "e00d773270298808fb41c4316732d452cf54bd90",
-        "07.39669805.mp4": "396698058cbba232d3bfb641eaaeb728468dd5e6",
-        "07.poster.b7cf38fe.webp": "b7cf38fe101fe80269bb8bef7faa474ad43efd4c",
-        "08.252a98e5.mp4": "252a98e5189935fb9bf9055cacae9f96771aac30",
-        "08.poster.1013800a.webp": "1013800ab13279a63fd3de17ec622661e85eed87"
+        "05.914679aa.mp4": "914679aa30d4ce058308b9944f57c9fa5f5fa82a",
+        "05.poster.127b2efb.webp": "127b2efb32cbd4b8c7132757f599bf8a46fb7696",
+        "06.afa52aa7.mp4": "afa52aa7944807f7dd30b8bce7f8347bb17d087a",
+        "06.poster.72b774f5.webp": "72b774f5a9d602e749c4f9a0201e87c8e23a794d",
+        "07.45f0dbcb.mp4": "45f0dbcbe640dd5f2c794e1cd861cb36fdb34852",
+        "07.poster.cd789cf2.webp": "cd789cf2cdb22a4c74bec4dcac5a4fe2dd653892",
+        "08.68673b8b.mp4": "68673b8b03b967131739076f79dc2755333ce386",
+        "08.poster.86ea5046.webp": "86ea5046c842bd899be6829da466a9da04332227"
       }
     },
     "registrar-dose": {
@@ -49,11 +49,11 @@
         "#log-dialog": "9961db99fa64"
       },
       "midia": {
-        "01.1808377d.mp4": "1808377d94110d21531f418ffff00492befcbb57",
-        "01.poster.d183ed4b.webp": "d183ed4b0a2110cd7556023bb37753dbc8f75b42",
-        "02.fed0d2db.webp": "fed0d2dbbb49f8405b4d065f8c54b2922cb6eec6",
-        "03.2c08e9a8.webp": "2c08e9a88340cf6abf2ca273568d9e1b383635cb",
-        "04.a01b8c74.webp": "a01b8c7432ebe3a377a247af1a66885123a12c57",
+        "01.6a2d8981.mp4": "6a2d8981ac04a7afa6fadb0641f8666d4084524f",
+        "01.poster.0d8f2710.webp": "0d8f27108829ebe3c8a13476314af1b6f63e81b1",
+        "02.9280798c.webp": "9280798c38aa1ba827a06e1e32786680710a8900",
+        "03.11db5bab.webp": "11db5bab73353ab4f643cb9737d794456dc80ff0",
+        "04.8350edfb.webp": "8350edfb8bdbafc69a42cecb847be4cf06b60eb7",
         "05.f2bdb6c9.webp": "f2bdb6c9f27599241f7ccf645971eb9e0ca9215c"
       }
     },
@@ -67,16 +67,16 @@
         "#drink-card-template": "f606a5358fe0"
       },
       "midia": {
-        "01.1dc7e5ce.mp4": "1dc7e5ce52bf428b5174d1a4f0e829142107edc9",
-        "01.poster.4c0f448d.webp": "4c0f448d98755f24f235b729168c286c86916769",
-        "02.021af612.mp4": "021af612b86ea1431e8c76d64b2bc9637cb032ed",
-        "02.poster.217bc660.webp": "217bc6602113ee2fe4c27fc9543d1f5d6fcf5418",
-        "03.7a538f29.mp4": "7a538f29bb7e37c7268a43b9d80a6dfdeaf50a9c",
-        "03.poster.6113576a.webp": "6113576a99e3a89842db8582d2a105a4142c8aef",
-        "04.76f34c7c.mp4": "76f34c7c641d26694ca5508bff09dd93b305df12",
-        "04.poster.dfe1031b.webp": "dfe1031bd3f052d6326b7ba0a55a8dd3e0648abe",
-        "05.584d69d8.mp4": "584d69d81678a08cd109b04914e67b3761adf736",
-        "05.poster.59a53ea2.webp": "59a53ea2f080c952748a02c3c318518a82461db5"
+        "01.6a3f2d9a.mp4": "6a3f2d9a9482577da5fec239f3f56f25d867a785",
+        "01.poster.94460873.webp": "94460873a2863db0522fb02ba2b0d5bad55101d2",
+        "02.98ed41d2.mp4": "98ed41d24478240b61656c676a4ebc467457bc04",
+        "02.poster.f12d245d.webp": "f12d245d94bb2b31f63a339785cc3421181f077e",
+        "03.30bf04f1.mp4": "30bf04f167113031f138100b795391c5429dd6ff",
+        "03.poster.311061d1.webp": "311061d11301a6d6174727241f4a72db44ed343b",
+        "04.cccc513a.mp4": "cccc513a128be37cedcb458285ff8b9f5b0e1d47",
+        "04.poster.af8b6599.webp": "af8b659993aa1d1780e1ec28129396cb3bdec636",
+        "05.97c49aae.mp4": "97c49aaebb6df41a413f142eccdf0feba32b7167",
+        "05.poster.a6c994da.webp": "a6c994dad60f1d7938118966d1b0878feeb3f1d8"
       }
     },
     "privacidade": {
@@ -87,13 +87,13 @@
         "#security-details": "a9e52a5d0dfd"
       },
       "midia": {
-        "02.4e76983f.webp": "4e76983f19f76addd481473850443615e6721c65",
-        "03.42e7a5d6.webp": "42e7a5d6d81d7af50b9a3accd0d24081338007f2",
-        "04.0936c732.mp4": "0936c7329a2491f9528391a0231790031eb45a05",
-        "04.poster.f4918ac4.webp": "f4918ac4d80ead58f70d2e78224ef45f9b8d8859",
-        "05.d864f528.webp": "d864f5280070ef11b1301310e0057e78b33d5268",
-        "06.c339e9e2.mp4": "c339e9e2639462b8851f1a0f624c97801f6c0db4",
-        "06.poster.714c6d92.webp": "714c6d92d2f6a54cfcc76901fdcc811cb68207aa"
+        "02.a8f01809.webp": "a8f01809cd430ea4918091509130866a6970a379",
+        "03.12c3a00d.webp": "12c3a00d7a2318577a8904e1163beb459a1d2fc3",
+        "04.f30192cd.mp4": "f30192cddf2ba1e6b7152ee42943e926221d153f",
+        "04.poster.ba1eb747.webp": "ba1eb747505cf7eaf2e76cc13f0149da85170fbb",
+        "05.9f7f9505.webp": "9f7f9505c6acc0af0089d18cb8ac1f0f1cb0f052",
+        "06.e7e908e5.mp4": "e7e908e5cb7dd59ddec134b96575093bcff89378",
+        "06.poster.62328d96.webp": "62328d9629ec49520a2a4ea63f3152f73660c2b0"
       }
     },
     "eventos": {
@@ -105,17 +105,17 @@
         "#nav-occasion": "e477c6884f29"
       },
       "midia": {
-        "02.4d7f88dd.mp4": "4d7f88dd37cc55e3fd4f12f7cc503c099c43f397",
-        "02.poster.75e6fb70.webp": "75e6fb70e4c007aaa8047f70d74ee203fa36c8ab",
-        "03.6157e0e3.webp": "6157e0e3a0938693b44f98727c066cddbb74860c",
-        "04.56eec42f.mp4": "56eec42f7c30c8630712d6b5d9b45a7db70f7e98",
-        "04.poster.0ec5135f.webp": "0ec5135ffb514e6bb8983c3791197125fc611b74",
-        "05.6cb776ae.mp4": "6cb776aee3c0e9144a57e0e149b06cc111a3e241",
-        "05.poster.d95600a7.webp": "d95600a7bc8d6c36b6ea879c0f6119e77f83da30",
-        "06.12c28f5d.webp": "12c28f5d8af8b8973170ac7702ad5fe479f9bef2",
+        "02.d4d04d5c.mp4": "d4d04d5c905785afb02de202193747a6205c50f1",
+        "02.poster.34c934d8.webp": "34c934d845e3cbfd9318e41ee3e0a926f9ebce57",
+        "03.b406eb3e.webp": "b406eb3ec2690906c3e9cc28c2231a7994d91517",
+        "04.404f0178.mp4": "404f0178297e76ccf43e33a070df091beb0cfeb5",
+        "04.poster.ea7d8c7e.webp": "ea7d8c7e152bd5d5ed42c48e8834051ff06280f9",
+        "05.2384f3ef.mp4": "2384f3efd48c08c495cbecc25da864b0917ac1ac",
+        "05.poster.b2158010.webp": "b21580100b8d3e8104f83b7416dff29b442ebcdf",
+        "06.57b08050.webp": "57b0805041749c4b23fcee81904c083f94ad40af",
         "07.e0470c36.webp": "e0470c369a3ea67742cae9b694b10ae04e616aaf",
-        "08.3f35bb8f.mp4": "3f35bb8fd0a609dc879d37f23fcc5508c14af633",
-        "08.poster.6a9dfa1b.webp": "6a9dfa1b47c32faaa14c213c3951acf524eb7f2b"
+        "08.127cc5d8.mp4": "127cc5d89de7b56407c34007c6dd06e6299f99c5",
+        "08.poster.2137fe22.webp": "2137fe228d23b4cd2c0d02fd1311cedef92bcec0"
       }
     },
     "amigos": {
@@ -129,20 +129,20 @@
         "#drink-copy-dialog": "755ddf6fca07"
       },
       "midia": {
-        "01.f0e4658f.webp": "f0e4658f3b5da4af0ccf80f2a650704ddf766455",
-        "02.f9ed9e63.mp4": "f9ed9e6357e3bec2a39420720277cfa5c61b86cb",
-        "02.poster.a290181a.webp": "a290181a79df35a533a32f113c1c35dbe90da727",
-        "03.51a97e29.mp4": "51a97e291a2ea982691e589150f04c126d659dc5",
-        "03.poster.1e32c66d.webp": "1e32c66db12bf4ec468726476d16d61f1736e18e",
-        "05.79afe4d9.webp": "79afe4d9cb7014bb4e6e1f5f068b3eb75feeca35",
-        "07.2b02c948.mp4": "2b02c9481ad6fc6c601237c291f1524d779e3f56",
-        "07.poster.9ed6f2c9.webp": "9ed6f2c9e8f1c5abab53a91b7d2e92a9eaab8058",
+        "01.effe268a.webp": "effe268a3091d40299116c4df6a57cf3d8205b4b",
+        "02.adeb4c69.mp4": "adeb4c697b40d89479ff162b228c536287f8d0e9",
+        "02.poster.456029b4.webp": "456029b40d40a722a6fe189bf5edb19db8675f2b",
+        "03.8dee41b7.mp4": "8dee41b74fe18e694814c33c2fd78cf9d4feda54",
+        "03.poster.c506bae0.webp": "c506bae055b09add02ee0429c3f9d21b321bff96",
+        "05.2bb6f566.webp": "2bb6f566aaaac814adb71cec3ff82d24a829ee6d",
+        "07.19940b79.mp4": "19940b7985472aba74044c1de1cbc27b112adcca",
+        "07.poster.20e14d49.webp": "20e14d494b20c4fc8cf7e806000eaed1a574c576",
         "08.7eb22598.webp": "7eb225983cc4d55b1cffc5e76614e0366fcc1a41",
         "09.99fd2a1e.webp": "99fd2a1e221a1ba5943c48d6b8c3d0f044746773",
-        "10.be79f9b6.mp4": "be79f9b6f17eac33b48414b58b138162671f934b",
-        "10.poster.4e48b488.webp": "4e48b4883d3510bf9efdc83cc1a37a3e258aa7c4",
-        "11.4141e2e0.mp4": "4141e2e06d31196ffd5a9ce9cd1b3a9db5e6e4aa",
-        "11.poster.4463a182.webp": "4463a1825efc95964558b1b604a47afaeea83c6a"
+        "10.b824eb0a.mp4": "b824eb0a336e276577245f8b7371936e38b7a2c4",
+        "10.poster.3c333f65.webp": "3c333f657d9783af01c7891c6726bb44b14b5f6f",
+        "11.1c5e300b.mp4": "1c5e300b85b209c599beba1620fabe92bce46207",
+        "11.poster.8e3e1329.webp": "8e3e13294021c4374bfc31e307cb7fabfcfc2822"
       }
     },
     "evento-compartilhado": {
@@ -155,11 +155,11 @@
         "#occasion-view": "d2e9dee21e89"
       },
       "midia": {
-        "01.462245a6.mp4": "462245a656124a9d68d2ab42c646c73ba80bd5ec",
-        "01.poster.c46852e6.webp": "c46852e6d838e89480b848dbe57cbb6cc88c4145",
+        "01.c002fa48.mp4": "c002fa486ec4cf06234f3ea0609dc160917bd629",
+        "01.poster.6cb12e30.webp": "6cb12e308a418dfa5151d7435fb139fbdb386cf5",
         "02.f082f010.webp": "f082f010c52dbec0feec2c94b5859ff369983449",
-        "03.416f0ecf.mp4": "416f0ecf83ca8387099146ca853b0c00d0a0b1c5",
-        "03.poster.342c04cb.webp": "342c04cbbe23155b7e0ccca9760bef273e2c24e1",
+        "03.2952057e.mp4": "2952057e6aa80c3a54733a0923a0072275a47832",
+        "03.poster.c8059b31.webp": "c8059b317da5d0f4a267778180a066526f514c71",
         "04.d86e6dc7.webp": "d86e6dc74b99d313a5728a7bc2c7ce50e60b033a"
       }
     },
@@ -171,14 +171,14 @@
         "#backup-restore-dialog": "999885df1e76"
       },
       "midia": {
-        "02.a8c94218.webp": "a8c942180834826dbc01af93b8f027fb23cf010d",
-        "03.4c2d8fbf.mp4": "4c2d8fbf51364b85d9960a9f90dd697be373098d",
-        "03.poster.1284d587.webp": "1284d5877b40635349568c1a931357eb8f26e2cd",
-        "04.8d428fc2.mp4": "8d428fc269c54b271431ff2cb989f2e7e7cd961a",
-        "04.poster.75ef03be.webp": "75ef03be0c8723fdd478116a3b89fadbd825b328",
-        "05.fa42f738.mp4": "fa42f738faa0487caeab2b01e8faa917cbda12b6",
-        "05.poster.595f2d8c.webp": "595f2d8c37b60133cea613208a97eb348dd84880",
-        "06.1d69ab94.webp": "1d69ab942ed0391ea77128b15c668935ddb94c8b"
+        "02.3bbc6cbf.webp": "3bbc6cbff89cafed310d771e475e3d6d365c451e",
+        "03.468baf2a.mp4": "468baf2a1baba341618ecc1bc4ed77b7d4366637",
+        "03.poster.1d9904de.webp": "1d9904de42407b7125dec78dc565ad0ccff7a43b",
+        "04.2ea8616d.mp4": "2ea8616d4bff1a9d397603f8cc32b5466a4f6cd6",
+        "04.poster.f38da44a.webp": "f38da44a223d277e9e61fbf59b18a9d4f47d631f",
+        "05.edfc5caf.mp4": "edfc5caf8de4cab51266925ae25910e1901c2176",
+        "05.poster.5c7d9248.webp": "5c7d9248304149dfa0ba60e46fa7518ca060eb0b",
+        "06.34bde5c3.webp": "34bde5c3d5c388b6f07eb7a36cb1bbf6b9f7a8e3"
       }
     }
   }

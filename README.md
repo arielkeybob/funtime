@@ -1,4 +1,21 @@
-# FunTime — V2.33.0
+# FunTime — V2.34.0
+
+## V2.34.0 — Fundo do app: imagem padrão ou cor sólida
+
+- O Início, o Histórico e as Configurações deixam de ser pretos por padrão. O app já vem com uma **imagem padrão** (um DJ de frente para a pista), escurecida como as outras imagens de fundo.
+  - É um arquivo WebP de só **28 KB**, guardado no aparelho para funcionar offline.
+- Em **Configurações → Aparência**, o cartão **Fundo do app** tem três opções com miniatura. A troca aparece na hora.
+  - **Padrão:** a imagem de fábrica. É também o "voltar ao padrão": não precisa de botão à parte.
+  - **Minha imagem:** a primeira vez abre o seletor de arquivos e nada muda até a imagem ser salva. Depois, **Trocar imagem** e **Remover**. Remover a imagem em uso volta ao padrão.
+  - **Cor sólida:** começa no **Preto (padrão)**. Há uma paleta de 7 cores escuras e **Outra cor**, com o seletor do aparelho.
+    - Cor clara é escurecida no mesmo tom, até o texto continuar legível, com o aviso "Ajustada para o texto continuar legível."
+    - A barra do sistema acompanha a cor.
+- Trocar de opção não apaga a imagem nem a cor escolhidas: um toque volta para elas.
+- Quem já tinha escolhido uma imagem continua com ela. Quem nunca escolheu passa a ver a imagem padrão.
+- Eventos e Amigos, a tela de bloqueio e os diálogos não mudam. O fundo continua só neste aparelho, fora do backup, e "Apagar tudo" volta ao padrão.
+- Testes: `tests/app-background.test.cjs`, `tests/fundo-browser.test.cjs` (reescrito) e `tests/lock-screen-browser.test.cjs`.
+- Todos os tutoriais foram regerados, porque as telas do Início e das Configurações agora têm a imagem. As legendas não mudaram.
+- Sem mudança de dados, regras do Firestore ou políticas. `DATA_VERSION` permanece 11. Spec 0034.
 
 ## V2.33.0 — Desenhos no fundo de Eventos e Amigos
 
