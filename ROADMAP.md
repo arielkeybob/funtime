@@ -6,6 +6,14 @@ Este documento registra decisões de evolução e ideias em estudo. Os itens aba
 
 A identidade mudou de "Intervalo" para "FunTime" em três fases (v1.15.0 → v1.16.0 → v2.0.0): novo repositório (`funtime`), novo ícone, nova URL (`/funtime/`) e uma ponte temporária em `/intervalo/` para transferir instalações antigas. O usuário confirmou os testes no celular e a v2.0.0 foi estabilizada; a ponte e todo o protocolo de transferência (`migration.js`/`transition.js`/`receiver.js`) foram removidos do código quando o suporte à v1 deixou de ser necessário (spec 0018). Registro histórico completo em [docs/history/](docs/history/) (`MIGRATION-FUNTIME.md`, `TRANSITION-V2.md`, `V2-PREPARATION.md`, `RELEASE-V2.md`).
 
+## Correções a fazer
+
+Problemas relatados pelo usuário, ainda sem correção agendada.
+
+Nenhum no momento. Os dois relatados em 30/10/2026 (tela de bloqueio com a cor do último módulo;
+Atualizar pedindo a credencial de novo com "Bloquear ao sair do app") foram corrigidos na v2.32.1
+— ver README.md.
+
 ## Próximos estudos
 
 ### Mesclar bebidas

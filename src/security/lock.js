@@ -8,7 +8,7 @@ export function createSecurityLock({
   getPinLockoutRemainingMs, registerFailedPinAttempt,
   clearSecuritySession, markSecurityActive,
   hideToast, hideUpdateAvailable, render, renderHistory, maybeHandleSharedDrinkImport,
-  applyPendingSyncData, applyPendingSharedViewData, renderSharedView,
+  applyPendingSyncData, applyPendingSharedViewData, renderSharedView, applyViewTheme,
 }) {
   function closeSensitiveDialogs() {
     state.securitySetupGeneration++;
@@ -72,6 +72,8 @@ export function createSecurityLock({
   function lockApp({ promptDevice = false } = {}) {
     if (!state.securityConfig.enabled) return;
     state.securityLocked = true;
+    // A tela de bloqueio fica nas cores neutras, não nas do módulo aberto (Eventos, Amigos).
+    applyViewTheme?.();
     clearSecuritySession();
     hidePrivacyShield();
     closeSensitiveDialogs();
@@ -87,6 +89,7 @@ export function createSecurityLock({
     clearTimeout(state.pinLockoutTimer);
     lockScreen.hidden = true;
     document.body.classList.remove("app-locked");
+    applyViewTheme?.();
     hidePrivacyShield();
     if (persistSession) markSecurityActive();
     if (state.currentView === "home") render();

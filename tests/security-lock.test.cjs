@@ -167,6 +167,15 @@ test('unlockApp: reseta bloqueio/tentativas e re-renderiza a view atual', () => 
   assert.equal(rendered, false);
 });
 
+test('lockApp/unlockApp reaplicam as cores da tela com o estado já trocado (bloqueado = neutro)', () => {
+  const state = baseState({ currentView: 'shared' });
+  const seen = [];
+  const lock = securityLockInstance({ state, applyViewTheme: () => seen.push(state.securityLocked) });
+  lock.lockApp();
+  lock.unlockApp();
+  assert.deepEqual(seen, [true, false]);
+});
+
 test('unlockApp: persistSession=false não marca sessão ativa', () => {
   let activeMarked = false;
   const lock = securityLockInstance({ state: baseState(), markSecurityActive: () => { activeMarked = true; } });

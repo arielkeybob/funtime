@@ -1,4 +1,12 @@
-# FunTime — V2.32.0
+# FunTime — V2.32.1
+
+## V2.32.1 — Bloqueio neutro e Atualizar sem pedir a credencial
+
+- **Tela de bloqueio sempre nas cores do app.** Bloquear com Eventos ou Amigos aberto (sair do app, inatividade) mostrava a tela de bloqueio em lilás ou ouro: o botão **Entrar** ficava amarelo depois de sair pela tela Amigos, e a barra do sistema acompanhava. Agora ela é sempre neutra; ao desbloquear, o app volta à mesma tela, com a cor do módulo.
+- **Atualizar com "Bloquear ao sair do app"** deixa de pedir PIN/biometria: quem acabou de usar o app desbloqueado e só pediu a versão nova continua desbloqueado depois da recarga. A liberação vale para essa recarga e mais nada: uma vez só, nesta janela (outra aba, ou o app fechado e aberto de novo, pedem a credencial), só se a recarga acontecer em poucos segundos e com o app à vista. Bloquear apaga a liberação, e recarregar à toa continua pedindo a credencial.
+- A liberação é gravada pela versão que está rodando: a atualização **para** esta versão ainda pede a credencial uma última vez; a partir da próxima, não.
+- Teste novo: `tests/lock-screen-browser.test.cjs` (cores da tela de bloqueio a partir de cada módulo; o Atualizar de ponta a ponta e cada limite da liberação).
+- Nenhum tutorial afetado. Sem mudança de dados, regras do Firestore ou políticas; `DATA_VERSION` permanece 11.
 
 ## V2.32.0 — Escolher quais bebidas importar e copiar
 

@@ -62,6 +62,18 @@ O usuário pediu que os botões que levam a cada módulo já mostrem a cor dele,
 - v2.31.4: o rótulo "Evento" também fica em `--event-glow`, mas só fora da aba
   (`#nav-occasion:not([aria-current="page"])`); selecionada, segue branco para contrastar com o fundo.
 
+### Adendo v2.32.1 — tela de bloqueio sempre neutra
+
+Bloquear com Eventos ou Amigos aberto (sair do app com "Ao sair do app", inatividade) mostrava a tela de
+bloqueio com as cores do módulo: o botão Entrar ficava ouro depois de sair pela tela Amigos, e a barra do
+sistema também. A tela de bloqueio é a mesma para qualquer módulo, então volta às cores neutras.
+- `applyViewTheme()` (`app.js`) é o único lugar que escreve `data-view` e o `theme-color`; bloqueado, usa
+  `data-view="locked"`, que não casa com nenhum bloco de módulo.
+- `lockApp()`/`unlockApp()` (`src/security/lock.js`) chamam essa função já com o estado trocado; ao
+  desbloquear, a tela continua a mesma e a cor do módulo volta.
+- Teste: `tests/lock-screen-browser.test.cjs` (bloquear a partir do Início, de Amigos e de Eventos dá as
+  mesmas cores; desbloquear devolve a cor do módulo).
+
 ## Plano de teste
 
 - `node --input-type=module --check < app.js`, `node --check sw.js`, `node --check reset.js`.

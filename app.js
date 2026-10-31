@@ -318,7 +318,7 @@ document.addEventListener("visibilitychange", () => {
 const DATA_STORAGE_KEY = "funtime-v1-data";
 const LEGACY_DRINKS_STORAGE_KEY = "balada-v1-drinks";
 const DATA_VERSION = 11;
-const APP_VERSION = "2.32.0";
+const APP_VERSION = "2.32.1";
 const DRINK_EXPORT_TYPE = "funtime-drinks";
 const DRINK_EXPORT_FORMAT_VERSION = 1;
 const BACKUP_EXPORT_TYPE = "funtime-backup";
@@ -330,6 +330,8 @@ const SHARE_IMPORT_REQUEST_PATH = "./__shared-drinks-import__";
 const SHARE_IMPORT_MAX_AGE_MS = 24 * 60 * 60 * 1000;
 const SECURITY_STORAGE_KEY = "funtime-security-v1";
 const SECURITY_SESSION_KEY = "funtime-security-session-v1";
+const SECURITY_UPDATE_RELOAD_KEY = "funtime-security-update-reload-v1";
+const SECURITY_UPDATE_RELOAD_MS = 10000;
 const BACKGROUND_STORAGE_KEY = "funtime-background-v1";
 
 const PICKER_ICONS = [
@@ -781,7 +783,44 @@ function saveSecuritySession(values = {}) {
 }
 
 function clearSecuritySession() {
-  try { sessionStorage.removeItem(SECURITY_SESSION_KEY); } catch (error) { /* noop */ }
+  try {
+    sessionStorage.removeItem(SECURITY_SESSION_KEY);
+    sessionStorage.removeItem(SECURITY_UPDATE_RELOAD_KEY);
+  } catch (error) { /* noop */ }
+}
+
+// Com "Ao sair do app" toda abertura começa bloqueada, e a recarga do Atualizar também é
+// uma abertura, embora a pessoa tenha acabado de usar o app desbloqueado. A marca só é
+// gravada com o app desbloqueado e à vista, no instante da recarga. sessionStorage é desta
+// janela: não vale para outra aba nem sobrevive a fechar o app; bloquear apaga junto com a
+// sessão (clearSecuritySession).
+function markUpdateReloadUnlocked() {
+  if (!state.securityConfig.enabled || state.securityLocked || document.hidden) return;
+  try { sessionStorage.setItem(SECURITY_UPDATE_RELOAD_KEY, String(Date.now())); } catch (error) { /* sem a marca, só pede a credencial de novo */ }
+}
+
+// Uso único: lida e apagada na abertura seguinte, antes de qualquer decisão.
+function takeUpdateReloadMark() {
+  try {
+    const markedAt = Number(sessionStorage.getItem(SECURITY_UPDATE_RELOAD_KEY)) || 0;
+    sessionStorage.removeItem(SECURITY_UPDATE_RELOAD_KEY);
+    return markedAt;
+  } catch (error) {
+    return 0;
+  }
+}
+
+// Prazo curto, e o relógio não pode ter voltado.
+function isUpdateReloadMarkFresh(markedAt) {
+  const elapsed = Date.now() - markedAt;
+  return markedAt > 0 && elapsed >= 0 && elapsed < SECURITY_UPDATE_RELOAD_MS;
+}
+
+// A própria recarga esconde a página antes de descarregá-la; bloquear ali apagaria a marca.
+// Com ela gravada, quem decide é a abertura seguinte.
+function isUpdateReloading() {
+  try { return isUpdateReloadMarkFresh(Number(sessionStorage.getItem(SECURITY_UPDATE_RELOAD_KEY)) || 0); }
+  catch (error) { return false; }
 }
 
 function markSecurityActive() {
@@ -1078,6 +1117,15 @@ function refreshHomeGreeting() {
 
 const MODULE_THEME_COLORS = { occasion: "#130e1c", shared: "#16130b" };
 
+// Eventos (lilás) e Amigos (ouro) são módulos à parte, com fundo próprio
+// (styles.css, :root[data-view="occasion"|"shared"]); a barra do sistema acompanha. A tela de
+// bloqueio é a mesma em qualquer módulo: bloqueado, volta às cores neutras (lockApp/unlockApp).
+function applyViewTheme() {
+  const view = state.securityLocked ? "locked" : state.currentView;
+  document.documentElement.dataset.view = view;
+  document.querySelector('meta[name="theme-color"]')?.setAttribute("content", MODULE_THEME_COLORS[view] || "#09090b");
+}
+
 function setCurrentView(view) {
   state.currentView = view;
   historyReaction?.closePicker();
@@ -1091,10 +1139,7 @@ function setCurrentView(view) {
   document.getElementById("occasion-view").hidden = view !== "occasion";
   if (sharedHeader) sharedHeader.hidden = view !== "shared";
   if (sharedViewMain) sharedViewMain.hidden = view !== "shared";
-  // Eventos (lilás) e Amigos (ouro) são módulos à parte, com fundo próprio
-  // (styles.css, :root[data-view="occasion"|"shared"]); a barra do sistema acompanha.
-  document.documentElement.dataset.view = view;
-  document.querySelector('meta[name="theme-color"]')?.setAttribute("content", MODULE_THEME_COLORS[view] || "#09090b");
+  applyViewTheme();
   refreshHomeGreeting();
   document.querySelectorAll("[data-nav-view]").forEach(button => {
     if (button.dataset.navView === view) button.setAttribute("aria-current", "page");
@@ -1234,7 +1279,7 @@ const securityLock = createSecurityLock({
   hideToast, hideUpdateAvailable, render, renderHistory, maybeHandleSharedDrinkImport,
   applyPendingSyncData: applyRemoteSyncData,
   applyPendingSharedViewData: applySharedViewEntries,
-  renderSharedView,
+  renderSharedView, applyViewTheme,
 });
 const {
   closeSensitiveDialogs, showLockScreen, lockApp, unlockApp,
@@ -1313,6 +1358,7 @@ async function disableSecurity() {
 }
 
 async function initializeSecurity() {
+  const updateReloadAt = takeUpdateReloadMark();
   state.deviceAuthSupported = await isPlatformDeviceAuthAvailable();
   updateSecuritySettingsUI();
   document.body.classList.remove("security-booting");
@@ -1322,7 +1368,10 @@ async function initializeSecurity() {
     const session = loadSecuritySession();
     const referenceAt = session?.hiddenAt || session?.lastActiveAt || 0;
     const relockMs = state.securityConfig.relockSeconds * 1000;
-    const mayResume = eventUnlockActive || (state.securityConfig.relockSeconds > 0 && referenceAt > 0 && (Date.now() - referenceAt) < relockMs);
+    // A recarga do Atualizar só continua desbloqueada se coube no prazo, contado até aqui, e
+    // abriu à vista (se a pessoa saiu do app no meio, vale o bloqueio de sempre).
+    const updateReloadResumes = isUpdateReloadMarkFresh(updateReloadAt) && !document.hidden;
+    const mayResume = eventUnlockActive || updateReloadResumes || (state.securityConfig.relockSeconds > 0 && referenceAt > 0 && (Date.now() - referenceAt) < relockMs);
 
     if (mayResume) {
       state.securityLocked = false;
@@ -3534,7 +3583,7 @@ document.addEventListener("visibilitychange", () => {
       saveSecuritySession({ hiddenAt: state.securityHiddenAt, lastActiveAt: Date.now() });
       showPrivacyShield();
       closeSensitiveDialogs();
-      if (state.securityConfig.relockSeconds === 0 && !isSecurityEventUnlockActive()) lockApp();
+      if (state.securityConfig.relockSeconds === 0 && !isSecurityEventUnlockActive() && !isUpdateReloading()) lockApp();
     }
     return;
   }
@@ -3603,7 +3652,10 @@ if ("serviceWorker" in navigator) {
     state.updateReloadRequested = false;
     // A animação do abacaxi roda uma única vez: se a atualização foi mais rápida, espera o fim dela.
     const running = updatingOverlay.querySelector(".updating-art")?.getAnimations?.({ subtree: true }) ?? [];
-    Promise.allSettled(running.map((animation) => animation.finished)).then(() => window.location.reload());
+    Promise.allSettled(running.map((animation) => animation.finished)).then(() => {
+      markUpdateReloadUnlocked();
+      window.location.reload();
+    });
   });
 
   if (document.readyState === "complete") initializeServiceWorker();
@@ -4487,7 +4539,7 @@ Object.assign(globalThis, {
   openDoseSizeDialog, openDrinkImportPreview, choosePinSecurity, disableSecurity,
   updateDrinkMenuCountdown, setLogClock, buildIconPicker, prepareDrinkImportFile,
   prepareBackupRestoreFile, validateBackupPayload, persistDrinkList, readPendingSharedDrinkFile,
-  lockApp, closeSensitiveDialogs, showLockScreen, APP_VERSION, DRINK_EXPORT_TYPE, DATA_VERSION,
+  lockApp, closeSensitiveDialogs, showLockScreen, markUpdateReloadUnlocked, APP_VERSION, DRINK_EXPORT_TYPE, DATA_VERSION,
   backupRestoreDialog, derivePinHash,
 });
 // tests/navigation-browser.test.cjs lê `editingIconCatalog` solto (não via
