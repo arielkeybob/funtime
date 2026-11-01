@@ -1,4 +1,11 @@
-# FunTime — V2.34.1
+# FunTime — V2.34.2
+
+## V2.34.2 — Página de instalação sem senha (temporário)
+
+- A página pública de instalação deixa de pedir o **código de acesso**: quem abre o link vê direto o botão **Instalar FunTime** (ou as orientações do navegador), para os testers instalarem sem precisar da senha.
+- É temporário e fácil de desfazer: a lógica continua no app, desligada por `BROWSER_INSTALL_PASSWORD_REQUIRED = false` no início de `app.js`; voltar para `true` religa a senha como era.
+- `tests/install.test.cjs` ganhou o caso do estado inicial e os testes da senha continuam valendo com ela forçada; `tests/install-browser.test.cjs` só preenche a senha se o campo aparecer.
+- Nenhum tutorial afetado (a página de instalação não aparece neles). Sem mudança de dados, regras do Firestore ou políticas; `DATA_VERSION` permanece 11.
 
 ## V2.34.1 — Atualizar sem pedir a credencial, também no celular
 

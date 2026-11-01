@@ -18,9 +18,19 @@ function setup(apps, unlocked = true) {
     document: { querySelector: id => nodes[id] ??= {}, addEventListener() {} }
   });
   vm.runInContext(source, context);
-  if (unlocked) vm.runInContext('browserInstallUnlocked = true', context);
+  // null mantém o estado inicial do app (BROWSER_INSTALL_PASSWORD_REQUIRED); true/false força.
+  if (unlocked !== null) vm.runInContext(`browserInstallUnlocked = ${unlocked}`, context);
   return { context, nodes, listeners, navigator, timers };
 }
+test('estado inicial da senha segue BROWSER_INSTALL_PASSWORD_REQUIRED', async () => {
+  const { context, nodes, listeners } = setup([], null);
+  const required = vm.runInContext('BROWSER_INSTALL_PASSWORD_REQUIRED', context);
+  await context.refreshBrowserInstallUI();
+  assert.equal(nodes['#browser-install-access'].hidden, !required);
+  assert.equal(nodes['#browser-install-guidance'].hidden, required);
+  listeners.beforeinstallprompt({ preventDefault() {}, prompt: async () => ({ outcome: 'dismissed' }) });
+  assert.equal(nodes['#browser-install-button'].hidden, required);
+});
 test('instalação v2 remove convite para instalar e atualiza ao retornar', async () => {
   const { context, nodes, listeners, navigator } = setup([
     { platform: 'webapp', url: 'https://example.com/funtime/manifest.webmanifest', id: '/funtime/' }

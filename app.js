@@ -47,8 +47,10 @@ let browserInstallCompleted = false;
 let browserInstallRevision = 0;
 let browserInstallPollTimer = null;
 // Barreira visual para visitantes casuais, não autenticação.
+// Desligada temporariamente (v2.34.2) para os testers instalarem sem código; para religar, volte para true.
+const BROWSER_INSTALL_PASSWORD_REQUIRED = false;
 const BROWSER_INSTALL_PASSWORD = "SenhadoFunTime";
-let browserInstallUnlocked = false;
+let browserInstallUnlocked = !BROWSER_INSTALL_PASSWORD_REQUIRED;
 
 async function unlockBrowserInstall(event) {
   if (browserInstallUnlocked || event.target.value !== BROWSER_INSTALL_PASSWORD) return;
@@ -318,7 +320,7 @@ document.addEventListener("visibilitychange", () => {
 const DATA_STORAGE_KEY = "funtime-v1-data";
 const LEGACY_DRINKS_STORAGE_KEY = "balada-v1-drinks";
 const DATA_VERSION = 11;
-const APP_VERSION = "2.34.1";
+const APP_VERSION = "2.34.2";
 const DRINK_EXPORT_TYPE = "funtime-drinks";
 const DRINK_EXPORT_FORMAT_VERSION = 1;
 const BACKUP_EXPORT_TYPE = "funtime-backup";

@@ -2821,6 +2821,8 @@ Usar eventos fica desmarcado por padrão, inclusive em dados antigos sem prefer�
 
 A página pública pede um código de acesso antes de mostrar o botão ou as orientações de instalação. A senha inicial está em `BROWSER_INSTALL_PASSWORD`, no início de app.js. A comparação é exata, diferencia maiúsculas e libera automaticamente ao digitar/colar o valor completo. O campo usa caracteres ocultos e é limpo após liberar; o desbloqueio vive apenas na memória da página. A PWA em modo instalado e a confirmação de instalação detectada dispensam o campo.
 
+**Desligada temporariamente desde a v2.34.2** (`BROWSER_INSTALL_PASSWORD_REQUIRED = false`, logo acima da senha): `browserInstallUnlocked` já começa `true`, o campo nunca aparece e a página mostra direto o botão ou a orientação. Para religar, volte a chave para `true`; nada mais muda. Os testes da senha em `tests/install.test.cjs` forçam o estado trancado e continuam valendo nos dois casos.
+
 É apenas uma barreira visual: código e manifest continuam públicos, e a instalação pelo menu do navegador não é bloqueada. Nenhum dado privado ou armazenamento é acessado pelo desbloqueio. App, boot, rodapés e cache alinhados a 2.1.18; DATA_VERSION 11 e política 1.0.2 preservados.
 
 Validação local: sintaxe de app.js/sw.js, diff e 24 testes de install/receiver/transition/ui aprovados. Cobertura de senha parcial/incorreta/correta, prompt antes/depois da liberação, orientação sem prompt, recarga simulada e instalação detectada. Aparência em navegador, instalação real e celular não testados. Commit e push solicitados.
