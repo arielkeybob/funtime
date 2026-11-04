@@ -58,3 +58,22 @@ conta não refaz o download completo.
 - Fora do automatizado: queda real do Firebase num aparelho (não reproduzível sem
   revogar a sessão).
 - **Afeta algum tutorial?** Nenhum (`npm run tutorials:check` em dia).
+
+## Nota pós-implementação (v2.34.3) — sessão no localStorage
+
+Num celular com 1% de espaço livre, o Chrome apagou o IndexedDB, o Cache Storage e o Service
+Worker do site (e os de outro site), mas não o localStorage. Provas, lidas no aparelho por
+depuração USB: o contador de consultas do Firestore recomeçou do zero no IndexedDB enquanto o
+registro dele no localStorage seguia desde 18/09, e os dois únicos Service Workers do navegador
+tinham sido recriados no mesmo dia. A sessão do Firebase, guardada no IndexedDB pelo `getAuth`,
+foi junto, e o app mostrou o aviso de queda desta spec.
+
+`src/auth/firebase-auth.js` passou a usar `initializeAuth` com a persistência
+`[browserLocalPersistence, indexedDBLocalPersistence]` e `browserPopupRedirectResolver` (o que
+o `getAuth` já passava). A sessão que está no IndexedDB é migrada pelo próprio SDK para o
+localStorage na primeira abertura, sem novo login. Verificado com o SDK real 12.19.0, com os
+servidores de login bloqueados: com o código antigo a conta caía ao apagar o IndexedDB; com o
+novo, a sessão migra e continua.
+
+A queda de 02/11/2026 aconteceu com o armazenamento intacto e segue sem causa conhecida
+(ROADMAP.md, "Correções a fazer").

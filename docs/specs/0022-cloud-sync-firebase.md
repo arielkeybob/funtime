@@ -294,3 +294,38 @@ de boot (`boot.js` + gate de termos), então não serve como caminho principal.
   tocar no local; usar o app sem nunca logar e confirmar que nada muda.
 - Fora desta rodada: teste de carga/quota do plano gratuito; qualquer cenário
   multiusuário.
+
+## Nota pós-implementação — doses feitas offline sumiam ao reconectar
+
+Relato real (novembro de 2026): doses registradas sem internet, durante um evento, sumiram do
+Histórico quando a conexão voltou e a conta foi reconectada; a dose registrada logo depois
+ficou. Não chegaram à nuvem.
+
+**Causa.** `scheduleSyncPush` fazia `lastPushed = previous` na primeira gravação. Antes do
+primeiro retrato completo da nuvem isso é falso: `previous` traz tudo o que só existia no
+aparelho. Bastava uma gravação entre `onSignedIn` (sincronização criada) e as cinco escutas
+responderem — uma dose nova, um evento começando — para `mergeCollection` tomar as doses
+offline por "enviadas e ausentes do remoto", isto é, apagadas em outro aparelho. O retrato
+aplicado sobrescrevia o `localStorage` e o envio seguinte não as incluía. O intervalo inclui
+baixar o módulo do Firestore e uma gravação de ida e volta; com sinal fraco, segundos.
+
+**Correção** (`src/data/firestore-sync.js`, `src/data/sync-merge.js`):
+
+- O primeiro retrato de cada sessão é sempre união (`lastPushed` nulo na mesclagem), como já
+  era quando nada era gravado antes dele. O `lastPushed` provisório só serve de ponto de
+  partida para enviar o que mudou.
+- `touched`: o que mudou aqui e ainda não foi entregue ao Firestore (ids por coleção e se o
+  meta mudou). Vence qualquer retrato: edição fica, exclusão não ressuscita, ordem e
+  preferências ficam. Sai ao entregar os lotes (o SDK já mostra a própria fila nos retratos);
+  volta se a gravação falhar. Também fecha a mesma corrida fora do primeiro retrato (retrato
+  de outro aparelho chegando antes do envio de uma edição).
+- Envio que termina depois de um retrato não troca a base calculada por ele pelo `pushing`
+  antigo (`generation`).
+- `flush` sem ponto de partida não faz nada: comparar com nada subiria o histórico inteiro.
+- Com janela (0024): histórico antigo editado ou apagado antes do primeiro retrato sobe.
+
+Continua como antes: edição ou exclusão feita **com a sincronização desligada** (sem SDK, conta
+caída) perde para a nuvem no próximo login; registros novos ficam (união).
+
+Testes: 11 novos em `tests/firestore-sync.test.cjs`; 10 falham no código anterior (o 11º
+garante que uma mudança já entregue não impede a de outro aparelho de chegar).

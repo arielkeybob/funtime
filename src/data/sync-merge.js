@@ -17,6 +17,8 @@ function idsOf(list) {
   return (Array.isArray(list) ? list : []).map((record) => String(record?.id));
 }
 
+const COLLECTION_NAMES = ["drinks", "events", "occasions"];
+
 function diffCollection(previousList, nextList) {
   const previousById = indexById(previousList);
   const nextById = indexById(nextList);
@@ -25,7 +27,8 @@ function diffCollection(previousList, nextList) {
 
   for (const [id, record] of nextById) {
     const before = previousById.get(id);
-    if (!before || stableJson(before) !== stableJson(record)) upserted.push(record);
+    // Registro intocado costuma ser o mesmo objeto: dispensa serializar o histórico inteiro.
+    if (!before || (before !== record && stableJson(before) !== stableJson(record))) upserted.push(record);
   }
 
   for (const id of previousById.keys()) {
@@ -49,9 +52,36 @@ export function diffAppData(previous, next) {
 
 export function isEmptyDiff(diff) {
   if (!diff || diff.metaChanged) return false;
-  return ["drinks", "events", "occasions"].every((name) => (
+  return COLLECTION_NAMES.every((name) => (
     !diff[name]?.upserted?.length && !diff[name]?.removed?.length
   ));
+}
+
+// O que mudou neste aparelho e ainda não foi entregue ao Firestore. Um retrato da nuvem
+// não conhece essas mudanças, então elas vencem ao combinar. Por coleção, id → versão
+// anterior do registro (nas exclusões, diz se era histórico antigo); `meta` marca mudança
+// nas preferências ou na lista/ordem das bebidas.
+export function emptyTouched() {
+  return { drinks: new Map(), events: new Map(), occasions: new Map(), meta: false };
+}
+
+export function noteTouched(touched, previous, next) {
+  const diff = diffAppData(previous, next);
+  for (const name of COLLECTION_NAMES) {
+    const before = indexById(previous?.[name]);
+    const ids = [...diff[name].upserted.map((record) => String(record.id)), ...diff[name].removed];
+    for (const id of ids) if (!touched[name].has(id)) touched[name].set(id, before.get(id) ?? null);
+  }
+  if (diff.metaChanged) touched.meta = true;
+  return touched;
+}
+
+export function mergeTouched(into, from) {
+  for (const name of COLLECTION_NAMES) {
+    for (const [id, record] of from[name]) if (!into[name].has(id)) into[name].set(id, record);
+  }
+  into.meta = into.meta || from.meta;
+  return into;
 }
 
 // Janela de sincronização (docs/specs/0024): o aparelho só escuta na nuvem o histórico
@@ -69,7 +99,7 @@ export function isOutsideWindow(name, record, windowStart) {
   return false;
 }
 
-function mergeCollection(localList, remoteList, pushedList, isOld = () => false) {
+function mergeCollection(localList, remoteList, pushedList, isOld = () => false, touched = new Map()) {
   const remoteById = indexById(remoteList);
   const pushedIds = new Set(idsOf(pushedList));
   const merged = [];
@@ -77,7 +107,11 @@ function mergeCollection(localList, remoteList, pushedList, isOld = () => false)
 
   for (const record of Array.isArray(localList) ? localList : []) {
     const id = String(record?.id);
-    if (remoteById.has(id)) {
+    if (touched.has(id)) {
+      // Mudou aqui e a nuvem ainda não sabe: vale a versão daqui.
+      merged.push(record);
+      taken.add(id);
+    } else if (remoteById.has(id)) {
       merged.push(remoteById.get(id));
       taken.add(id);
     } else if (!pushedIds.has(id) || isOld(record)) {
@@ -91,7 +125,8 @@ function mergeCollection(localList, remoteList, pushedList, isOld = () => false)
 
   for (const record of Array.isArray(remoteList) ? remoteList : []) {
     const id = String(record?.id);
-    if (!taken.has(id)) merged.push(record);
+    // Mudado aqui e ausente daqui é exclusão daqui que a nuvem ainda não recebeu.
+    if (!taken.has(id) && !touched.has(id)) merged.push(record);
   }
 
   return merged;
@@ -106,13 +141,16 @@ function sortByOrder(records, order) {
   ));
 }
 
-export function mergeRemote({ local, remote, lastPushed, windowStart = null }) {
+export function mergeRemote({ local, remote, lastPushed, windowStart = null, touched = null }) {
   const older = (name) => (record) => isOutsideWindow(name, record, windowStart);
+  const changed = touched || emptyTouched();
+  const drinks = mergeCollection(local?.drinks, remote?.drinks, lastPushed?.drinks, undefined, changed.drinks);
   return {
-    drinks: sortByOrder(mergeCollection(local?.drinks, remote?.drinks, lastPushed?.drinks), remote?.drinkOrder),
-    events: mergeCollection(local?.events, remote?.events, lastPushed?.events, older("events")),
-    occasions: mergeCollection(local?.occasions, remote?.occasions, lastPushed?.occasions, older("occasions")),
-    preferences: remote?.preferences ?? local?.preferences,
+    // Ordem ou preferências mudadas aqui e ainda não enviadas valem sobre as da nuvem.
+    drinks: changed.meta ? drinks : sortByOrder(drinks, remote?.drinkOrder),
+    events: mergeCollection(local?.events, remote?.events, lastPushed?.events, older("events"), changed.events),
+    occasions: mergeCollection(local?.occasions, remote?.occasions, lastPushed?.occasions, older("occasions"), changed.occasions),
+    preferences: changed.meta ? local?.preferences : (remote?.preferences ?? local?.preferences),
   };
 }
 
@@ -120,16 +158,25 @@ export function mergeRemote({ local, remote, lastPushed, windowStart = null }) {
 // exatamente o remoto. Com janela o remoto só traz o recente, então o que é mais antigo
 // e existe aqui entra como "já enviado" — senão cada abertura reescreveria o histórico
 // inteiro, trocando leituras poupadas por escritas.
-export function syncedBaseline({ merged, remote, windowStart = null }) {
+export function syncedBaseline({ merged, remote, windowStart = null, touched = null }) {
+  const changed = touched || emptyTouched();
   const withOlder = (name) => {
     const remoteList = Array.isArray(remote?.[name]) ? remote[name] : [];
     if (windowStart == null) return remoteList;
 
     const known = new Set(idsOf(remoteList));
+    const present = new Set(idsOf(merged?.[name]));
+    // Antigo e mudado aqui fica fora da base, para o envio levar a mudança.
     const older = (merged?.[name] || []).filter((record) => (
-      record?.id && !known.has(String(record.id)) && isOutsideWindow(name, record, windowStart)
+      record?.id && !known.has(String(record.id)) && !changed[name].has(String(record.id))
+      && isOutsideWindow(name, record, windowStart)
     ));
-    return older.length ? [...remoteList, ...older] : remoteList;
+    // Antigo e apagado aqui: a janela não o mostra, então entra na base para a exclusão subir.
+    const removedOlder = [...changed[name]]
+      .filter(([id, before]) => before && !known.has(id) && !present.has(id) && isOutsideWindow(name, before, windowStart))
+      .map(([, before]) => before);
+    const extra = [...older, ...removedOlder];
+    return extra.length ? [...remoteList, ...extra] : remoteList;
   };
 
   return {

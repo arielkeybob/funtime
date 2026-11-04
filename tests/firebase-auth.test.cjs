@@ -9,7 +9,10 @@ function setup({ popupError = null, onSignedIn = () => {}, onSignedOut = () => {
 
   const appModule = { initializeApp: () => ({ name: 'app-falso' }) };
   const authModule = {
-    getAuth: () => ({ name: 'auth-falsa' }),
+    initializeAuth: (app, options) => { calls.initializeAuth = options; return { name: 'auth-falsa' }; },
+    browserLocalPersistence: 'localStorage',
+    indexedDBLocalPersistence: 'indexedDB',
+    browserPopupRedirectResolver: 'resolver-do-navegador',
     GoogleAuthProvider: class {
       setCustomParameters(valores) { parametros.push(valores); }
     },
@@ -29,6 +32,17 @@ function setup({ popupError = null, onSignedIn = () => {}, onSignedOut = () => {
 }
 
 const errorWithCode = (code) => Object.assign(new Error(code), { code });
+
+// Sem espaço no aparelho, o Chrome apagou IndexedDB, Cache Storage e Service Worker do site,
+// mas não o localStorage: com a sessão no IndexedDB (padrão do getAuth), a conta caía junto.
+test('guarda a sessão no localStorage antes do IndexedDB, mantendo popup e redirect', async () => {
+  const { auth, calls } = setup();
+  await auth.init();
+  assert.deepEqual(calls.initializeAuth, {
+    persistence: ['localStorage', 'indexedDB'],
+    popupRedirectResolver: 'resolver-do-navegador',
+  });
+});
 
 // Sem pedir o seletor, o Google entra direto na sessão já ativa e fica impossível
 // escolher ou trocar de conta no navegador.
@@ -121,7 +135,7 @@ test('uma falha ao baixar o SDK não trava as tentativas seguintes', async () =>
   let falhar = true;
   let imports = 0;
   const authModule = {
-    getAuth: () => ({}),
+    initializeAuth: () => ({}),
     GoogleAuthProvider: class { setCustomParameters() {} },
     onAuthStateChanged: () => {},
     getRedirectResult: async () => null,

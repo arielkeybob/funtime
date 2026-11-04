@@ -9,7 +9,10 @@ const { createDevServer } = require('../scripts/dev-server.cjs');
 
 const FAKE_APP = 'export const initializeApp = () => ({});';
 const FAKE_AUTH = `
-export const getAuth = () => ({});
+export const initializeAuth = () => ({});
+export const browserLocalPersistence = {};
+export const indexedDBLocalPersistence = {};
+export const browserPopupRedirectResolver = {};
 export function onAuthStateChanged(auth, callback) {
   globalThis.__notifyAuth = callback;
   setTimeout(() => callback(globalThis.__fakeAuthUser || null), 0);

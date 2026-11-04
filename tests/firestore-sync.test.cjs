@@ -457,3 +457,195 @@ test('bebidas em ordem própria: abrir o app e receber o eco não regrava o meta
   }
   assert.equal(firestore.commits.length, 0, 'nenhuma regravação do meta');
 });
+
+// --- Mudanças daqui ainda não entregues à nuvem ----------------------------------------
+// Regressão (v2.34.3): doses registradas sem internet ficam só no aparelho. Quando a conexão
+// volta, a sincronização recomeça; uma gravação qualquer antes do primeiro retrato da nuvem
+// (uma dose nova, o evento começando) fazia o app tomá-las por "já enviadas" e apagá-las como
+// exclusão feita em outro aparelho, sem nunca subir.
+const NA_NUVEM = { id: 'naNuvem', consumedAt: RECENTE };
+const OFFLINE = [{ id: 'off1', consumedAt: RECENTE + 1 }, { id: 'off2', consumedAt: RECENTE + 2 }];
+const NOVA = { id: 'nova', consumedAt: RECENTE + 3 };
+const enviadosEm = (firestore, colecao) => firestore.commits.flat()
+  .filter((op) => op.type === 'set' && op.path.startsWith(`users/u1/${colecao}/`))
+  .map((op) => op.path.split('/').pop()).sort();
+
+test('gravar antes do primeiro retrato não apaga as doses feitas offline, e elas sobem', async () => {
+  const updates = [];
+  const { sync, firestore } = setupWindow({ concluido: true, onRemoteUpdate: (m) => updates.push(m) });
+  const local = data({ events: [NA_NUVEM, ...OFFLINE] });
+
+  await sync.start(local);
+  sync.scheduleSyncPush(local, data({ events: [...local.events, NOVA] }));
+  seedWindow(firestore, { events: [NA_NUVEM] });
+  await sync.flushPendingWrites();
+
+  assert.deepEqual(updates[0].events.map((e) => e.id).sort(), ['naNuvem', 'nova', 'off1', 'off2']);
+  assert.deepEqual(enviadosEm(firestore, 'events'), ['nova', 'off1', 'off2']);
+});
+
+test('enviar antes do primeiro retrato não faz as doses offline passarem por enviadas', async () => {
+  const updates = [];
+  const { sync, firestore } = setupWindow({ concluido: true, onRemoteUpdate: (m) => updates.push(m) });
+  const local = data({ events: [NA_NUVEM, ...OFFLINE] });
+
+  await sync.start(local);
+  sync.scheduleSyncPush(local, data({ events: [...local.events, NOVA] }));
+  await sync.flushPendingWrites();
+  assert.deepEqual(enviadosEm(firestore, 'events'), ['nova'], 'antes do retrato só sobe o que mudou');
+
+  // O Firestore já mostra a dose nova (aplica a própria fila) mas nunca viu as offline.
+  seedWindow(firestore, { events: [NA_NUVEM, NOVA] });
+  await sync.flushPendingWrites();
+
+  assert.deepEqual(updates.at(-1).events.map((e) => e.id).sort(), ['naNuvem', 'nova', 'off1', 'off2']);
+  assert.deepEqual(enviadosEm(firestore, 'events'), ['nova', 'off1', 'off2']);
+});
+
+test('um envio que termina depois do retrato não desfaz a base calculada por ele', async () => {
+  const { sync, firestore } = setupWindow({ concluido: true });
+  const original = firestore.module.writeBatch;
+  let liberar = null;
+  firestore.module.writeBatch = () => {
+    const batch = original();
+    const commit = batch.commit;
+    batch.commit = () => new Promise((resolve) => { liberar = () => commit().then(resolve); });
+    return batch;
+  };
+  const local = data({ events: [NA_NUVEM, ...OFFLINE] });
+
+  await sync.start(local);
+  sync.scheduleSyncPush(local, data({ events: [...local.events, NOVA] }));
+  const esperandoServidor = sync.flushPendingWrites();
+  await settle();
+  firestore.module.writeBatch = original;
+
+  seedWindow(firestore, { events: [NA_NUVEM, NOVA] });
+  liberar();
+  await esperandoServidor;
+  await sync.flushPendingWrites();
+
+  assert.deepEqual(enviadosEm(firestore, 'events'), ['nova', 'off1', 'off2']);
+});
+
+test('apagar antes do primeiro retrato não ressuscita o registro e a exclusão sobe', async () => {
+  const updates = [];
+  const { sync, firestore } = setupWindow({ concluido: true, onRemoteUpdate: (m) => updates.push(m) });
+  const antes = data({ events: [NA_NUVEM, NOVA] });
+
+  await sync.start(antes);
+  sync.scheduleSyncPush(antes, data({ events: [NA_NUVEM] }));
+  seedWindow(firestore, { events: [NA_NUVEM, NOVA] });
+  await sync.flushPendingWrites();
+
+  assert.deepEqual(updates[0].events.map((e) => e.id), ['naNuvem']);
+  assert.deepEqual(firestore.commits.flat().filter((op) => op.type === 'delete').map((op) => op.path), ['users/u1/events/nova']);
+});
+
+test('editar antes do primeiro retrato vale sobre a versão da nuvem', async () => {
+  const updates = [];
+  const { sync, firestore } = setupWindow({ concluido: true, onRemoteUpdate: (m) => updates.push(m) });
+  const editada = { ...NA_NUVEM, reaction: '🎉' };
+
+  await sync.start(data({ events: [NA_NUVEM] }));
+  sync.scheduleSyncPush(data({ events: [NA_NUVEM] }), data({ events: [editada] }));
+  seedWindow(firestore, { events: [NA_NUVEM] });
+  await sync.flushPendingWrites();
+
+  assert.deepEqual(updates[0].events, [editada]);
+  assert.deepEqual(enviadosEm(firestore, 'events'), ['naNuvem']);
+});
+
+test('retrato que chega antes do envio não desfaz edição nem exclusão feitas aqui', async () => {
+  const updates = [];
+  const { sync, firestore } = setupWindow({ concluido: true, onRemoteUpdate: (m) => updates.push(m) });
+  const inicio = data({ events: [NA_NUVEM, NOVA] });
+  const editada = { ...NA_NUVEM, reaction: '🎉' };
+
+  await sync.start(inicio);
+  seedWindow(firestore, { events: [NA_NUVEM, NOVA] });
+  await sync.flushPendingWrites();
+
+  sync.scheduleSyncPush(inicio, data({ events: [editada] }));
+  // Outro retrato (de outro aparelho, por exemplo) chega antes do envio desta mudança.
+  firestore.listeners.get(LISTEN.events)({ docs: [NA_NUVEM, NOVA].map((r) => ({ data: () => r })) });
+
+  assert.deepEqual(updates.at(-1).events, [editada]);
+  await sync.flushPendingWrites();
+  assert.deepEqual(enviadosEm(firestore, 'events'), ['naNuvem']);
+  assert.deepEqual(firestore.commits.flat().filter((op) => op.type === 'delete').map((op) => op.path), ['users/u1/events/nova']);
+});
+
+test('depois de entregue, a mudança daqui não impede a de outro aparelho de chegar', async () => {
+  const updates = [];
+  const { sync, firestore } = setupWindow({ concluido: true, onRemoteUpdate: (m) => updates.push(m) });
+
+  await sync.start(data({ events: [NA_NUVEM] }));
+  seedWindow(firestore, { events: [NA_NUVEM] });
+  sync.scheduleSyncPush(data({ events: [NA_NUVEM] }), data({ events: [{ ...NA_NUVEM, reaction: '🎉' }] }));
+  await sync.flushPendingWrites();
+
+  const deOutroAparelho = { ...NA_NUVEM, reaction: '😴' };
+  firestore.listeners.get(LISTEN.events)({ docs: [{ data: () => deOutroAparelho }] });
+
+  assert.deepEqual(updates.at(-1).events, [deOutroAparelho]);
+});
+
+test('gravação que falha devolve à mudança daqui a precedência sobre a nuvem', async () => {
+  const updates = [];
+  const erros = [];
+  const { sync, firestore } = setupWindow({ concluido: true, onRemoteUpdate: (m) => updates.push(m) });
+  const editada = { ...NA_NUVEM, reaction: '🎉' };
+
+  await sync.start(data({ events: [NA_NUVEM] }));
+  seedWindow(firestore, { events: [NA_NUVEM] });
+  const original = firestore.module.writeBatch;
+  firestore.module.writeBatch = () => ({ ...original(), commit: async () => { throw new Error('negado'); } });
+  sync.scheduleSyncPush(data({ events: [NA_NUVEM] }), data({ events: [editada] }));
+  await sync.flushPendingWrites().catch((error) => erros.push(error));
+  firestore.module.writeBatch = original;
+
+  firestore.listeners.get(LISTEN.events)({ docs: [{ data: () => NA_NUVEM }] });
+  assert.equal(erros.length, 1);
+  assert.deepEqual(updates.at(-1).events, [editada]);
+});
+
+test('janela: dose antiga editada ou apagada antes do primeiro retrato chega à nuvem', async () => {
+  const { sync, firestore } = setupWindow({ concluido: true });
+  const velho = { id: 'velho', consumedAt: ANTIGO };
+  const outroVelho = { id: 'outroVelho', consumedAt: ANTIGO - DIA };
+  const antes = data({ events: [velho, outroVelho] });
+
+  await sync.start(antes);
+  sync.scheduleSyncPush(antes, data({ events: [{ ...velho, reaction: '🎉' }] }));
+  seedWindow(firestore, {});
+  await sync.flushPendingWrites();
+
+  assert.deepEqual(firestore.commits.flat().map((op) => `${op.type}:${op.path}`).sort(), [
+    'delete:users/u1/events/outroVelho', 'set:users/u1/events/velho',
+  ]);
+});
+
+test('ordem das bebidas mudada antes do primeiro retrato vale sobre a da nuvem', async () => {
+  const updates = [];
+  const { sync, firestore } = setupWindow({ concluido: true, onRemoteUpdate: (m) => updates.push(m) });
+  const [a, b] = [{ id: 'a' }, { id: 'b' }];
+
+  await sync.start(data({ drinks: [a, b] }));
+  sync.scheduleSyncPush(data({ drinks: [a, b] }), data({ drinks: [b, a] }));
+  seedWindow(firestore, { drinks: [a, b], meta: { ...META, drinkOrder: ['a', 'b'] } });
+  await sync.flushPendingWrites();
+
+  assert.deepEqual(updates[0].drinks.map((d) => d.id), ['b', 'a']);
+  const meta = firestore.commits.flat().find((op) => op.path === 'users/u1/meta/app');
+  assert.deepEqual(meta.data.drinkOrder, ['b', 'a']);
+});
+
+test('enviar antes do primeiro retrato sem mudança nenhuma não sobe o histórico inteiro', async () => {
+  const { sync, firestore } = setupWindow({ concluido: true });
+
+  await sync.start(data({ events: [NA_NUVEM, ...OFFLINE] }));
+  await sync.flushPendingWrites();
+
+  assert.equal(firestore.commits.length, 0);
+});

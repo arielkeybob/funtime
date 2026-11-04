@@ -10,9 +10,15 @@ A identidade mudou de "Intervalo" para "FunTime" em três fases (v1.15.0 → v1.
 
 Problemas relatados pelo usuário, ainda sem correção agendada.
 
-Nenhum no momento. Os dois relatados em 30/10/2026 (tela de bloqueio com a cor do último módulo;
-Atualizar pedindo a credencial de novo com "Bloquear ao sair do app") foram corrigidos na v2.32.1
-— ver README.md.
+- **Conta do Google desconectada sem ninguém sair (02/11/2026), com o armazenamento intacto.**
+  Segue sem causa conhecida. No servidor nada foi revogado: nas 3 contas os tokens valem desde a
+  criação e nenhuma está desativada ou foi recriada, então a causa está no aparelho. Nada no app
+  registrou o momento da queda; o modo tester avançado (abaixo) existiria para isso. A queda de
+  04/11 tinha outra causa e foi corrigida na v2.34.3: sem espaço, o Chrome apagou o IndexedDB,
+  onde ficava a sessão, e agora ela fica no localStorage.
+
+Os dois relatados em 30/10/2026 (tela de bloqueio com a cor do último módulo; Atualizar pedindo
+a credencial de novo com "Bloquear ao sair do app") foram corrigidos na v2.32.1 — ver README.md.
 
 ## Próximos estudos
 
@@ -53,6 +59,30 @@ Quando X estiver dentro da janela configurada:
 Essas relações serão **exclusivamente cadastradas pelo usuário**. O app não terá uma base própria de combinações consideradas perigosas e não fará recomendações médicas automáticas.
 
 A relação não precisa ser obrigatoriamente simétrica; `X → Y` pode existir sem `Y → X`.
+
+### Modo tester avançado (diagnóstico)
+
+Ideia de 04/11/2026. Uma opção em Configurações, que se liga e desliga quando quiser, para
+registrar muitos dados e logs de depuração. Motivo: a investigação da conta desconectada e das
+doses perdidas só andou com o celular no cabo USB, e a prova de por que a sessão caiu já tinha
+sumido. Nada hoje registra o momento em que algo dá errado.
+
+Recomendação em duas etapas:
+
+1. **Log local e exportação manual.** Um registro circular no aparelho, exportado por um botão,
+   no mesmo padrão do Diagnóstico de toque. Não muda a regra de "sem backend" nem o que vai à
+   nuvem. Registraria:
+   - cada abertura: versão, se a página veio do Service Worker, `persisted()`, uso de armazenamento,
+     se a sessão do Firebase e o banco do Firestore existiam;
+   - queda de conta, com o código de erro do Firebase quando houver;
+   - cada mesclagem com a nuvem: quantos registros ficaram, quantos foram descartados e quantos
+     subiram;
+   - entradas e saídas de conexão e erros de gravação.
+2. **Envio automático à nuvem**, só se a etapa 1 não bastar. Exige mudar as políticas (avaliar
+   novo aceite), regras do Firestore, prazo de retenção e consentimento explícito.
+
+Em qualquer etapa: sem nome de bebida, sem e-mail, uid encurtado. O app trata de consumo de
+substâncias, então o log é dado sensível.
 
 ## Longo prazo / exige projeto específico
 

@@ -1,4 +1,6 @@
-import { diffAppData, isEmptyDiff, mergeRemote, syncedBaseline, OCCASION_WINDOW_MARGIN_MS } from "./sync-merge.js";
+import {
+  diffAppData, emptyTouched, isEmptyDiff, mergeRemote, mergeTouched, noteTouched, syncedBaseline, OCCASION_WINDOW_MARGIN_MS,
+} from "./sync-merge.js";
 import { BATCH_LIMIT, chunk, loadFirestore } from "./firestore-db.js";
 
 const PUSH_DEBOUNCE_MS = 800;
@@ -19,6 +21,16 @@ export function createFirestoreSync({
 }) {
   let latest = null;
   let lastPushed = null;
+  // Antes do primeiro retrato completo da nuvem, `lastPushed` é só o ponto de partida dos
+  // envios deste aparelho, não o que a nuvem tem: doses feitas sem conexão antes de a
+  // sincronização começar nunca subiram. Tomá-las por enviadas fazia o primeiro retrato
+  // apagá-las como se fossem exclusão feita em outro aparelho.
+  let synced = false;
+  // O que mudou aqui e ainda não foi entregue ao Firestore; vence qualquer retrato.
+  let touched = emptyTouched();
+  // Conta as bases calculadas a partir de retratos: um envio que termina depois de uma
+  // delas não pode trocá-la pelo que tinha antes.
+  let generation = 0;
   let timer = null;
   let stopped = false;
   let windowStart = null;
@@ -52,11 +64,14 @@ export function createFirestoreSync({
     // interface pisca com um conjunto pela metade.
     if (stopped || seeded.size < expectedSeeds) return;
 
-    const merged = mergeRemote({ local: latest, remote, lastPushed, windowStart });
+    // No primeiro retrato é união: o que só existe aqui fica e sobe.
+    const merged = mergeRemote({ local: latest, remote, lastPushed: synced ? lastPushed : null, windowStart, touched });
     latest = merged;
     // A partir daqui o servidor já conhece tudo que está em `remote`; só o que existe
     // apenas neste aparelho precisa subir (caso do primeiro login).
-    lastPushed = syncedBaseline({ merged, remote, windowStart });
+    lastPushed = syncedBaseline({ merged, remote, windowStart, touched });
+    synced = true;
+    generation += 1;
     onRemoteUpdate(merged);
     scheduleFlush();
     backfillHistory().catch(report);
@@ -84,9 +99,10 @@ export function createFirestoreSync({
     };
     // Sem `lastPushed`: união pura, nenhum lado é descartado (mesma regra do primeiro
     // login). Um registro antigo só daqui não pode ser tomado por exclusão em outro lugar.
-    const merged = mergeRemote({ local: latest, remote: full, lastPushed: null });
+    const merged = mergeRemote({ local: latest, remote: full, lastPushed: null, touched });
     latest = merged;
-    lastPushed = syncedBaseline({ merged, remote: full });
+    lastPushed = syncedBaseline({ merged, remote: full, touched });
+    generation += 1;
     onRemoteUpdate(merged);
 
     await flush();
@@ -100,6 +116,7 @@ export function createFirestoreSync({
   }
 
   function scheduleSyncPush(previous, next) {
+    noteTouched(touched, previous, next);
     if (lastPushed === null) lastPushed = previous;
     latest = next;
     scheduleFlush();
@@ -107,13 +124,21 @@ export function createFirestoreSync({
 
   async function flush() {
     if (timer) { cancel(timer); timer = null; }
-    if (stopped || !latest) return;
+    // Sem ponto de partida (nenhuma mudança e nenhum retrato ainda), comparar com nada
+    // subiria o histórico inteiro; o primeiro retrato agenda o envio.
+    if (stopped || !latest || lastPushed === null) return;
 
+    const { firestore, db } = await load();
+    if (stopped) return;
     const diff = diffAppData(lastPushed, latest);
-    if (isEmptyDiff(diff)) return;
+    if (isEmptyDiff(diff)) {
+      // Nada pendente: o que foi mudado aqui já é o que a nuvem tem.
+      touched = emptyTouched();
+      return;
+    }
 
     const pushing = latest;
-    const { firestore, db } = await load();
+    const startedAt = generation;
     const writes = [];
 
     for (const name of COLLECTIONS) {
@@ -137,13 +162,24 @@ export function createFirestoreSync({
       writes.push((batch) => batch.set(ref, meta));
     }
 
-    for (const group of chunk(writes, BATCH_LIMIT)) {
+    const batches = chunk(writes, BATCH_LIMIT).map((group) => {
       const batch = firestore.writeBatch(db);
       for (const apply of group) apply(batch);
-      await batch.commit();
+      return batch;
+    });
+    // Entregue ao Firestore, a mudança já aparece nos retratos (ele aplica a própria fila
+    // antes de o servidor confirmar) e deixa de precisar vencer. Todos os lotes são
+    // entregues de uma vez por isso. Se a gravação falhar, as mudanças voltam a valer.
+    const sent = touched;
+    touched = emptyTouched();
+    try {
+      await Promise.all(batches.map((batch) => batch.commit()));
+    } catch (error) {
+      touched = mergeTouched(touched, sent);
+      throw error;
     }
 
-    lastPushed = pushing;
+    if (generation === startedAt) lastPushed = pushing;
     onStatusChange?.({ state: "synced", lastSyncedAt: Date.now() });
   }
 
@@ -221,6 +257,8 @@ export function createFirestoreSync({
     needsBackfill = false;
     latest = null;
     lastPushed = null;
+    synced = false;
+    touched = emptyTouched();
   }
 
   async function deleteCloudData() {

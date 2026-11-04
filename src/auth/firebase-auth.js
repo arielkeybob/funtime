@@ -17,6 +17,17 @@ async function importWhenReachable(url) {
   return import(url);
 }
 
+// Sessão no localStorage antes do IndexedDB (o padrão do `getAuth` é o contrário). Sem espaço
+// no aparelho, o Chrome apaga IndexedDB, Cache Storage e Service Worker do site, mas não o
+// localStorage (celular com 1% livre, 04/11/2026): a sessão ia junto e a conta aparecia
+// desconectada. Quem tem a sessão no IndexedDB é migrado pelo próprio SDK ao abrir.
+function openAuth(authModule, app) {
+  return authModule.initializeAuth(app, {
+    persistence: [authModule.browserLocalPersistence, authModule.indexedDBLocalPersistence],
+    popupRedirectResolver: authModule.browserPopupRedirectResolver,
+  });
+}
+
 export function createFirebaseAuth({
   firebaseConfig, onSignedIn, onSignedOut, onRedirectStart,
   importModule = importWhenReachable,
@@ -34,7 +45,7 @@ export function createFirebaseAuth({
         ]);
 
         const app = appModule.initializeApp(firebaseConfig);
-        const auth = authModule.getAuth(app);
+        const auth = openAuth(authModule, app);
 
         authModule.onAuthStateChanged(auth, (user) => {
           currentUser = user;

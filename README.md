@@ -1,4 +1,12 @@
-# FunTime — V2.34.2
+# FunTime — V2.34.3
+
+## V2.34.3 — Doses feitas sem internet não somem mais ao reconectar; conta sobrevive à falta de espaço
+
+- **Doses registradas sem internet sumiam ao reconectar a conta.** Relato real: doses de 01/11 22h a 02/11 06h, feitas durante um evento sem conexão, sumiram do Histórico e do evento quando a conta foi reconectada; a dose registrada logo depois ficou. Bastava qualquer gravação (uma dose nova, o evento começando) antes de a nuvem responder pela primeira vez: o app tomava tudo o que só existia no aparelho por "já enviado" e apagava como se fosse exclusão feita em outro aparelho, sem nunca subir. Agora a primeira resposta da nuvem sempre soma os dois lados, e o que mudou no aparelho e ainda não subiu vale sobre a versão da nuvem: edições ficam e exclusões não voltam. As doses já perdidas não chegaram à nuvem e não voltam. Detalhes em `docs/specs/0022-cloud-sync-firebase.md`.
+- **A conta do Google não cai mais quando o celular fica sem espaço.** Num aparelho com 1% de armazenamento livre, o Chrome apagou o IndexedDB, a cópia offline e o Service Worker do site (e os de outro site também), mas não o localStorage. A sessão, que o Firebase guardava no IndexedDB, ia junto, e o app mostrava "Conta desconectada". Agora a sessão fica no localStorage. Quem já está conectado é migrado sozinho na primeira abertura, sem novo login. Verificado com o SDK real do Firebase: com o código antigo a conta caía ao apagar o IndexedDB; com o novo, continua.
+- **"Você está offline" ao abrir sem internet** é a tela do próprio Chrome quando a cópia offline foi apagada pela falta de espaço; não há o que corrigir no app. Ela volta sozinha na primeira abertura com internet. Testado no celular: com a cópia presente, o app abre sem Wi-Fi.
+- Uma queda de conta em 02/11, com o armazenamento intacto, segue sem causa conhecida (ver ROADMAP.md, "Correções a fazer"). No servidor nada foi revogado: nas 3 contas os tokens valem desde a criação.
+- Testes: 11 novos em `tests/firestore-sync.test.cjs` (10 falham no código anterior) e 1 em `tests/firebase-auth.test.cjs`. Nenhum tutorial afetado. Sem mudança de dados, regras do Firestore ou políticas; `DATA_VERSION` permanece 11.
 
 ## V2.34.2 — Página de instalação sem senha (temporário)
 
