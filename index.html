@@ -60,7 +60,7 @@
     <footer class="browser-gate-footer">
       <span>App para estudo · não é controle de segurança</span>
       <a class="policies-link" href="./policies.html">Políticas e informações</a>
-      <span>v2.34.3 · By: arielkeybob</span>
+      <span>v2.35.0 · By: arielkeybob</span>
     </footer>
   </section>
 
@@ -396,9 +396,22 @@
 
     <section class="settings-page" data-settings-page="about" data-title="Sobre o app" hidden>
       <section class="settings-card">
-        <p class="settings-description">Versão instalada: <strong>v2.34.3</strong></p>
+        <p class="settings-description">Versão instalada: <strong>v2.35.0</strong></p>
         <button id="check-app-update" class="settings-secondary-button" type="button">Verificar atualizações</button>
         <a class="settings-link-row" href="./policies.html"><span>Políticas e informações</span><span class="settings-nav-chevron" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg></span></a>
+      </section>
+
+      <section class="settings-card" aria-labelledby="diagnostics-title">
+        <label class="settings-toggle-row" for="diagnostics-enabled">
+          <span id="diagnostics-title">Modo tester avançado</span>
+          <span class="security-switch"><input id="diagnostics-enabled" type="checkbox"><span class="security-switch-track" aria-hidden="true"><span></span></span></span>
+        </label>
+        <p class="settings-description">Para quem testa o app: registra neste aparelho o que acontece com a conta, a sincronização, a conexão e o armazenamento, para investigar falhas. Não inclui nomes de bebidas, registros, e-mail, PIN nem senhas. Nada é enviado sozinho: você exporta o arquivo e escolhe com quem compartilhar. Desligar apaga o registro.</p>
+        <p id="diagnostics-status" class="settings-description" role="status" hidden></p>
+        <div id="diagnostics-actions" class="settings-action-stack" hidden>
+          <button id="export-diagnostics" type="button" class="settings-secondary-button">Exportar diagnóstico</button>
+          <button id="clear-diagnostics" type="button" class="settings-secondary-button">Apagar registro</button>
+        </div>
       </section>
 
       <section class="settings-card clean-optional">
@@ -512,7 +525,7 @@
     <footer class="app-footer">
       <span class="app-footer-disclaimer">App para estudo · não é controle de segurança</span>
       <a class="policies-link" href="./policies.html">Políticas e informações</a>
-      <span class="app-footer-meta">v2.34.3 · By: arielkeybob</span>
+      <span class="app-footer-meta">v2.35.0 · By: arielkeybob</span>
     </footer>
   </div>
 

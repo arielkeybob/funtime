@@ -9,12 +9,27 @@ const COLLECTIONS = ["drinks", "events", "occasions"];
 // Cada escuta alimenta uma coleção; as ocasiões têm duas com janela (recentes e agendadas).
 const COLLECTION_OF = { drinks: "drinks", events: "events", occasions: "occasions", "occasions-pending": "occasions" };
 
+// Modo tester (docs/specs/0035): quantos registros havia aqui e na nuvem, quantos ficaram e
+// quantos foram descartados. Doses sumindo numa mesclagem aparecem como `descartados`.
+function mergeSummary(local, merged, remote) {
+  const summary = {};
+  for (const name of COLLECTIONS) {
+    const kept = new Set((merged?.[name] || []).map((record) => String(record?.id)));
+    const here = local?.[name] || [];
+    summary[name] = {
+      aqui: here.length, nuvem: (remote?.[name] || []).length, resultado: kept.size,
+      descartados: here.filter((record) => !kept.has(String(record?.id))).length,
+    };
+  }
+  return summary;
+}
+
 // `windowDays` (docs/specs/0024): escutar só o histórico recente, em vez da coleção inteira
 // a cada abertura — o Firestore cobra uma leitura por documento. Sem ele, escuta tudo,
 // como antes. `fullSync` guarda, fora deste módulo, se este aparelho já baixou o histórico
 // completo (`isDone`/`markDone`); sem esse download único, a janela esconderia o passado.
 export function createFirestoreSync({
-  app, uid, account, onRemoteUpdate, onStatusChange,
+  app, uid, account, onRemoteUpdate, onStatusChange, onDiagnostic = null,
   windowDays = null, fullSync = null, now = () => Date.now(),
   importModule = (url) => import(url),
   schedule = setTimeout, cancel = clearTimeout,
@@ -50,6 +65,13 @@ export function createFirestoreSync({
     onStatusChange?.({ state: "error", error });
   }
 
+  // O resumo só é montado se o modo tester pedir: `build` percorre as coleções.
+  function note(type, build) {
+    onDiagnostic?.(type, build);
+  }
+
+  const pendingCount = () => touched.drinks.size + touched.events.size + touched.occasions.size;
+
   function collectRemote(name) {
     const byId = new Map();
     for (const [key, records] of parts) {
@@ -65,7 +87,11 @@ export function createFirestoreSync({
     if (stopped || seeded.size < expectedSeeds) return;
 
     // No primeiro retrato é união: o que só existe aqui fica e sobe.
+    const before = latest;
+    const first = !synced;
+    const pending = pendingCount();
     const merged = mergeRemote({ local: latest, remote, lastPushed: synced ? lastPushed : null, windowStart, touched });
+    note("sync.retrato", () => ({ primeiro: first, pendentes: pending, ...mergeSummary(before, merged, remote) }));
     latest = merged;
     // A partir daqui o servidor já conhece tudo que está em `remote`; só o que existe
     // apenas neste aparelho precisa subir (caso do primeiro login).
@@ -99,7 +125,9 @@ export function createFirestoreSync({
     };
     // Sem `lastPushed`: união pura, nenhum lado é descartado (mesma regra do primeiro
     // login). Um registro antigo só daqui não pode ser tomado por exclusão em outro lugar.
+    const before = latest;
     const merged = mergeRemote({ local: latest, remote: full, lastPushed: null, touched });
+    note("sync.historico", () => mergeSummary(before, merged, full));
     latest = merged;
     lastPushed = syncedBaseline({ merged, remote: full, touched });
     generation += 1;
@@ -172,13 +200,20 @@ export function createFirestoreSync({
     // entregues de uma vez por isso. Se a gravação falhar, as mudanças voltam a valer.
     const sent = touched;
     touched = emptyTouched();
+    const counts = () => ({
+      sobe: COLLECTIONS.reduce((total, name) => total + diff[name].upserted.length, 0),
+      apaga: COLLECTIONS.reduce((total, name) => total + diff[name].removed.length, 0),
+      meta: diff.metaChanged,
+    });
     try {
       await Promise.all(batches.map((batch) => batch.commit()));
     } catch (error) {
       touched = mergeTouched(touched, sent);
+      note("sync.falhou", () => ({ ...counts(), erro: String(error?.code || error?.message || error) }));
       throw error;
     }
 
+    note("sync.enviou", counts);
     if (generation === startedAt) lastPushed = pushing;
     onStatusChange?.({ state: "synced", lastSyncedAt: Date.now() });
   }
@@ -245,6 +280,7 @@ export function createFirestoreSync({
       seeded.add("meta");
       emitRemote();
     }, report));
+    note("sync.escutando", () => ({ janela: windowStart !== null, baixaHistorico: needsBackfill, pendentes: pendingCount() }));
   }
 
   function stop() {

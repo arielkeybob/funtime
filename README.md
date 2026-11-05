@@ -1,4 +1,16 @@
-# FunTime — V2.34.3
+# FunTime — V2.35.0
+
+## V2.35.0 — Modo tester avançado
+
+- Nova opção em **Configurações › Sobre o app**: **Modo tester avançado**, desligada por padrão. Ligada, registra só neste aparelho o que acontece com a conta, a sincronização, a conexão e o armazenamento, para investigar falhas que só aparecem no celular de quem usa:
+  - na abertura: se a página veio da cópia offline, armazenamento persistente, uso e cota, bancos do Firebase e caches existentes, se havia sessão guardada, quantas bebidas, registros e eventos;
+  - a conta: se havia sessão antes de o Firebase abrir, a resposta dos servidores de login do Google (só rota, status e código do erro, como `TOKEN_EXPIRED`), quando conectou, caiu ou saiu;
+  - cada sincronização: por coleção, quantos registros havia no aparelho e na nuvem, quantos ficaram e **quantos foram descartados**, e quantos subiram;
+  - conexão, idas e vindas do app, troca de versão, erros da página e gravações recusadas por falta de espaço.
+- Não registra nomes de bebidas, registros, e-mail, PIN, senhas, tokens nem a chave do Firebase. O registro fica no localStorage (sobrevive à limpeza que o Chrome faz sem espaço), fora do backup e da nuvem, com até 1.500 eventos. **Exportar diagnóstico** abre o compartilhamento do celular ou baixa um JSON; nada é enviado sozinho. **Desligar** apaga o registro (com confirmação); **Apagar tudo deste aparelho** também.
+- Motivo: a queda de conta de 02/11 segue sem causa conhecida. Pelo código do SDK 12.19.0 e com o servidor sem revogação, sobra uma hipótese, a de o login do Google ter respondido com erro ao abrir, e o modo tester registra exatamente isso. Detalhes em `docs/specs/0035-modo-tester.md`; o envio automático à nuvem fica no ROADMAP.
+- **Políticas 1.0.10**, sem novo aceite (a pedido do usuário): o item 7 descreve o modo tester. A 1.0.9 entrou em `TERMS_VERSIONS_STILL_VALID`, e `tests/audit.test.cjs` trava a dispensa e o trecho novo.
+- Testes: `tests/diagnostics.test.cjs` (15) e `tests/diagnostics-browser.test.cjs` (app real: desligado por padrão, liga, sobrevive a recarregar, exporta sem nomes de bebidas, desligar apaga). Nenhum tutorial afetado. Sem mudança de dados ou regras do Firestore; `DATA_VERSION` permanece 11.
 
 ## V2.34.3 — Doses feitas sem internet não somem mais ao reconectar; conta sobrevive à falta de espaço
 

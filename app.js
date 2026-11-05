@@ -6,6 +6,8 @@ import { createSecurityConfig, PIN_LENGTH, PIN_LOCKOUT_ATTEMPTS, PIN_LOCKOUT_MS 
 import { createSecurityLock } from "./src/security/lock.js";
 import { commit as commitToStorage } from "./src/data/store.js";
 import { createFirebaseAuth } from "./src/auth/firebase-auth.js";
+import { createDiagnosticsLog } from "./src/diagnostics/log.js";
+import { describeEnvironment, hasStoredSession, watchAuthRequests, watchPageErrors } from "./src/diagnostics/probes.js";
 import { summarizeOccasionDoses } from "./src/occasions/summary.js";
 import { createFirestoreSync } from "./src/data/firestore-sync.js";
 import { createShareWriter } from "./src/data/share-writer.js";
@@ -320,7 +322,7 @@ document.addEventListener("visibilitychange", () => {
 const DATA_STORAGE_KEY = "funtime-v1-data";
 const LEGACY_DRINKS_STORAGE_KEY = "balada-v1-drinks";
 const DATA_VERSION = 11;
-const APP_VERSION = "2.34.3";
+const APP_VERSION = "2.35.0";
 const DRINK_EXPORT_TYPE = "funtime-drinks";
 const DRINK_EXPORT_FORMAT_VERSION = 1;
 const BACKUP_EXPORT_TYPE = "funtime-backup";
@@ -336,6 +338,14 @@ const SECURITY_UPDATE_RELOAD_KEY = "funtime-security-update-reload-v1";
 const SECURITY_UPDATE_RELOAD_MS = 10000;
 const SECURITY_UPDATE_RELOAD_BOOT_MS = 30000;
 const BACKGROUND_STORAGE_KEY = "funtime-background-v1";
+
+// Modo tester avançado (docs/specs/0035): desligado por padrão, guardado só neste aparelho.
+// Criado antes de tudo para registrar a abertura inteira; sem o modo ligado, nada é gravado.
+const diagnostics = createDiagnosticsLog({ storage: localStorage });
+watchPageErrors({ record: diagnostics.record });
+if (diagnostics.isEnabled()) watchAuthRequests({ record: diagnostics.record, isEnabled: diagnostics.isEnabled });
+diagnostics.record("app.abriu", { versao: APP_VERSION, instalado: IS_STANDALONE_APP, online: navigator.onLine });
+
 // Cor da barra do sistema nas telas neutras: acompanha a Cor sólida do fundo (spec 0034).
 let neutralThemeColor = DEFAULT_BACKGROUND_COLOR;
 
@@ -443,7 +453,14 @@ let sharedEventLinksKey = "";
 // src/history recebem `commitAppData` por parâmetro, os 18 pontos de mutação passam
 // por aqui sem precisar ser alterados um a um.
 function commitAppData(storageKey, current, patch) {
-  const next = commitToStorage(storageKey, current, patch);
+  let next;
+  try {
+    next = commitToStorage(storageKey, current, patch);
+  } catch (error) {
+    // Sem espaço no aparelho a gravação falha (QuotaExceededError).
+    diagnostics.record("dados.falhou-gravar", { erro: error?.name || String(error) });
+    throw error;
+  }
   if (storageKey === DATA_STORAGE_KEY) {
     cloudSync?.scheduleSyncPush(current, next);
     shareWriter?.scheduleSharePush(next);
@@ -1197,6 +1214,7 @@ function showSettingsPage(page) {
   document.querySelector("#settings-header-title").textContent = state.settingsPage ? SETTINGS_PAGES[state.settingsPage] : "Configurações";
   document.querySelector("#settings-header-eyebrow").textContent = state.settingsPage ? "Configurações" : "Preferências";
   if (!state.settingsPage) updateSettingsMenuSummary();
+  if (state.settingsPage === "about") updateDiagnosticsUI();
   window.scrollTo(0, 0);
 }
 
@@ -1649,18 +1667,18 @@ function downloadFile(file) {
   window.setTimeout(() => URL.revokeObjectURL(url), 1500);
 }
 
-async function deliverDrinksExport(file) {
+function deliverDrinksExport(file) {
+  return deliverFile(file, { title: "FunTime — bebidas", text: "Arquivo de bebidas exportado pelo FunTime." });
+}
+
+async function deliverFile(file, { title, text }) {
   if (
     typeof navigator.share === "function" &&
     typeof navigator.canShare === "function" &&
     navigator.canShare({ files: [file] })
   ) {
     try {
-      await navigator.share({
-        files: [file],
-        title: "FunTime — bebidas",
-        text: "Arquivo de bebidas exportado pelo FunTime.",
-      });
+      await navigator.share({ files: [file], title, text });
       return "native";
     } catch (error) {
       if (error?.name === "AbortError") return "cancelled";
@@ -3842,6 +3860,7 @@ async function bootstrapApp() {
   await maybeHandleSharedDrinkImport();
   maybeShowIntroTutorial();
   requestPersistentStorage();
+  recordEnvironment("abertura");
 }
 
 const shouldBootstrapInstalledApp = initializeRuntimeMode();
@@ -3917,7 +3936,11 @@ function resumeSync() {
   if (!firebaseAuth || !isSyncConnected() || syncAuthState === "pending" || syncAuthState === "ready") return;
   syncAuthState = "pending";
   updateSyncSettingsUI();
+  // Antes de o Firebase abrir: se a conta cair em seguida, isto separa "o armazenamento perdeu
+  // a sessão" (false) de "o Firebase a descartou" (true, com a resposta do Google em conta.http).
+  diagnostics.record("conta.retomando", { online: navigator.onLine, sessaoGuardada: hasStoredSession(localStorage) });
   firebaseAuth.init().catch((error) => {
+    diagnostics.record("conta.sdk-falhou", { erro: String(error?.message || error), online: navigator.onLine });
     console.error("Falha ao retomar a sincronização.", error);
     if (syncAuthState === "pending") syncAuthState = "failed";
     updateSyncSettingsUI();
@@ -4300,6 +4323,7 @@ function closeSharedView() {
 firebaseAuth = IS_STANDALONE_APP && isFirebaseConfigured() ? createFirebaseAuth({
   firebaseConfig: getFirebaseConfig(),
   onSignedIn: async ({ user, app }) => {
+    diagnostics.record("conta.conectada", { uid: String(user.uid).slice(0, 6), jaSincronizando: Boolean(cloudSync) });
     syncAuthState = "ready";
     rememberSyncConnection(user);
     updateSyncSettingsUI();
@@ -4312,8 +4336,9 @@ firebaseAuth = IS_STANDALONE_APP && isFirebaseConfigured() ? createFirebaseAuth(
       windowDays: SYNC_WINDOW_DAYS, fullSync: fullHistoryMemory(user.uid),
       onRemoteUpdate: applyRemoteSyncData,
       onStatusChange: ({ state: status, error }) => {
-        if (status === "error") console.error("Falha ao sincronizar.", error);
+        if (status === "error") { recordCloudError("sincronização", error); console.error("Falha ao sincronizar.", error); }
       },
+      onDiagnostic: (type, build) => { if (diagnostics.isEnabled()) diagnostics.record(type, build()); },
     });
     // Criado antes do escritor de compartilhamento: a mesma escuta de pareamentos também
     // alimenta os convites (ponteiro `invites`), sem abrir uma segunda.
@@ -4324,14 +4349,14 @@ firebaseAuth = IS_STANDALONE_APP && isFirebaseConfigured() ? createFirebaseAuth(
       onEventsChange: (lista) => { inviteUI?.setEvents(lista); globalThis.refreshSharedEventViews?.(); },
       onInvitesChange: (lista) => inviteUI?.setInvites(lista),
       onStatusChange: ({ state: status, error }) => {
-        if (status === "error") console.error("Falha no evento compartilhado.", error);
+        if (status === "error") { recordCloudError("evento compartilhado", error); console.error("Falha no evento compartilhado.", error); }
       },
     });
     drinkCopies = createDrinkCopies({
       app, uid: user.uid,
       onIncomingChange: (lista) => shareUI?.setIncomingDrinkCopies(lista),
       onStatusChange: ({ state: status, error }) => {
-        if (status === "error") console.error("Falha na cópia de bebidas.", error);
+        if (status === "error") { recordCloudError("cópia de bebidas", error); console.error("Falha na cópia de bebidas.", error); }
       },
     });
     shareWriter = createShareWriter({
@@ -4350,7 +4375,7 @@ firebaseAuth = IS_STANDALONE_APP && isFirebaseConfigured() ? createFirebaseAuth(
       },
       onSharesChange: (lista) => { latestShares = lista; shareUI?.setShares(lista); },
       onStatusChange: ({ state: status, error }) => {
-        if (status === "error") console.error("Falha no compartilhamento.", error);
+        if (status === "error") { recordCloudError("compartilhamento", error); console.error("Falha no compartilhamento.", error); }
       },
     });
     // Busca o apelido já aqui (não só quando a pessoa abre Amigos) para a saudação do
@@ -4362,7 +4387,7 @@ firebaseAuth = IS_STANDALONE_APP && isFirebaseConfigured() ? createFirebaseAuth(
       app,
       onChange: applySharedViewEntries,
       onStatusChange: ({ state: status, error }) => {
-        if (status === "error") console.error("Falha ao ver compartilhamento.", error);
+        if (status === "error") { recordCloudError("ver compartilhamento", error); console.error("Falha ao ver compartilhamento.", error); }
       },
     });
     updateSyncSettingsUI();
@@ -4423,6 +4448,7 @@ firebaseAuth = IS_STANDALONE_APP && isFirebaseConfigured() ? createFirebaseAuth(
     syncAuthState = "ready";
     const voluntary = syncSigningOut;
     syncSigningOut = false;
+    diagnostics.record(voluntary ? "conta.saiu" : "conta.caiu", { online: navigator.onLine });
     if (voluntary) forgetSyncConnection();
     else markSyncConnectionLost();
     updateSyncSettingsUI();
@@ -4437,7 +4463,9 @@ async function signInWithGoogle(button) {
   if (button) button.disabled = true;
   try {
     await firebaseAuth.signIn();
+    diagnostics.record("conta.login", { resultado: "ok" });
   } catch (error) {
+    diagnostics.record("conta.login", { resultado: String(error?.code || error?.message || error) });
     console.error("Falha ao entrar com a Conta Google.", error);
     showAppNotification("Não foi possível entrar. Tente de novo.", { type: "error" });
   } finally {
@@ -4582,6 +4610,94 @@ setInterval(() => {
 resumeSync();
 // Abriu sem internet: a conta volta sozinha quando a conexão voltar ou o app voltar à frente.
 window.addEventListener("online", () => { if (syncAuthState === "failed") resumeSync(); });
+
+// ---- Modo tester avançado (docs/specs/0035) ---------------------------------
+
+function recordCloudError(module, error) {
+  diagnostics.record("nuvem.erro", { modulo: module, erro: String(error?.code || error?.message || error), online: navigator.onLine });
+}
+
+// O que havia no aparelho ao abrir (ou ao ligar o modo): foi a falta de espaço que levou a
+// cópia offline e a sessão no celular de 04/11/2026.
+async function recordEnvironment(reason) {
+  if (!diagnostics.isEnabled()) return;
+  const env = await describeEnvironment({ storage: localStorage }).catch(() => ({}));
+  diagnostics.record("app.ambiente", {
+    motivo: reason, ...env, bebidas: state.drinks.length, registros: state.events.length, eventos: (state.occasions || []).length,
+  });
+}
+
+window.addEventListener("online", () => diagnostics.record("rede", { online: true }));
+window.addEventListener("offline", () => diagnostics.record("rede", { online: false }));
+document.addEventListener("visibilitychange", () => {
+  diagnostics.record(document.hidden ? "app.oculto" : "app.visivel", { online: navigator.onLine });
+  // O sistema pode fechar o app em segundo plano: grava o registro já, sem esperar.
+  if (document.hidden) diagnostics.flush();
+});
+window.addEventListener("pagehide", () => diagnostics.flush());
+navigator.serviceWorker?.addEventListener("controllerchange", () => diagnostics.record("sw.trocou", {}));
+
+// Busca os nós na hora: showSettingsPage chama isto e pode rodar antes deste trecho.
+function updateDiagnosticsUI() {
+  const toggle = document.querySelector("#diagnostics-enabled");
+  if (!toggle) return;
+  const status = document.querySelector("#diagnostics-status");
+  const enabled = diagnostics.isEnabled();
+  toggle.checked = enabled;
+  status.hidden = !enabled;
+  document.querySelector("#diagnostics-actions").hidden = !enabled;
+  if (!enabled) return;
+  const since = new Date(diagnostics.since()).toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" });
+  const count = diagnostics.count();
+  status.textContent = `Registrando desde ${since} · ${count} ${count === 1 ? "evento" : "eventos"}`;
+}
+
+const diagnosticsToggle = document.querySelector("#diagnostics-enabled");
+
+// Desligar apaga o registro; usado também por "Apagar tudo deste aparelho" (reset.js).
+function disableDiagnostics() {
+  diagnostics.disable();
+  updateDiagnosticsUI();
+}
+
+diagnosticsToggle?.addEventListener("change", async () => {
+  if (diagnosticsToggle.checked) {
+    diagnostics.enable();
+    watchAuthRequests({ record: diagnostics.record, isEnabled: diagnostics.isEnabled });
+    diagnostics.record("diagnostico.ligado", { versao: APP_VERSION, instalado: IS_STANDALONE_APP });
+    updateDiagnosticsUI();
+    await recordEnvironment("ligado");
+    updateDiagnosticsUI();
+    return;
+  }
+  diagnosticsToggle.checked = true;
+  if (diagnostics.count() > 0) {
+    const ok = await showAppConfirmation("Desligar apaga o registro deste aparelho. Exporte antes, se ainda for mandar para análise.", { title: "Desligar o modo tester?", confirmLabel: "Desligar e apagar" });
+    if (!ok) return;
+  }
+  disableDiagnostics();
+});
+
+document.querySelector("#export-diagnostics")?.addEventListener("click", async () => {
+  try {
+    const agora = await describeEnvironment({ storage: localStorage }).catch(() => ({}));
+    const report = diagnostics.report({ appVersion: APP_VERSION, aparelho: navigator.userAgent, instalado: IS_STANDALONE_APP, agora });
+    const file = new File([JSON.stringify(report, null, 2)], `FunTime-Diagnostico-${getFileDateStamp({ includeTime: true })}.json`, { type: "application/json;charset=utf-8" });
+    const mode = await deliverFile(file, { title: "FunTime — diagnóstico", text: "Diagnóstico do modo tester do FunTime." });
+    if (mode === "download") showToast("Diagnóstico exportado.");
+  } catch (error) {
+    console.error("Falha ao exportar o diagnóstico.", error);
+    showAppNotification("Não foi possível exportar o diagnóstico. O registro foi mantido.", { type: "error" });
+  }
+});
+
+document.querySelector("#clear-diagnostics")?.addEventListener("click", () => {
+  diagnostics.clear();
+  updateDiagnosticsUI();
+  showToast("Registro apagado. O modo tester continua ligado.");
+});
+
+updateDiagnosticsUI();
 document.addEventListener("visibilitychange", () => {
   if (document.hidden) return;
   if (syncAuthState === "failed") resumeSync();
@@ -4637,7 +4753,7 @@ Object.assign(globalThis, {
   updateDrinkMenuCountdown, setLogClock, buildIconPicker, prepareDrinkImportFile,
   prepareBackupRestoreFile, validateBackupPayload, persistDrinkList, readPendingSharedDrinkFile,
   lockApp, closeSensitiveDialogs, showLockScreen, markUpdateReloadUnlocked, APP_VERSION, DRINK_EXPORT_TYPE, DATA_VERSION,
-  backupRestoreDialog, derivePinHash,
+  backupRestoreDialog, derivePinHash, disableDiagnostics,
 });
 // tests/navigation-browser.test.cjs lê `editingIconCatalog` solto (não via
 // getEditingIconCatalog()) para checar o valor corrente após um toggle — como é

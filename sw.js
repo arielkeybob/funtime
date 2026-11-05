@@ -1,5 +1,5 @@
-const APP_VERSION = "2.34.3";
-const CACHE_NAME = "funtime-v2-34-3";
+const APP_VERSION = "2.35.0";
+const CACHE_NAME = "funtime-v2-35-0";
 const BACKGROUND_CACHE_NAME = "funtime-bg-v1";
 // Mídia dos tutoriais (spec 0026): baixada na primeira vez que é vista. O nome acompanha a versão
 // menor do app, então cada release menor descarta a anterior e o cache nunca cresce sem limite.
@@ -39,6 +39,8 @@ const APP_SHELL = [
   "./src/data/firestore-sync.js",
   "./src/data/firestore-config.js",
   "./src/auth/firebase-auth.js",
+  "./src/diagnostics/log.js",
+  "./src/diagnostics/probes.js",
   "./src/ui/dialogs.js",
   "./src/ui/wheel-picker.js",
   "./src/ui/field-errors.js",
