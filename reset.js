@@ -123,8 +123,10 @@ async function executeDataReset(pending) {
     sessionStorage.removeItem('funtime-restore-success-v1');
     sessionStorage.removeItem('funtime-terms-draft-v1');
     clearAppBackground();
-    // O registro do modo tester descreve o uso deste aparelho: sai junto.
+    // O registro do modo tester descreve o uso deste aparelho: sai junto, e as opções de
+    // teste voltam a ficar ocultas.
     globalThis.disableDiagnostics?.();
+    globalThis.hideHiddenOptions?.();
     // Proteção é removida por último. Não usar clear(): a origem pode hospedar outros apps.
     localStorage.removeItem(SECURITY_STORAGE_KEY);
     state.securityConfig = getDefaultSecurityConfig();

@@ -144,7 +144,7 @@ test('aceite requer três confirmações, persiste localmente e falha fechada', 
   checks[2].checked=true; handlers.change(); assert.equal(elements['#terms-continue'].disabled,false);
   fail=true; handlers.submit({preventDefault(){}}); assert.equal(elements['#terms-error'].hidden,false); assert.equal(resolved,false);
   fail=false; handlers.submit({preventDefault(){}}); await pending;
-  assert.equal(c.hasCurrentTermsAcceptance(),true); assert.equal(JSON.parse(value).termsVersion,'1.0.10');
+  assert.equal(c.hasCurrentTermsAcceptance(),true); assert.equal(JSON.parse(value).termsVersion,'1.0.11');
   value=JSON.stringify({...JSON.parse(value),termsVersion:'0.9'}); assert.equal(c.hasCurrentTermsAcceptance(),false);
   value='{'; assert.equal(c.hasCurrentTermsAcceptance(),false);
 });
@@ -157,7 +157,8 @@ test('aceite de versão listada como ainda válida dispensa novo aceite', () => 
   const c=vm.createContext({localStorage:{getItem:()=>guardado,setItem:()=>{}},document:{querySelector:()=>null,body:{classList:{add(){},remove(){}}}}});
   vm.runInContext(fonte,c);
 
-  guardado=aceite('1.0.10'); assert.equal(c.hasCurrentTermsAcceptance(),true,'a versão atual sempre vale');
+  guardado=aceite('1.0.11'); assert.equal(c.hasCurrentTermsAcceptance(),true,'a versão atual sempre vale');
+  guardado=aceite('1.0.10'); assert.equal(c.hasCurrentTermsAcceptance(),true,'1.0.10 está dispensada de novo aceite (modo tester oculto por gesto, a pedido do usuário)');
   guardado=aceite('1.0.9'); assert.equal(c.hasCurrentTermsAcceptance(),true,'1.0.9 está dispensada de novo aceite (modo tester avançado, a pedido do usuário)');
   guardado=aceite('1.0.8'); assert.equal(c.hasCurrentTermsAcceptance(),true,'1.0.8 está dispensada de novo aceite (copiar bebidas para amigos, a pedido do usuário)');
   guardado=aceite('1.0.7'); assert.equal(c.hasCurrentTermsAcceptance(),true,'1.0.7 está dispensada de novo aceite (código de amizade de 10 min e copiável, a pedido do usuário)');
@@ -505,7 +506,7 @@ test('a página de políticas mostra a versão do aceite e descreve o convite pa
 // continuar escritos nas políticas.
 test('a página de políticas descreve o modo tester avançado',()=>{
   const html=fs.readFileSync('policies.html','utf8');
-  for(const trecho of ['<strong>modo tester avançado</strong>','vem desligado','registra só neste aparelho','Não registra nomes de bebidas, registros, e-mail, PIN, senhas nem tokens','nunca é enviado automaticamente','Desligar o modo, ou apagar todos os dados deste aparelho, apaga o registro']){
+  for(const trecho of ['<strong>modo tester avançado</strong>','fica oculto em Configurações','vem desligado','registra só neste aparelho','Não registra nomes de bebidas, registros, e-mail, PIN, senhas nem tokens','nunca é enviado automaticamente','Desligar o modo, ou apagar todos os dados deste aparelho, apaga o registro']){
     assert.ok(html.includes(trecho),`policies.html perdeu o trecho: ${trecho}`);
   }
 });

@@ -60,7 +60,7 @@
     <footer class="browser-gate-footer">
       <span>App para estudo · não é controle de segurança</span>
       <a class="policies-link" href="./policies.html">Políticas e informações</a>
-      <span>v2.35.0 · By: arielkeybob</span>
+      <span>v2.36.0 · By: arielkeybob</span>
     </footer>
   </section>
 
@@ -396,10 +396,17 @@
 
     <section class="settings-page" data-settings-page="about" data-title="Sobre o app" hidden>
       <section class="settings-card">
-        <p class="settings-description">Versão instalada: <strong>v2.35.0</strong></p>
+        <p id="about-version" class="settings-description">Versão instalada: <strong>v2.36.0</strong></p>
         <button id="check-app-update" class="settings-secondary-button" type="button">Verificar atualizações</button>
         <a class="settings-link-row" href="./policies.html"><span>Políticas e informações</span><span class="settings-nav-chevron" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg></span></a>
       </section>
+
+      <!-- Opções de teste (spec 0036): ocultas até 7 toques seguidos em "Versão instalada". -->
+      <section id="hidden-options" class="hidden-options" aria-labelledby="hidden-options-title" hidden>
+      <div class="hidden-options-heading">
+        <p id="hidden-options-title" class="eyebrow">Opções de teste</p>
+        <p class="settings-description">Ferramentas para quem testa o app.</p>
+      </div>
 
       <section class="settings-card" aria-labelledby="diagnostics-title">
         <label class="settings-toggle-row" for="diagnostics-enabled">
@@ -414,7 +421,7 @@
         </div>
       </section>
 
-      <section class="settings-card clean-optional">
+      <section class="settings-card">
         <details id="touch-debug-panel">
         <summary>Diagnóstico de toque</summary>
         <p class="settings-description">Ative, volte ao cadastro e repita o gesto que falha. Depois retorne aqui para desativar e exportar o relatório.</p>
@@ -429,6 +436,9 @@
           <button id="clear-touch-debug" type="button" class="settings-secondary-button" disabled>Apagar relatório de toque</button>
         </div>
         </details>
+      </section>
+
+      <button id="hide-hidden-options" type="button" class="settings-secondary-button">Ocultar opções de teste</button>
       </section>
     </section>
 
@@ -525,7 +535,7 @@
     <footer class="app-footer">
       <span class="app-footer-disclaimer">App para estudo · não é controle de segurança</span>
       <a class="policies-link" href="./policies.html">Políticas e informações</a>
-      <span class="app-footer-meta">v2.35.0 · By: arielkeybob</span>
+      <span class="app-footer-meta">v2.36.0 · By: arielkeybob</span>
     </footer>
   </div>
 

@@ -1,5 +1,5 @@
 // Aceite específico deste navegador, separado dos dados transferíveis.
-const TERMS_VERSION = "1.0.10";
+const TERMS_VERSION = "1.0.11";
 // Aceites destas versões anteriores continuam valendo, sem pedir um novo. Liste aqui
 // só a mudança que não altera o que a pessoa consentiu — correção de texto, ajuste de
 // forma. Os dois erros não são simétricos: esquecer de listar apenas pede o aceite de
@@ -28,7 +28,9 @@ const TERMS_VERSION = "1.0.10";
 // - 1.0.9 → 1.0.10 (spec 0035, v2.35.0): o modo tester avançado, desligado por padrão,
 //   registra só neste aparelho dados de diagnóstico (eventos, contagens, códigos de erro).
 //   Nada novo sai do aparelho sem a pessoa exportar; o usuário decidiu não pedir novo aceite.
-const TERMS_VERSIONS_STILL_VALID = new Set(["1.0.3", "1.0.4", "1.0.5", "1.0.6", "1.0.7", "1.0.8", "1.0.9"]);
+// - 1.0.10 → 1.0.11 (spec 0036, v2.36.0): o modo tester passa a ficar oculto até um gesto
+//   secreto. Só muda onde a opção aparece, nada novo é coletado; sem novo aceite, a pedido do usuário.
+const TERMS_VERSIONS_STILL_VALID = new Set(["1.0.3", "1.0.4", "1.0.5", "1.0.6", "1.0.7", "1.0.8", "1.0.9", "1.0.10"]);
 const TERMS_STORAGE_KEY = "funtime-terms-v1";
 const TERMS_DRAFT_KEY = "funtime-terms-draft-v1";
 

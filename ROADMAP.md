@@ -102,6 +102,13 @@ desligada por padrão. Registra só no aparelho:
 Não registra nome de bebida, e-mail nem token. Exportar abre o compartilhamento do sistema ou baixa
 um JSON; desligar apaga o registro. Spec 0035.
 
+### Opções de teste ocultas — V2.36.0
+
+O modo tester e o Diagnóstico de toque ficam numa seção "Opções de teste" oculta em Sobre o app,
+liberada neste aparelho por 7 toques seguidos em "Versão instalada", como o modo desenvolvedor do
+Android. Ferramentas de teste futuras entram nessa seção. Com o modo tester ligado, ela não se esconde.
+Spec 0036.
+
 ### Copiar bebidas para amigos — V2.31.0
 
 Ver `docs/specs/0032-copiar-bebidas-entre-amigos.md`. O mesmo princípio de Exportar/Importar

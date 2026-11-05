@@ -1,4 +1,14 @@
-# FunTime — V2.35.0
+# FunTime — V2.36.0
+
+## V2.36.0 — Opções de teste ocultas por gesto secreto
+
+- O **Modo tester avançado** e o **Diagnóstico de toque** saíram da vista: ficam numa seção **Opções de teste**, oculta em Configurações › Sobre o app até **7 toques seguidos em "Versão instalada"**, como o modo desenvolvedor do Android. Do 4º ao 6º toque aparece "Faltam N toques"; no 7º, a seção aparece. Ferramentas de teste futuras entram nela.
+- A liberação fica só neste aparelho (`funtime-hidden-options-v1`), fora do backup e da nuvem. **Ocultar opções de teste** esconde de novo; **Apagar tudo deste aparelho** também.
+- **Nada grava escondido:** com o modo tester ligado, a seção não some e "Ocultar" pede para desligar antes. Quem ligou o modo na 2.35.0 continua vendo as opções.
+- O Diagnóstico de toque deixou de depender de desligar a Interface limpa; agora depende só do gesto.
+- Correção no registro do modo tester: ao recarregar com o modo desligado, a página anterior apagava a chave do registro. Agora isso só acontece ao desligar.
+- **Políticas 1.0.11**, sem novo aceite (a pedido do usuário): o item 7 diz que o modo tester fica oculto, sem revelar o gesto. A 1.0.10 entrou em `TERMS_VERSIONS_STILL_VALID`.
+- Testes: `tests/secret-taps.test.cjs` (novo); `tests/diagnostics-browser.test.cjs` (gesto, ocultar, caso 2.35.0) e `tests/icon-reorder-browser.test.cjs` (Diagnóstico de toque atrás do gesto) ajustados. Nenhum tutorial afetado. Sem mudança de dados ou regras do Firestore; `DATA_VERSION` permanece 11. Spec 0036.
 
 ## V2.35.0 — Modo tester avançado
 

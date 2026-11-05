@@ -98,6 +98,8 @@ export function createDiagnosticsLog({
     count: () => current.entries.length,
     since: () => current.since,
     record, enable, disable, clear, report,
-    flush: save,
+    // Só grava: desligado não há o que guardar, e apagar a chave aqui desfaria um registro que
+    // outra abertura acabou de ligar. Apagar é papel de `disable`.
+    flush: () => { if (current.enabled) save(); },
   };
 }

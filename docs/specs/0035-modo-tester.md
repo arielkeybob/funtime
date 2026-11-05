@@ -16,8 +16,9 @@ porque exige mudar as políticas, as regras do Firestore, o prazo de retenção 
 
 ## Decisão
 
-- **Cartão "Modo tester avançado"** em Configurações → Sobre o app. É sempre visível (não é
-  `clean-optional`, ao contrário do Diagnóstico de toque) e começa desligado.
+- **Cartão "Modo tester avançado"** em Configurações → Sobre o app. Começa desligado. Era sempre
+  visível na v2.35.0; desde a v2.36.0 fica nas opções de teste ocultas, liberadas por 7 toques na
+  versão (spec 0036).
 - **Só no aparelho.** O registro fica no localStorage (`funtime-diagnostics-v1`), fora do backup, das
   preferências e da nuvem. Foi o localStorage que sobreviveu quando o Chrome apagou o resto por falta
   de espaço. Nada é enviado: **Exportar diagnóstico** abre o compartilhamento do sistema ou baixa um

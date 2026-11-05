@@ -24,6 +24,7 @@ import { TUTORIALS } from "./src/tutorials/content.js";
 import { createDurationPicker, createWheelPicker, setWheelPickerValue } from "./src/ui/wheel-picker.js";
 import { createFieldErrorController, createFormErrorController } from "./src/ui/field-errors.js";
 import { createDrinkReorderController } from "./src/ui/drink-reorder.js";
+import { createSecretTaps } from "./src/ui/secret-taps.js";
 import { renderDrinkPicker, toggleAll } from "./src/ui/drink-picker.js";
 import { createIconCatalog } from "./src/ui/icon-catalog.js";
 import { BACKGROUND_COLORS, DEFAULT_BACKGROUND_COLOR, DEFAULT_BACKGROUND_IMAGE, defaultBackgroundSetting, encodeBackgroundImage, legibleBackgroundColor, parseStoredBackground, serializeBackground } from "./src/ui/app-background.js";
@@ -322,7 +323,7 @@ document.addEventListener("visibilitychange", () => {
 const DATA_STORAGE_KEY = "funtime-v1-data";
 const LEGACY_DRINKS_STORAGE_KEY = "balada-v1-drinks";
 const DATA_VERSION = 11;
-const APP_VERSION = "2.35.0";
+const APP_VERSION = "2.36.0";
 const DRINK_EXPORT_TYPE = "funtime-drinks";
 const DRINK_EXPORT_FORMAT_VERSION = 1;
 const BACKUP_EXPORT_TYPE = "funtime-backup";
@@ -338,6 +339,8 @@ const SECURITY_UPDATE_RELOAD_KEY = "funtime-security-update-reload-v1";
 const SECURITY_UPDATE_RELOAD_MS = 10000;
 const SECURITY_UPDATE_RELOAD_BOOT_MS = 30000;
 const BACKGROUND_STORAGE_KEY = "funtime-background-v1";
+// Opções de teste liberadas pelo gesto secreto (spec 0036); só deste aparelho, fora do backup.
+const HIDDEN_OPTIONS_STORAGE_KEY = "funtime-hidden-options-v1";
 
 // Modo tester avançado (docs/specs/0035): desligado por padrão, guardado só neste aparelho.
 // Criado antes de tudo para registrar a abertura inteira; sem o modo ligado, nada é gravado.
@@ -4637,8 +4640,37 @@ document.addEventListener("visibilitychange", () => {
 window.addEventListener("pagehide", () => diagnostics.flush());
 navigator.serviceWorker?.addEventListener("controllerchange", () => diagnostics.record("sw.trocou", {}));
 
+// ---- Opções de teste ocultas (docs/specs/0036) ------------------------------
+// Liberadas neste aparelho por 7 toques seguidos em "Versão instalada", como o modo
+// desenvolvedor do Android.
+
+function hiddenOptionsUnlocked() {
+  try { return JSON.parse(localStorage.getItem(HIDDEN_OPTIONS_STORAGE_KEY))?.unlocked === true; }
+  catch { return false; }
+}
+
+function unlockHiddenOptions() {
+  try {
+    localStorage.setItem(HIDDEN_OPTIONS_STORAGE_KEY, JSON.stringify({ unlocked: true, at: Date.now() }));
+    return true;
+  } catch { return false; }
+}
+
+// Também usado por "Apagar tudo deste aparelho" (reset.js).
+function hideHiddenOptions() {
+  try { localStorage.removeItem(HIDDEN_OPTIONS_STORAGE_KEY); } catch { /* sem armazenamento */ }
+  updateHiddenOptionsUI();
+}
+
+// Com o modo tester ligado a seção nunca some: nada pode ficar gravando escondido.
+function updateHiddenOptionsUI() {
+  const section = document.querySelector("#hidden-options");
+  if (section) section.hidden = !(hiddenOptionsUnlocked() || diagnostics.isEnabled());
+}
+
 // Busca os nós na hora: showSettingsPage chama isto e pode rodar antes deste trecho.
 function updateDiagnosticsUI() {
+  updateHiddenOptionsUI();
   const toggle = document.querySelector("#diagnostics-enabled");
   if (!toggle) return;
   const status = document.querySelector("#diagnostics-status");
@@ -4697,6 +4729,34 @@ document.querySelector("#clear-diagnostics")?.addEventListener("click", () => {
   showToast("Registro apagado. O modo tester continua ligado.");
 });
 
+const secretTaps = createSecretTaps({
+  onProgress: (left) => showToast(hiddenOptionsUnlocked()
+    ? "As opções de teste já estão liberadas."
+    : `Faltam ${left} ${left === 1 ? "toque" : "toques"} para liberar as opções de teste.`),
+  onUnlock: () => {
+    if (hiddenOptionsUnlocked()) { showToast("As opções de teste já estão liberadas."); return; }
+    if (!unlockHiddenOptions()) {
+      showAppNotification("Não foi possível liberar as opções de teste neste aparelho.", { type: "error" });
+      return;
+    }
+    updateHiddenOptionsUI();
+    showToast("Opções de teste liberadas.");
+    document.querySelector("#hidden-options")?.scrollIntoView({ block: "start" });
+  },
+});
+document.querySelector("#about-version")?.addEventListener("click", () => secretTaps.tap());
+
+document.querySelector("#hide-hidden-options")?.addEventListener("click", () => {
+  if (diagnostics.isEnabled()) {
+    showToast("Desligue o modo tester antes de ocultar as opções de teste.");
+    return;
+  }
+  hideHiddenOptions();
+  showToast("Opções de teste ocultas.");
+});
+
+// Na 2.35.0 o modo tester aparecia para todos: quem o ligou já tinha as opções à vista.
+if (diagnostics.isEnabled() && !hiddenOptionsUnlocked()) unlockHiddenOptions();
 updateDiagnosticsUI();
 document.addEventListener("visibilitychange", () => {
   if (document.hidden) return;
@@ -4753,7 +4813,7 @@ Object.assign(globalThis, {
   updateDrinkMenuCountdown, setLogClock, buildIconPicker, prepareDrinkImportFile,
   prepareBackupRestoreFile, validateBackupPayload, persistDrinkList, readPendingSharedDrinkFile,
   lockApp, closeSensitiveDialogs, showLockScreen, markUpdateReloadUnlocked, APP_VERSION, DRINK_EXPORT_TYPE, DATA_VERSION,
-  backupRestoreDialog, derivePinHash, disableDiagnostics,
+  backupRestoreDialog, derivePinHash, disableDiagnostics, hideHiddenOptions,
 });
 // tests/navigation-browser.test.cjs lê `editingIconCatalog` solto (não via
 // getEditingIconCatalog()) para checar o valor corrente após um toggle — como é

@@ -63,6 +63,14 @@ test('flush grava na hora, para o sistema fechar o app em segundo plano sem perd
   assert.equal(timers.pendente, null);
 });
 
+test('flush desligado não mexe no armazenamento (não desfaz um registro ligado por outra abertura)', () => {
+  const storage = fakeStorage();
+  const { log } = setup({ storage });
+  storage.setItem(DIAGNOSTICS_STORAGE_KEY, JSON.stringify({ enabled: true, since: 1, entries: [] }));
+  log.flush();
+  assert.notEqual(storage.getItem(DIAGNOSTICS_STORAGE_KEY), null);
+});
+
 test('desligar apaga o registro do aparelho', () => {
   const { log, storage } = setup();
   log.enable();
